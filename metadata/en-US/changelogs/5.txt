@@ -1,0 +1,4 @@
+• Added Monero donation option in the donate dialog
+• Users can now copy Monero address with a single tap
+• Improved donate dialog with better UI
+• Minor bug fixes and improvements 

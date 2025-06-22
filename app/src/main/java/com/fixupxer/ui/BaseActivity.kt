@@ -131,21 +131,44 @@ abstract class BaseActivity : AppCompatActivity() {
      * Show donate dialog
      */
     protected fun showDonateDialog() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.donate_dialog_title)
-            .setMessage(R.string.donate_text)
-            .setPositiveButton(R.string.donate_dialog_positive) { _, _ ->
-                try {
-                    // Open donation link
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.DONATION_URL))
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    Timber.e(e, "Error opening donation URL")
-                    Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
-                }
+        val dialogView = layoutInflater.inflate(R.layout.dialog_donate, null)
+        
+        val alertDialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+        
+        // Find views in the custom layout
+        val buttonDonate = dialogView.findViewById<android.widget.Button>(R.id.buttonDonate)
+        val buttonMaybeLater = dialogView.findViewById<android.widget.Button>(R.id.buttonMaybeLater)
+        val textViewMonero = dialogView.findViewById<TextView>(R.id.textViewMonero)
+        
+        // Set up donate button click
+        buttonDonate.setOnClickListener {
+            try {
+                // Open donation link
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.DONATION_URL))
+                startActivity(intent)
+                alertDialog.dismiss()
+            } catch (e: Exception) {
+                Timber.e(e, "Error opening donation URL")
+                Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton(R.string.donate_dialog_negative, null)
-            .show()
+        }
+        
+        // Set up maybe later button click
+        buttonMaybeLater.setOnClickListener {
+            alertDialog.dismiss()
+        }
+        
+        // Set up Monero text click to copy address
+        textViewMonero.setOnClickListener {
+            val clipboardManager = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clipData = android.content.ClipData.newPlainText("Monero Address", Constants.MONERO_ADDRESS)
+            clipboardManager.setPrimaryClip(clipData)
+            Toast.makeText(this, getString(R.string.monero_address_copied), Toast.LENGTH_SHORT).show()
+        }
+        
+        alertDialog.show()
     }
     
     /**

@@ -7,6 +7,9 @@ object Constants {
     // Donation URL
     const val DONATION_URL = "https://ko-fi.com/neatcodelabs"
     
+    // Monero donation address
+    const val MONERO_ADDRESS = "45TiAPismHb5TbJdX5iscCShfwQ9gSZyMcxKXjjEyabjf98dV2y8F7SHaConCAUkqUNbHuCKZk4NE4d6xpiCBRvMNPEWu1b"
+    
     // Company URLs
     const val WEBSITE_URL = "https://neatcodelabs.com/"
     const val GITHUB_URL = "https://github.com/NeatCode-Labs"

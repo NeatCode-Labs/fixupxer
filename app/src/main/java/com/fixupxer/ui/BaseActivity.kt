@@ -5,40 +5,25 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import androidx.core.view.OnApplyWindowInsetsListener
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
-import com.fixupxer.PreferencesManager
 import com.fixupxer.R
-import com.fixupxer.UrlProcessor
 import com.fixupxer.utils.Constants
-import java.util.concurrent.Executor
-import java.util.concurrent.Executors
+import timber.log.Timber
 
 /**
- * Base activity with common functionality for MainActivity and ShareActivity
+ * Base activity with common functionality for all activities
  */
 abstract class BaseActivity : AppCompatActivity() {
-    protected lateinit var preferencesManager: PreferencesManager
-    protected lateinit var urlProcessor: UrlProcessor
     protected var windowInsetsListener: OnApplyWindowInsetsListener? = null
-    
-    // Executor for background tasks
-    protected val backgroundExecutor: Executor = Executors.newSingleThreadExecutor()
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Initialize preferences manager and URL processor
-        preferencesManager = PreferencesManager(this)
-        urlProcessor = UrlProcessor()
         
         // Configure window insets and status bar
         setupWindowInsets()
@@ -77,53 +62,6 @@ abstract class BaseActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R && windowInsetsListener != null) {
             ViewCompat.setOnApplyWindowInsetsListener(window.decorView, null)
             windowInsetsListener = null
-        }
-        
-        // Shutdown the background executor to prevent thread leaks
-        if (backgroundExecutor is java.util.concurrent.ExecutorService) {
-            backgroundExecutor.shutdown()
-        }
-    }
-    
-    /**
-     * Process URL in background thread
-     */
-    protected fun processUrlInBackground(url: String, callback: (String) -> Unit) {
-        if (url.isEmpty()) {
-            callback(url)
-            return
-        }
-        
-        backgroundExecutor.execute {
-            try {
-                val isInstagramUrl = urlProcessor.isInstagramUrl(url)
-                val processedUrl = if (isInstagramUrl) {
-                    // For Instagram URLs, use the Instagram conversion preference
-                    urlProcessor.processUrl(
-                        url,
-                        true, // Always clean tracking
-                        preferencesManager.isConvertInstagramEnabled() // Use Instagram conversion preference
-                    )
-                } else {
-                    // For other URLs, use the standard process with user preferences
-                    urlProcessor.processUrl(
-                        url,
-                        preferencesManager.isCleanTrackingEnabled(),
-                        preferencesManager.isConvertTwitterEnabled()
-                    )
-                }
-                
-                // Return result on UI thread
-                runOnUiThread {
-                    callback(processedUrl)
-                }
-            } catch (e: Exception) {
-                Log.e(Constants.LOG_TAG, "Error processing URL: ${e.message}")
-                runOnUiThread {
-                    Toast.makeText(this, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
-                    callback(url) // Return original URL on error
-                }
-            }
         }
     }
     
@@ -184,7 +122,7 @@ abstract class BaseActivity : AppCompatActivity() {
             
             startActivity(Intent.createChooser(intent, getString(R.string.send_email)))
         } catch (e: Exception) {
-            Log.e(Constants.LOG_TAG, "Error launching email app: ${e.message}")
+            Timber.e(e, "Error launching email app")
             Toast.makeText(this, getString(R.string.error_email_app), Toast.LENGTH_SHORT).show()
         }
     }
@@ -202,7 +140,7 @@ abstract class BaseActivity : AppCompatActivity() {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.DONATION_URL))
                     startActivity(intent)
                 } catch (e: Exception) {
-                    Log.e(Constants.LOG_TAG, "Error opening donation URL: ${e.message}")
+                    Timber.e(e, "Error opening donation URL")
                     Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
                 }
             }
@@ -216,7 +154,7 @@ abstract class BaseActivity : AppCompatActivity() {
     protected fun setAppTitle(titleTextView: TextView?) {
         titleTextView?.let {
             it.text = getString(R.string.app_title)
-            Log.d(Constants.LOG_TAG, "App title header set to: ${getString(R.string.app_title)}")
+            Timber.d("App title header set to: ${getString(R.string.app_title)}")
         }
     }
 } 

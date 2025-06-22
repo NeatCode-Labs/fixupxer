@@ -1,19 +1,19 @@
-# FixupXer
+# FixupXer - URL Enhancer
 
 <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="100" alt="FixupXer Logo">
 
-A privacy-focused Android app that cleans tracking parameters from URLs and improves social media link sharing.
+FixupXer is a privacy-focused Android app that cleans tracking parameters from URLs and improves social media link sharing.
 
 ## Screenshots
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer-android-app/raw/main/screenshots/main_screen.png">
-    <img src="https://github.com/NeatCode-Labs/fixupxer-android-app/raw/main/screenshots/main_screen_thumbnail.png" width="200" alt="Main Screen">
-  </a>
-  <a href="https://github.com/NeatCode-Labs/fixupxer-android-app/raw/main/screenshots/share_screen.png">
-    <img src="https://github.com/NeatCode-Labs/fixupxer-android-app/raw/main/screenshots/share_screen_thumbnail.png" width="200" alt="Share Screen">
-  </a>
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/main_screen_thumbnail.jpg" width="200" alt="Main Screen">
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/mainscreen_filled_thumbnail.jpg" width="200" alt="Main Screen Filled">
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/share_screen_thumbnail.jpg" width="200" alt="Share Screen">
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/sharescreen_instagram_thumbnail.jpg" width="200" alt="Share Screen Instagram">
 </p>
+
+
 
 ## Features
 
@@ -67,19 +67,34 @@ FixupXer uses the kkinstagram.com service as a proxy to enhance Instagram links.
 
 1. Clone the repository:
    ```
-   git clone https://github.com/NeatCode-Labs/fixupxer-android-app.git
+   git clone https://github.com/NeatCode-Labs/fixupxer.git
    ```
 
-2. Open the project in Android Studio.
+2. Configure the bug report email:
+   - Edit `app/src/main/res/values/strings.xml`
+   - Replace `YOUR_EMAIL@EXAMPLE.COM` with your actual email address
 
-3. Build the project:
+3. Open the project in Android Studio.
+
+4. Build the project:
    ```
    ./gradlew assembleDebug
    ```
 
-4. Install on your device:
+5. Install on your device:
    ```
    ./gradlew installDebug
+   ```
+
+### Building Release APK/AAB
+
+To build a signed release:
+
+1. Create your keystore and configure `keystore.properties` (see `keystore.properties.template`)
+2. Run:
+   ```
+   ./gradlew assembleRelease  # For APK
+   ./gradlew bundleRelease    # For AAB
    ```
 
 ## Privacy
@@ -101,3 +116,4 @@ This software is provided "as is", without warranty of any kind. The app names "
 ---
 
 [Made by NeatCode Labs](https://neatcodelabs.com/)
+

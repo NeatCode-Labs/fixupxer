@@ -24,6 +24,7 @@
     <string name="shared_text">Shared Text</string>
     <string name="processed_url">Processed URL</string>
     <string name="no_url_found">No URL found in shared text</string>
+    <string name="processing">Processing…</string>
     
     <!-- Messages -->
     <string name="url_copied">URL copied to clipboard</string>
@@ -44,9 +45,9 @@
     <string name="report_bug">Report a Bug</string>
     <string name="separator">|</string>
     <string name="about_dialog_title">About FixupXer</string>
-    <string name="about_text">FixupXer cleans tracking parameters from URLs (including Facebook, Twitter/X, and Instagram) and converts social media URLs for better embedding and sharing.\n\nVersion 1.5</string>
+    <string name="about_text">FixupXer cleans tracking parameters from URLs (including Facebook, Twitter/X, and Instagram) and converts social media URLs for better embedding and sharing.\n\nVersion 1.1.0</string>
     <string name="about_dialog_positive">OK</string>
-    <string name="bug_report_email">support@neatcodelabs.com</string>
+    <string name="bug_report_email">neatcodelabs@gmail.com</string>
     <string name="bug_report_subject">FixupXer Bug Report</string>
     
     <!-- Donate dialog -->

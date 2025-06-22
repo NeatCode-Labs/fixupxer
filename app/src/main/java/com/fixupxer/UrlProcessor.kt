@@ -1,9 +1,12 @@
 package com.fixupxer
 
 import android.net.Uri
-import android.util.Log
 import androidx.core.net.toUri
+import com.fixupxer.data.config.TrackingParameters
 import com.fixupxer.utils.Constants
+import timber.log.Timber
+import java.net.URLDecoder
+import java.util.regex.Pattern
 
 /**
  * A utility class for processing URLs to:
@@ -12,20 +15,8 @@ import com.fixupxer.utils.Constants
  * 3. Convert Instagram URLs to kkinstagram.com for better embedding
  */
 class UrlProcessor {
-    // List of common tracking parameters to remove
-    private val trackingParams = listOf(
-        "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
-        "fbclid", "gclid", "ocid", "ncid", "ref", "referrer", "source", "source_platform",
-        "share_id", "igshid", "mc_cid", "mc_eid", "yclid", "ml_subscriber", "ml_subscriber_hash",
-        "oly_enc_id", "oly_anon_id", "_openstat", "marketo_tracking", "s", "t", 
-        "__a", "__d", "_rdr", "hl", "fbadid", "vt", "campaign_id", "ad_id", "ad_set_id",
-        "ig_cache_key", "ig_mid", "ig_share_sheet", "igsh", "igshid", "__cft__", "__tn__",
-        "_branch_match_id", "epa", "_gl", "from_ad", "from_tiktok", "from_twitter",
-        "from_web", "context", "contextual_post", "correlator", "timestamp",
-        // New Facebook/Meta tracking parameters
-        "mibextid", "fb_action_ids", "fb_action_types", "fb_source", "fb_ref",
-        "fb_comment_id", "fb_story_location", "fb_dtsg_ag"
-    )
+    // Use tracking parameters from configuration
+    private val trackingParams = TrackingParameters.allParameters
     
     /**
      * Process a URL by cleaning tracking parameters and optionally converting 
@@ -36,19 +27,39 @@ class UrlProcessor {
             return url
         }
         
-        try {
+        return try {
+            // Handle URLs that might start with @ (common for Instagram shares)
+            var inputUrl = url.trim()
+            if (inputUrl.startsWith("@")) {
+                inputUrl = inputUrl.substring(1)
+                Timber.d("Removed @ from beginning of URL: $inputUrl")
+            }
+            
+            // Decode URL if it's encoded
+            val decodedUrl = try {
+                URLDecoder.decode(inputUrl, "UTF-8")
+            } catch (e: Exception) {
+                inputUrl
+            }
+            
+            // Validate URL format
+            if (!isValidUrl(decodedUrl)) {
+                Timber.w("Invalid URL format: $decodedUrl")
+                return url
+            }
+            
             // First check if it's an Instagram URL to treat it specially
-            if (isInstagramUrl(url)) {
-                Log.d(Constants.LOG_TAG, "Instagram URL detected: $url")
+            if (isInstagramUrl(decodedUrl)) {
+                Timber.d("Instagram URL detected: $decodedUrl")
                 
                 // First remove any tracking parameters
-                val cleanedUrl = if (cleanTracking) removeTrackingParameters(url) else url
-                Log.d(Constants.LOG_TAG, "Instagram URL after cleaning: $cleanedUrl")
+                val cleanedUrl = if (cleanTracking) removeTrackingParameters(decodedUrl) else decodedUrl
+                Timber.d("Instagram URL after cleaning: $cleanedUrl")
                 
                 // If we're supposed to convert Twitter (which means we're also handling Instagram)
                 if (convertTwitter) {
                     val converted = convertToKkInstagram(cleanedUrl)
-                    Log.d(Constants.LOG_TAG, "Instagram URL converted: $converted")
+                    Timber.d("Instagram URL converted: $converted")
                     return converted
                 }
                 
@@ -56,7 +67,7 @@ class UrlProcessor {
             }
             
             // For non-Instagram URLs
-            var processedUrl = url
+            var processedUrl = decodedUrl
             
             // Clean tracking parameters if enabled
             if (cleanTracking) {
@@ -68,10 +79,10 @@ class UrlProcessor {
                 processedUrl = convertTwitterUrl(processedUrl)
             }
             
-            return processedUrl
+            processedUrl
         } catch (e: Exception) {
-            Log.e(Constants.LOG_TAG, "Error processing URL: ${e.message}")
-            return url // Return original URL if there's an error
+            Timber.e(e, "Error processing URL")
+            url // Return original URL if there's an error
         }
     }
     
@@ -84,41 +95,61 @@ class UrlProcessor {
             return url
         }
         
-        try {
+        return try {
+            val decodedUrl = try {
+                URLDecoder.decode(url.trim(), "UTF-8")
+            } catch (e: Exception) {
+                url.trim()
+            }
+            
             // Handle Instagram URLs as a special case
-            if (isInstagramUrl(url)) {
-                Log.d(Constants.LOG_TAG, "Instagram URL for sharing: $url")
-                
-                // First remove tracking parameters
-                val cleaned = removeTrackingParameters(url)
-                Log.d(Constants.LOG_TAG, "Instagram URL cleaned: $cleaned")
-                
-                // Then convert to kkinstagram
-                val converted = convertToKkInstagram(cleaned)
-                Log.d(Constants.LOG_TAG, "Instagram URL converted for sharing: $converted")
-                
-                return converted
-            } else if (url.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)) {
-                Log.d(Constants.LOG_TAG, "URL already contains kkinstagram, no need to convert: $url")
-                return url
+            when {
+                isInstagramUrl(decodedUrl) -> {
+                    Timber.d("Instagram URL for sharing: $decodedUrl")
+                    
+                    // First remove tracking parameters
+                    val cleaned = removeTrackingParameters(decodedUrl)
+                    Timber.d("Instagram URL cleaned: $cleaned")
+                    
+                    // Then convert to kkinstagram
+                    val converted = convertToKkInstagram(cleaned)
+                    Timber.d("Instagram URL converted for sharing: $converted")
+                    
+                    converted
+                }
+                decodedUrl.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true) -> {
+                    Timber.d("URL already contains kkinstagram: $decodedUrl")
+                    decodedUrl
+                }
+                isTwitterUrl(decodedUrl) -> {
+                    Timber.d("Twitter URL for sharing: $decodedUrl")
+                    
+                    // First remove tracking parameters
+                    val cleaned = removeTrackingParameters(decodedUrl)
+                    
+                    // Then convert to fixupx
+                    convertTwitterUrl(cleaned)
+                }
+                else -> {
+                    // For other URLs, just clean tracking parameters
+                    removeTrackingParameters(decodedUrl)
+                }
             }
-            
-            // Handle Twitter URLs
-            if (isTwitterUrl(url)) {
-                Log.d(Constants.LOG_TAG, "Twitter URL for sharing: $url")
-                
-                // First remove tracking parameters
-                val cleaned = removeTrackingParameters(url)
-                
-                // Then convert to fixupx
-                return convertTwitterUrl(cleaned)
-            }
-            
-            // For other URLs, just clean tracking parameters
-            return removeTrackingParameters(url)
         } catch (e: Exception) {
-            Log.e(Constants.LOG_TAG, "Error processing URL for sharing: ${e.message}")
-            return url // Return original URL if there's an error
+            Timber.e(e, "Error processing URL for sharing")
+            url // Return original URL if there's an error
+        }
+    }
+    
+    /**
+     * Check if a URL is valid
+     */
+    private fun isValidUrl(url: String): Boolean {
+        return try {
+            val uri = url.toUri()
+            uri.scheme != null && (uri.scheme == "http" || uri.scheme == "https")
+        } catch (e: Exception) {
+            false
         }
     }
     
@@ -137,7 +168,19 @@ class UrlProcessor {
         if (url.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)) {
             return url
         }
-        return url.replace(Constants.INSTAGRAM_DOMAIN, Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)
+        
+        // Handle various Instagram subdomains
+        val instagramPattern = Pattern.compile(
+            "(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(instagram\\.com)",
+            Pattern.CASE_INSENSITIVE
+        )
+        
+        val matcher = instagramPattern.matcher(url)
+        return if (matcher.find()) {
+            matcher.replaceAll("$1$2${Constants.KKINSTAGRAM_DOMAIN}")
+        } else {
+            url.replace(Constants.INSTAGRAM_DOMAIN, Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)
+        }
     }
     
     /**
@@ -174,13 +217,14 @@ class UrlProcessor {
             if (parts.size != 2) return url
             
             val username = parts[0].removePrefix("/")
-            val statusId = parts[1].takeWhile { it.isDigit() }
+            val statusIdMatch = Pattern.compile("^(\\d+)").matcher(parts[1])
             
-            if (username.isNotEmpty() && statusId.isNotEmpty()) {
+            if (username.isNotEmpty() && statusIdMatch.find()) {
+                val statusId = statusIdMatch.group(1)
                 return "https://${Constants.FIXUPX_DOMAIN}/$username${Constants.TWITTER_STATUS_PATH}$statusId"
             }
         } catch (e: Exception) {
-            Log.e(Constants.LOG_TAG, "Error converting Twitter URL: ${e.message}")
+            Timber.e(e, "Error converting Twitter URL")
         }
         
         return url
@@ -192,25 +236,18 @@ class UrlProcessor {
      */
     private fun removeTrackingParameters(url: String): String {
         try {
-            // Handle URLs that might start with @ (common for Instagram shares)
-            var processedUrl = url
-            if (processedUrl.startsWith("@")) {
-                processedUrl = processedUrl.substring(1)
-                Log.d(Constants.LOG_TAG, "Removed @ from beginning of URL: $processedUrl")
-            }
-            
             // If no query parameters, return as is
-            if (!processedUrl.contains("?")) {
-                return processedUrl
+            if (!url.contains("?")) {
+                return url
             }
             
             // Parse the URL using Android's Uri class
-            val uri = processedUrl.toUri()
+            val uri = url.toUri()
             val builder = uri.buildUpon().clearQuery()
             
             // Get all query parameters
             uri.queryParameterNames?.forEach { paramName ->
-                // Keep parameters not in our tracking list
+                // Keep parameters not in our tracking list (case-insensitive check)
                 if (!trackingParams.contains(paramName.lowercase())) {
                     uri.getQueryParameter(paramName)?.let { paramValue ->
                         builder.appendQueryParameter(paramName, paramValue)
@@ -220,22 +257,36 @@ class UrlProcessor {
             
             // Build the clean URL
             val cleanUrl = builder.build().toString()
-            return cleanUrl
+            
+            // Remove trailing ? if no parameters remain
+            return if (cleanUrl.endsWith("?")) {
+                cleanUrl.dropLast(1)
+            } else {
+                cleanUrl
+            }
         } catch (e: Exception) {
-            Log.e(Constants.LOG_TAG, "Error removing tracking parameters: ${e.message}")
+            Timber.e(e, "Error removing tracking parameters")
             return url
         }
     }
     
     companion object {
         // Pre-compiled regex pattern for better performance
-        private val URL_PATTERN = "(https?|ftp)://[^\\s/$.?#].[^\\s]*".toRegex()
+        private val URL_PATTERN = Pattern.compile(
+            "(https?|ftp)://[^\\s/\$.?#].[^\\s]*",
+            Pattern.CASE_INSENSITIVE
+        )
         
         /**
          * Extract URLs from text
          */
         fun extractUrls(text: String): List<String> {
-            return URL_PATTERN.findAll(text).map { it.value }.toList()
+            val matcher = URL_PATTERN.matcher(text)
+            val urls = mutableListOf<String>()
+            while (matcher.find()) {
+                urls.add(matcher.group())
+            }
+            return urls
         }
     }
 } 

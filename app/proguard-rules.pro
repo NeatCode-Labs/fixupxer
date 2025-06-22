@@ -1,21 +1,64 @@
-# Add project specific ProGuard rules here.
+# FixupXer ProGuard Rules
 
 # Keep the application class
--keep class com.fixupxer.** { *; }
+-keep class com.fixupxer.FixupXerApplication { *; }
 
-# Keep Compose UI classes
+# Keep activity classes
+-keep public class * extends android.app.Activity
+-keep public class * extends androidx.appcompat.app.AppCompatActivity
+
+# Keep URL processing logic (core functionality)
+-keep class com.fixupxer.UrlProcessor { *; }
+-keep class com.fixupxer.utils.Constants { *; }
+-keep class com.fixupxer.PreferencesManager { *; }
+
+# Keep data classes and models
+-keep class com.fixupxer.data.model.** { *; }
+-keep class com.fixupxer.domain.model.** { *; }
+
+# Keep ViewModels
+-keep class * extends androidx.lifecycle.ViewModel {
+    <init>(...);
+}
+
+# Hilt/Dagger
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep class * extends dagger.hilt.android.internal.managers.ViewComponentManager$FragmentContextWrapper { *; }
+-keepclasseswithmembers class * {
+    @dagger.hilt.* <methods>;
+}
+-keepclasseswithmembers class * {
+    @javax.inject.* <methods>;
+}
+-keepclasseswithmembers class * {
+    @dagger.* <methods>;
+}
+
+# Keep Compose classes
 -keep class androidx.compose.** { *; }
--keep class kotlinx.coroutines.** { *; }
+-dontwarn androidx.compose.**
+-keep class kotlin.Metadata { *; }
 
-# Keep Material3 components
+# Kotlin Coroutines
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembernames class kotlinx.** {
+    volatile <fields>;
+}
+
+# Room
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Entity class *
+-dontwarn androidx.room.paging.**
+
+# Timber
+-dontwarn org.jetbrains.annotations.**
+-keep class timber.log.** { *; }
+
+# Material3 components
 -keep class com.google.android.material.** { *; }
-
-# Keep AndroidX components
--keep class androidx.** { *; }
-
-# Keep Kotlin serialization
--keepattributes *Annotation*, InnerClasses
--dontnote kotlinx.serialization.AnnotationsKt
+-dontwarn com.google.android.material.**
 
 # Keep native methods
 -keepclasseswithmembernames class * {
@@ -24,57 +67,58 @@
 
 # Keep Parcelable implementations
 -keepclassmembers class * implements android.os.Parcelable {
-    static ** CREATOR;
-}
-
-# Keep R8 rules
--keepattributes SourceFile,LineNumberTable
--keepattributes Signature
--keepattributes Exceptions
-
-# Keep ViewBinding
--keep class * implements androidx.viewbinding.ViewBinding {
-    public static *** bind(android.view.View);
-    public static *** inflate(android.view.LayoutInflater, android.view.ViewGroup, boolean);
-}
-
-# Keep Android runtime classes
--keep class androidx.** { *; }
--keep interface androidx.** { *; }
--keep class android.** { *; }
--keep interface android.** { *; }
-
-# Keep any classes referenced from XML layouts
--keep public class * extends androidx.appcompat.app.AppCompatActivity
--keep public class * extends android.app.Activity
--keep public class * extends android.app.Application
--keep public class * extends android.view.View
--keep public class * extends android.widget.TextView
--keep public class * extends android.widget.Button
-
-# Keep the R class for resources
--keepclassmembers class **.R$* {
-    public static <fields>;
+    public static final ** CREATOR;
 }
 
 # Keep Serializable classes
--keepnames class * implements java.io.Serializable
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    !static !transient <fields>;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
 
-# Keep all model classes
--keep class com.fixupxer.models.** { *; }
-
-# Keep all enum values
+# Keep enum values
 -keepclassmembers enum * {
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
 
-# Keep BuildConfig
--keep class com.fixupxer.BuildConfig { *; }
+# Keep R class members
+-keepclassmembers class **.R$* {
+    public static <fields>;
+}
 
-# Preserve the special static methods that are required in all enumeration classes
--keepclassmembers class * extends java.lang.Enum {
-    <fields>;
-    public static **[] values();
-    public static ** valueOf(java.lang.String);
-} 
+# Keep line numbers for stack traces
+-keepattributes SourceFile,LineNumberTable
+
+# Keep runtime annotations
+-keepattributes RuntimeVisibleAnnotations,RuntimeVisibleParameterAnnotations
+
+# Keep signature for generic types
+-keepattributes Signature
+
+# Keep exception names
+-keepattributes Exceptions
+
+# Remove logging in release builds
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+}
+
+# Remove Timber debug logs in release
+-assumenosideeffects class timber.log.Timber {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+}
+
+# Optimization
+-optimizationpasses 5
+-allowaccessmodification
+-repackageclasses '' 

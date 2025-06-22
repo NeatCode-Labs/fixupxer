@@ -1,0 +1,20 @@
+{
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-17",
+            "path": "/usr/lib/jvm/java-17-openjdk",
+            "default": true
+        }
+    ],
+    "java.jdt.ls.java.home": "/usr/lib/jvm/java-17-openjdk",
+    "java.home": "/usr/lib/jvm/java-17-openjdk",
+    "java.import.gradle.java.home": "/usr/lib/jvm/java-17-openjdk",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.gradle.user.home": null,
+    "java.debug.settings.hotCodeReplace": "auto",
+    "java.project.sourcePaths": [
+        "src",
+        "app/src/main/java"
+    ],
+    "java.import.gradle.version": "8.11.1"
+} 

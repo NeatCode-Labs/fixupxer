@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Shadow layer -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#15002C58" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+    <!-- Card layer with slight offset to create shadow effect -->
+    <item
+        android:bottom="2dp"
+        android:left="0dp"
+        android:right="1dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:endColor="@color/white"
+                android:startColor="#F8FCFD"
+                android:type="linear" />
+            <corners android:radius="12dp" />
+            <stroke
+                android:width="0.5dp"
+                android:color="@color/card_stroke" />
+        </shape>
+    </item>
+</layer-list> 

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base colors -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="light_gray">#F5F5F5</color>
+    <color name="medium_gray">#E0E0E0</color>
+    <color name="dark_gray">#757575</color>
+    
+    <!-- Modern material theme colors -->
+    <color name="primary">#3F51B5</color>
+    <color name="primary_dark">#303F9F</color>
+    <color name="primary_light">#C5CAE9</color>
+    <color name="accent">#536DFE</color>
+    <color name="accent_light">#8C9EFF</color>
+    <color name="accent_dark">#3D5AFE</color>
+    
+    <!-- Background colors -->
+    <color name="background">#F2F4F6</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_stroke">#E0E0E0</color>
+    
+    <!-- Button colors -->
+    <color name="button_text">#3F51B5</color>
+    <color name="button_stroke">#3F51B5</color>
+    <color name="button_background">#FFFFFF</color>
+    
+    <!-- Switch colors -->
+    <color name="switch_thumb_on">#3F51B5</color>
+    <color name="switch_track_on">#C5CAE9</color>
+    <color name="switch_thumb_off">#9E9E9E</color>
+    <color name="switch_track_off">#E0E0E0</color>
+</resources>

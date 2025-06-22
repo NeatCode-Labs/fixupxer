@@ -73,4 +73,9 @@ lint/outputs/
 lint/tmp/
 
 # Android Profiling
-*.hprof 
+*.hprof
+
+# Release builds and sensitive docs
+FixupXer-*.apk
+FixupXer-*.aab
+KEYSTORE_INFO.md 

@@ -3,14 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/donate"
+        android:text="@string/donate_dialog_title"
         android:textSize="20sp"
         android:textStyle="bold"
+        android:textColor="@color/primary"
         android:layout_marginBottom="16dp"/>
 
     <TextView
@@ -18,26 +19,47 @@
         android:layout_height="wrap_content"
         android:text="@string/donate_text"
         android:textSize="16sp"
-        android:layout_marginBottom="16dp"/>
+        android:textColor="@color/dark_gray"
+        android:layout_marginBottom="24dp"/>
 
-    <Button
-        android:id="@+id/fxEmbedDonateButton"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/donate_to_fxembed"
-        android:layout_marginBottom="8dp"/>
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp">
 
     <Button
-        android:id="@+id/clearUrlsDonateButton"
-        android:layout_width="match_parent"
+            android:id="@+id/buttonMaybeLater"
+            android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/donate_to_clearurls"
-        android:layout_marginBottom="16dp"/>
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:text="@string/donate_dialog_negative"
+            android:textColor="@color/dark_gray"/>
 
     <Button
-        android:id="@+id/closeButton"
+            android:id="@+id/buttonDonate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            style="@style/Widget.MaterialComponents.Button"
+            android:text="@string/donate_dialog_positive"
+            android:backgroundTint="@color/primary"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textViewMonero"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/close"/>
+        android:text="@string/monero_donation_text"
+        android:textSize="14sp"
+        android:textColor="@color/primary"
+        android:gravity="center"
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"/>
 
 </LinearLayout> 

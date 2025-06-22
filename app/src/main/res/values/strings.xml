@@ -45,7 +45,7 @@
     <string name="report_bug">Report a Bug</string>
     <string name="separator">|</string>
     <string name="about_dialog_title">About FixupXer</string>
-    <string name="about_text">FixupXer cleans tracking parameters from URLs (including Facebook, Twitter/X, and Instagram) and converts social media URLs for better embedding and sharing.\n\nVersion 1.1.0</string>
+    <string name="about_text">FixupXer cleans tracking parameters from URLs (including Facebook, Twitter/X, and Instagram) and converts social media URLs for better embedding and sharing.\n\nVersion 1.1.1</string>
     <string name="about_dialog_positive">OK</string>
     <string name="bug_report_email">neatcodelabs@gmail.com</string>
     <string name="bug_report_subject">FixupXer Bug Report</string>
@@ -57,6 +57,8 @@
     <string name="donate_dialog_negative">Maybe Later</string>
     <string name="donate_to_fxembed">Donate to FxEmbed</string>
     <string name="donate_to_clearurls">Donate to ClearURLs</string>
+    <string name="monero_donation_text">Monero (click to copy address)</string>
+    <string name="monero_address_copied">Address copied!</string>
     
     <!-- Accessibility content descriptions -->
     <string name="process_url_content_desc">Process URL</string>

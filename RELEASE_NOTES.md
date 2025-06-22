@@ -15,11 +15,6 @@
 - **Target SDK**: 35 (Android 15)
 - **APK Size**: ~7.4MB
 
-## 🔒 Signature
-The APK is signed with the same certificate as v1.1.0:
-- **SHA1**: `78:89:4C:1D:1C:14:DF:8E:D8:AA:8E:A0:73:41:CC:71:0D:4C:66:C5`
-- **SHA256**: `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
-
 ---
 
 Made with ❤️ by NeatCode Labs 

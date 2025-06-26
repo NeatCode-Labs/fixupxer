@@ -47,7 +47,7 @@
     <string name="about_dialog_title">About FixupXer</string>
     <string name="about_text">FixupXer cleans tracking parameters from URLs (including Facebook, Twitter/X, and Instagram) and converts social media URLs for better embedding and sharing.\n\nVersion 1.1.1</string>
     <string name="about_dialog_positive">OK</string>
-    <string name="bug_report_email">neatcodelabs@gmail.com</string>
+    <string name="bug_report_email">YOUR_EMAIL@EXAMPLE.COM</string>
     <string name="bug_report_subject">FixupXer Bug Report</string>
     
     <!-- Donate dialog -->

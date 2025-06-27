@@ -6,12 +6,15 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.text.HtmlCompat
 import androidx.core.view.OnApplyWindowInsetsListener
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import com.fixupxer.R
 import com.fixupxer.utils.Constants
 import timber.log.Timber
@@ -30,29 +33,45 @@ abstract class BaseActivity : AppCompatActivity() {
     }
     
     private fun setupWindowInsets() {
-        // Use the most modern approach to handle system insets/windows
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        // Enable edge-to-edge display
             WindowCompat.setDecorFitsSystemWindows(window, false)
             
-            // Set status bar icons to be dark (for our light background)
+        // Set status bar appearance
             val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-            insetsController.isAppearanceLightStatusBars = true // true = dark icons
+        insetsController.isAppearanceLightStatusBars = true // dark icons on light background
+        
+        // Apply window insets dynamically
+        ViewCompat.setOnApplyWindowInsetsListener(window.decorView.rootView) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             
-            // Status bar color is set in the theme
-        } else {
-            // For older versions, use the older method but avoid deprecated APIs
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-            // Use modern approach to handle status bar
-            WindowCompat.setDecorFitsSystemWindows(window, false)
+            // Find the AppBarLayout and apply top padding dynamically
+            val appBarLayout = view.findViewById<com.google.android.material.appbar.AppBarLayout>(R.id.appBarLayout)
+            if (appBarLayout != null) {
+                // Use the actual status bar height instead of fixed padding
+                appBarLayout.setPadding(0, insets.top, 0, 0)
             
-            // Status bar color is set in the theme
-            
-            // Additional flag to prevent content from being inset
-            windowInsetsListener = OnApplyWindowInsetsListener { view, insets ->
-                view.setPadding(0, 0, 0, 0)
-                insets
+                // Find the title/header view inside AppBarLayout and adjust its padding
+                val titleView = appBarLayout.findViewById<TextView>(R.id.titleTextView) 
+                    ?: appBarLayout.findViewById<FrameLayout>(R.id.titleFrameLayout)
+                    
+                titleView?.setPadding(
+                    titleView.paddingLeft,
+                    resources.getDimensionPixelSize(R.dimen.title_padding_top),
+                    titleView.paddingRight,
+                    titleView.paddingBottom
+                )
             }
-            ViewCompat.setOnApplyWindowInsetsListener(window.decorView, windowInsetsListener)
+            
+            // Apply bottom padding to the main content if needed
+            val scrollView = view.findViewById<androidx.core.widget.NestedScrollView>(R.id.mainScrollView)
+            scrollView?.setPadding(
+                scrollView.paddingLeft,
+                scrollView.paddingTop,
+                scrollView.paddingRight,
+                insets.bottom
+            )
+            
+            WindowInsetsCompat.CONSUMED
         }
     }
     
@@ -103,10 +122,60 @@ abstract class BaseActivity : AppCompatActivity() {
         val textView = TextView(this)
         textView.text = spannedMessage
         textView.movementMethod = android.text.method.LinkMovementMethod.getInstance()
-        textView.setPadding(50, 30, 50, 30)
+        val horizontalPadding = resources.getDimensionPixelSize(R.dimen.dialog_text_padding_horizontal)
+        val verticalPadding = resources.getDimensionPixelSize(R.dimen.dialog_text_padding_vertical)
+        textView.setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding)
         textView.linksClickable = true
         
         alertDialog.setView(textView)
+        alertDialog.show()
+    }
+    
+    /**
+     * Show disclaimer dialog
+     */
+    protected fun showDisclaimerDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_disclaimer, null)
+        
+        val alertDialog = AlertDialog.Builder(this)
+            .setTitle(R.string.disclaimer_dialog_title)
+            .setView(dialogView)
+            .setCancelable(false) // User must scroll and click button
+            .create()
+        
+        // Find views
+        val scrollView = dialogView.findViewById<android.widget.ScrollView>(R.id.scrollViewDisclaimer)
+        val textViewContent = dialogView.findViewById<TextView>(R.id.textViewDisclaimerContent)
+        val buttonAgreeAndClose = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.buttonAgreeAndClose)
+        
+        // Set HTML content
+        textViewContent.text = HtmlCompat.fromHtml(getString(R.string.disclaimer_text), HtmlCompat.FROM_HTML_MODE_LEGACY)
+        
+        // Set up scroll listener to show button when scrolled to bottom
+        scrollView.viewTreeObserver.addOnScrollChangedListener {
+            val view = scrollView.getChildAt(scrollView.childCount - 1)
+            val diff = (view.bottom - (scrollView.height + scrollView.scrollY))
+            
+            // If diff is zero or less, we've reached the bottom
+            if (diff <= 0) {
+                buttonAgreeAndClose.visibility = android.view.View.VISIBLE
+            }
+        }
+        
+        // Also check immediately in case content is already fully visible
+        scrollView.post {
+            val view = scrollView.getChildAt(0)
+            if (view.height <= scrollView.height) {
+                // Content fits without scrolling
+                buttonAgreeAndClose.visibility = android.view.View.VISIBLE
+            }
+        }
+        
+        // Set up button click
+        buttonAgreeAndClose.setOnClickListener {
+            alertDialog.dismiss()
+        }
+        
         alertDialog.show()
     }
     
@@ -162,10 +231,21 @@ abstract class BaseActivity : AppCompatActivity() {
         
         // Set up Monero text click to copy address
         textViewMonero.setOnClickListener {
-            val clipboardManager = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-            val clipData = android.content.ClipData.newPlainText("Monero Address", Constants.MONERO_ADDRESS)
-            clipboardManager.setPrimaryClip(clipData)
-            Toast.makeText(this, getString(R.string.monero_address_copied), Toast.LENGTH_SHORT).show()
+            val clipboardManager = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+            if (clipboardManager != null) {
+                val clipData = android.content.ClipData.newPlainText(getString(R.string.clipboard_label_monero_address), Constants.MONERO_ADDRESS)
+                clipboardManager.setPrimaryClip(clipData)
+                // Only show toast on Android < 12 (API 31) to avoid duplicate with system notification
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                    Toast.makeText(this, getString(R.string.monero_address_copied), Toast.LENGTH_SHORT).show()
+                } else {
+                    // Android 12+ shows its own clipboard notification
+                    Timber.d("Monero address copied to clipboard (Android 12+)")
+                }
+            } else {
+                Timber.e("ClipboardManager not available")
+                Toast.makeText(this, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
+            }
         }
         
         alertDialog.show()

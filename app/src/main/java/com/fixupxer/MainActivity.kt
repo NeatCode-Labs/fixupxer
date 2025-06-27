@@ -25,6 +25,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.fixupxer.databinding.ActivityMainBinding
 import com.fixupxer.presentation.main.MainViewModel
 import com.fixupxer.ui.BaseActivity
 import com.fixupxer.utils.Constants
@@ -32,30 +33,23 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
-    private lateinit var editTextUrl: EditText
-    private lateinit var buttonProcessUrl: MaterialButton
-    private lateinit var textViewProcessedUrl: TextView
-    private lateinit var buttonShare: MaterialButton
-    private lateinit var buttonOpen: MaterialButton
-    private lateinit var buttonCopy: MaterialButton
-    private lateinit var textViewAbout: TextView
-    private lateinit var textViewReportBug: TextView
-    private lateinit var buttonDonate: MaterialButton
-    private lateinit var instagramToggleContainer: LinearLayout
-    private lateinit var switchInstagram: SwitchCompat
-    private lateinit var progressIndicator: CircularProgressIndicator
-    
+    private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Timber.d("MainActivity onCreate started")
         
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         
         initializeViews()
         setupListeners()
@@ -69,47 +63,32 @@ class MainActivity : BaseActivity() {
         viewModel.clearInput()
     }
     
+    override fun onPause() {
+        super.onPause()
+        // Clear input when app loses focus
+        viewModel.clearInput()
+        binding.editTextUrl.setText("")
+    }
+    
     private fun initializeViews() {
-        // Find views
-        editTextUrl = findViewById(R.id.editTextUrl)
-        buttonProcessUrl = findViewById(R.id.buttonProcessUrl)
-        textViewProcessedUrl = findViewById(R.id.textViewProcessedUrl)
-        buttonShare = findViewById(R.id.buttonShare)
-        buttonOpen = findViewById(R.id.buttonOpen)
-        buttonCopy = findViewById(R.id.buttonCopy)
-        textViewAbout = findViewById(R.id.textViewAbout)
-        textViewReportBug = findViewById(R.id.textViewReportBug)
-        buttonDonate = findViewById(R.id.buttonDonate)
-        
-        // Initialize Instagram toggle
-        instagramToggleContainer = findViewById(R.id.instagramToggleContainer)
-        switchInstagram = findViewById(R.id.switchInstagram)
-        
-        // Find or create progress indicator
-        progressIndicator = findViewById(R.id.progressIndicator) ?: run {
-            // If not in layout, create programmatically
-            CircularProgressIndicator(this).apply {
-                isIndeterminate = true
-                visibility = View.GONE
-            }
-        }
-        
         // Add content descriptions for accessibility
-        buttonProcessUrl.contentDescription = getString(R.string.process_url_content_desc)
-        buttonShare.contentDescription = getString(R.string.share_content_desc)
-        buttonOpen.contentDescription = getString(R.string.open_content_desc)
-        buttonCopy.contentDescription = getString(R.string.copy_content_desc)
-        textViewAbout.contentDescription = getString(R.string.about_content_desc)
-        textViewReportBug.contentDescription = getString(R.string.report_bug_content_desc)
-        buttonDonate.contentDescription = getString(R.string.donate_content_desc)
+        binding.buttonPaste.contentDescription = getString(R.string.paste_content_desc)
+        binding.buttonProcess.contentDescription = getString(R.string.process_url_content_desc)
+        binding.buttonShare.contentDescription = getString(R.string.share_content_desc)
+        binding.buttonOpen.contentDescription = getString(R.string.open_content_desc)
+        binding.buttonCopy.contentDescription = getString(R.string.copy_content_desc)
+        binding.textViewAbout.contentDescription = getString(R.string.about_content_desc)
+        binding.textViewDisclaimer.contentDescription = getString(R.string.disclaimer_content_desc)
+        binding.textViewReportBug.contentDescription = getString(R.string.report_bug_content_desc)
+        binding.buttonDonate.contentDescription = getString(R.string.donate_content_desc)
         
         // Set title in the TextView if it exists
-        setAppTitle(findViewById(R.id.appTitleHeader))
+        setAppTitle(binding.titleTextView)
     }
     
     private fun setupListeners() {
         // URL input text change listener
-        editTextUrl.addTextChangedListener(object : TextWatcher {
+        binding.editTextUrl.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
@@ -118,43 +97,69 @@ class MainActivity : BaseActivity() {
         })
         
         // Instagram toggle switch
-        switchInstagram.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchInstagram.setOnCheckedChangeListener { _, isChecked ->
             viewModel.onInstagramConversionToggled(isChecked)
         }
         
+        // Twitter toggle switch
+        binding.switchTwitter.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onTwitterConversionToggled(isChecked)
+        }
+        
+        // Paste button
+        binding.buttonPaste.setOnClickListener {
+            pasteFromClipboard()
+        }
+        
         // Process URL button
-        buttonProcessUrl.setOnClickListener {
+        binding.buttonProcess.setOnClickListener {
             viewModel.processUrl()
         }
         
         // Share button
-        buttonShare.setOnClickListener {
+        binding.buttonShare.setOnClickListener {
             shareProcessedUrl()
         }
         
         // Open button
-        buttonOpen.setOnClickListener {
+        binding.buttonOpen.setOnClickListener {
             openProcessedUrl()
         }
         
         // Copy button
-        buttonCopy.setOnClickListener {
+        binding.buttonCopy.setOnClickListener {
             copyToClipboard()
         }
         
         // About text link
-        textViewAbout.setOnClickListener {
+        binding.textViewAbout.setOnClickListener {
             showAboutDialog()
         }
         
+        // Disclaimer text link
+        binding.textViewDisclaimer.setOnClickListener {
+            showDisclaimerDialog()
+        }
+        
         // Report Bug text link
-        textViewReportBug.setOnClickListener {
+        binding.textViewReportBug.setOnClickListener {
             reportBug()
         }
         
         // Donate button
-        buttonDonate.setOnClickListener {
+        binding.buttonDonate.setOnClickListener {
             showDonateDialog()
+        }
+        
+        // Footer text link
+        binding.textViewFooter.setOnClickListener {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.WEBSITE_URL))
+                startActivity(intent)
+            } catch (e: Exception) {
+                Timber.e(e, "Error opening website")
+                Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
+            }
         }
     }
     
@@ -163,19 +168,25 @@ class MainActivity : BaseActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     // Update UI based on state
-                    instagramToggleContainer.isVisible = state.isInstagramUrl
-                    switchInstagram.isChecked = state.isInstagramConversionEnabled
+                    binding.instagramToggleContainer.isVisible = state.isInstagramUrl
+                    binding.switchInstagram.isChecked = state.isInstagramConversionEnabled
                     
-                    progressIndicator.isVisible = state.isLoading
-                    buttonProcessUrl.isEnabled = !state.isLoading
+                    binding.twitterToggleContainer.isVisible = state.isTwitterUrl
+                    binding.switchTwitter.isChecked = state.isTwitterConversionEnabled
+                    
+                    binding.progressIndicator.isVisible = state.isLoading
+                    binding.buttonProcess.isEnabled = !state.isLoading
                     
                     if (state.processedUrl.isNotEmpty()) {
-                        textViewProcessedUrl.text = state.processedUrl
+                        binding.textViewProcessedUrl.text = state.processedUrl
                     } else if (state.error != null) {
-                        textViewProcessedUrl.text = getString(R.string.no_url)
+                        binding.textViewProcessedUrl.text = getString(R.string.no_url)
+                        // Only show toast when explicitly requested (after processing)
+                        if (state.showErrorToast) {
                         Toast.makeText(this@MainActivity, state.error, Toast.LENGTH_SHORT).show()
+                        }
                     } else {
-                        textViewProcessedUrl.text = ""
+                        binding.textViewProcessedUrl.text = ""
                     }
                 }
             }
@@ -220,8 +231,13 @@ class MainActivity : BaseActivity() {
     private fun copyToClipboard() {
         val processedUrl = viewModel.uiState.value.processedUrl
         if (processedUrl.isNotEmpty()) {
-            val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clipData = ClipData.newPlainText("URL", processedUrl)
+            val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+            if (clipboardManager == null) {
+                Timber.e("ClipboardManager not available")
+                Toast.makeText(this, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
+                return
+            }
+            val clipData = ClipData.newPlainText(getString(R.string.clipboard_label_url), processedUrl)
             clipboardManager.setPrimaryClip(clipData)
             
             // On Android < 10, show a toast notification
@@ -233,6 +249,55 @@ class MainActivity : BaseActivity() {
             }
         } else {
             Toast.makeText(this, getString(R.string.no_url_to_copy), Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun pasteFromClipboard() {
+        try {
+            val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+            if (clipboardManager == null) {
+                Timber.e("ClipboardManager not available")
+                return
+            }
+            val clipData = clipboardManager.primaryClip
+            
+            if (clipData != null && clipData.itemCount > 0) {
+                val text = clipData.getItemAt(0).text?.toString()
+                if (!text.isNullOrEmpty()) {
+                    // Run URL finding in a coroutine with timeout to prevent UI freeze
+                    lifecycleScope.launch {
+                        try {
+                            val validUrl = withTimeout(500) { // 500ms timeout
+                                withContext(Dispatchers.Default) {
+                                    UrlProcessor.findFirstValidUrl(text)
+                                }
+                            }
+                            
+                            if (validUrl != null) {
+                                binding.editTextUrl.setText(validUrl)
+                                binding.editTextUrl.setSelection(validUrl.length)
+                            } else {
+                                // No URL found in the clipboard text
+                                Toast.makeText(this@MainActivity, getString(R.string.no_url_found_in_clipboard), Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: TimeoutCancellationException) {
+                            Timber.w("URL finding timed out")
+                            // If it times out, just paste the raw text
+                            binding.editTextUrl.setText(text)
+                            binding.editTextUrl.setSelection(text.length)
+                        }
+                    }
+                } else {
+                    // Clipboard is empty
+                    Toast.makeText(this, getString(R.string.no_url_found_in_clipboard), Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                // No clipboard data
+                Toast.makeText(this, getString(R.string.no_url_found_in_clipboard), Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error pasting from clipboard")
+            // Don't show error toast - avoid confusion with system notifications
         }
     }
 } 

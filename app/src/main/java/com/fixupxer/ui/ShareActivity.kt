@@ -5,21 +5,21 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.view.View
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.widget.SwitchCompat
-import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.fixupxer.R
+import com.fixupxer.databinding.ActivityShareBinding
 import com.fixupxer.presentation.share.ShareViewModel
 import com.fixupxer.utils.Constants
 import com.google.android.material.button.MaterialButton
@@ -30,105 +30,96 @@ import timber.log.Timber
 
 @AndroidEntryPoint
 class ShareActivity : BaseActivity() {
-    private lateinit var textViewSharedText: TextView
-    private lateinit var textViewProcessedUrl: TextView
-    private lateinit var buttonCopy: MaterialButton
-    private lateinit var buttonShare: MaterialButton
-    private lateinit var buttonDonate: MaterialButton
-    private lateinit var backButton: ImageButton
-    private lateinit var titleTextView: TextView
-    private lateinit var textViewAbout: TextView
-    private lateinit var textViewReportBug: TextView
-    private lateinit var instagramToggleContainer: LinearLayout
-    private lateinit var switchInstagram: SwitchCompat
-    private lateinit var progressIndicator: CircularProgressIndicator
-    
+    private lateinit var binding: ActivityShareBinding
     private val viewModel: ShareViewModel by viewModels()
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Timber.d("ShareActivity onCreate started")
         
-        setContentView(R.layout.activity_share)
+        binding = ActivityShareBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         
         initializeViews()
         setupListeners()
         observeViewModel()
-        
-        // Handle the initial intent
-        handleIntent(intent)
+        handleIntent()
         
         Timber.d("ShareActivity onCreate completed")
     }
     
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        handleIntent(intent)
+        handleIntent()
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Clear state when activity loses focus
+        viewModel.clearState()
     }
     
     private fun initializeViews() {
-        backButton = findViewById(R.id.backButton)
-        titleTextView = findViewById(R.id.titleTextView)
-        
-        textViewSharedText = findViewById(R.id.textViewSharedText)
-        textViewProcessedUrl = findViewById(R.id.textViewProcessedUrl)
-        buttonCopy = findViewById(R.id.buttonCopy)
-        buttonShare = findViewById(R.id.buttonShare)
-        buttonDonate = findViewById(R.id.buttonDonate)
-        textViewAbout = findViewById(R.id.textViewAbout)
-        textViewReportBug = findViewById(R.id.textViewReportBug)
-        
-        // Initialize Instagram toggle
-        instagramToggleContainer = findViewById(R.id.instagramToggleContainer)
-        switchInstagram = findViewById(R.id.switchInstagram)
-        
-        // Find or create progress indicator
-        progressIndicator = findViewById(R.id.progressIndicator) ?: run {
-            CircularProgressIndicator(this).apply {
-                isIndeterminate = true
-                visibility = View.GONE
-            }
-        }
-        
         // Add content descriptions for accessibility
-        buttonCopy.contentDescription = getString(R.string.copy_content_desc)
-        buttonShare.contentDescription = getString(R.string.share_content_desc)
-        buttonDonate.contentDescription = getString(R.string.donate_content_desc)
-        textViewAbout.contentDescription = getString(R.string.about_content_desc)
-        textViewReportBug.contentDescription = getString(R.string.report_bug_content_desc)
+        binding.buttonCopy.contentDescription = getString(R.string.copy_content_desc)
+        binding.buttonShare.contentDescription = getString(R.string.share_content_desc)
+        binding.textViewAbout.contentDescription = getString(R.string.about_content_desc)
+        binding.textViewDisclaimer.contentDescription = getString(R.string.disclaimer_content_desc)
+        binding.textViewReportBug.contentDescription = getString(R.string.report_bug_content_desc)
+        binding.buttonDonate.contentDescription = getString(R.string.donate_content_desc)
+        binding.backButton.contentDescription = getString(R.string.back)
         
-        // Set app title
-        setAppTitle(titleTextView)
+        // Set title
+        binding.titleTextView.text = getString(R.string.app_title)
     }
     
     private fun setupListeners() {
         // Instagram toggle switch
-        switchInstagram.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchInstagram.setOnCheckedChangeListener { _, isChecked ->
             viewModel.onInstagramConversionToggled(isChecked)
         }
         
-        buttonCopy.setOnClickListener {
+        // Twitter toggle switch
+        binding.switchTwitter.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onTwitterConversionToggled(isChecked)
+        }
+        
+        binding.buttonCopy.setOnClickListener {
             copyToClipboard()
         }
         
-        buttonShare.setOnClickListener {
+        binding.buttonShare.setOnClickListener {
             shareProcessedUrl()
         }
         
-        backButton.setOnClickListener {
+        binding.backButton.setOnClickListener {
             finish()
         }
         
-        buttonDonate.setOnClickListener {
+        binding.buttonDonate.setOnClickListener {
             showDonateDialog()
         }
         
-        textViewAbout.setOnClickListener {
+        binding.textViewAbout.setOnClickListener {
             showAboutDialog()
         }
         
-        textViewReportBug.setOnClickListener {
+        binding.textViewDisclaimer.setOnClickListener {
+            showDisclaimerDialog()
+        }
+        
+        binding.textViewReportBug.setOnClickListener {
             reportBug()
+        }
+        
+        binding.textViewFooter.setOnClickListener {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.WEBSITE_URL))
+                startActivity(intent)
+            } catch (e: Exception) {
+                Timber.e(e, "Error opening website")
+                Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
+            }
         }
     }
     
@@ -137,43 +128,51 @@ class ShareActivity : BaseActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     // Update UI based on state
-                    textViewSharedText.text = state.sharedText.ifEmpty { getString(R.string.no_url_found) }
+                    binding.textViewSharedText.text = state.sharedText.ifEmpty { getString(R.string.no_url_found) }
                     
-                    instagramToggleContainer.isVisible = state.isInstagramUrl
-                    switchInstagram.isChecked = state.isInstagramConversionEnabled
+                    binding.instagramToggleContainer.isVisible = state.isInstagramUrl
+                    binding.switchInstagram.isChecked = state.isInstagramConversionEnabled
                     
-                    progressIndicator.isVisible = state.isLoading
-                    buttonCopy.isEnabled = !state.isLoading && state.processedUrl.isNotEmpty()
-                    buttonShare.isEnabled = !state.isLoading && state.processedUrl.isNotEmpty()
+                    binding.twitterToggleContainer.isVisible = state.isTwitterUrl
+                    binding.switchTwitter.isChecked = state.isTwitterConversionEnabled
+                    
+                    binding.progressIndicator.isVisible = state.isLoading
+                    binding.buttonCopy.isEnabled = !state.isLoading && state.processedUrl.isNotEmpty()
+                    binding.buttonShare.isEnabled = !state.isLoading && state.processedUrl.isNotEmpty()
                     
                     if (state.processedUrl.isNotEmpty()) {
-                        textViewProcessedUrl.text = state.processedUrl
+                        binding.textViewProcessedUrl.text = state.processedUrl
                     } else if (state.error != null) {
-                        textViewProcessedUrl.text = getString(R.string.no_url_found)
+                        binding.textViewProcessedUrl.text = getString(R.string.no_url_found)
                         if (state.sharedText.isNotEmpty()) {
                             Toast.makeText(this@ShareActivity, state.error, Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        textViewProcessedUrl.text = getString(R.string.processing)
+                        binding.textViewProcessedUrl.text = getString(R.string.processing)
                     }
                 }
             }
         }
     }
     
-    private fun handleIntent(intent: Intent) {
+    private fun handleIntent() {
         val sharedText = when {
             intent.action == Intent.ACTION_SEND && intent.type == "text/plain" -> {
                 intent.getStringExtra(Intent.EXTRA_TEXT)
             }
             intent.action == Intent.ACTION_PROCESS_TEXT -> {
-                intent.getStringExtra(Intent.EXTRA_PROCESS_TEXT)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
+                } else {
+                    null
+                }
             }
             else -> null
         }
         
-        Timber.d("Received shared text: $sharedText")
-        viewModel.handleSharedText(sharedText)
+        if (!sharedText.isNullOrEmpty()) {
+            viewModel.processSharedText(sharedText)
+        }
     }
     
     @SuppressLint("NewApi")
@@ -181,9 +180,14 @@ class ShareActivity : BaseActivity() {
         val processedUrl = viewModel.uiState.value.processedUrl
         if (processedUrl.isNotEmpty()) {
             try {
-                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clip = ClipData.newPlainText("Processed URL", processedUrl)
-                clipboard.setPrimaryClip(clip)
+                val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+                if (clipboardManager == null) {
+                    Timber.e("ClipboardManager not available")
+                    Toast.makeText(this, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
+                    return
+                }
+                val clip = ClipData.newPlainText(getString(R.string.clipboard_label_processed_url), processedUrl)
+                clipboardManager.setPrimaryClip(clip)
                 
                 // On Android < 10, show a toast notification
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {

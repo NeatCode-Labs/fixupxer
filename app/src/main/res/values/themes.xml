@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="Theme.FixupXer" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Status bar color -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorSecondaryVariant">@color/accent_dark</item>
+        <item name="colorOnSecondary">@color/white</item>
+        
+        <!-- Background colors -->
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnBackground">@color/black</item>
+        <item name="colorOnSurface">@color/black</item>
+        
+        <!-- Default text color -->
+        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:textColorSecondary">@color/dark_gray</item>
+        
+        <!-- Component styles -->
+        <item name="materialCardViewStyle">@style/CardStyle</item>
+        <item name="switchStyle">@style/SwitchStyle</item>
+        <item name="materialButtonStyle">@style/ButtonStyle</item>
+    </style>
+        
+    <!-- Material card style -->
+    <style name="CardStyle" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/card_stroke</item>
+    </style>
+    
+    <!-- Switch style -->
+    <style name="SwitchStyle" parent="Widget.Material3.CompoundButton.Switch">
+        <item name="thumbTint">@color/switch_thumb_selector</item>
+        <item name="trackTint">@color/switch_track_selector</item>
+    </style>
+
+    <!-- Button style -->
+    <style name="ButtonStyle" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:textColor">@color/button_text</item>
+        <item name="strokeColor">@color/button_stroke</item>
+        <item name="backgroundTint">@color/button_background</item>
+        <item name="cornerRadius">24dp</item>
+    </style>
+</resources>

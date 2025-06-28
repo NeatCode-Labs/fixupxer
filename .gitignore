@@ -1,0 +1,81 @@
+# Environment variables
+.env
+.env.*
+
+# Keystore files
+*.keystore
+*.jks
+keystore.properties
+
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file
+local.properties
+
+# Android Studio
+*.iml
+.idea/
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Android Studio IDE directory
+android-studio/
+
+# Bundletool JAR (for local AAB testing)
+bundletool.jar
+
+# Generated files
+bin/
+gen/
+out/
+
+# Log Files
+*.log
+
+# Android Studio Navigation editor temp files
+.navigation/
+
+# Android Studio captures folder
+captures/
+
+# IntelliJ
+*.iml
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/caches
+
+# Keystore files
+*.jks
+*.keystore
+
+# External native build folder generated in Android Studio 2.2 and later
+.externalNativeBuild
+.cxx/
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+
+# Version control
+vcs.xml
+
+# lint
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+
+# Android Profiling
+*.hprof
+
+# Release builds and sensitive docs
+FixupXer-*.apk
+FixupXer-*.aab
+KEYSTORE_INFO.md 

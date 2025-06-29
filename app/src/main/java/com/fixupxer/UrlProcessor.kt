@@ -557,9 +557,10 @@ class UrlProcessor {
         // Maximum input size to prevent performance issues
         private const val MAX_INPUT_LENGTH = 10000
         
-        // Pre-compiled regex pattern for better performance
+        // Regex that captures each http/https URL up to the next whitespace OR the next http/https occurrence.
+        // This prevents blobs like "https://a.comfoohttps://b.com" from being treated as one URL.
         private val URL_PATTERN = Pattern.compile(
-            "(https?|ftp)://[^\\s/\$.?#].[^\\s]*",
+            "(https?://[^\\s]+?)(?=https?://|\\s|$)",
             Pattern.CASE_INSENSITIVE
         )
         
@@ -617,11 +618,26 @@ class UrlProcessor {
                 text
             }
             
-            val matcher = URL_PATTERN.matcher(limitedText)
             val urls = mutableListOf<String>()
-            while (matcher.find()) {
-                urls.add(matcher.group())
+            
+            // 1) Extract protocol-based URLs with the improved pattern
+            val protoMatcher = URL_PATTERN.matcher(limitedText)
+            while (protoMatcher.find()) {
+                urls.add(protoMatcher.group())
             }
+            
+            // 2) Scan for "www." domains that were not preceded by a protocol.
+            //    We cut at the next occurrence of "www." / whitespace.
+            val wwwPattern = Pattern.compile("(www\\.[a-zA-Z0-9\\-_.]+?\\.[a-zA-Z]{2,}[^\\s]*?)(?=www\\.|https?://|\\s|$)")
+            val wwwMatcher = wwwPattern.matcher(limitedText)
+            while (wwwMatcher.find()) {
+                val candidate = "https://" + wwwMatcher.group().trimEnd('.', ',')
+                // De-duplicate
+                if (!urls.contains(candidate)) {
+                    urls.add(candidate)
+                }
+            }
+            
             return urls
         }
         

@@ -29,6 +29,7 @@ import com.fixupxer.databinding.ActivityMainBinding
 import com.fixupxer.presentation.main.MainViewModel
 import com.fixupxer.ui.BaseActivity
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.InputValidator
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import dagger.hilt.android.AndroidEntryPoint
@@ -43,6 +44,7 @@ import timber.log.Timber
 class MainActivity : BaseActivity() {
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
+    private lateinit var urlTextWatcher: TextWatcher
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,13 +90,42 @@ class MainActivity : BaseActivity() {
     
     private fun setupListeners() {
         // URL input text change listener
-        binding.editTextUrl.addTextChangedListener(object : TextWatcher {
+        urlTextWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                viewModel.onUrlChanged(s?.toString() ?: "")
+                val raw = s?.toString() ?: ""
+                lifecycleScope.launch {
+                    try {
+                        val validated = withTimeout(200) {
+                            withContext(Dispatchers.Default) {
+                                InputValidator.validateAndSanitizeInput(raw)
+                            }
+                        }
+                        if (validated == null) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@MainActivity, getString(R.string.error_multiple_urls), Toast.LENGTH_SHORT).show()
+                                binding.editTextUrl.removeTextChangedListener(urlTextWatcher)
+                                binding.editTextUrl.setText("")
+                                binding.editTextUrl.addTextChangedListener(urlTextWatcher)
+                                viewModel.clearInput()
+                            }
+                            return@launch
+                        }
+                        withContext(Dispatchers.Main) {
+                            viewModel.onUrlChanged(validated)
+                        }
+                    } catch (e: TimeoutCancellationException) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@MainActivity, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        Timber.e(e, "Error during text validation")
+                    }
+                }
             }
-        })
+        }
+        binding.editTextUrl.addTextChangedListener(urlTextWatcher)
         
         // Instagram toggle switch
         binding.switchInstagram.setOnCheckedChangeListener { _, isChecked ->
@@ -264,35 +295,47 @@ class MainActivity : BaseActivity() {
             if (clipData != null && clipData.itemCount > 0) {
                 val text = clipData.getItemAt(0).text?.toString()
                 if (!text.isNullOrEmpty()) {
-                    // Run URL finding in a coroutine with timeout to prevent UI freeze
                     lifecycleScope.launch {
                         try {
-                            val validUrl = withTimeout(500) { // 500ms timeout
+                            withTimeout(500) {
                                 withContext(Dispatchers.Default) {
-                                    UrlProcessor.findFirstValidUrl(text)
+                                    val validated = InputValidator.validateAndSanitizeInput(text)
+                                    
+                                    if (validated == null) {
+                                        withContext(Dispatchers.Main) {
+                                            binding.editTextUrl.setText("")
+                                            Toast.makeText(this@MainActivity, getString(R.string.error_multiple_urls), Toast.LENGTH_SHORT).show()
+                                        }
+                                        return@withContext
+                                    }
+                                    
+                                    // Try to extract a single valid URL
+                                    val url = UrlProcessor.findFirstValidUrl(validated)
+                                    
+                                    withContext(Dispatchers.Main) {
+                                        if (url != null) {
+                                            binding.editTextUrl.setText(url)
+                                        } else {
+                                            Toast.makeText(this@MainActivity, getString(R.string.no_url_found_in_clipboard), Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
                                 }
                             }
-                            
-                            if (validUrl != null) {
-                                binding.editTextUrl.setText(validUrl)
-                                binding.editTextUrl.setSelection(validUrl.length)
-                            } else {
-                                // No URL found in the clipboard text
-                                Toast.makeText(this@MainActivity, getString(R.string.no_url_found_in_clipboard), Toast.LENGTH_SHORT).show()
-                            }
                         } catch (e: TimeoutCancellationException) {
-                            Timber.w("URL finding timed out")
-                            // If it times out, just paste the raw text
-                            binding.editTextUrl.setText(text)
-                            binding.editTextUrl.setSelection(text.length)
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@MainActivity, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: Exception) {
+                            Timber.e(e, "Error during paste validation")
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@MainActivity, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
                 } else {
-                    // Clipboard is empty
                     Toast.makeText(this, getString(R.string.no_url_found_in_clipboard), Toast.LENGTH_SHORT).show()
                 }
             } else {
-                // No clipboard data
                 Toast.makeText(this, getString(R.string.no_url_found_in_clipboard), Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {

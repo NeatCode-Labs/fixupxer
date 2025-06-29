@@ -15,6 +15,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import com.fixupxer.utils.InputValidator
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 
 /**
  * ViewModel for ShareActivity
@@ -50,37 +53,63 @@ class ShareViewModel @Inject constructor(
         
         viewModelScope.launch {
             try {
-                // Try to find a URL in the shared text
-                val url = UrlProcessor.findFirstValidUrl(sharedText)
-                if (url == null) {
+                withTimeout(1000) { // 1 second timeout
+                    val validated = InputValidator.validateAndSanitizeInput(sharedText)
+                    
+                    if (validated == null) {
+                        _uiState.update {
+                            it.copy(
+                                processedUrl = "",
+                                isLoading = false,
+                                isInstagramUrl = false,
+                                isTwitterUrl = false,
+                                error = getApplication<Application>().getString(R.string.error_multiple_urls)
+                            )
+                        }
+                        return@withTimeout
+                    }
+                    
+                    // Continue with existing logic using validated input
+                    val url = UrlProcessor.findFirstValidUrl(validated)
+
+                    if (url == null) {
+                        _uiState.update { 
+                            it.copy(
+                                processedUrl = "",
+                                isLoading = false,
+                                error = getApplication<Application>().getString(R.string.error_no_url_found_in_shared_text)
+                            )
+                        }
+                        return@withTimeout
+                    }
+                    
+                    // Check URL type to determine toggle visibility
+                    val isInstagram = url.contains("instagram.com", ignoreCase = true) || 
+                                    url.contains("kkinstagram.com", ignoreCase = true)
+                    val isTwitter = urlRepository.isTwitterUrl(url) || 
+                                   url.contains("x.com", ignoreCase = true) ||
+                                   url.contains("fixupx.com", ignoreCase = true) || 
+                                   url.contains("fxtwitter.com", ignoreCase = true)
+                    
                     _uiState.update { 
                         it.copy(
-                            processedUrl = "",
-                            isLoading = false,
-                            error = getApplication<Application>().getString(R.string.error_no_url_found_in_shared_text)
-                        )
+                            isInstagramUrl = isInstagram, 
+                            isTwitterUrl = isTwitter
+                        ) 
                     }
-                    return@launch
+                    
+                    // Process the URL
+                    processUrlInternal(url)
                 }
-                
-                // Check URL type to determine toggle visibility
-                val isInstagram = url.contains("instagram.com", ignoreCase = true) || 
-                                url.contains("kkinstagram.com", ignoreCase = true)
-                val isTwitter = urlRepository.isTwitterUrl(url) || 
-                               url.contains("x.com", ignoreCase = true) ||
-                               url.contains("fixupx.com", ignoreCase = true) || 
-                               url.contains("fxtwitter.com", ignoreCase = true)
-                
+            } catch (e: TimeoutCancellationException) {
+                Timber.w("Share processing timed out")
                 _uiState.update { 
                     it.copy(
-                        isInstagramUrl = isInstagram, 
-                        isTwitterUrl = isTwitter
-                    ) 
+                        processedUrl = "",
+                        isLoading = false,
+                        error = getApplication<Application>().getString(R.string.error_processing_url)
+                    )
                 }
-                
-                // Process the URL
-                processUrlInternal(url)
-                
             } catch (e: Exception) {
                 Timber.e(e, "Error processing shared text")
                 _uiState.update { 

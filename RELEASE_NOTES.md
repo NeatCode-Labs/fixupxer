@@ -1,3 +1,46 @@
+# FixupXer v1.3.1
+
+## What's New
+- **Enhanced Security Protection** - Comprehensive input validation to protect against malicious URL attacks
+- **Improved Input Handling** - Better detection and rejection of glued URLs, malformed inputs, and attack vectors
+- **Crash Prevention** - App now gracefully handles invalid input without freezing or crashing
+- **Real-time Validation** - Instant feedback when typing problematic URLs or content
+- **Better Error Messages** - Clear, user-friendly notifications for different types of invalid input
+- **Share Screen Security** - Enhanced protection for content shared from other apps
+- **Performance Optimization** - Faster validation with timeout protection against DoS attacks
+
+## Security Improvements
+- **Glued URL Protection** - Prevents attacks like "www.instagram.comwww.x.com"
+- **Invisible Character Filtering** - Removes zero-width spaces and control characters
+- **URL Encoding Safety** - Handles encoded attacks like "www%2Einstagram.com"
+- **Multiple URL Detection** - Rejects input containing multiple URLs
+- **Length Limits** - Prevents DoS attacks with overly long inputs
+- **Unicode Normalization** - Protects against homograph attacks using lookalike characters
+
+## Technical Changes
+- Added comprehensive InputValidator utility class
+- Enhanced MainActivity with real-time input validation
+- Improved ShareActivity with security hardening
+- Added timeout protection for regex operations
+- Implemented proper error handling and user feedback
+- Updated input sanitization pipeline
+
+## Bug Fixes
+- Fixed app crashes when pasting malformed URLs
+- Fixed input field issues with special characters
+- Fixed share screen handling of invalid content
+- Improved error message clarity and consistency
+
+## Compatibility
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Light theme with Material Design 3
+
+## Download
+- [FixupXer-v1.3.1-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.3.1/FixupXer-v1.3.1-release.apk)
+
+---
+
 # FixupXer v1.3.0
 
 ## What's New

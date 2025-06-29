@@ -96,6 +96,7 @@
     <string name="error_no_url_found_in_shared_text">No URL found in shared text</string>
     <string name="error_no_valid_url_found">No valid URL found in shared text</string>
     <string name="error_processing_url_with_message">Error processing URL: %1$s</string>
+    <string name="error_multiple_urls">Please paste one URL at a time</string>
     
     <!-- Clipboard labels -->
     <string name="clipboard_label_url">URL</string>

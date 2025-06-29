@@ -62,7 +62,7 @@ This app is inspired by and builds upon the great work of several projects:
 1. [FxEmbed (fixupx.com)](https://github.com/FxEmbed/FxEmbed) - The original service for improving Twitter/X embeds
 2. [ClearURLs](https://github.com/ClearURLs/Addon) - A browser extension that removes tracking elements from URLs
 3. [InstaFix](https://github.com/Wikidepia/InstaFix) - A service that improves Instagram embeds in platforms like Discord and Telegram
-4. [leon-cleaning-services/leon](https://github.com/leon-cleaning-services/leon) - Android app for removing tracking parameters from shared URLs
+4. [Leon - URL Cleaner](https://github.com/leon-cleaning-services/leon) - Android app for removing tracking parameters from shared URLs
 
 
 ## Building from Source
@@ -129,4 +129,3 @@ Visit us for more useful tools and projects!
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Us-ff5e5b?style=for-the-badge&logo=ko-fi)](https://ko-fi.com/neatcodelabs)
 
 </div>
-

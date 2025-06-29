@@ -119,5 +119,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-[Made by NeatCode Labs](https://neatcodelabs.com/)
+<div align="center">
+
+**Created with ❤️ by [NeatCode Labs](https://neatcodelabs.com)**  
+Visit us for more useful tools and projects!
+
+[![Website](https://img.shields.io/badge/Website-neatcodelabs.com-blue?style=for-the-badge)](https://neatcodelabs.com)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Us-ff5e5b?style=for-the-badge&logo=ko-fi)](https://ko-fi.com/neatcodelabs)
+
+</div>
 

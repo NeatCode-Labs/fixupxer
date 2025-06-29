@@ -39,6 +39,22 @@ FixupXer functions in two main ways:
    - The URL is automatically processed
    - Choose to share, open, or copy the processed URL
 
+## Disclaimer
+
+**Privacy**: This app processes URLs locally on your device and does not collect, store, or transmit any user data or URLs to external servers.
+
+**Third-Party Services**: FixupXer relies on third-party proxy services for URL conversion:
+- **fixupx.com** - For Twitter/X link conversion
+- **kkinstagram.com** - For Instagram link conversion
+
+These services are **not operated by NeatCode Labs** and may stop working at any time without notice. We have no control over their availability or functionality.
+
+**Trademarks**: Names such as "Twitter", "X", "Instagram" and others are trademarks of their respective owners. This app is not affiliated with, endorsed by, or connected to these services.
+
+**Warranty**: This software is provided "as is", without warranty of any kind.
+
+**Note to kkinstagram.com maintainer**: If you wish to be credited in this README, please contact us via the contact form on our [website](https://neatcodelabs.com/) or use the "Report a Bug" link in the app.
+
 ## Credits
 
 This app is inspired by and builds upon the great work of several projects:
@@ -47,14 +63,6 @@ This app is inspired by and builds upon the great work of several projects:
 2. [ClearURLs](https://github.com/ClearURLs/Addon) - A browser extension that removes tracking elements from URLs
 3. [InstaFix](https://github.com/Wikidepia/InstaFix) - A service that improves Instagram embeds in platforms like Discord and Telegram
 
-## Important Notice Regarding kkinstagram.com
-
-FixupXer uses the kkinstagram.com service as a proxy to enhance Instagram links. Please note that:
-
-- kkinstagram.com is a third-party proxy service not operated by us
-- This service relies on bypassing Instagram's restrictions and may break without warning if Instagram changes its backend or implements new bot-detection measures
-- If you notice issues with Instagram link conversion, please report it using the "Report Bug" feature in the app
-- The kkinstagram proxy is maintained by an unknown entity. If they wish to be credited here, feel free to contact me.
 
 ## Building from Source
 
@@ -109,11 +117,15 @@ FixupXer is designed with privacy in mind:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Disclaimer
-
-This software is provided "as is", without warranty of any kind. The app names "Twitter", "X", and "Instagram" are trademarks of their respective owners. This app is not affiliated with, endorsed by, or connected to these services.
-
 ---
 
-[Made by NeatCode Labs](https://neatcodelabs.com/)
+<div align="center">
+
+**Created with ❤️ by [NeatCode Labs](https://neatcodelabs.com)**  
+Visit us for more useful tools and projects!
+
+[![Website](https://img.shields.io/badge/Website-neatcodelabs.com-blue?style=for-the-badge)](https://neatcodelabs.com)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Us-ff5e5b?style=for-the-badge&logo=ko-fi)](https://ko-fi.com/neatcodelabs)
+
+</div>
 

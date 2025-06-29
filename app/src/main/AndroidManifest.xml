@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- No internet permission required - privacy focused -->
-    <uses-permission android:name="android.permission.VIBRATE" />
     
     <application
         android:name=".FixupXerApplication"

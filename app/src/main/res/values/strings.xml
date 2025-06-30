@@ -106,4 +106,10 @@
     <!-- Processing messages -->
     <string name="nothing_to_do">Nothing to do!</string>
     <string name="no_url_found_in_clipboard">No URL found in clipboard</string>
+    
+    <!-- Content Descriptions -->
+    <string name="share_button_desc">Share processed URL</string>
+    <string name="copy_button_desc">Copy processed URL</string>
+    <string name="open_button_desc">Open processed URL</string>
+    <string name="url_conversion_desc">URL conversion</string>
 </resources>

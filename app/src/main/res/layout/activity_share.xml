@@ -163,7 +163,7 @@
                     android:layout_height="20dp"
                     android:src="@drawable/ic_conversion"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="URL conversion" />
+                    android:contentDescription="@string/url_conversion_desc" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -202,7 +202,7 @@
                     android:layout_height="20dp"
                     android:src="@drawable/ic_conversion"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="URL conversion" />
+                    android:contentDescription="@string/url_conversion_desc" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -229,19 +229,34 @@
                         android:orientation="horizontal">
 
                         <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonOpen"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/margin_medium"
+                            android:layout_weight="1"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:text="@string/open"
+                            android:textAllCaps="false"
+                            android:textColor="@color/button_text"
+                            app:strokeColor="@color/button_stroke"
+                            app:icon="@drawable/ic_open_in_browser"
+                            app:iconGravity="textStart"
+                            app:iconTint="@color/button_text" />
+
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonCopy"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="@dimen/margin_medium"
                             android:layout_weight="1"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:text="@string/copy_url"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:text="@string/copy_url"
                             android:textAllCaps="false"
-                    android:textColor="@color/button_text"
-                    app:strokeColor="@color/button_stroke"
+                            android:textColor="@color/button_text"
+                            app:strokeColor="@color/button_stroke"
                             app:icon="@drawable/ic_copy"
                             app:iconGravity="textStart"
-                    app:iconTint="@color/button_text" />
+                            app:iconTint="@color/button_text" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonShare"
@@ -249,14 +264,14 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/margin_medium"
                             android:layout_weight="1"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:text="@string/share"
                             android:textAllCaps="false"
-                    android:textColor="@color/button_text"
-                    app:strokeColor="@color/button_stroke"
+                            android:textColor="@color/button_text"
+                            app:strokeColor="@color/button_stroke"
                             app:icon="@drawable/ic_share"
                             app:iconGravity="textStart"
-                    app:iconTint="@color/button_text" />
+                            app:iconTint="@color/button_text" />
                     </LinearLayout>
 
             <!-- Progress indicator -->

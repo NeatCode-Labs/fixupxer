@@ -1,3 +1,63 @@
+# FixupXer v1.3.3
+
+## What's New
+- **Fixed Instagram URL Detection** - Instagram URLs no longer incorrectly flagged as "Multiple URLs detected"
+- **Fixed Case Sensitivity** - Instagram post IDs now preserve case (e.g., DLRNJjEx45S won't become lowercase)
+- **Enhanced Glued URL Detection** - Improved detection to avoid false positives on legitimate URLs
+- **Added Open Button to Share Screen** - Can now open processed URLs directly from the share screen
+- **Improved Accessibility** - Fixed hardcoded text and added proper content descriptions
+- **Better RTL Support** - Fixed padding issues for right-to-left languages
+- **Minor UI Improvements** - Added autofill hints and fixed various layout issues
+
+## Bug Fixes
+- Fixed Instagram URLs being rejected with "Multiple URLs detected" error
+- Fixed case-sensitive URLs (like Instagram posts) being converted to lowercase
+- Fixed glued URL detection triggering on legitimate URLs containing common TLDs
+- Fixed missing Open button in ShareActivity
+- Fixed hardcoded content descriptions for better accessibility
+- Fixed RTL padding symmetry issues
+- Fixed missing autofill hints on URL input field
+
+## Technical Changes
+- Enhanced InputValidator with TLD-based glued URL detection
+- Added comprehensive TLD list for accurate domain boundary detection
+- Improved URL validation logic to handle edge cases
+- Reduced lint warnings from 97 to 94
+- Added proper string resources for all UI text
+- Synced all changes to GITHUB folder for F-Droid builds
+
+## Compatibility
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Light theme with Material Design 3
+
+## Download
+- [FixupXer-v1.3.3-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.3.3/FixupXer-v1.3.3-release.apk)
+
+---
+
+# FixupXer v1.3.2
+
+## What's New
+- **F-Droid Release Preparation** - Updated build configurations for F-Droid compliance
+- **Build System Updates** - Enhanced build configuration for reproducible builds
+- **Minor Improvements** - Various small fixes and optimizations
+
+## Technical Changes
+- Added dependenciesInfo block to GITHUB build configuration
+- Updated version metadata for F-Droid submission
+- Improved build reproducibility
+
+## Compatibility
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Light theme with Material Design 3
+
+## Download
+- [FixupXer-v1.3.2-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.3.2/FixupXer-v1.3.2-release.apk)
+
+---
+
 # FixupXer v1.3.1
 
 ## What's New

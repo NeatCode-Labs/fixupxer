@@ -1,14 +1,14 @@
 # FixupXer App - Development Summary
-## Version Progression: v1.2.1 → v1.3.1
+## Version Progression: v1.2.1 → v1.3.3
 
-**Total Versions Released:** 6 (v1.2.1, v1.2.2, v1.2.3, v1.2.4, v1.2.5, v1.3.0, v1.3.1)  
-**Final Version:** v1.3.1 (versionCode: 10)
+**Total Versions Released:** 8 (v1.2.1, v1.2.2, v1.2.3, v1.2.4, v1.2.5, v1.3.0, v1.3.1, v1.3.2, v1.3.3)  
+**Final Version:** v1.3.3 (versionCode: 12)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, with a focus on the extensive upgrades and UI/logic improvements leading up to v1.3.1. The development included a comprehensive overhaul of URL detection and toggle logic, major UI updates, lifecycle improvements, build system modernization, and comprehensive security hardening.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, with a focus on the extensive upgrades and UI/logic improvements leading up to v1.3.3. The development included a comprehensive overhaul of URL detection and toggle logic, major UI updates, lifecycle improvements, build system modernization, comprehensive security hardening, and critical bug fixes.
 
 ### Key Achievements:
 - ✅ **Extensive URL Detection Logic Overhaul** - Robust, domain-specific, and toggle-aware URL processing
@@ -19,6 +19,7 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 - ✅ **Comprehensive Test Suite** - 100% test coverage for all URL processing scenarios
 - ✅ **Build System Optimization** - Modernized and streamlined for reproducible releases
 - ✅ **Security Hardening** - Comprehensive protection against malicious input attacks and attack vectors
+- ✅ **Critical Bug Fixes** - Fixed glued URL detection false positives and case sensitivity issues
 
 ---
 
@@ -63,6 +64,23 @@ This document summarizes all modifications made to the FixupXer Android app sinc
     - Enhanced error handling with user-friendly feedback
     - Improved performance with sub-100ms validation times
     - New signed APK and AAB for v1.3.1
+
+### v1.3.1 → v1.3.2
+- **Focus:** F-Droid release preparation
+- **Key Changes:**
+    - Updated build configurations for F-Droid compliance
+    - Minor bug fixes and improvements
+
+### v1.3.2 → v1.3.3
+- **Focus:** Critical bug fixes for glued URL detection and UI improvements
+- **Key Changes:**
+    - Fixed Instagram URL false positive detection as "Multiple URLs"
+    - Fixed case sensitivity issue breaking Instagram post IDs
+    - Enhanced glued URL detection to avoid false positives on legitimate URLs
+    - Added "Open" button to ShareActivity for better user experience
+    - Improved TLD-based glued URL detection with comprehensive TLD list
+    - Fixed detection logic to check for complete domain boundaries
+    - New signed APK for v1.3.3
 
 ---
 
@@ -292,12 +310,14 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.2.4 | 13 | Lint fixes | ✅ Released |
 | v1.2.5 | 13 | Final optimization | ✅ Released |
 | v1.3.0 | 9 | Major overhaul | ✅ Released |
-| v1.3.1 | 10 | Security hardening | ✅ Current |
+| v1.3.1 | 10 | Security hardening | ✅ Released |
+| v1.3.2 | 11 | F-Droid preparation | ✅ Released |
+| v1.3.3 | 12 | Critical bug fixes | ✅ Current |
 
 ### Build Artifacts:
-- **APK:** `FixupXer-v1.3.1-release.apk`
-- **Version Code:** 10
-- **Version Name:** 1.3.1
+- **APK:** `FixupXer-v1.3.3-release.apk`
+- **Version Code:** 12
+- **Version Name:** 1.3.3
 - **Build Type:** Release (signed)
 
 ---
@@ -406,4 +426,4 @@ All major attack vectors are now protected against:
 ---
 
 **Document Generated:** June 2025  
-**Final Status:** ✅ Production Ready (v1.3.1) - Security Hardened 
+**Final Status:** ✅ Production Ready (v1.3.3) - Security Hardened with Critical Bug Fixes 

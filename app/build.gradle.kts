@@ -24,14 +24,14 @@ android {
         applicationId = "com.fixupxer"
         minSdk = 21
         targetSdk = 35
-        versionCode = 11
-        versionName = "1.3.2"
+        versionCode = 12
+        versionName = "1.3.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         // Add build config fields
-        buildConfigField("String", "VERSION_NAME", "\"1.3.2\"")
-        buildConfigField("int", "VERSION_CODE", "11")
+        buildConfigField("String", "VERSION_NAME", "\"1.3.3\"")
+        buildConfigField("int", "VERSION_CODE", "12")
     }
 
     signingConfigs {
@@ -58,6 +58,11 @@ android {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
         }
+    }
+    
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
     
     compileOptions {
@@ -95,10 +100,6 @@ android {
             isIncludeAndroidResources = true
             isReturnDefaultValues = true
         }
-    }
-    dependenciesInfo {
-        includeInApk = false
-        includeInBundle = false
     }
 }
 

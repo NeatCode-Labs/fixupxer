@@ -79,7 +79,10 @@
                         android:hint="@string/enter_url_to_process"
                         android:inputType="textUri"
                         android:textSize="@dimen/text_size_body"
-                        android:paddingEnd="@dimen/padding_small" />
+                        android:paddingStart="0dp"
+                        android:paddingEnd="@dimen/padding_small"
+                        android:autofillHints="url"
+                        android:importantForAutofill="yes" />
 
                     <TextView
                         android:id="@+id/buttonPaste"
@@ -150,7 +153,7 @@
                     android:layout_height="20dp"
                     android:src="@drawable/ic_conversion"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="URL conversion" />
+                    android:contentDescription="@string/url_conversion_desc" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -189,7 +192,7 @@
                     android:layout_height="20dp"
                     android:src="@drawable/ic_conversion"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="URL conversion" />
+                    android:contentDescription="@string/url_conversion_desc" />
 
                 <TextView
                     android:layout_width="0dp"

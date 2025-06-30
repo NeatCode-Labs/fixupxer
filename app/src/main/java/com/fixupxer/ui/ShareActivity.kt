@@ -69,6 +69,7 @@ class ShareActivity : BaseActivity() {
         binding.textViewReportBug.contentDescription = getString(R.string.report_bug_content_desc)
         binding.buttonDonate.contentDescription = getString(R.string.donate_content_desc)
         binding.backButton.contentDescription = getString(R.string.back)
+        binding.buttonOpen.contentDescription = getString(R.string.open_content_desc)
         
         // Set title
         binding.titleTextView.text = getString(R.string.app_title)
@@ -120,6 +121,21 @@ class ShareActivity : BaseActivity() {
             } catch (e: Exception) {
                 Timber.e(e, "Error opening website")
                 Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        binding.buttonOpen.setOnClickListener {
+            val processedUrl = viewModel.uiState.value.processedUrl
+            if (processedUrl.isNotEmpty()) {
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(processedUrl))
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Timber.e(e, "Error opening URL")
+                    Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, getString(R.string.no_url_to_open), Toast.LENGTH_SHORT).show()
             }
         }
     }

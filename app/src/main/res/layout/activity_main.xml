@@ -213,6 +213,8 @@
                     app:trackTint="@color/switch_track_selector" />
             </LinearLayout>
 
+
+
             <!-- Action buttons row 1 -->
             <LinearLayout
                 android:layout_width="match_parent"

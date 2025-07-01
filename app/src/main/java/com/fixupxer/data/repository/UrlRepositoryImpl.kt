@@ -33,6 +33,13 @@ class UrlRepositoryImpl @Inject constructor(
                 cleanTracking = true, // Always clean tracking
                 convertTwitter = preferencesManager.isConvertInstagramEnabled()
             )
+        } else if (urlProcessor.isFacebookUrl(url)) {
+            // For Facebook URLs, use the Instagram conversion preference (same toggle)
+            urlProcessor.processUrl(
+                url,
+                cleanTracking = forceCleanTracking || preferencesManager.isCleanTrackingEnabled(),
+                convertTwitter = preferencesManager.isConvertInstagramEnabled()
+            )
         } else {
             // For other URLs, use the standard preferences
             urlProcessor.processUrl(
@@ -82,4 +89,6 @@ class UrlRepositoryImpl @Inject constructor(
             preferencesManager.setConvertTwitterEnabled(enabled)
         }
     }
+    
+
 } 

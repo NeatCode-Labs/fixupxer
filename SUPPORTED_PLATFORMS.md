@@ -7,6 +7,7 @@ FixupXer removes tracking parameters from URLs of popular platforms and provides
 These platforms support both tracking parameter removal AND URL conversion to alternative domains:
 
 ### Social Media & Communication
+- **Facebook** - Removes fbclid, mibextid, __cft__, __tn__, _branch_match_id, epa, _gl, fb_action_ids, fb_action_types, fb_source, fb_ref, fb_comment_id, fb_story_location, fb_dtsg_ag, fbid and converts to facebookez.com for better embedding
 - **Instagram** - Removes igshid, ig_cache_key, ig_mid, ig_share_sheet and converts to kkinstagram.com for better embedding
 - **Twitter/X** - Removes s, t, ref_src, ref_url, via and converts to fixupx.com for better embedding
 
@@ -15,7 +16,7 @@ These platforms support both tracking parameter removal AND URL conversion to al
 These platforms support tracking parameter removal only:
 
 ### Social Media & Communication
-- **Facebook** - Removes fbclid, mibextid, __cft__, __tn__, _branch_match_id, epa, _gl, fb_action_ids, fb_action_types, fb_source, fb_ref, fb_comment_id, fb_story_location, fb_dtsg_ag, fbid and other FB tracking
+- **Facebook** - Removes fbclid, mibextid, __cft__, __tn__, _branch_match_id, epa, _gl, fb_action_ids, fb_action_types, fb_source, fb_ref, fb_comment_id, fb_story_location, fb_dtsg_ag, fbid and other FB tracking (URL conversion available via toggle)
 - **LinkedIn** - Removes trackingId, lipi, licu, trk, trkEmail, trkInfo, midToken, midSig, eBP, tscp, refId, veh and other professional network tracking
 - **Pinterest** - Removes e_t, e_t_s, e_t_cs, ouuid, cid, sfo, sfo_s, nic, nic_v, pin_unauth, dpi, i, w, m, n and pin tracking
 - **Snapchat** - Removes share_id, locale, attachment_url and snap-specific tracking
@@ -80,6 +81,7 @@ All UTM parameters are removed: utm_source, utm_medium, utm_campaign, utm_term, 
 ## Important Notes
 
 ### URL Conversion Behavior
+- **Facebook URLs** are converted to facebookez.com for better embedding and privacy by user decision (with prefix removal)
 - **Instagram URLs** are converted to kkinstagram.com for better embedding and privacy by user decision
 - **Twitter/X URLs** are converted to fixupx.com for better embedding and privacy by user decision
 - All other platforms only have tracking parameters removed

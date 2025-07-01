@@ -137,6 +137,8 @@ class MainActivity : BaseActivity() {
             viewModel.onTwitterConversionToggled(isChecked)
         }
         
+
+        
         // Paste button
         binding.buttonPaste.setOnClickListener {
             pasteFromClipboard()
@@ -204,6 +206,8 @@ class MainActivity : BaseActivity() {
                     
                     binding.twitterToggleContainer.isVisible = state.isTwitterUrl
                     binding.switchTwitter.isChecked = state.isTwitterConversionEnabled
+                    
+
                     
                     binding.progressIndicator.isVisible = state.isLoading
                     binding.buttonProcess.isEnabled = !state.isLoading

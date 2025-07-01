@@ -1,8 +1,8 @@
 # FixupXer App - Development Summary
-## Version Progression: v1.2.1 → v1.3.3
+## Version Progression: v1.2.1 → v1.3.4
 
-**Total Versions Released:** 8 (v1.2.1, v1.2.2, v1.2.3, v1.2.4, v1.2.5, v1.3.0, v1.3.1, v1.3.2, v1.3.3)  
-**Final Version:** v1.3.3 (versionCode: 12)
+**Total Versions Released:** 9 (v1.2.1, v1.2.2, v1.2.3, v1.2.4, v1.2.5, v1.3.0, v1.3.1, v1.3.2, v1.3.3, v1.3.4)  
+**Final Version:** v1.3.4 (versionCode: 13)
 
 ---
 
@@ -82,6 +82,17 @@ This document summarizes all modifications made to the FixupXer Android app sinc
     - Fixed detection logic to check for complete domain boundaries
     - New signed APK for v1.3.3
 
+### v1.3.3 → v1.3.4
+- **Focus:** Facebook URL conversion support and prefix removal
+- **Key Changes:**
+    - Added Facebook URL conversion to facebookez.com using existing "Create embeddable link?" toggle
+    - Implemented comprehensive Facebook prefix removal (m., www., mobile., touch., web.)
+    - Enhanced URL processing logic in both MainActivity and ShareActivity
+    - Updated toggle text to be platform-agnostic ("Create embeddable link?" for all platforms)
+    - Added Facebook domain detection and processing scenarios
+    - Improved regex patterns for Facebook URL transformation
+    - New signed APK for v1.3.4
+
 ---
 
 ## 🔧 Core URL Processing Logic Changes
@@ -116,6 +127,11 @@ fun processUrl(url: String, cleanTracking: Boolean, convertTwitter: Boolean): Pa
 - `instagram.com` ↔ `kkinstagram.com` conversion
 - Toggle ON: Convert to kkinstagram.com
 - Toggle OFF: Convert back to instagram.com
+
+**Facebook URLs:**
+- `facebook.com` ↔ `facebookez.com` conversion (with prefix removal)
+- Toggle ON: Convert to facebookez.com (removes m., www., mobile., touch., web. prefixes)
+- Toggle OFF: Convert back to facebook.com
 
 **Twitter/X URLs:**
 - `x.com`/`twitter.com` ↔ `fixupx.com` conversion  
@@ -312,12 +328,13 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.3.0 | 9 | Major overhaul | ✅ Released |
 | v1.3.1 | 10 | Security hardening | ✅ Released |
 | v1.3.2 | 11 | F-Droid preparation | ✅ Released |
-| v1.3.3 | 12 | Critical bug fixes | ✅ Current |
+| v1.3.3 | 12 | Critical bug fixes | ✅ Released |
+| v1.3.4 | 13 | Facebook support | ✅ Current |
 
 ### Build Artifacts:
-- **APK:** `FixupXer-v1.3.3-release.apk`
-- **Version Code:** 12
-- **Version Name:** 1.3.3
+- **APK:** `FixupXer-v1.3.4-release.apk`
+- **Version Code:** 13
+- **Version Name:** 1.3.4
 - **Build Type:** Release (signed)
 
 ---
@@ -426,4 +443,4 @@ All major attack vectors are now protected against:
 ---
 
 **Document Generated:** June 2025  
-**Final Status:** ✅ Production Ready (v1.3.3) - Security Hardened with Critical Bug Fixes 
+**Final Status:** ✅ Production Ready (v1.3.4) - Facebook Support with Enhanced URL Processing 

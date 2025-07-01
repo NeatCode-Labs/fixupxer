@@ -85,7 +85,9 @@ class ShareViewModel @Inject constructor(
                     
                     // Check URL type to determine toggle visibility
                     val isInstagram = url.contains("instagram.com", ignoreCase = true) || 
-                                    url.contains("kkinstagram.com", ignoreCase = true)
+                                    url.contains("kkinstagram.com", ignoreCase = true) ||
+                                    url.contains("facebook.com", ignoreCase = true) ||
+                                    url.contains("facebookez.com", ignoreCase = true)
                     val isTwitter = urlRepository.isTwitterUrl(url) || 
                                    url.contains("x.com", ignoreCase = true) ||
                                    url.contains("fixupx.com", ignoreCase = true) || 
@@ -177,6 +179,57 @@ class ShareViewModel @Inject constructor(
                                 convertedUrl
                         }
                     }
+                    }
+                    
+                    // Facebook scenarios
+                    url.contains("facebook.com") && !url.contains("facebookez.com") -> {
+                        Timber.d("ShareViewModel Scenario: Facebook URL detected")
+                        when {
+                            _uiState.value.isInstagramConversionEnabled -> {
+                                // Toggle ON: convert to facebookez.com (remove all prefixes)
+                                val cleanUrl = urlRepository.cleanUrl(url)
+                                // Remove all possible prefixes and convert to facebookez.com
+                                val convertedUrl = cleanUrl.replace(Regex("https?://(www\\.|m\\.|mobile\\.|touch\\.|web\\.)?facebook\\.com"), "https://facebookez.com")
+                                Timber.d("ShareViewModel Facebook toggle ON: $url -> $convertedUrl")
+                                convertedUrl
+                            }
+                            else -> {
+                                // Toggle OFF: show "Nothing to do!" for clean URLs
+                                val cleanUrl = urlRepository.cleanUrl(url)
+                                if (cleanUrl == url) {
+                                    Timber.d("ShareViewModel Facebook toggle OFF: $url -> Nothing to do!")
+                                    getApplication<Application>().getString(R.string.nothing_to_do)
+                        } else {
+                                    Timber.d("ShareViewModel Facebook toggle OFF: $url -> $cleanUrl")
+                                    cleanUrl
+                                }
+                            }
+                        }
+                    }
+                    
+                    // facebookez.com scenarios
+                    url.contains("facebookez.com") -> {
+                        Timber.d("ShareViewModel Scenario: facebookez.com URL detected")
+                        when {
+                            _uiState.value.isInstagramConversionEnabled -> {
+                                // Toggle ON: show "Nothing to do!" for clean URLs
+                                val cleanUrl = urlRepository.cleanUrl(url)
+                                if (cleanUrl == url) {
+                                    Timber.d("ShareViewModel facebookez.com toggle ON: $url -> Nothing to do!")
+                                    getApplication<Application>().getString(R.string.nothing_to_do)
+                        } else {
+                                    Timber.d("ShareViewModel facebookez.com toggle ON: $url -> $cleanUrl")
+                                    cleanUrl
+                                }
+                            }
+                            else -> {
+                                // Toggle OFF: convert to facebook.com
+                                val cleanUrl = urlRepository.cleanUrl(url)
+                                val convertedUrl = cleanUrl.replace("facebookez.com", "facebook.com")
+                                Timber.d("ShareViewModel facebookez.com toggle OFF: $url -> $convertedUrl")
+                                convertedUrl
+                            }
+                        }
                     }
                     
                     // X.com scenarios

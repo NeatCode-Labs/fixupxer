@@ -138,7 +138,42 @@ class UrlProcessor {
                 return Pair(finalUrl, wasAlreadyClean)
             }
             
-            // For other URLs (non-Instagram, non-Twitter)
+            // Check if it's a Facebook-related URL (including facebookez)
+            val isFacebook = isFacebookUrl(decodedUrl)
+            val isFacebookez = decodedUrl.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)
+            
+            if (isFacebook || isFacebookez) {
+                Timber.d("Facebook/Facebookez URL detected: $decodedUrl")
+                
+                // Clean tracking parameters if enabled
+                val cleanedUrl = if (cleanTracking) {
+                    removeTrackingParameters(decodedUrl)
+                } else {
+                    decodedUrl
+                }
+                
+                // Determine what needs to be done based on current state and desired state
+                val needsConversion = when {
+                    convertTwitter && isFacebook && !isFacebookez -> true // Need to convert to facebookez
+                    !convertTwitter && isFacebookez -> true // Need to convert back to facebook
+                    else -> false
+                }
+                
+                val finalUrl = when {
+                    convertTwitter && !isFacebookez -> convertToFacebookez(cleanedUrl)
+                    !convertTwitter && isFacebookez -> convertFromFacebookez(cleanedUrl)
+                    else -> cleanedUrl
+                }
+                
+                // URL is already clean if no tracking params exist AND no conversion was needed
+                val wasAlreadyClean = !urlHasTrackingParams && !needsConversion
+                
+                Timber.d("Facebook URL processing - hadTracking: $urlHasTrackingParams, needsConversion: $needsConversion, wasAlreadyClean: $wasAlreadyClean")
+                
+                return Pair(finalUrl, wasAlreadyClean)
+            }
+            
+            // For other URLs (non-Instagram, non-Twitter, non-Facebook)
             var processedUrl = decodedUrl
             val originallyHadTracking = hasTrackingParameters(decodedUrl)
             // Clean tracking parameters if enabled
@@ -212,6 +247,23 @@ class UrlProcessor {
                 decodedUrl.contains(Constants.FIXUPX_DOMAIN, ignoreCase = true) -> {
                     Timber.d("URL already contains fixupx: $decodedUrl")
                     // Still clean tracking parameters from fixupx URLs
+                    removeTrackingParameters(decodedUrl)
+                }
+                isFacebookUrl(decodedUrl) -> {
+                    Timber.d("Facebook URL for sharing: $decodedUrl")
+                    
+                    // First remove tracking parameters
+                    val cleaned = removeTrackingParameters(decodedUrl)
+                    
+                    // Then convert to facebookez
+                    val converted = convertToFacebookez(cleaned)
+                    Timber.d("Facebook URL converted for sharing: $converted")
+                    
+                    converted
+                }
+                decodedUrl.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true) -> {
+                    Timber.d("URL already contains facebookez: $decodedUrl")
+                    // Still clean tracking parameters from facebookez URLs
                     removeTrackingParameters(decodedUrl)
                 }
                 else -> {
@@ -341,6 +393,14 @@ class UrlProcessor {
     }
     
     /**
+     * Check if a URL is a Facebook URL
+     */
+    fun isFacebookUrl(url: String): Boolean {
+        val lowerUrl = url.lowercase()
+        return lowerUrl.contains(Constants.FACEBOOK_DOMAIN)
+    }
+    
+    /**
      * Convert Twitter URLs to fixupx.com format
      */
     private fun convertTwitterUrl(url: String): String {
@@ -413,6 +473,53 @@ class UrlProcessor {
         }
         
         return url
+    }
+    
+    /**
+     * Convert Facebook URLs to facebookez.com
+     */
+    private fun convertToFacebookez(url: String): String {
+        // If already contains facebookez, return as is
+        if (url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)) {
+            return url
+        }
+        
+        // Handle various Facebook subdomains
+        val facebookPattern = Pattern.compile(
+            "(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(facebook\\.com)",
+            Pattern.CASE_INSENSITIVE
+        )
+        
+        val matcher = facebookPattern.matcher(url)
+        return if (matcher.find()) {
+            matcher.replaceAll("$1$2${Constants.FACEBOOKEZ_DOMAIN}")
+        } else {
+            url.replace(Constants.FACEBOOK_DOMAIN, Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)
+        }
+    }
+    
+    /**
+     * Convert facebookez URLs back to facebook.com
+     */
+    private fun convertFromFacebookez(url: String): String {
+        // If already contains facebook.com, return as is
+        if (url.contains(Constants.FACEBOOK_DOMAIN, ignoreCase = true) && 
+            !url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)) {
+            return url
+        }
+        
+        // Handle various facebookez subdomains
+        val facebookezPattern = Pattern.compile(
+            "(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(facebookez\\.com)",
+            Pattern.CASE_INSENSITIVE
+        )
+        
+        val matcher = facebookezPattern.matcher(url)
+        return if (matcher.find()) {
+            matcher.replaceAll("$1$2${Constants.FACEBOOK_DOMAIN}")
+        } else {
+            url.replace(Constants.FACEBOOKEZ_DOMAIN, Constants.FACEBOOK_DOMAIN, ignoreCase = true)
+        }
     }
     
     /**

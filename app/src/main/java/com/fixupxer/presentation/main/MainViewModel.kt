@@ -49,7 +49,9 @@ class MainViewModel @Inject constructor(
     fun onUrlChanged(url: String) {
         val showInstagramToggle = if (url.isNotEmpty()) {
             url.contains("instagram.com", ignoreCase = true) || 
-            url.contains("kkinstagram.com", ignoreCase = true)
+            url.contains("kkinstagram.com", ignoreCase = true) ||
+            url.contains("facebook.com", ignoreCase = true) ||
+            url.contains("facebookez.com", ignoreCase = true)
         } else {
             false
         }
@@ -146,6 +148,59 @@ class MainViewModel @Inject constructor(
                                 // Toggle OFF: convert to instagram.com
                                 val cleanUrl = urlRepository.cleanUrl(url)
                                 val convertedUrl = cleanUrl.replace("kkinstagram.com", "instagram.com")
+                                Timber.d("MainViewModel processing URL: $url -> $convertedUrl")
+                                convertedUrl
+                            }
+                        }
+                    }
+                    
+                    // Facebook scenarios
+                    url.contains("facebook.com") && !url.contains("facebookez.com") -> {
+                        Timber.d("MainViewModel processing URL: $url")
+                        Timber.d("Scenario: Facebook URL detected")
+                        when {
+                            _uiState.value.isInstagramConversionEnabled -> {
+                                // Toggle ON: convert to facebookez.com (remove all prefixes)
+                                val cleanUrl = urlRepository.cleanUrl(url)
+                                // Remove all possible prefixes and convert to facebookez.com
+                                val convertedUrl = cleanUrl.replace(Regex("https?://(www\\.|m\\.|mobile\\.|touch\\.|web\\.)?facebook\\.com"), "https://facebookez.com")
+                                Timber.d("MainViewModel processing URL: $url -> $convertedUrl")
+                                convertedUrl
+                            }
+                            else -> {
+                                // Toggle OFF: show "Nothing to do!" for clean URLs
+                                val cleanUrl = urlRepository.cleanUrl(url)
+                                if (cleanUrl == url) {
+                                    Timber.d("MainViewModel processing URL: $url -> Nothing to do!")
+                                    getApplication<Application>().getString(R.string.nothing_to_do)
+                        } else {
+                                    Timber.d("MainViewModel processing URL: $url -> $cleanUrl")
+                                    cleanUrl
+                                }
+                            }
+                        }
+                    }
+                    
+                    // facebookez.com scenarios
+                    url.contains("facebookez.com") -> {
+                        Timber.d("MainViewModel processing URL: $url")
+                        Timber.d("Scenario: facebookez.com URL detected")
+                        when {
+                            _uiState.value.isInstagramConversionEnabled -> {
+                                // Toggle ON: show "Nothing to do!" for clean URLs
+                                val cleanUrl = urlRepository.cleanUrl(url)
+                                if (cleanUrl == url) {
+                                    Timber.d("MainViewModel processing URL: $url -> Nothing to do!")
+                                    getApplication<Application>().getString(R.string.nothing_to_do)
+                        } else {
+                                    Timber.d("MainViewModel processing URL: $url -> $cleanUrl")
+                                    cleanUrl
+                                }
+                            }
+                            else -> {
+                                // Toggle OFF: convert to facebook.com
+                                val cleanUrl = urlRepository.cleanUrl(url)
+                                val convertedUrl = cleanUrl.replace("facebookez.com", "facebook.com")
                                 Timber.d("MainViewModel processing URL: $url -> $convertedUrl")
                                 convertedUrl
                             }

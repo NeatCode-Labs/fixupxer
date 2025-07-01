@@ -1,3 +1,40 @@
+# FixupXer v1.3.4
+
+## What's New
+- **Facebook URL Conversion** - Convert Facebook URLs to facebookez.com for better embedding and privacy
+- **Facebook Prefix Removal** - Automatically removes prefixes like m., www., mobile., touch., web. when converting
+- **Enhanced Toggle Functionality** - "Create embeddable link?" toggle now supports Facebook, Instagram, and Twitter/X
+- **Platform-Agnostic Toggle** - Single toggle controls all supported platforms (Facebook, Instagram, Twitter/X)
+- **Improved URL Processing** - Enhanced regex patterns for Facebook URL transformation
+- **Consistent Behavior** - Facebook conversion works in both main screen and share screen
+
+## Platform Support
+- **Facebook**: facebook.com ↔ facebookez.com (with prefix removal)
+- **Instagram**: instagram.com ↔ kkinstagram.com
+- **Twitter/X**: x.com/twitter.com ↔ fixupx.com
+
+## Technical Changes
+- Added Facebook domain detection and processing scenarios
+- Implemented comprehensive Facebook prefix removal regex
+- Updated both MainActivity and ShareActivity with Facebook support
+- Enhanced URL processing logic for Facebook URLs
+- Improved toggle text to be platform-agnostic
+
+## Bug Fixes
+- Fixed toggle text specificity (now generic "Create embeddable link?" for all platforms)
+- Enhanced Facebook URL processing with proper prefix handling
+- Improved consistency between main screen and share screen functionality
+
+## Compatibility
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Light theme with Material Design 3
+
+## Download
+- [FixupXer-v1.3.4-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.3.4/FixupXer-v1.3.4-release.apk)
+
+---
+
 # FixupXer v1.3.3
 
 ## What's New

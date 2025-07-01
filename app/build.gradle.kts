@@ -24,14 +24,14 @@ android {
         applicationId = "com.fixupxer"
         minSdk = 21
         targetSdk = 35
-        versionCode = 12
-        versionName = "1.3.3"
+        versionCode = 13
+        versionName = "1.3.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         // Add build config fields
-        buildConfigField("String", "VERSION_NAME", "\"1.3.3\"")
-        buildConfigField("int", "VERSION_CODE", "12")
+        buildConfigField("String", "VERSION_NAME", "\"1.3.4\"")
+        buildConfigField("int", "VERSION_CODE", "13")
     }
 
     signingConfigs {
@@ -58,11 +58,6 @@ android {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
         }
-    }
-    
-    dependenciesInfo {
-        includeInApk = false
-        includeInBundle = false
     }
     
     compileOptions {
@@ -100,6 +95,14 @@ android {
             isIncludeAndroidResources = true
             isReturnDefaultValues = true
         }
+    }
+    
+    // Explicitly disable dependencyInfo for F-Droid builds
+    dependencyInfo {
+        // Disables dependency metadata when building APKs.
+        includeInApk = false
+        // Disables dependency metadata when building Android App Bundles.
+        includeInBundle = false
     }
 }
 

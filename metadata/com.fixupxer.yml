@@ -13,9 +13,9 @@ Repo: https://github.com/NeatCode-Labs/fixupxer
 Binaries: https://github.com/NeatCode-Labs/fixupxer/releases/download/v%v/FixupXer-v%v-release.apk
 
 Builds:
-  - versionName: 1.3.3
-    versionCode: 12
-    commit: v1.3.3
+  - versionName: 1.3.4
+    versionCode: 13
+    commit: v1.3.4
     subdir: app
     gradle:
       - yes
@@ -27,5 +27,5 @@ AllowedAPKSigningKeys: 78e36950963a98ea39fe30b955c27364e187feca85a1af6ad10987d15
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.3.3
-CurrentVersionCode: 12
+CurrentVersion: 1.3.4
+CurrentVersionCode: 13

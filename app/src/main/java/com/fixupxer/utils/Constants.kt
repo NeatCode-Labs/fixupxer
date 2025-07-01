@@ -21,6 +21,8 @@ object Constants {
     const val X_DOMAIN = "x.com"
     const val FIXUPX_DOMAIN = "fixupx.com"
     const val FXTWITTER_DOMAIN = "fxtwitter.com"
+    const val FACEBOOK_DOMAIN = "facebook.com"
+    const val FACEBOOKEZ_DOMAIN = "facebookez.com"
     
     // URL path identifiers
     const val TWITTER_STATUS_PATH = "/status/"

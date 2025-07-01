@@ -16,11 +16,24 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import androidx.test.espresso.UiController
+import androidx.test.espresso.ViewAction
+import android.view.View
 
 @RunWith(AndroidJUnit4::class)
 class UrlInputValidationTest {
     private fun launchMainActivity() {
         ActivityScenario.launch(MainActivity::class.java)
+    }
+
+    fun waitFor(delay: Long): ViewAction {
+        return object : ViewAction {
+            override fun getConstraints() = isRoot()
+            override fun getDescription() = "Wait for $delay milliseconds."
+            override fun perform(uiController: UiController, view: View?) {
+                uiController.loopMainThreadForAtLeast(delay)
+            }
+        }
     }
 
     @Test
@@ -32,7 +45,7 @@ class UrlInputValidationTest {
         onView(withId(R.id.editTextUrl)).perform(replaceText(glued), closeSoftKeyboard())
         
         // Wait for TextWatcher to process
-        runBlocking { delay(1500) }
+        onView(isRoot()).perform(waitFor(1500))
         
         // Verify the input field is cleared (indicating rejection)
         onView(withId(R.id.editTextUrl)).check(matches(withText("")))
@@ -47,7 +60,7 @@ class UrlInputValidationTest {
         val tricky = "www.instagram.com\u200Bwww.x.com"
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(tricky), closeSoftKeyboard())
-        runBlocking { delay(1500) }
+        onView(isRoot()).perform(waitFor(1500))
         
         // Verify input is cleared
         onView(withId(R.id.editTextUrl)).check(matches(withText("")))
@@ -60,7 +73,7 @@ class UrlInputValidationTest {
         val tricky = "www%2Einstagram.com"
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(tricky), closeSoftKeyboard())
-        runBlocking { delay(1500) }
+        onView(isRoot()).perform(waitFor(1500))
         
         // Verify input is cleared
         onView(withId(R.id.editTextUrl)).check(matches(withText("")))
@@ -73,7 +86,7 @@ class UrlInputValidationTest {
         val tricky = "www.instagram.com\u0000www.x.com"
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(tricky), closeSoftKeyboard())
-        runBlocking { delay(1500) }
+        onView(isRoot()).perform(waitFor(1500))
         
         // Verify input is cleared
         onView(withId(R.id.editTextUrl)).check(matches(withText("")))
@@ -87,11 +100,11 @@ class UrlInputValidationTest {
         
         // Type valid URL
         onView(withId(R.id.editTextUrl)).perform(replaceText(valid), closeSoftKeyboard())
-        runBlocking { delay(1000) }
+        onView(isRoot()).perform(waitFor(1000))
         
         // Click process to see the result
         onView(withId(R.id.buttonProcess)).perform(click())
-        runBlocking { delay(2000) }
+        onView(isRoot()).perform(waitFor(2000))
         
         // Verify some processing occurred (either result or error message)
         onView(withId(R.id.textViewProcessedUrl)).check(matches(not(withText(""))))
@@ -106,7 +119,7 @@ class UrlInputValidationTest {
         val malformed = "not-a-url-at-all"
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(malformed), closeSoftKeyboard())
-        runBlocking { delay(1500) }
+        onView(isRoot()).perform(waitFor(1500))
         
         // If we get here without crashing, the test passes
         // Verify the app is still responsive
@@ -119,7 +132,7 @@ class UrlInputValidationTest {
         val multipleProtocols = "https://www.instagram.comhttp://www.x.com"
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(multipleProtocols), closeSoftKeyboard())
-        runBlocking { delay(1500) }
+        onView(isRoot()).perform(waitFor(1500))
         
         // Verify input is cleared
         onView(withId(R.id.editTextUrl)).check(matches(withText("")))
@@ -132,7 +145,7 @@ class UrlInputValidationTest {
         val unicodeTricky = "www.instagram\u0300.com" // Combining accent
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(unicodeTricky), closeSoftKeyboard())
-        runBlocking { delay(1500) }
+        onView(isRoot()).perform(waitFor(1500))
         
         // Verify input is cleared
         onView(withId(R.id.editTextUrl)).check(matches(withText("")))
@@ -146,11 +159,11 @@ class UrlInputValidationTest {
         
         // Type valid URL
         onView(withId(R.id.editTextUrl)).perform(replaceText(valid), closeSoftKeyboard())
-        runBlocking { delay(1000) }
+        onView(isRoot()).perform(waitFor(1000))
         
         // Click process button
         onView(withId(R.id.buttonProcess)).perform(click())
-        runBlocking { delay(2000) }
+        onView(isRoot()).perform(waitFor(2000))
         
         // Verify processing occurred
         onView(withId(R.id.textViewProcessedUrl)).check(matches(not(withText(""))))
@@ -161,8 +174,9 @@ class UrlInputValidationTest {
         launchMainActivity()
         
         // Click process button with empty input
+        onView(isRoot()).perform(waitFor(500))
         onView(withId(R.id.buttonProcess)).perform(click())
-        runBlocking { delay(1000) }
+        onView(isRoot()).perform(waitFor(1000))
         
         // Verify error state - use the correct string resource
         onView(withId(R.id.textViewProcessedUrl)).check(matches(withText(containsString("No URL to process"))))

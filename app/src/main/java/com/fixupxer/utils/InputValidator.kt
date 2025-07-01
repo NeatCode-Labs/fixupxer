@@ -39,6 +39,16 @@ object InputValidator {
                     Timber.w("Control characters detected in input")
                     return@withTimeout null
                 }
+                // Reject Unicode normalization attacks (combining accents)
+                if (decoded.contains(Regex("\\p{M}"))) {
+                    Timber.w("Unicode normalization (combining accent) detected in input")
+                    return@withTimeout null
+                }
+                // Reject encoded dot attacks (e.g., %2E)
+                if (sanitized.contains("%2E", ignoreCase = true)) {
+                    Timber.w("Encoded dot attack detected in input")
+                    return@withTimeout null
+                }
                 
                 decoded
             }

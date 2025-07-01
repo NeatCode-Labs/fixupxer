@@ -97,8 +97,8 @@ android {
         }
     }
     
-    // Explicitly disable dependencyInfo for F-Droid builds
-    dependencyInfo {
+    // Explicitly disable dependenciesInfo for F-Droid builds
+    dependenciesInfo {
         // Disables dependency metadata when building APKs.
         includeInApk = false
         // Disables dependency metadata when building Android App Bundles.

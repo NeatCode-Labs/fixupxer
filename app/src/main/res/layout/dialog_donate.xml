@@ -27,18 +27,18 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginBottom="20dp">
-        
-        <Button
+
+    <Button
             android:id="@+id/buttonMaybeLater"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+        android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:text="@string/donate_dialog_negative"
             android:textColor="@color/dark_gray"/>
-        
-        <Button
+
+    <Button
             android:id="@+id/buttonDonate"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

@@ -3,6 +3,5 @@
 • Improved Twitter/X URL processing with advanced pattern matching
 • Enhanced URL cleaning with more tracking parameter removal
 • UI improvements with modern card-based design
-• Added haptic feedback for better user experience
 • Performance optimizations
 • Bug fixes and stability improvements 

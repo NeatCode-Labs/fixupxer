@@ -18,6 +18,7 @@ FixupXer is a privacy-focused Android app that cleans tracking parameters from U
 ## Features
 
 - **Clean Tracking Parameters**: Removes common tracking parameters from URLs (like UTM parameters, fbclid, etc.)
+- **Facebook Enhancement**: Converts Facebook URLs to facebookez.com for better embedding and privacy
 - **Improved Twitter/X Embeds**: Converts Twitter/X URLs to fixupx.com format for better embeds
 - **Instagram Enhancement**: Converts Instagram URLs to kkinstagram.com for better viewing and privacy
 - **URL Sharing**: Share cleaned and improved URLs directly from the app
@@ -44,16 +45,17 @@ FixupXer functions in two main ways:
 **Privacy**: This app processes URLs locally on your device and does not collect, store, or transmit any user data or URLs to external servers.
 
 **Third-Party Services**: FixupXer relies on third-party proxy services for URL conversion:
+- **facebookez.com** - For Facebook link conversion
 - **fixupx.com** - For Twitter/X link conversion
 - **kkinstagram.com** - For Instagram link conversion
 
 These services are **not operated by NeatCode Labs** and may stop working at any time without notice. We have no control over their availability or functionality.
 
-**Trademarks**: Names such as "Twitter", "X", "Instagram" and others are trademarks of their respective owners. This app is not affiliated with, endorsed by, or connected to these services.
+**Trademarks**: Names such as "Facebook", "Twitter", "X", "Instagram" and others are trademarks of their respective owners. This app is not affiliated with, endorsed by, or connected to these services.
 
 **Warranty**: This software is provided "as is", without warranty of any kind.
 
-**Note to kkinstagram.com maintainer**: If you wish to be credited in this README, please contact us via the contact form on our [website](https://neatcodelabs.com/) or use the "Report a Bug" link in the app.
+**Note to kkinstagram.com and facebookez.com maintainers**: If you wish to be credited in this README, please contact us via the contact form on our [website](https://neatcodelabs.com/) or use the "Report a Bug" link in the app.
 
 ## Credits
 
@@ -62,6 +64,7 @@ This app is inspired by and builds upon the great work of several projects:
 1. [FxEmbed (fixupx.com)](https://github.com/FxEmbed/FxEmbed) - The original service for improving Twitter/X embeds
 2. [ClearURLs](https://github.com/ClearURLs/Addon) - A browser extension that removes tracking elements from URLs
 3. [InstaFix](https://github.com/Wikidepia/InstaFix) - A service that improves Instagram embeds in platforms like Discord and Telegram
+4. [Leon - URL Cleaner](https://github.com/leon-cleaning-services/leon) - Android app for removing tracking parameters from shared URLs
 
 
 ## Building from Source

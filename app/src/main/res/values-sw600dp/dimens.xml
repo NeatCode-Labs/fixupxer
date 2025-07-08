@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Button and icon sizes for tablets -->
+    <dimen name="icon_button_size">56dp</dimen>
+    <dimen name="arrow_icon_size">56dp</dimen>
+    <dimen name="icon_button_padding">16dp</dimen>
+    
+    <!-- Card dimensions for tablets -->
+    <dimen name="shared_text_card_height">72dp</dimen>
+    <dimen name="card_corner_radius">16dp</dimen>
+    
+    <!-- Text sizes for tablets -->
+    <dimen name="text_size_title">26sp</dimen>
+    <dimen name="text_size_body">18sp</dimen>
+    <dimen name="text_size_small">16sp</dimen>
+    <dimen name="text_size_tiny">14sp</dimen>
+    
+    <!-- Paddings for tablets -->
+    <dimen name="padding_medium">24dp</dimen>
+    <dimen name="padding_large">32dp</dimen>
+    <dimen name="padding_xlarge">40dp</dimen>
+    
+    <!-- Margins for tablets -->
+    <dimen name="margin_large">24dp</dimen>
+    <dimen name="margin_xlarge">32dp</dimen>
+    <dimen name="margin_xxlarge">40dp</dimen>
+</resources> 

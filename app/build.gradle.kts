@@ -4,7 +4,7 @@ import java.io.FileInputStream
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     id("kotlin-parcelize")
 }
@@ -24,14 +24,14 @@ android {
         applicationId = "com.fixupxer"
         minSdk = 21
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.1.1"
+        versionCode = 14
+        versionName = "1.3.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         // Add build config fields
-        buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
-        buildConfigField("int", "VERSION_CODE", "$versionCode")
+        buildConfigField("String", "VERSION_NAME", "\"1.3.5\"")
+        buildConfigField("int", "VERSION_CODE", "14")
     }
 
     signingConfigs {
@@ -96,6 +96,12 @@ android {
             isReturnDefaultValues = true
         }
     }
+    
+    // Google Play dependenciesInfo block for Play Store submissions
+    dependenciesInfo {
+        includeInBundle = false
+        includeInApk = false
+    }
 }
 
 dependencies {
@@ -125,13 +131,13 @@ dependencies {
     
     // Dependency Injection
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
     
     // Room Database
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    kapt(libs.room.compiler)
+    ksp(libs.room.compiler)
     
     // Logging
     implementation(libs.timber)

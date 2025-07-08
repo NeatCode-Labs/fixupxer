@@ -1,0 +1,7 @@
+v1.3.5 (14)
+• Minor URL detection improvements
+  - Refined glued URL detection to reduce false positives
+  - Enhanced domain boundary checking for better accuracy
+• UI improvement
+  - Moved error toast message to "Processed URL" field for better user experience
+  - Users now see error messages in the result field instead of temporary toasts 

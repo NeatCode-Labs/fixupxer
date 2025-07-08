@@ -1,5 +1,6 @@
 package com.fixupxer.domain.repository
 
+import com.fixupxer.domain.model.ProcessedUrlResult
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -7,18 +8,25 @@ import kotlinx.coroutines.flow.Flow
  */
 interface UrlRepository {
     /**
-     * Process a URL according to user preferences
-     * @param url The URL to process
-     * @return The processed URL
+     * Process a URL by cleaning tracking parameters and optionally converting
+     * Twitter/Instagram URLs based on user preferences
      */
-    suspend fun processUrl(url: String): String
+    suspend fun processUrl(url: String): ProcessedUrlResult
     
     /**
-     * Process a URL specifically for sharing (with all conversions enabled)
-     * @param url The URL to process
-     * @return The processed URL ready for sharing
+     * Process a URL with option to force tracking removal
+     */
+    suspend fun processUrl(url: String, forceCleanTracking: Boolean): ProcessedUrlResult
+    
+    /**
+     * Process URL for sharing - always converts to alternative domains
      */
     suspend fun processUrlForSharing(url: String): String
+    
+    /**
+     * Clean a URL by removing tracking parameters
+     */
+    suspend fun cleanUrl(url: String): String
     
     /**
      * Check if a URL is an Instagram URL
@@ -26,6 +34,18 @@ interface UrlRepository {
      * @return True if it's an Instagram URL
      */
     fun isInstagramUrl(url: String): Boolean
+    
+    /**
+     * Check if a URL is a Twitter/X URL
+     * @param url The URL to check
+     * @return True if it's a Twitter/X URL
+     */
+    fun isTwitterUrl(url: String): Boolean
+    
+    /**
+     * Check if a URL contains tracking parameters
+     */
+    fun hasTrackingParameters(url: String): Boolean
     
     /**
      * Get the current state of Instagram conversion preference
@@ -56,4 +76,6 @@ interface UrlRepository {
      * Set Twitter conversion preference
      */
     suspend fun setTwitterConversionEnabled(enabled: Boolean)
+    
+
 } 

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dialog paddings -->
+    <dimen name="dialog_text_padding_horizontal">50dp</dimen>
+    <dimen name="dialog_text_padding_vertical">30dp</dimen>
+    
+    <!-- General paddings -->
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+    <dimen name="padding_xlarge">32dp</dimen>
+    
+    <!-- Margins -->
+    <dimen name="margin_small">4dp</dimen>
+    <dimen name="margin_medium">8dp</dimen>
+    <dimen name="margin_large">16dp</dimen>
+    <dimen name="margin_xlarge">24dp</dimen>
+    <dimen name="margin_xxlarge">32dp</dimen>
+    
+    <!-- Title padding -->
+    <dimen name="title_padding_top">16dp</dimen>
+    
+    <!-- Button and icon sizes -->
+    <dimen name="icon_button_size">48dp</dimen>
+    <dimen name="arrow_icon_size">48dp</dimen>
+    <dimen name="icon_button_padding">12dp</dimen>
+    
+    <!-- Card dimensions -->
+    <dimen name="shared_text_card_height">56dp</dimen>
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_stroke_width">1dp</dimen>
+    
+    <!-- Text sizes -->
+    <dimen name="text_size_title">22sp</dimen>
+    <dimen name="text_size_body">16sp</dimen>
+    <dimen name="text_size_small">14sp</dimen>
+    <dimen name="text_size_tiny">12sp</dimen>
+    
+    <!-- Minimum heights -->
+    <dimen name="min_touch_target_size">48dp</dimen>
+    <dimen name="processed_url_min_height">24dp</dimen>
+</resources> 

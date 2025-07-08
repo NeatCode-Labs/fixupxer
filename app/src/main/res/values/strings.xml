@@ -10,6 +10,7 @@
     <string name="enter_url_to_process">Enter URL to process</string>
     <string name="cleaned_url">Processed URL</string>
     <string name="process_url">Process URL</string>
+    <string name="paste">Paste</string>
     <string name="copy_url">Copy</string>
     <string name="share">Share</string>
     <string name="open">Open</string>
@@ -17,8 +18,12 @@
     <string name="donate">Donate</string>
     
     <!-- Instagram conversion toggle -->
-    <string name="convert_instagram_toggle">Convert to kkinstagram for embedding</string>
-    <string name="convert_instagram_toggle_desc">When enabled, Instagram links will be converted to kkinstagram.com for better embedding</string>
+    <string name="convert_instagram_toggle">Create embeddable link?</string>
+    <string name="convert_instagram_toggle_desc">When enabled, Instagram, Facebook, and X/Twitter links will be converted to kkinstagram.com, facebookez.com, and fixupx.com for better embedding</string>
+    <string name="convert_twitter_toggle">Create embeddable link?</string>
+    <string name="convert_twitter_toggle_desc">When enabled, X/Twitter links will be converted to fixupx.com for better embedding</string>
+    
+
     
     <!-- Share screen labels -->
     <string name="shared_text">Shared Text</string>
@@ -32,7 +37,9 @@
     <string name="no_url_to_share">No URL to share</string>
     <string name="no_url_to_copy">No URL to copy</string>
     <string name="no_url_to_open">No URL to open</string>
+    <string name="no_valid_url_clipboard">No valid URL found in clipboard</string>
     <string name="error_processing_url">Error processing URL</string>
+    <string name="please_enter_url">Please enter a URL</string>
     <string name="error_sharing_url">Error sharing URL</string>
     <string name="error_browser">Error opening browser</string>
     <string name="error_email_app">Error launching email app</string>
@@ -42,13 +49,16 @@
     
     <!-- About and Report Bug -->
     <string name="about">About</string>
+    <string name="disclaimer">Disclaimer</string>
     <string name="report_bug">Report a Bug</string>
     <string name="separator">|</string>
     <string name="about_dialog_title">About FixupXer</string>
-    <string name="about_text">FixupXer cleans tracking parameters from URLs (including Facebook, Twitter/X, and Instagram) and converts social media URLs for better embedding and sharing.\n\nVersion 1.1.1</string>
+    <string name="about_text">FixupXer cleans URLs and converts links for better embedding and sharing.\n\nVersion %1$s</string>
     <string name="about_dialog_positive">OK</string>
-    <string name="bug_report_email">YOUR_EMAIL@EXAMPLE.COM</string>
+    <string name="bug_report_email">neatcodelabs@gmail.com</string>
     <string name="bug_report_subject">FixupXer Bug Report</string>
+    <string name="disclaimer_dialog_title">Disclaimer</string>
+    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not collect, store, or transmit any user data or URLs to external servers.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Proxy services such as facebookez.com, fixupx.com and kkinstagram.com are not owned or maintained by us and may stop working at any given time.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses usage of third-party proxy services such as facebookez.com, fixupx.com and kkinstagram.com. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.]]></string>
     
     <!-- Donate dialog -->
     <string name="donate_text">If you find FixupXer useful, please consider supporting its development. Your donation helps maintain and improve the app.</string>
@@ -59,14 +69,18 @@
     <string name="donate_to_clearurls">Donate to ClearURLs</string>
     <string name="monero_donation_text">Monero (click to copy address)</string>
     <string name="monero_address_copied">Address copied!</string>
+    <string name="agree_and_close">Agree and close</string>
     
     <!-- Accessibility content descriptions -->
     <string name="process_url_content_desc">Process URL</string>
+    <string name="paste_content_desc">Paste URL from clipboard</string>
     <string name="share_content_desc">Share URL</string>
     <string name="open_content_desc">Open URL in browser</string>
     <string name="copy_content_desc">Copy URL to clipboard</string>
+    <string name="clear_all_content_desc">Clear all fields</string>
     <string name="donate_content_desc">Open donation page</string>
     <string name="about_content_desc">About FixupXer</string>
+    <string name="disclaimer_content_desc">View disclaimer</string>
     <string name="report_bug_content_desc">Report a bug</string>
     
     <!-- Footer -->
@@ -77,4 +91,27 @@
     <string name="clean_tracking">Clean Tracking</string>
     <string name="convert_twitter">Convert Twitter</string>
     <string name="back">Back</string>
+    
+    <!-- Error messages -->
+    <string name="error_please_enter_url">Please enter a URL</string>
+    <string name="error_invalid_url_format">Invalid URL format</string>
+    <string name="error_no_url_found_in_shared_text">No URL found in shared text</string>
+    <string name="error_no_valid_url_found">No valid URL found in shared text</string>
+    <string name="error_processing_url_with_message">Error processing URL: %1$s</string>
+    <string name="error_multiple_urls">Please paste one URL at a time</string>
+    
+    <!-- Clipboard labels -->
+    <string name="clipboard_label_url">URL</string>
+    <string name="clipboard_label_processed_url">Processed URL</string>
+    <string name="clipboard_label_monero_address">Monero Address</string>
+    
+    <!-- Processing messages -->
+    <string name="nothing_to_do">Nothing to do!</string>
+    <string name="no_url_found_in_clipboard">No URL found in clipboard</string>
+    
+    <!-- Content Descriptions -->
+    <string name="share_button_desc">Share processed URL</string>
+    <string name="copy_button_desc">Copy processed URL</string>
+    <string name="open_button_desc">Open processed URL</string>
+    <string name="url_conversion_desc">URL conversion</string>
 </resources>

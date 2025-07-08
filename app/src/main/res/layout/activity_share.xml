@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="@color/white"
     android:fitsSystemWindows="false"
     tools:context=".ui.ShareActivity">
 
@@ -17,26 +17,27 @@
         android:contentDescription="@null" />
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/white"
         android:elevation="1dp">
 
         <FrameLayout
+            android:id="@+id/titleFrameLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="24dp"
-            android:paddingBottom="8dp">
+            android:paddingBottom="@dimen/padding_small">
 
             <ImageButton
                 android:id="@+id/backButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="@dimen/icon_button_size"
+                android:layout_height="@dimen/icon_button_size"
                 android:layout_gravity="start|center_vertical"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/back"
-                android:padding="12dp"
-                android:src="@drawable/icon_back" />
+                android:padding="@dimen/icon_button_padding"
+                android:src="@drawable/ic_arrow_back" />
 
             <TextView
                 android:id="@+id/titleTextView"
@@ -45,17 +46,18 @@
                 android:layout_gravity="center"
                 android:text="@string/app_title"
                 android:textColor="@color/primary"
-                android:textSize="22sp"
+                android:textSize="@dimen/text_size_title"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium" />
         </FrameLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/mainScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:padding="16dp"
+        android:padding="@dimen/padding_medium"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -66,46 +68,42 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="@dimen/margin_xlarge"
+                android:layout_marginBottom="@dimen/margin_medium"
                 android:text="@string/shared_text"
                 android:textColor="@color/primary"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_size_body"
                 android:textStyle="bold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_height="@dimen/shared_text_card_height"
+                android:layout_marginBottom="@dimen/margin_xlarge"
                 app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="12dp"
+                app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="0dp"
-                app:strokeWidth="1dp"
+                app:strokeWidth="@dimen/card_stroke_width"
                 app:strokeColor="@color/card_stroke">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
 
                     <TextView
                         android:id="@+id/textViewSharedText"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
+                    android:padding="@dimen/padding_medium"
                         android:background="@null"
                         android:textColor="@color/black"
                         android:textIsSelectable="true"
-                        android:textSize="16sp"
-                        android:minHeight="24dp" />
-                </LinearLayout>
+                    android:textSize="@dimen/text_size_body"
+                    android:gravity="center_vertical"
+                    android:singleLine="true"
+                    android:ellipsize="end" />
             </com.google.android.material.card.MaterialCardView>
 
             <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="@dimen/arrow_icon_size"
+                android:layout_height="@dimen/arrow_icon_size"
                 android:layout_gravity="center"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="@dimen/margin_xlarge"
                 android:src="@drawable/arrow_downward"
                 app:tint="@color/primary"
                 android:contentDescription="@null" />
@@ -113,27 +111,27 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="@dimen/margin_medium"
                 android:text="@string/processed_url"
                 android:textColor="@color/primary"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_size_body"
                 android:textStyle="bold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="@dimen/margin_xlarge"
                 app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="12dp"
+                app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="0dp"
-                app:strokeWidth="1dp"
+                app:strokeWidth="@dimen/card_stroke_width"
                 app:strokeColor="@color/card_stroke">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="@dimen/padding_medium">
 
                     <TextView
                         android:id="@+id/textViewProcessedUrl"
@@ -142,8 +140,8 @@
                         android:background="@null"
                         android:textColor="@color/black"
                         android:textIsSelectable="true"
-                        android:textSize="16sp"
-                        android:minHeight="24dp" />
+                        android:textSize="@dimen/text_size_body"
+                        android:minHeight="@dimen/processed_url_min_height" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -153,18 +151,28 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:layout_marginBottom="@dimen/margin_large"
                 android:gravity="center_vertical"
+                android:background="@drawable/toggle_background"
+                android:padding="12dp"
                 android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_conversion"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="@string/url_conversion_desc" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/convert_instagram_toggle"
-                    android:textSize="14sp"
-                    android:textColor="@color/primary" />
+                    android:textSize="@dimen/text_size_small"
+                    android:textColor="@color/primary"
+                    android:textStyle="bold" />
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/switchInstagram"
@@ -176,40 +184,94 @@
                     app:trackTint="@color/switch_track_selector" />
             </LinearLayout>
 
+            <!-- Twitter/X toggle -->
+            <LinearLayout
+                android:id="@+id/twitterToggleContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:layout_marginBottom="@dimen/margin_large"
+                android:gravity="center_vertical"
+                android:background="@drawable/toggle_background"
+                android:padding="12dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_conversion"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="@string/url_conversion_desc" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/convert_twitter_toggle"
+                    android:textSize="@dimen/text_size_small"
+                    android:textColor="@color/primary"
+                    android:textStyle="bold" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switchTwitter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:contentDescription="@string/convert_twitter_toggle_desc"
+                    app:thumbTint="@color/switch_thumb_selector"
+                    app:trackTint="@color/switch_track_selector" />
+            </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
 
                         <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonOpen"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/margin_medium"
+                            android:layout_weight="1"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:text="@string/open"
+                            android:textAllCaps="false"
+                            android:textColor="@color/button_text"
+                            app:strokeColor="@color/button_stroke"
+                            app:icon="@drawable/ic_open_in_browser"
+                            app:iconGravity="textStart"
+                            app:iconTint="@color/button_text" />
+
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonCopy"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
+                            android:layout_marginEnd="@dimen/margin_medium"
                             android:layout_weight="1"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:text="@string/copy_url"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:text="@string/copy_url"
                             android:textAllCaps="false"
-                    android:textColor="@color/button_text"
-                    app:strokeColor="@color/button_stroke"
-                            app:icon="@drawable/icon_copy"
+                            android:textColor="@color/button_text"
+                            app:strokeColor="@color/button_stroke"
+                            app:icon="@drawable/ic_copy"
                             app:iconGravity="textStart"
-                    app:iconTint="@color/button_text" />
+                            app:iconTint="@color/button_text" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonShare"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
+                            android:layout_marginStart="@dimen/margin_medium"
                             android:layout_weight="1"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:text="@string/share"
                             android:textAllCaps="false"
-                    android:textColor="@color/button_text"
-                    app:strokeColor="@color/button_stroke"
-                            app:icon="@drawable/icon_share"
+                            android:textColor="@color/button_text"
+                            app:strokeColor="@color/button_stroke"
+                            app:icon="@drawable/ic_share"
                             app:iconGravity="textStart"
-                    app:iconTint="@color/button_text" />
+                            app:iconTint="@color/button_text" />
                     </LinearLayout>
 
             <!-- Progress indicator -->
@@ -218,7 +280,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/margin_large"
                 android:indeterminate="true"
                 android:visibility="gone"
                 app:indicatorColor="@color/primary" />
@@ -226,7 +288,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="@dimen/margin_xxlarge"
                 android:gravity="center"
                 android:orientation="horizontal">
 
@@ -236,15 +298,15 @@
                     android:layout_height="wrap_content"
                     android:text="@string/about"
                     android:textColor="@color/primary"
-                    android:textSize="14sp"
-                    android:padding="8dp" />
+                    android:textSize="@dimen/text_size_small"
+                    android:padding="@dimen/padding_small" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/separator"
                     android:textColor="@color/dark_gray"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_size_small" />
 
                 <TextView
                     android:id="@+id/textViewReportBug"
@@ -252,15 +314,31 @@
                     android:layout_height="wrap_content"
                     android:text="@string/report_bug"
                     android:textColor="@color/primary"
-                    android:textSize="14sp"
-                    android:padding="8dp" />
+                    android:textSize="@dimen/text_size_small"
+                    android:padding="@dimen/padding_small" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/separator"
+                    android:textColor="@color/dark_gray"
+                    android:textSize="@dimen/text_size_small" />
+
+                <TextView
+                    android:id="@+id/textViewDisclaimer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/disclaimer"
+                    android:textColor="@color/primary"
+                    android:textSize="@dimen/text_size_small"
+                    android:padding="@dimen/padding_small" />
                 </LinearLayout>
             
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonDonate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/margin_large"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:text="@string/donate"
                 android:textAllCaps="false"
@@ -268,14 +346,17 @@
                 app:strokeColor="@color/button_stroke" />
                 
             <TextView
+                android:id="@+id/textViewFooter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginTop="@dimen/margin_xxlarge"
+                android:layout_marginBottom="@dimen/margin_large"
                 android:text="@string/footer_text"
                 android:textColor="@color/dark_gray"
-                android:textSize="12sp"
-                android:gravity="center" />
+                                    android:textSize="@dimen/text_size_tiny"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout> 

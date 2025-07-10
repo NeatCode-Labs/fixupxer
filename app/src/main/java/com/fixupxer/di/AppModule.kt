@@ -3,8 +3,11 @@ package com.fixupxer.di
 import android.content.Context
 import com.fixupxer.PreferencesManager
 import com.fixupxer.UrlProcessor
-import com.fixupxer.data.repository.UrlRepositoryImpl
 import com.fixupxer.domain.repository.UrlRepository
+import com.fixupxer.data.repository.UrlRepositoryImpl
+import com.fixupxer.cleaners.cache.CleanerCache
+import com.fixupxer.cleaners.CleanerService
+import com.fixupxer.cleaners.CleanerRegistry
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,7 +16,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Hilt module for providing app-wide dependencies
+ * Hilt module for providing app-level dependencies
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -23,16 +26,29 @@ object AppModule {
     @Singleton
     fun providePreferencesManager(
         @ApplicationContext context: Context
-    ): PreferencesManager = PreferencesManager(context)
+    ): PreferencesManager {
+        return PreferencesManager(context)
+    }
     
     @Provides
     @Singleton
-    fun provideUrlProcessor(): UrlProcessor = UrlProcessor()
+    fun provideCleanerCache(): CleanerCache {
+        return CleanerCache()
+    }
+    
+    @Provides
+    @Singleton
+    fun provideCleanerService(
+        registry: CleanerRegistry,
+        cache: CleanerCache,
+        preferencesManager: PreferencesManager
+    ): CleanerService {
+        return CleanerService(registry, cache, preferencesManager)
+    }
     
     @Provides
     @Singleton
     fun provideUrlRepository(
-        urlProcessor: UrlProcessor,
-        preferencesManager: PreferencesManager
-    ): UrlRepository = UrlRepositoryImpl(urlProcessor, preferencesManager)
+        urlRepository: UrlRepositoryImpl
+    ): UrlRepository = urlRepository
 } 

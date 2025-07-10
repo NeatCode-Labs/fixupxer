@@ -2,10 +2,13 @@ package com.fixupxer
 
 import android.net.Uri
 import androidx.core.net.toUri
-import com.fixupxer.data.config.TrackingParameters
+import com.fixupxer.cleaners.CleanerService
 import com.fixupxer.utils.Constants
 import timber.log.Timber
+import java.net.IDN
 import java.net.URLDecoder
+import javax.inject.Inject
+import javax.inject.Singleton
 import java.util.regex.Pattern
 
 /**
@@ -14,9 +17,10 @@ import java.util.regex.Pattern
  * 2. Convert Twitter/X URLs to FixupX format for better embedding
  * 3. Convert Instagram URLs to kkinstagram.com for better embedding
  */
-class UrlProcessor {
-    // Use tracking parameters from configuration
-    private val trackingParams = TrackingParameters.allParameters
+@Singleton
+class UrlProcessor @Inject constructor(
+    private val cleanerService: CleanerService
+) {
     
     /**
      * Process a URL by cleaning tracking parameters and optionally converting 
@@ -34,8 +38,11 @@ class UrlProcessor {
         val validUrl = findFirstValidUrl(trimmedUrl) ?: throw IllegalArgumentException("Invalid URL format")
         
         return try {
+            // Preprocess URL to handle IDN and zero-width characters
+            val preprocessedUrl = preprocessUrl(validUrl)
+            
             // Handle URLs that might start with @ (common for Instagram shares)
-            var inputUrl = validUrl
+            var inputUrl = preprocessedUrl
             if (inputUrl.startsWith("@")) {
                 inputUrl = inputUrl.substring(1)
                 Timber.d("Removed @ from beginning of URL: $inputUrl")
@@ -48,145 +55,85 @@ class UrlProcessor {
                 inputUrl
             }
             
-            // Always check if URL has tracking parameters for cleanliness detection
-            val urlHasTrackingParams = hasTrackingParameters(decodedUrl)
+            var finalUrl = decodedUrl
+            var wasAlreadyClean = true
             
-            // Check if it's an Instagram-related URL (including kkinstagram)
-            val isInstagram = isInstagramUrl(decodedUrl)
-            val isKkInstagram = decodedUrl.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)
-            
-            if (isInstagram || isKkInstagram) {
-                Timber.d("Instagram/KKInstagram URL detected: $decodedUrl")
-                
-                // Clean tracking parameters if enabled
-                val cleanedUrl = if (cleanTracking) {
-                    removeTrackingParameters(decodedUrl)
-                } else {
-                    decodedUrl
-                }
-                
-                // Determine what needs to be done based on current state and desired state
-                val needsConversion = when {
-                    convertTwitter && isInstagram && !isKkInstagram -> true // Need to convert to kkinstagram
-                    !convertTwitter && isKkInstagram -> true // Need to convert back to instagram
-                    else -> false
-                }
-                
-                val finalUrl = when {
-                    convertTwitter && !isKkInstagram -> convertToKkInstagram(cleanedUrl)
-                    !convertTwitter && isKkInstagram -> convertFromKkInstagram(cleanedUrl)
-                    else -> cleanedUrl
-                }
-                
-                // URL is already clean if no tracking params exist AND no conversion was needed
-                val wasAlreadyClean = !urlHasTrackingParams && !needsConversion
-                
-                Timber.d("Instagram URL processing - hadTracking: $urlHasTrackingParams, needsConversion: $needsConversion, wasAlreadyClean: $wasAlreadyClean")
-                
-                return Pair(finalUrl, wasAlreadyClean)
-            }
-            
-            // Check if it's a Twitter/X-related URL (including fixupx and fxtwitter)
-            val isTwitter = isTwitterUrl(decodedUrl)
-            val isFixupx = decodedUrl.contains(Constants.FIXUPX_DOMAIN, ignoreCase = true)
-            val isFxTwitter = decodedUrl.contains(Constants.FXTWITTER_DOMAIN, ignoreCase = true)
-            
-            if (isTwitter || isFixupx || isFxTwitter) {
-                Timber.d("Twitter/Fixupx/FxTwitter URL detected: $decodedUrl")
-                
-                // Clean tracking parameters if enabled
-                val cleanedUrl = if (cleanTracking) {
-                    removeTrackingParameters(decodedUrl)
-                } else {
-                    decodedUrl
-                }
-                
-                // Determine what needs to be done based on current state and desired state
-                val needsConversion = when {
-                    convertTwitter && (isTwitter || isFxTwitter) && !isFixupx -> true // Need to convert to fixupx
-                    !convertTwitter && (isFixupx || isFxTwitter) -> true // Need to convert back to x.com
-                    else -> false
-                }
-                
-                val finalUrl = when {
-                    convertTwitter && !isFixupx -> {
-                        if (isFxTwitter) {
-                            // Convert fxtwitter to fixupx
-                            cleanedUrl.replace(Constants.FXTWITTER_DOMAIN, Constants.FIXUPX_DOMAIN, ignoreCase = true)
-                        } else {
-                            // Convert x.com/twitter.com to fixupx
-                            // Use direct domain replacement for robustness
-                            if (cleanedUrl.contains(Constants.X_DOMAIN, ignoreCase = true)) {
-                                cleanedUrl.replace(Constants.X_DOMAIN, Constants.FIXUPX_DOMAIN, ignoreCase = true)
-                            } else if (cleanedUrl.contains(Constants.TWITTER_DOMAIN, ignoreCase = true)) {
-                                cleanedUrl.replace(Constants.TWITTER_DOMAIN, Constants.FIXUPX_DOMAIN, ignoreCase = true)
-                            } else {
-                                cleanedUrl
-                            }
-                        }
-                    }
-                    !convertTwitter && isFixupx -> convertFromFixupx(cleanedUrl)
-                    !convertTwitter && isFxTwitter -> convertFromFxTwitter(cleanedUrl)
-                    else -> cleanedUrl
-                }
-                
-                // URL is already clean if no tracking params exist AND no conversion was needed
-                val wasAlreadyClean = !urlHasTrackingParams && !needsConversion
-                
-                Timber.d("Twitter URL processing - hadTracking: $urlHasTrackingParams, needsConversion: $needsConversion, wasAlreadyClean: $wasAlreadyClean")
-                
-                return Pair(finalUrl, wasAlreadyClean)
-            }
-            
-            // Check if it's a Facebook-related URL (including facebookez)
-            val isFacebook = isFacebookUrl(decodedUrl)
-            val isFacebookez = decodedUrl.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)
-            
-            if (isFacebook || isFacebookez) {
-                Timber.d("Facebook/Facebookez URL detected: $decodedUrl")
-                
-                // Clean tracking parameters if enabled
-                val cleanedUrl = if (cleanTracking) {
-                    removeTrackingParameters(decodedUrl)
-                } else {
-                    decodedUrl
-                }
-                
-                // Determine what needs to be done based on current state and desired state
-                val needsConversion = when {
-                    convertTwitter && isFacebook && !isFacebookez -> true // Need to convert to facebookez
-                    !convertTwitter && isFacebookez -> true // Need to convert back to facebook
-                    else -> false
-                }
-                
-                val finalUrl = when {
-                    convertTwitter && !isFacebookez -> convertToFacebookez(cleanedUrl)
-                    !convertTwitter && isFacebookez -> convertFromFacebookez(cleanedUrl)
-                    else -> cleanedUrl
-                }
-                
-                // URL is already clean if no tracking params exist AND no conversion was needed
-                val wasAlreadyClean = !urlHasTrackingParams && !needsConversion
-                
-                Timber.d("Facebook URL processing - hadTracking: $urlHasTrackingParams, needsConversion: $needsConversion, wasAlreadyClean: $wasAlreadyClean")
-                
-                return Pair(finalUrl, wasAlreadyClean)
-            }
-            
-            // For other URLs (non-Instagram, non-Twitter, non-Facebook)
-            var processedUrl = decodedUrl
-            val originallyHadTracking = hasTrackingParameters(decodedUrl)
-            // Clean tracking parameters if enabled
+            // Clean tracking parameters if requested
             if (cleanTracking) {
-                processedUrl = removeTrackingParameters(processedUrl)
+                Timber.d("Using new cleaner service for URL: $decodedUrl")
+                wasAlreadyClean = !cleanerService.wouldModifyUrl(decodedUrl)
+                finalUrl = cleanerService.deepClean(decodedUrl)
             }
-            // URL is already clean if it had no tracking parameters
-            val wasAlreadyClean = !originallyHadTracking
-            Timber.d("Other URL processing - hadTracking: $originallyHadTracking, wasAlreadyClean: $wasAlreadyClean")
-            Pair(processedUrl, wasAlreadyClean)
+            
+            // Apply domain conversions based on settings
+            val convertedUrl = when {
+                convertTwitter -> applyDomainConversions(finalUrl, convertToAlternative = true)
+                else -> applyDomainConversions(finalUrl, convertToAlternative = false)
+            }
+            
+            // Check if any changes were made
+            val wasModified = convertedUrl != decodedUrl
+            
+            Pair(convertedUrl, wasAlreadyClean && !wasModified)
         } catch (e: Exception) {
             Timber.e(e, "Error processing URL")
             throw IllegalArgumentException("Error processing URL: ${e.message}")
+        }
+    }
+    
+    /**
+     * Preprocess URL to handle IDN domains and remove problematic characters
+     */
+    private fun preprocessUrl(text: String): String {
+        // Remove zero-width characters
+        val cleaned = text.replace(Regex("[\\u200B\\u200C\\u200D\\uFEFF\\u2060]"), "")
+        
+        // Convert international domains to ASCII
+        return try {
+            val parts = cleaned.split("://", limit = 2)
+            if (parts.size == 2) {
+                val domainEnd = parts[1].indexOfAny(charArrayOf('/', '?', '#', ':'))
+                val domain = if (domainEnd > 0) parts[1].substring(0, domainEnd) else parts[1]
+                val asciiDomain = IDN.toASCII(domain)
+                parts[0] + "://" + parts[1].replaceFirst(domain, asciiDomain)
+            } else {
+                cleaned
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error converting IDN domain")
+            cleaned
+        }
+    }
+    
+    /**
+     * Apply domain conversions based on settings
+     */
+    private fun applyDomainConversions(url: String, convertToAlternative: Boolean): String {
+        return when {
+            // Instagram conversions
+            isInstagramUrl(url) && convertToAlternative -> convertToKkInstagram(url)
+            url.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true) && !convertToAlternative -> 
+                convertFromKkInstagram(url)
+            
+            // Twitter/X conversions
+            // 1) fxtwitter domain rewrite needs to happen BEFORE generic Twitter conversion
+            url.contains(Constants.FXTWITTER_DOMAIN, ignoreCase = true) ->
+                if (convertToAlternative) {
+                    url.replace(Constants.FXTWITTER_DOMAIN, Constants.FIXUPX_DOMAIN, ignoreCase = true)
+                } else {
+                    convertFromFxTwitter(url)
+                }
+            // 2) Standard Twitter/X → FixupX conversion for status URLs
+            isTwitterUrl(url) && convertToAlternative -> convertTwitterUrl(url)
+            url.contains(Constants.FIXUPX_DOMAIN, ignoreCase = true) && !convertToAlternative ->
+                convertFromFixupx(url)
+            
+            // Facebook conversions
+            isFacebookUrl(url) && convertToAlternative -> convertToFacebookez(url)
+            url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true) && !convertToAlternative ->
+                convertFromFacebookez(url)
+            
+            else -> url
         }
     }
     
@@ -206,71 +153,11 @@ class UrlProcessor {
                 url.trim()
             }
             
-            // Handle Instagram URLs as a special case
-            when {
-                isInstagramUrl(decodedUrl) -> {
-                    Timber.d("Instagram URL for sharing: $decodedUrl")
-                    
-                    // First remove tracking parameters
-                    val cleaned = removeTrackingParameters(decodedUrl)
-                    Timber.d("Instagram URL cleaned: $cleaned")
-                    
-                    // Then convert to kkinstagram
-                    val converted = convertToKkInstagram(cleaned)
-                    Timber.d("Instagram URL converted for sharing: $converted")
-                    
-                    converted
-                }
-                decodedUrl.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true) -> {
-                    Timber.d("URL already contains kkinstagram: $decodedUrl")
-                    // Still clean tracking parameters from kkinstagram URLs
-                    removeTrackingParameters(decodedUrl)
-                }
-                isTwitterUrl(decodedUrl) -> {
-                    Timber.d("Twitter URL for sharing: $decodedUrl")
-                    
-                    // First remove tracking parameters
-                    val cleaned = removeTrackingParameters(decodedUrl)
-                    
-                    // Then convert to fixupx
-                    convertTwitterUrl(cleaned)
-                }
-                decodedUrl.contains(Constants.FXTWITTER_DOMAIN, ignoreCase = true) -> {
-                    Timber.d("FxTwitter URL for sharing: $decodedUrl")
-                    
-                    // First remove tracking parameters
-                    val cleaned = removeTrackingParameters(decodedUrl)
-                    
-                    // Convert fxtwitter to fixupx
-                    cleaned.replace(Constants.FXTWITTER_DOMAIN, Constants.FIXUPX_DOMAIN, ignoreCase = true)
-                }
-                decodedUrl.contains(Constants.FIXUPX_DOMAIN, ignoreCase = true) -> {
-                    Timber.d("URL already contains fixupx: $decodedUrl")
-                    // Still clean tracking parameters from fixupx URLs
-                    removeTrackingParameters(decodedUrl)
-                }
-                isFacebookUrl(decodedUrl) -> {
-                    Timber.d("Facebook URL for sharing: $decodedUrl")
-                    
-                    // First remove tracking parameters
-                    val cleaned = removeTrackingParameters(decodedUrl)
-                    
-                    // Then convert to facebookez
-                    val converted = convertToFacebookez(cleaned)
-                    Timber.d("Facebook URL converted for sharing: $converted")
-                    
-                    converted
-                }
-                decodedUrl.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true) -> {
-                    Timber.d("URL already contains facebookez: $decodedUrl")
-                    // Still clean tracking parameters from facebookez URLs
-                    removeTrackingParameters(decodedUrl)
-                }
-                else -> {
-                    // For other URLs, just clean tracking parameters
-                    removeTrackingParameters(decodedUrl)
-                }
-            }
+            // Use cleaner service for better cleaning
+            val cleanedUrl = cleanerService.deepClean(decodedUrl)
+            
+            // Apply domain conversions for sharing (always convert to alternative domains)
+            applyDomainConversions(cleanedUrl, convertToAlternative = true)
         } catch (e: Exception) {
             Timber.e(e, "Error processing URL for sharing")
             url // Return original URL if there's an error
@@ -300,7 +187,7 @@ class UrlProcessor {
         if (url.isEmpty()) return false
         
         // Basic pattern check
-        if (!VALID_URL_PATTERN.matcher(url).matches()) return false
+        if (!VALID_URL_PATTERN.matches(url)) return false
         
         // Must start with http:// or https://
         if (!url.startsWith("http://") && !url.startsWith("https://")) return false
@@ -332,48 +219,25 @@ class UrlProcessor {
         return url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true)
     }
     
-    /**
-     * Convert Instagram URLs to kkinstagram.com
-     */
     private fun convertToKkInstagram(url: String): String {
-        // If already contains kkinstagram, return as is
-        if (url.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)) {
-            return url
-        }
-        
-        // Handle various Instagram subdomains
-        val instagramPattern = Pattern.compile(
-            "(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(instagram\\.com)",
-            Pattern.CASE_INSENSITIVE
-        )
-        
-        val matcher = instagramPattern.matcher(url)
+        if (url.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)) return url
+
+        val pattern = Pattern.compile("(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(instagram\\.com)", Pattern.CASE_INSENSITIVE)
+        val matcher = pattern.matcher(url)
         return if (matcher.find()) {
-            matcher.replaceAll("$1$2${Constants.KKINSTAGRAM_DOMAIN}")
+            matcher.replaceAll("\$1\$2${Constants.KKINSTAGRAM_DOMAIN}")
         } else {
             url.replace(Constants.INSTAGRAM_DOMAIN, Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)
         }
     }
-    
-    /**
-     * Convert kkinstagram URLs back to instagram.com
-     */
+
     private fun convertFromKkInstagram(url: String): String {
-        // If already contains instagram.com, return as is
-        if (url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) && 
-            !url.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)) {
-            return url
-        }
-        
-        // Handle various kkinstagram subdomains
-        val kkinstagramPattern = Pattern.compile(
-            "(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(kkinstagram\\.com)",
-            Pattern.CASE_INSENSITIVE
-        )
-        
-        val matcher = kkinstagramPattern.matcher(url)
+        if (url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) && !url.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)) return url
+
+        val pattern = Pattern.compile("(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(kkinstagram\\.com)", Pattern.CASE_INSENSITIVE)
+        val matcher = pattern.matcher(url)
         return if (matcher.find()) {
-            matcher.replaceAll("$1$2${Constants.INSTAGRAM_DOMAIN}")
+            matcher.replaceAll("\$1\$2${Constants.INSTAGRAM_DOMAIN}")
         } else {
             url.replace(Constants.KKINSTAGRAM_DOMAIN, Constants.INSTAGRAM_DOMAIN, ignoreCase = true)
         }
@@ -404,37 +268,24 @@ class UrlProcessor {
      * Convert Twitter URLs to fixupx.com format
      */
     private fun convertTwitterUrl(url: String): String {
-        try {
-            // If it's not a Twitter URL, return unchanged
-            if (!isTwitterUrl(url)) {
-                return url
-            }
-            
-            // Parse the URL for better safety
-            val uri = Uri.parse(url)
-            val path = uri.path ?: return url
-            
-            // Check if this is a status URL
-            if (!path.contains(Constants.TWITTER_STATUS_PATH)) {
-                return url
-            }
-            
-            // Split on /status/ to get username and status ID
-            val parts = path.split(Constants.TWITTER_STATUS_PATH)
-            if (parts.size != 2) return url
-            
-            val username = parts[0].removePrefix("/")
-            val statusIdMatch = Pattern.compile("^(\\d+)").matcher(parts[1])
-            
-            if (username.isNotEmpty() && statusIdMatch.find()) {
-                val statusId = statusIdMatch.group(1)
-                return "https://${Constants.FIXUPX_DOMAIN}/$username${Constants.TWITTER_STATUS_PATH}$statusId"
+        return try {
+            // If it's not a Twitter/X URL, return unchanged
+            if (!isTwitterUrl(url)) return url
+
+            // Use regex to robustly extract username and status id
+            val regex = Regex("https?://(?:www\\.)?(?:${Constants.TWITTER_DOMAIN}|${Constants.X_DOMAIN})/([A-Za-z0-9_]+)/status/(\\d+)", RegexOption.IGNORE_CASE)
+            val match = regex.find(url)
+            if (match != null) {
+                val username = match.groupValues[1]
+                val statusId = match.groupValues[2]
+                "https://${Constants.FIXUPX_DOMAIN}/$username${Constants.TWITTER_STATUS_PATH}$statusId"
+            } else {
+                url // Not a standard status URL
             }
         } catch (e: Exception) {
             Timber.e(e, "Error converting Twitter URL")
+            url
         }
-        
-        return url
     }
     
     /**
@@ -479,91 +330,27 @@ class UrlProcessor {
      * Convert Facebook URLs to facebookez.com
      */
     private fun convertToFacebookez(url: String): String {
-        // If already contains facebookez, return as is
-        if (url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)) {
-            return url
-        }
-        
-        // Handle various Facebook subdomains
-        val facebookPattern = Pattern.compile(
-            "(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(facebook\\.com)",
-            Pattern.CASE_INSENSITIVE
-        )
-        
-        val matcher = facebookPattern.matcher(url)
-        return if (matcher.find()) {
-            matcher.replaceAll("$1$2${Constants.FACEBOOKEZ_DOMAIN}")
-        } else {
-            url.replace(Constants.FACEBOOK_DOMAIN, Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)
-        }
+        if (url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)) return url
+        val pattern = Pattern.compile("(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(facebook\\.com)", Pattern.CASE_INSENSITIVE)
+        val matcher = pattern.matcher(url)
+        return if (matcher.find()) matcher.replaceAll("\$1\$2${Constants.FACEBOOKEZ_DOMAIN}")
+        else url.replace(Constants.FACEBOOK_DOMAIN, Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)
     }
-    
-    /**
-     * Convert facebookez URLs back to facebook.com
-     */
+
     private fun convertFromFacebookez(url: String): String {
-        // If already contains facebook.com, return as is
-        if (url.contains(Constants.FACEBOOK_DOMAIN, ignoreCase = true) && 
-            !url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)) {
-            return url
-        }
-        
-        // Handle various facebookez subdomains
-        val facebookezPattern = Pattern.compile(
-            "(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(facebookez\\.com)",
-            Pattern.CASE_INSENSITIVE
-        )
-        
-        val matcher = facebookezPattern.matcher(url)
-        return if (matcher.find()) {
-            matcher.replaceAll("$1$2${Constants.FACEBOOK_DOMAIN}")
-        } else {
-            url.replace(Constants.FACEBOOKEZ_DOMAIN, Constants.FACEBOOK_DOMAIN, ignoreCase = true)
-        }
+        if (url.contains(Constants.FACEBOOK_DOMAIN, ignoreCase = true) && !url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)) return url
+        val pattern = Pattern.compile("(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(facebookez\\.com)", Pattern.CASE_INSENSITIVE)
+        val matcher = pattern.matcher(url)
+        return if (matcher.find()) matcher.replaceAll("\$1\$2${Constants.FACEBOOK_DOMAIN}")
+        else url.replace(Constants.FACEBOOKEZ_DOMAIN, Constants.FACEBOOK_DOMAIN, ignoreCase = true)
     }
     
     /**
-     * Check if a URL contains any tracking parameters (robust manual implementation)
+     * Check if a URL contains any tracking parameters
      */
     fun hasTrackingParameters(url: String): Boolean {
-        val idx = url.indexOf('?')
-        if (idx == -1) return false
-        val query = url.substring(idx + 1)
-        return query.split('&').any { pair ->
-            val eqIdx = pair.indexOf('=')
-            if (eqIdx == -1) return@any false
-            val key = pair.substring(0, eqIdx).lowercase()
-            trackingParams.contains(key)
-        }
-    }
-    
-    /**
-     * Remove tracking parameters from a URL
-     * Uses Uri parsing for better safety and reliability
-     */
-    private fun removeTrackingParameters(url: String): String {
-        try {
-            // If no query parameters, return as is
-            if (!url.contains("?")) {
-                return url
-            }
-            // Always use manual fallback for robust removal
-            val idx = url.indexOf('?')
-            if (idx == -1) return url
-            val base = url.substring(0, idx)
-            val query = url.substring(idx + 1)
-            val kept = query.split('&').mapNotNull { pair ->
-                val eqIdx = pair.indexOf('=')
-                if (eqIdx == -1) return@mapNotNull null
-                val key = pair.substring(0, eqIdx).lowercase()
-                val value = pair.substring(eqIdx + 1)
-                if (!trackingParams.contains(key)) "$key=$value" else null
-            }.filter { it.isNotEmpty() }
-            return if (kept.isEmpty()) base else base + "?" + kept.joinToString("&")
-        } catch (e: Exception) {
-            Timber.e(e, "Error removing tracking parameters")
-            return url
-        }
+        // Use the new cleaner service to check if URL would be modified
+        return cleanerService.wouldModifyUrl(url)
     }
     
     /**
@@ -599,10 +386,10 @@ class UrlProcessor {
                 val parts = trimmedText.split(".")
                 if (parts.size >= 2 && parts.all { it.isNotEmpty() }) {
                     // Check if it matches a basic domain pattern
-                    val domainPattern = Pattern.compile(
+                    val domainPattern = Regex(
                         "^([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}$"
                     )
-                    if (domainPattern.matcher(trimmedText).matches()) {
+                    if (domainPattern.matches(trimmedText)) {
                         val withProtocol = "https://$trimmedText"
                         return if (isValidUrlSimple(withProtocol)) withProtocol else null
                     }
@@ -619,9 +406,9 @@ class UrlProcessor {
         }
         
         return try {
-            val matcher = URL_PATTERN.matcher(searchText)
-            if (matcher.find()) {
-                val foundUrl = matcher.group()
+            val matcher = URL_PATTERN.find(searchText)
+            if (matcher != null) {
+                val foundUrl = matcher.value
                 // Additional validation for found URLs
                 if (isValidUrlSimple(foundUrl)) {
                     foundUrl
@@ -652,8 +439,9 @@ class UrlProcessor {
                 url.trim()
             }
             
-            // Remove tracking parameters
-            removeTrackingParameters(decodedUrl)
+            // Use new cleaner service for superior cleaning
+            Timber.d("Using new cleaner service for cleanUrl: $decodedUrl")
+            cleanerService.deepClean(decodedUrl)
         } catch (e: Exception) {
             Timber.e(e, "Error cleaning URL")
             url
@@ -666,20 +454,20 @@ class UrlProcessor {
         
         // Regex that captures each http/https URL up to the next whitespace OR the next http/https occurrence.
         // This prevents blobs like "https://a.comfoohttps://b.com" from being treated as one URL.
-        private val URL_PATTERN = Pattern.compile(
+        private val URL_PATTERN = Regex(
             "(https?://[^\\s]+?)(?=https?://|\\s|$)",
-            Pattern.CASE_INSENSITIVE
+            RegexOption.IGNORE_CASE
         )
         
         // More comprehensive URL validation pattern
-        private val VALID_URL_PATTERN = Pattern.compile(
+        private val VALID_URL_PATTERN = Regex(
             "^(https?://)?" + // Optional protocol
             "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // Domain name
             "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR IP address
             "(:\\d+)?(/[-a-z\\d%_.~+]*)*" + // Port and path
             "(\\?[;&a-z\\d%_.~+=-]*)?" + // Query string
             "(#[-a-z\\d_]*)?$", // Fragment
-            Pattern.CASE_INSENSITIVE
+            RegexOption.IGNORE_CASE
         )
         
         /**
@@ -689,7 +477,7 @@ class UrlProcessor {
             if (url.isEmpty()) return false
             
             // Basic pattern check
-            if (!VALID_URL_PATTERN.matcher(url).matches()) return false
+            if (!VALID_URL_PATTERN.matches(url)) return false
             
             // Must start with http:// or https://
             if (!url.startsWith("http://") && !url.startsWith("https://")) return false
@@ -728,17 +516,17 @@ class UrlProcessor {
             val urls = mutableListOf<String>()
             
             // 1) Extract protocol-based URLs with the improved pattern
-            val protoMatcher = URL_PATTERN.matcher(limitedText)
-            while (protoMatcher.find()) {
-                urls.add(protoMatcher.group())
+            val protoMatcher = URL_PATTERN.findAll(limitedText)
+            for (match in protoMatcher) {
+                urls.add(match.value)
             }
             
             // 2) Scan for "www." domains that were not preceded by a protocol.
             //    We cut at the next occurrence of "www." / whitespace.
-            val wwwPattern = Pattern.compile("(www\\.[a-zA-Z0-9\\-_.]+?\\.[a-zA-Z]{2,}[^\\s]*?)(?=www\\.|https?://|\\s|$)")
-            val wwwMatcher = wwwPattern.matcher(limitedText)
-            while (wwwMatcher.find()) {
-                val candidate = "https://" + wwwMatcher.group().trimEnd('.', ',')
+            val wwwPattern = Regex("(www\\.[a-zA-Z0-9\\-_.]+?\\.[a-zA-Z]{2,}[^\\s]*?)(?=www\\.|https?://|\\s|$)")
+            val wwwMatcher = wwwPattern.findAll(limitedText)
+            for (match in wwwMatcher) {
+                val candidate = "https://" + match.value.trimEnd('.', ',')
                 // De-duplicate
                 if (!urls.contains(candidate)) {
                     urls.add(candidate)
@@ -781,10 +569,10 @@ class UrlProcessor {
                     val parts = trimmedText.split(".")
                     if (parts.size >= 2 && parts.all { it.isNotEmpty() }) {
                         // Check if it matches a basic domain pattern
-                        val domainPattern = Pattern.compile(
+                        val domainPattern = Regex(
                             "^([a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}$"
                         )
-                        if (domainPattern.matcher(trimmedText).matches()) {
+                        if (domainPattern.matches(trimmedText)) {
                             val withProtocol = "https://$trimmedText"
                             return if (isValidUrlSimple(withProtocol)) withProtocol else null
                         }
@@ -801,9 +589,9 @@ class UrlProcessor {
             }
             
             return try {
-                val matcher = URL_PATTERN.matcher(searchText)
-                if (matcher.find()) {
-                    val foundUrl = matcher.group()
+                val matcher = URL_PATTERN.find(searchText)
+                if (matcher != null) {
+                    val foundUrl = matcher.value
                     // Additional validation for found URLs
                     if (isValidUrlSimple(foundUrl)) {
                         foundUrl

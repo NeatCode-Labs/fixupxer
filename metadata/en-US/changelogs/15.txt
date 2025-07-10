@@ -1,0 +1,7 @@
+• Implemented modular URL cleaning architecture for better extensibility
+• Added advanced cleaners for Amazon (preserves product IDs), YouTube (preserves timestamps/playlists), and Google Search (extracts actual URLs from redirects)
+• Enhanced social media cleaners for Twitter/X, Instagram, and Facebook with smarter parameter handling
+• Added iterative deep cleaning - automatically cleans nested tracking parameters
+• Improved performance with domain-specific dispatch tables and optimized parameter matching
+• All cleaners are crash-safe - failures won't affect URL processing
+• Maintained full backward compatibility with existing features 

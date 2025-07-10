@@ -1,0 +1,104 @@
+{
+  "testCases": [
+    {
+      "category": "Instagram",
+      "cases": [
+        {
+          "input": "https://www.instagram.com/p/DLRNJjEx45S/?igsh=cWdtYXd0NmE3YnI0",
+          "expected": "https://www.instagram.com/p/DLRNJjEx45S/",
+          "description": "Remove igsh tracking parameter"
+        },
+        {
+          "input": "https://www.instagram.com/stories/user/123/?story_media_id=456&utm_source=share",
+          "expected": "https://www.instagram.com/stories/user/123/?story_media_id=456",
+          "description": "Preserve story_media_id while removing tracking"
+        }
+      ]
+    },
+    {
+      "category": "Twitter/X",
+      "cases": [
+        {
+          "input": "https://x.com/user/status/123?t=abc&s=def",
+          "expected": "https://x.com/user/status/123",
+          "description": "Remove t and s parameters"
+        },
+        {
+          "input": "https://twitter.com/user/status/123?lang=en&ref_src=twsrc",
+          "expected": "https://twitter.com/user/status/123?lang=en",
+          "description": "Preserve lang parameter"
+        }
+      ]
+    },
+    {
+      "category": "YouTube",
+      "cases": [
+        {
+          "input": "https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=share&si=abc123",
+          "expected": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "description": "Remove feature and si parameters"
+        },
+        {
+          "input": "https://youtu.be/dQw4w9WgXcQ?t=42&si=xyz",
+          "expected": "https://youtu.be/dQw4w9WgXcQ?t=42",
+          "description": "Preserve timestamp in short URL"
+        }
+      ]
+    },
+    {
+      "category": "Amazon",
+      "cases": [
+        {
+          "input": "https://www.amazon.com/dp/B08N5WRWNW?tag=affiliate&linkCode=123",
+          "expected": "https://www.amazon.com/dp/B08N5WRWNW",
+          "description": "Extract product ID and remove affiliate tracking"
+        },
+        {
+          "input": "https://www.amazon.com/s?k=laptop&ref=nav_logo",
+          "expected": "https://www.amazon.com/s?k=laptop",
+          "description": "Preserve search keywords"
+        }
+      ]
+    },
+    {
+      "category": "Facebook",
+      "cases": [
+        {
+          "input": "https://www.facebook.com/photo.php?fbid=123&set=a.456&type=3&theater&__tn__=K-R",
+          "expected": "https://www.facebook.com/photo.php?fbid=123&set=a.456&type=3&theater",
+          "description": "Remove tracking while preserving theater mode"
+        }
+      ]
+    },
+    {
+      "category": "Google Search",
+      "cases": [
+        {
+          "input": "https://www.google.com/url?q=https%3A%2F%2Fexample.com&sa=D",
+          "expected": "https://example.com",
+          "description": "Extract redirect URL"
+        },
+        {
+          "input": "https://www.google.com/search?q=kotlin&hl=en&utm_source=app",
+          "expected": "https://www.google.com/search?q=kotlin&hl=en",
+          "description": "Preserve search query and language"
+        }
+      ]
+    },
+    {
+      "category": "Edge Cases",
+      "cases": [
+        {
+          "input": "https://example.com&utm_source=test&utm_campaign=promo",
+          "expected": "https://example.com",
+          "description": "Fix URL with & but no ?"
+        },
+        {
+          "input": "https://example.com/page&important=keep&utm_source=remove",
+          "expected": "https://example.com/page?important=keep",
+          "description": "Fix malformed URL and filter parameters"
+        }
+      ]
+    }
+  ]
+} 

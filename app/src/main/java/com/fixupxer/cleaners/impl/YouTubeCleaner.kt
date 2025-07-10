@@ -1,0 +1,272 @@
+package com.fixupxer.cleaners.impl
+
+import com.fixupxer.cleaners.CleanerCategory
+import com.fixupxer.cleaners.UrlCleaner
+
+/**
+ * Cleaner for YouTube URLs - comprehensive tracking removal
+ */
+object YouTubeCleaner : UrlCleaner {
+    override val id = "youtube"
+    override val category = CleanerCategory.VIDEO_PLATFORMS
+    
+    // Comprehensive YouTube tracking parameters
+    // Most extensive tracking parameter list available
+    private val youtubeTracking = setOf(
+        // Basic tracking
+        "si", "pp", "feature", "app", "attribution_link",
+        "embeds_referring_euri", "embeds_referring_origin",
+        "embeds_euri", "source_ve_path", "gclid", "ytclid",
+        
+        // Share & referral tracking
+        "share", "shared_via", "ref", "referer", "referrer",
+        "fbclid", "sms_ss", "ucbcb", "share_source",
+        
+        // Analytics & attribution
+        "utm_source", "utm_medium", "utm_campaign", "utm_term",
+        "utm_content", "utm_id", "utm_reader", "utm_pubreferrer",
+        
+        // Playback & session tracking
+        "session_id", "ei", "ved", "sourceid", "ssfr",
+        "continuation", "itct", "ctoken", "sttm",
+        
+        // Engagement tracking
+        "lact", "action_name", "action_type", "annotation_id",
+        "src_vid", "feature_id", "c", "client",
+        
+        // Navigation tracking
+        "redir_token", "next", "flow", "entry_point",
+        "bp", "sp", "sr_origin", "algo", "aq",
+        
+        // Mobile app tracking
+        "app_version", "app_name", "device_id", "install_id",
+        "app_install_ctx", "vndapp", "vndclient", "mweb",
+        
+        // A/B testing & experiments
+        "variant", "experiment_id", "bucket", "treatment",
+        "version_id", "test_group", "disable_polymer",
+        
+        // Recommendation tracking
+        "rec_id", "recommendation_info", "shelf_id",
+        "video_id_list", "suggested_video_id", "rv",
+        
+        // Notification tracking
+        "notification_id", "notification_type", "alert_type",
+        "push_id", "email_id", "sms_id",
+        
+        // Search & discovery
+        "search_sort", "search_filter", "search_type",
+        "search_token", "query_source", "suggested_by",
+        
+        // Ads & monetization
+        "ad_id", "campaign_id", "creative_id", "placement_id",
+        "ad_type", "ad_signal", "autonav", "autoplay",
+        
+        // Channel & creator tracking
+        "channel_feature", "creator_channel_id", "ab_beacon",
+        "subscribe_feature", "notification_menu_feature",
+        
+        // Playlist tracking (non-essential ones)
+        "playnext", "shuffle", "mix_id", "nolist",
+        
+        // Technical & misc
+        "bpctr", "pbjreload", "pbj", "hl", "gl", "persist_hl",
+        "persist_gl", "has_verified", "nohtml5", "html5",
+        "spfreload", "disable_related_pause_replay", "ytrcc",
+        "vvt", "vl", "vq", "vss_host", "vps", "vpst", "vpstf",
+        "vpsrc", "w", "h", "bh", "bw", "adsense_video_doc_id",
+        
+        // Legacy parameters
+        "annotation_src", "endscreen_src", "iv_load_policy",
+        "iv_allow_external_links", "iv_endscreen_url",
+        "annotation_3_module", "cid", "cin", "cver"
+    )
+    
+    // Parameters essential for YouTube functionality
+    private val preserveParams = setOf(
+        "v",     // Video ID
+        "t",     // Timestamp (e.g., t=1m30s)
+        "list",  // Playlist ID
+        "index", // Position in playlist
+        "start", // Start time in seconds
+        "end",   // End time in seconds
+        "ab_channel", // Channel name (sometimes needed)
+        "search_query", // For search results
+        "q",     // Alternative search query parameter
+        "radio", // Radio station ID (YouTube Music)
+        "p",     // Page parameter for search results
+        "page",  // Alternative page parameter
+        "sort",  // Sort order
+        "view",  // View type (grid/list)
+        "shelf_id", // Shelf identifier (needed for navigation)
+        "nolist" // Disable playlist (user preference)
+    )
+    
+    override fun matches(url: String): Boolean {
+        val lowerUrl = url.lowercase()
+        return lowerUrl.contains("youtube.com") || 
+               lowerUrl.contains("youtu.be") ||
+               lowerUrl.contains("youtube-nocookie.com") ||
+               lowerUrl.contains("music.youtube.com")
+    }
+    
+    override fun clean(url: String): String {
+        // Handle short URLs (youtu.be)
+        if (url.contains("youtu.be/")) {
+            return cleanShortUrl(url)
+        }
+        
+        // Handle YouTube Music differently
+        if (url.contains("music.youtube.com")) {
+            return cleanYouTubeMusic(url)
+        }
+        
+        // Standard YouTube cleaning
+        return cleanStandardUrl(url)
+    }
+    
+    private fun cleanStandardUrl(url: String): String {
+        try {
+            // If no query parameters, return as is
+            if (!url.contains("?")) {
+                return url
+            }
+            
+            val idx = url.indexOf('?')
+            if (idx == -1) return url
+            
+            val base = url.substring(0, idx)
+            val queryAndFragment = url.substring(idx + 1)
+            
+            // Handle fragment
+            val fragmentIdx = queryAndFragment.indexOf('#')
+            val query = if (fragmentIdx > -1) {
+                queryAndFragment.substring(0, fragmentIdx)
+            } else {
+                queryAndFragment
+            }
+            val fragment = if (fragmentIdx > -1) {
+                queryAndFragment.substring(fragmentIdx)
+            } else {
+                ""
+            }
+            
+            // Process parameters - aggressive cleaning
+            val kept = query.split('&').mapNotNull { pair ->
+                val eqIdx = pair.indexOf('=')
+                if (eqIdx == -1) return@mapNotNull null
+                
+                val key = pair.substring(0, eqIdx)
+                
+                // Keep if essential, remove if tracking or unknown
+                when {
+                    preserveParams.contains(key) -> pair  // Always keep essential params
+                    youtubeTracking.contains(key) -> null  // Remove tracking params
+                    else -> null  // Remove unknown params (aggressive cleaning)
+                }
+            }.filter { it.isNotEmpty() }
+            
+            return if (kept.isEmpty()) {
+                base + fragment
+            } else {
+                base + "?" + kept.joinToString("&") + fragment
+            }
+        } catch (e: Exception) {
+            // On error, return original URL
+            return url
+        }
+    }
+    
+    private fun cleanShortUrl(url: String): String {
+        // Extract video ID from youtu.be/VIDEO_ID format
+        val regex = Regex("youtu\\.be/([a-zA-Z0-9_-]{11})")
+        val match = regex.find(url)
+        
+        return if (match != null) {
+            val videoId = match.groupValues[1]
+            var cleanUrl = "https://youtu.be/$videoId"
+            
+            // Preserve timestamp and list if present
+            val params = mutableListOf<String>()
+            
+            // Extract timestamp
+            val timeRegex = Regex("[?&]t=([0-9]+[hms]?[0-9]*[ms]?[0-9]*s?)")
+            timeRegex.find(url)?.let { timeMatch ->
+                params.add("t=${timeMatch.groupValues[1]}")
+            }
+            
+            // Extract playlist
+            val listRegex = Regex("[?&]list=([a-zA-Z0-9_-]+)")
+            listRegex.find(url)?.let { listMatch ->
+                params.add("list=${listMatch.groupValues[1]}")
+            }
+            
+            if (params.isNotEmpty()) {
+                cleanUrl += "?" + params.joinToString("&")
+            }
+            
+            cleanUrl
+        } else {
+            // Fallback to standard cleaning
+            cleanStandardUrl(url)
+        }
+    }
+    
+    private fun cleanYouTubeMusic(url: String): String {
+        // YouTube Music specific preserve params
+        val musicPreserveParams = preserveParams + setOf(
+            "radio", // Radio station
+            "si" // Share ID (sometimes needed for music)
+        )
+        
+        try {
+            // If no query parameters, return as is
+            if (!url.contains("?")) {
+                return url
+            }
+            
+            val idx = url.indexOf('?')
+            if (idx == -1) return url
+            
+            val base = url.substring(0, idx)
+            val queryAndFragment = url.substring(idx + 1)
+            
+            // Handle fragment
+            val fragmentIdx = queryAndFragment.indexOf('#')
+            val query = if (fragmentIdx > -1) {
+                queryAndFragment.substring(0, fragmentIdx)
+            } else {
+                queryAndFragment
+            }
+            val fragment = if (fragmentIdx > -1) {
+                queryAndFragment.substring(fragmentIdx)
+            } else {
+                ""
+            }
+            
+            // Process parameters
+            val kept = query.split('&').mapNotNull { pair ->
+                val eqIdx = pair.indexOf('=')
+                if (eqIdx == -1) return@mapNotNull null
+                
+                val key = pair.substring(0, eqIdx)
+                
+                // Keep if essential for music, remove if tracking or unknown
+                when {
+                    musicPreserveParams.contains(key) -> pair
+                    youtubeTracking.contains(key) -> null
+                    else -> null
+                }
+            }.filter { it.isNotEmpty() }
+            
+            return if (kept.isEmpty()) {
+                base + fragment
+            } else {
+                base + "?" + kept.joinToString("&") + fragment
+            }
+        } catch (e: Exception) {
+            // On error, return original URL
+            return url
+        }
+    }
+} 

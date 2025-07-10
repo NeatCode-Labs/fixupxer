@@ -60,6 +60,4 @@ class PreferencesManager(context: Context) {
     fun setConvertInstagramEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_CONVERT_INSTAGRAM, enabled) }
     }
-
-
 } 

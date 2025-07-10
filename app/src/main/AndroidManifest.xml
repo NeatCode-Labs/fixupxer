@@ -43,26 +43,25 @@
         <!-- Activity to handle shared URLs -->
         <activity
             android:name=".ui.ShareActivity"
-            android:exported="true"
             android:theme="@style/Theme.FixupXer"
             android:label="@string/share_activity_name"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|uiMode|density"
-            android:windowSoftInputMode="adjustResize"
-            android:launchMode="singleTask"
+            android:parentActivityName=".MainActivity"
+            android:noHistory="true"
             android:taskAffinity=""
-            android:excludeFromRecents="true">
+            android:excludeFromRecents="true"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
-            
             <intent-filter>
                 <action android:name="android.intent.action.PROCESS_TEXT" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+        
     </application>
 
 </manifest> 

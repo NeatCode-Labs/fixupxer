@@ -89,6 +89,8 @@ class MainActivity : BaseActivity() {
     }
     
     private fun setupListeners() {
+        Timber.d("Setting up listeners")
+        
         // URL input text change listener
         urlTextWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -126,65 +128,19 @@ class MainActivity : BaseActivity() {
         }
         binding.editTextUrl.addTextChangedListener(urlTextWatcher)
         
-        // Instagram toggle switch
-        binding.switchInstagram.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.onInstagramConversionToggled(isChecked)
-        }
+        // Button listeners
+        binding.buttonPaste.setOnClickListener { pasteFromClipboard() }
+        binding.buttonProcess.setOnClickListener { viewModel.processUrl() }
+        binding.buttonShare.setOnClickListener { shareProcessedUrl() }
+        binding.buttonOpen.setOnClickListener { openProcessedUrl() }
+        binding.buttonCopy.setOnClickListener { copyToClipboard() }
+        binding.buttonDonate.setOnClickListener { showDonateDialog() }
         
-        // Twitter toggle switch
-        binding.switchTwitter.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.onTwitterConversionToggled(isChecked)
-        }
-        
-
-        
-        // Paste button
-        binding.buttonPaste.setOnClickListener {
-            pasteFromClipboard()
-        }
-        
-        // Process URL button
-        binding.buttonProcess.setOnClickListener {
-            viewModel.processUrl()
-        }
-        
-        // Share button
-        binding.buttonShare.setOnClickListener {
-            shareProcessedUrl()
-        }
-        
-        // Open button
-        binding.buttonOpen.setOnClickListener {
-            openProcessedUrl()
-        }
-        
-        // Copy button
-        binding.buttonCopy.setOnClickListener {
-            copyToClipboard()
-        }
-        
-        // About text link
-        binding.textViewAbout.setOnClickListener {
-            showAboutDialog()
-        }
-        
-        // Disclaimer text link
-        binding.textViewDisclaimer.setOnClickListener {
-            showDisclaimerDialog()
-        }
-        
-        // Report Bug text link
-        binding.textViewReportBug.setOnClickListener {
-            reportBug()
-        }
-        
-        // Donate button
-        binding.buttonDonate.setOnClickListener {
-            showDonateDialog()
-        }
-        
-        // Footer text link
-        binding.textViewFooter.setOnClickListener {
+        // About footer links
+        binding.textViewAbout.setOnClickListener { showAboutDialog() }
+        binding.textViewReportBug.setOnClickListener { reportBug() }
+        binding.textViewDisclaimer.setOnClickListener { showDisclaimerDialog() }
+        binding.textViewFooter.setOnClickListener { 
             try {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.WEBSITE_URL))
                 startActivity(intent)
@@ -192,6 +148,16 @@ class MainActivity : BaseActivity() {
                 Timber.e(e, "Error opening website")
                 Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
             }
+        }
+        
+        // Instagram toggle listener
+        binding.switchInstagram.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onInstagramConversionToggled(isChecked)
+        }
+        
+        // Twitter toggle switch
+        binding.switchTwitter.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onTwitterConversionToggled(isChecked)
         }
     }
     
@@ -205,8 +171,6 @@ class MainActivity : BaseActivity() {
                     
                     binding.twitterToggleContainer.isVisible = state.isTwitterUrl
                     binding.switchTwitter.isChecked = state.isTwitterConversionEnabled
-                    
-
                     
                     binding.progressIndicator.isVisible = state.isLoading
                     binding.buttonProcess.isEnabled = !state.isLoading

@@ -114,4 +114,6 @@
     <string name="copy_button_desc">Copy processed URL</string>
     <string name="open_button_desc">Open processed URL</string>
     <string name="url_conversion_desc">URL conversion</string>
+    <string name="back_button_desc">Go back</string>
+    
 </resources>

@@ -24,14 +24,14 @@ android {
         applicationId = "com.fixupxer"
         minSdk = 21
         targetSdk = 35
-        versionCode = 14
-        versionName = "1.3.5"
+        versionCode = 16
+        versionName = "1.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         // Add build config fields
-        buildConfigField("String", "VERSION_NAME", "\"1.3.5\"")
-        buildConfigField("int", "VERSION_CODE", "14")
+        buildConfigField("String", "VERSION_NAME", "\"1.4.0\"")
+        buildConfigField("int", "VERSION_CODE", "16")
     }
 
     signingConfigs {
@@ -69,19 +69,13 @@ android {
         jvmTarget = "17"
         freeCompilerArgs = listOf(
             "-opt-in=kotlin.RequiresOptIn",
-            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
         )
     }
     
     buildFeatures {
-        compose = true
         viewBinding = true
         buildConfig = true
-    }
-    
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
     }
     
     packaging {
@@ -97,10 +91,30 @@ android {
         }
     }
     
-    // Google Play dependenciesInfo block for Play Store submissions
+    // F-Droid dependenciesInfo block - must be false for F-Droid builds
     dependenciesInfo {
         includeInBundle = false
         includeInApk = false
+    }
+
+    lint {
+        abortOnError = true // still fail on real issues
+        warningsAsErrors = false
+        disable.addAll(listOf(
+            "UnusedResources",
+            "IconDuplicates",
+            "VectorRaster",
+            "IconDipSize",
+            "IconLauncherShape",
+            "IconLocation",
+            "GradleDependency",
+            "AndroidGradlePluginVersion",
+            "UseTomlInstead",
+            "ContentDescription",
+            "LockedOrientationActivity",
+            "DiscouragedApi",
+            "UseAppTint"
+        ))
     }
 }
 
@@ -109,16 +123,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.activity.compose)
-    
-    // Compose
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.compose)
     
     // Material Design
     implementation(libs.material)
@@ -132,29 +136,19 @@ dependencies {
     // Dependency Injection
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.compose)
-    
-    // Room Database
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
     
     // Logging
     implementation(libs.timber)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.gson)
     
     // Memory leak detection (debug only)
     debugImplementation(libs.leakcanary)
     
     // Testing
     testImplementation(libs.junit)
-    testImplementation("org.mockito:mockito-core:5.11.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${libs.versions.coroutines.get()}")
-    testImplementation("org.robolectric:robolectric:4.13")
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
 } 

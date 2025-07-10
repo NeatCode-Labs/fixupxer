@@ -1,29 +1,41 @@
 package com.fixupxer
 
+import com.fixupxer.cleaners.CleanerService
+import com.fixupxer.cleaners.CleanerRegistry
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-import timber.log.Timber
+import org.mockito.kotlin.*
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33])
 class UrlProcessorTest {
-    private val urlProcessor = UrlProcessor()
+    private lateinit var urlProcessor: UrlProcessor
+    private lateinit var cleanerService: CleanerService
     
     @Before
     fun setup() {
-        // Initialize Timber for tests to prevent crashes
-        if (Timber.treeCount == 0) {
-            Timber.plant(object : Timber.Tree() {
-                override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-                    // Print to console for debugging
-                    println("$tag: $message")
-                }
-            })
+        // Build real CleanerService with all cleaners
+        val registry = CleanerRegistry().apply {
+            registerAll(
+                listOf(
+                    com.fixupxer.cleaners.impl.AmazonCleaner,
+                    com.fixupxer.cleaners.impl.YouTubeCleaner,
+                    com.fixupxer.cleaners.impl.GoogleSearchCleaner,
+                    com.fixupxer.cleaners.impl.TwitterCleaner,
+                    com.fixupxer.cleaners.impl.InstagramCleaner,
+                    com.fixupxer.cleaners.impl.FacebookCleaner,
+                    com.fixupxer.cleaners.impl.RedditCleaner,
+                    com.fixupxer.cleaners.impl.TikTokCleaner,
+                    com.fixupxer.cleaners.impl.LinkedInCleaner,
+                    com.fixupxer.cleaners.impl.GeneralTrackingCleaner()
+                )
+            )
         }
+        val cache = com.fixupxer.cleaners.cache.CleanerCache()
+        val preferences = mock<com.fixupxer.PreferencesManager>()
+        val cleanerServiceReal = com.fixupxer.cleaners.CleanerService(registry, cache, preferences)
+
+        cleanerService = cleanerServiceReal
+        urlProcessor = UrlProcessor(cleanerService)
     }
     
     @Test
@@ -37,6 +49,8 @@ class UrlProcessorTest {
     @Test
     fun `test keep non-tracking parameters`() {
         val urlWithParams = "https://example.com/search?q=kotlin&utm_source=google&page=2"
+        // No extra stubbing needed; real CleanerService will remove tracking params but keep q & page
+        
         val expected = "https://example.com/search?q=kotlin&page=2"
         val result = urlProcessor.processUrl(urlWithParams, cleanTracking = true, convertTwitter = false).first
         assertEquals(expected, result)
@@ -45,17 +59,19 @@ class UrlProcessorTest {
     @Test
     fun `test convert Twitter URL to FixupX`() {
         val twitterUrl = "https://twitter.com/user/status/1234567890"
+        val resultPair = urlProcessor.processUrl(twitterUrl, cleanTracking = false, convertTwitter = true)
+        println("Converted Twitter result: ${resultPair.first}")
         val expected = "https://fixupx.com/user/status/1234567890"
-        val result = urlProcessor.processUrl(twitterUrl, cleanTracking = false, convertTwitter = true).first
-        assertEquals(expected, result)
+        assertEquals(expected, resultPair.first)
     }
     
     @Test
     fun `test convert X com URL to FixupX`() {
         val xUrl = "https://x.com/user/status/1234567890"
+        val resultPair = urlProcessor.processUrl(xUrl, cleanTracking = false, convertTwitter = true)
+        println("Converted X result: ${resultPair.first}")
         val expected = "https://fixupx.com/user/status/1234567890"
-        val result = urlProcessor.processUrl(xUrl, cleanTracking = false, convertTwitter = true).first
-        assertEquals(expected, result)
+        assertEquals(expected, resultPair.first)
     }
     
     @Test
@@ -69,6 +85,8 @@ class UrlProcessorTest {
     @Test
     fun `test Instagram URL with tracking parameters`() {
         val instagramUrl = "https://instagram.com/p/ABC123/?igshid=abcdef&utm_source=ig_web"
+        // No stubbing needed
+        
         val expected = "https://kkinstagram.com/p/ABC123/"
         val result = urlProcessor.processUrl(instagramUrl, cleanTracking = true, convertTwitter = true).first
         assertEquals(expected, result)
@@ -84,6 +102,8 @@ class UrlProcessorTest {
     @Test
     fun `test Twitter URL with query parameters`() {
         val twitterUrl = "https://twitter.com/user/status/1234567890?s=20&t=abc123"
+        // No stubbing needed
+        
         val expected = "https://fixupx.com/user/status/1234567890"
         val result = urlProcessor.processUrl(twitterUrl, cleanTracking = true, convertTwitter = true).first
         assertEquals(expected, result)
@@ -92,7 +112,7 @@ class UrlProcessorTest {
     @Test
     fun `test non-status Twitter URL remains unchanged`() {
         val twitterProfileUrl = "https://twitter.com/user"
-        val expected = "https://fixupx.com/user"
+        val expected = twitterProfileUrl // profile URLs should not be converted
         val result = urlProcessor.processUrl(twitterProfileUrl, cleanTracking = false, convertTwitter = true).first
         assertEquals(expected, result)
     }
@@ -100,6 +120,8 @@ class UrlProcessorTest {
     @Test
     fun `test URL with multiple tracking parameters`() {
         val complexUrl = "https://example.com/page?fbclid=123&gclid=456&utm_source=fb&utm_medium=social&ref=tw&important=keep"
+        // No stubbing needed
+        
         val expected = "https://example.com/page?important=keep"
         val result = urlProcessor.processUrl(complexUrl, cleanTracking = true, convertTwitter = false).first
         assertEquals(expected, result)
@@ -108,6 +130,8 @@ class UrlProcessorTest {
     @Test
     fun `test Facebook URL with mibextid parameter`() {
         val fbUrl = "https://www.facebook.com/story.php?story_fbid=123&id=456&mibextid=abc"
+        // No stubbing needed
+        
         val expected = "https://www.facebook.com/story.php?story_fbid=123&id=456"
         val result = urlProcessor.processUrl(fbUrl, cleanTracking = true, convertTwitter = false).first
         assertEquals(expected, result)
@@ -116,6 +140,8 @@ class UrlProcessorTest {
     @Test
     fun `test Amazon URL with tracking`() {
         val amazonUrl = "https://www.amazon.com/dp/B08N5WRWNW?tag=affiliate-20&linkCode=ogi"
+        // No stubbing needed
+        
         val expected = "https://www.amazon.com/dp/B08N5WRWNW"
         val result = urlProcessor.processUrl(amazonUrl, cleanTracking = true, convertTwitter = false).first
         assertEquals(expected, result)
@@ -145,6 +171,8 @@ class UrlProcessorTest {
     @Test
     fun `test URL with @ prefix for Instagram`() {
         val urlWithAt = "@https://instagram.com/p/ABC123/"
+        // No stubbing needed
+        
         val expected = "https://kkinstagram.com/p/ABC123/"
         val result = urlProcessor.processUrl(urlWithAt, cleanTracking = true, convertTwitter = true).first
         assertEquals(expected, result)
@@ -164,6 +192,8 @@ class UrlProcessorTest {
     @Test
     fun `test processUrlForSharing always cleans and converts`() {
         val twitterUrl = "https://twitter.com/user/status/123?utm_source=share"
+        // No stubbing needed
+        
         val expected = "https://fixupx.com/user/status/123"
         val result = urlProcessor.processUrlForSharing(twitterUrl)
         assertEquals(expected, result)

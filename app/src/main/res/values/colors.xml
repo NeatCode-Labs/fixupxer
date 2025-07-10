@@ -30,4 +30,13 @@
     <color name="switch_track_on">#C5CAE9</color>
     <color name="switch_thumb_off">#9E9E9E</color>
     <color name="switch_track_off">#E0E0E0</color>
+    
+    <!-- Input colors -->
+    <color name="input_background_color">#F5F5F5</color>
+    <color name="input_text_color">#333333</color>
+    <color name="button_text_color">#FFFFFF</color>
+    
+    <!-- Text colors -->
+    <color name="primary_text">#212121</color>
+    <color name="secondary_text">#757575</color>
 </resources>

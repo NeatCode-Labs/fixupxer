@@ -1,11 +1,39 @@
 package com.fixupxer
 
 import android.net.Uri
+import com.fixupxer.cleaners.CleanerService
+import com.fixupxer.cleaners.CleanerRegistry
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
 
 class UrlProcessorMatrixTest {
-    private val p = UrlProcessor()
+    private lateinit var p: UrlProcessor
+    private lateinit var cleanerService: CleanerService
+    
+    @Before
+    fun setup() {
+        val registry = CleanerRegistry().apply {
+            registerAll(listOf(
+                com.fixupxer.cleaners.impl.AmazonCleaner,
+                com.fixupxer.cleaners.impl.YouTubeCleaner,
+                com.fixupxer.cleaners.impl.GoogleSearchCleaner,
+                com.fixupxer.cleaners.impl.TwitterCleaner,
+                com.fixupxer.cleaners.impl.InstagramCleaner,
+                com.fixupxer.cleaners.impl.FacebookCleaner,
+                com.fixupxer.cleaners.impl.RedditCleaner,
+                com.fixupxer.cleaners.impl.TikTokCleaner,
+                com.fixupxer.cleaners.impl.LinkedInCleaner,
+                com.fixupxer.cleaners.impl.GeneralTrackingCleaner()
+            ))
+        }
+        val cache = com.fixupxer.cleaners.cache.CleanerCache()
+        val prefs = mock<com.fixupxer.PreferencesManager>()
+        cleanerService = CleanerService(registry, cache, prefs)
+        p = UrlProcessor(cleanerService)
+    }
 
     private data class Case(
         val desc: String,

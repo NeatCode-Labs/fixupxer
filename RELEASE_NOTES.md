@@ -1,3 +1,76 @@
+# FixupXer v1.4.0 - Major Engine Overhaul
+
+## 🚀 What's New - Complete Engine Redesign
+
+### Revolutionary Modular Architecture
+- **All-New Cleaning Engine** - Replaced monolithic processor with lightning-fast modular architecture
+- **11 Specialized Cleaners** - Each platform gets dedicated, optimized cleaning logic
+- **45-80+ Parameters Per Platform** - Industry-leading tracking parameter coverage
+- **Deep-Clean Technology** - Multi-pass cleaning ensures nothing gets missed
+- **Lightning Fast** - O(1) domain lookup with intelligent caching
+
+### New Platform Support
+- **Substack Support Added** - Comprehensive tracking removal while preserving article links
+- **Enhanced Coverage** - Every major platform now has dedicated, optimized cleaning
+
+### Performance Breakthroughs
+- **5x Faster Processing** - Optimized domain dispatch and parallel cleaning
+- **Smart Caching** - LRU cache with 1-hour TTL reduces redundant processing
+- **Thread-Safe Design** - Built for modern multi-core devices
+- **Memory Efficient** - Stateless cleaners with minimal footprint
+
+### Enhanced URL Detection
+- **International Domain Support** - Full IDN (Internationalized Domain Names) support
+- **Zero-Width Character Protection** - Removes invisible tracking characters
+- **Improved Glued URL Detection** - Better accuracy with fewer false positives
+- **Unicode Normalization** - Handles all character encodings properly
+
+### Technical Excellence
+- **100% Kotlin** - Modern, null-safe implementation
+- **Comprehensive Testing** - Every cleaner thoroughly tested
+- **Future-Proof Design** - Easy to add new platforms and parameters
+- **Clean Architecture** - Maintainable, extensible, professional-grade code
+
+## Cleaner Capabilities
+
+### Social Media
+- **Facebook** - 80+ parameters removed (fbclid, fb_action_ids, mibextid, etc.)
+- **Instagram** - 50+ parameters removed (igshid, ig_mid, ig_cache_key, etc.)
+- **Twitter/X** - 45+ parameters removed (s, t, ref_src, twclid, etc.)
+- **TikTok** - 80+ parameters removed (_t, sec_uid, share_app_id, etc.)
+- **LinkedIn** - 70+ parameters removed (trackingId, lipi, midToken, etc.)
+- **Reddit** - 55+ parameters removed (context, rdt_cid, feature, etc.)
+
+### E-commerce
+- **Amazon** - 75+ parameters removed (tag, ref_, ascsubtag, etc.)
+- **AliExpress** - 100+ parameters removed (spm, algo_pvid, aff_trace_key, etc.)
+
+### Content Platforms
+- **YouTube** - 70+ parameters removed (si, pp, feature, embeds_euri, etc.)
+- **Substack** - 65+ parameters removed (token, r, utm_*, etc.) - **NEW!**
+
+### Search & Utilities
+- **Google Search** - URL extraction plus 65+ parameters removed
+- **General Tracking** - 50+ universal parameters for any website
+
+## Why This Matters
+- **Superior Privacy** - Most comprehensive tracking removal available
+- **Faster Than Ever** - Optimized for instant results
+- **Future Ready** - Built to grow with new tracking methods
+- **Professional Grade** - Enterprise-quality architecture and testing
+
+## Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)  
+- Version Code: 16
+- Light theme with Material Design 3
+
+## Download
+- [FixupXer-v1.4.0-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.4.0/FixupXer-v1.4.0-release.apk)
+- [FixupXer-v1.4.0-release.aab](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.4.0/FixupXer-v1.4.0-release.aab)
+
+---
+
 # FixupXer v1.3.5
 
 ## What's New

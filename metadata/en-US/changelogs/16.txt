@@ -1,0 +1,6 @@
+• Fixed Google Play compatibility - now supports tablets, TVs, and Android Auto
+• Enhanced ShareActivity with proper task management attributes
+• Improved app stability and performance
+• Updated version code to ensure smooth updates
+• All existing features remain fully functional
+• Maintained backward compatibility 

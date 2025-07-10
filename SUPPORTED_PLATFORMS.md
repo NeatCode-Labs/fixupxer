@@ -6,7 +6,7 @@ FixupXer removes tracking parameters from URLs using a revolutionary modular cle
 
 ### Modular Design
 - **11 Specialized Cleaners** - Each platform has its own optimized cleaner
-- **45-80+ Parameters Per Platform** - Most comprehensive tracking removal available
+- **964 Unique Tracking Parameters** - Most comprehensive tracking removal available
 - **Deep-Clean Technology** - Multi-pass cleaning ensures nothing gets missed
 - **Lightning Fast** - O(1) domain lookup with intelligent caching
 
@@ -15,18 +15,18 @@ FixupXer removes tracking parameters from URLs using a revolutionary modular cle
 These platforms support both tracking parameter removal AND URL conversion to alternative domains:
 
 ### Social Media & Communication
-- **Facebook** - Removes 80+ tracking parameters (fbclid, mibextid, __cft__, __tn__, _branch_match_id, epa, _gl, fb_action_ids, fb_action_types, fb_source, fb_ref, fb_comment_id, etc.) and converts to facebookez.com for better embedding
-- **Instagram** - Removes 50+ tracking parameters (igshid, ig_cache_key, ig_mid, ig_share_sheet, utm_*, fbclid, etc.) and converts to kkinstagram.com for better embedding
-- **Twitter/X** - Removes 45+ tracking parameters (s, t, ref_src, ref_url, via, twclid, utm_*, etc.) and converts to fixupx.com for better embedding
+- **Facebook** - Removes 119 tracking parameters (fbclid, mibextid, __cft__, __tn__, _branch_match_id, epa, _gl, fb_action_ids, fb_action_types, fb_source, fb_ref, fb_comment_id, etc.) and converts to facebookez.com for better embedding
+- **Instagram** - Removes 67 tracking parameters (igshid, ig_cache_key, ig_mid, ig_share_sheet, utm_*, fbclid, etc.) and converts to kkinstagram.com for better embedding
+- **Twitter/X** - Removes 99 tracking parameters (s, t, ref_src, ref_url, via, twclid, utm_*, etc.) and converts to fixupx.com for better embedding
 
 ## Tracking Parameter Removal Platforms
 
 These platforms support comprehensive tracking parameter removal:
 
 ### Social Media & Communication
-- **TikTok** - 80+ parameters removed (_t, _r, checksum, sec_uid, share_app_id, share_link_id, tt_from, u_code, user_id, preview_pb, language, timestamp, aid, iid, device_id, region, app_name, version_code, version_name, device_brand, device_platform, os_version, etc.)
-- **LinkedIn** - 70+ parameters removed (trackingId, lipi, licu, trk, trkEmail, trkInfo, midToken, midSig, eBP, tscp, refId, veh, _l, _e, originalReferer, sessionRedirect, etc.)
-- **Reddit** - 55+ parameters removed (context, correlator, feature, rdt_cid, ref, ref_campaign, ref_source, $deep_link, $original_url, _branch_match_id, etc.)
+- **TikTok** - 124 parameters removed (_t, _r, checksum, sec_uid, share_app_id, share_link_id, tt_from, u_code, user_id, preview_pb, language, timestamp, aid, iid, device_id, region, app_name, version_code, version_name, device_brand, device_platform, os_version, etc.)
+- **LinkedIn** - 117 parameters removed (trackingId, lipi, licu, trk, trkEmail, trkInfo, midToken, midSig, eBP, tscp, refId, veh, _l, _e, originalReferer, sessionRedirect, etc.)
+- **Reddit** - 91 parameters removed (context, correlator, feature, rdt_cid, ref, ref_campaign, ref_source, $deep_link, $original_url, _branch_match_id, etc.)
 - **Pinterest** - Removes e_t, e_t_s, e_t_cs, ouuid, cid, sfo, sfo_s, nic, nic_v, pin_unauth, dpi, i, w, m, n and pin tracking
 - **Snapchat** - Removes share_id, locale, attachment_url and snap-specific tracking
 - **Discord** - Removes Discord campaign tracking and UTM parameters
@@ -34,16 +34,16 @@ These platforms support comprehensive tracking parameter removal:
 - **WhatsApp** - Removes app_absent, link_medium, link_source and WhatsApp tracking
 
 ### Video & Streaming
-- **YouTube** - 70+ parameters removed (si, pp, feature, embeds_referring_euri, embeds_referring_origin, source_ve_path, embeds_euri, app, attribution_link, ytclid, cbr, cbrver, cos, cosver, gclid, utm_*, fbclid, etc.)
+- **YouTube** - 139 parameters removed (si, pp, feature, embeds_referring_euri, embeds_referring_origin, source_ve_path, embeds_euri, app, attribution_link, ytclid, cbr, cbrver, cos, cosver, gclid, utm_*, fbclid, etc.)
 - **Twitch** - Removes tt_medium, tt_content and Twitch tracking
 - **Netflix** - Removes trackId, tctx, jb, jbv, dgs and Netflix analytics
 
 ### Content & Publishing
-- **Substack** - 65+ parameters removed (token, r, isFreemail, utm_*, ref, source, gi, triedSigningIn, utm_source, utm_medium, utm_campaign, utm_content, action, component, etc.) while preserving publication_id and post_id
+- **Substack** - 87 parameters removed (token, r, isFreemail, utm_*, ref, source, gi, triedSigningIn, utm_source, utm_medium, utm_campaign, utm_content, action, component, etc.) while preserving publication_id and post_id
 - **Medium** - Removes source, sk, source_user_id, source_post_link and Medium tracking
 
 ### E-commerce & Shopping
-- **Amazon** - 75+ parameters removed (tag, linkCode, camp, creative, ascsubtag, ref_, pf_rd_m, pf_rd_s, pf_rd_r, pf_rd_t, pf_rd_p, pf_rd_i, qid, sr, srs, keywords, ie, rh, pd_rd_w, pd_rd_wg, pd_rd_r, psc, aaxitk, hsa_cr_id, etc.)
+- **Amazon** - 147 parameters removed (tag, linkCode, camp, creative, ascsubtag, ref_, pf_rd_m, pf_rd_s, pf_rd_r, pf_rd_t, pf_rd_p, pf_rd_i, qid, sr, srs, keywords, ie, rh, pd_rd_w, pd_rd_wg, pd_rd_r, psc, aaxitk, hsa_cr_id, etc.)
 - **AliExpress** - 100+ parameters removed (spm, scm, scm_id, scm-url, pvid, algo_expid, algo_pvid, ns, abbucket, acm, utparam, pos, cv, af, mall_affr, sk, dp, terminal_id, aff_fcid, aff_fsk, aff_platform, aff_trace_key, shareId, platform, businessType, title, srcSns, image, sourceType, spreadType, templateId, etc.)
 - **eBay** - Removes mkrid, siteid, mkcid, mkevt, mkpid, trksid, campid, toolid, customid, amdata, var, selected and eBay tracking
 - **Shopify** - Removes variant, omnisendContactID, sca_ref, mc_cid, mc_eid, _pos, _sid, _ss, _s, _shopify_s, _shopify_sa_t, _shopify_sa_p, _shopify_y, cart_sig and Shopify analytics
@@ -56,13 +56,13 @@ These platforms support comprehensive tracking parameter removal:
 - **Stack Overflow** - Removes rq, rv, lq, md and SO tracking
 
 ### Search & Discovery
-- **Google Search** - 65+ parameters removed and URL extraction from redirects (ved, ei, usg, source, ust, q, oq, gs_lcp, gs_lp, sclient, utm_*, gclid, dclid, gbv, sei, bih, biw, sa, vet, etc.)
+- **Google Search** - 140 parameters removed and URL extraction from redirects (ved, ei, usg, source, ust, q, oq, gs_lcp, gs_lp, sclient, utm_*, gclid, dclid, gbv, sei, bih, biw, sa, vet, etc.)
 - **Bing** - Removes cvid, FORM, qpvt, qs, sc, sp, sk, ghsh, ghacc, ghpl, ghpr, ghc, ghhc, ghpos and Bing tracking
 - **DuckDuckGo** - Removes t, ia, iax, atb, v7-it and DDG tracking
 
 ## General Tracking Cleaner
 
-The GeneralTrackingCleaner handles 50+ universal tracking parameters for any website:
+The GeneralTrackingCleaner handles 106 universal tracking parameters for any website:
 
 ### UTM Parameters
 - All UTM variants: utm_source, utm_medium, utm_campaign, utm_term, utm_content, utm_id, utm_reader, utm_name, utm_referrer, utm_social, utm_social-type, utm_brand, utm_cid, utm_viz_id, utm_pubreferrer

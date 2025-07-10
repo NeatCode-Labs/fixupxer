@@ -5,7 +5,7 @@
 ### Revolutionary Modular Architecture
 - **All-New Cleaning Engine** - Replaced monolithic processor with lightning-fast modular architecture
 - **11 Specialized Cleaners** - Each platform gets dedicated, optimized cleaning logic
-- **45-80+ Parameters Per Platform** - Industry-leading tracking parameter coverage
+- **964 Unique Tracking Parameters** - Industry-leading coverage across all platforms
 - **Deep-Clean Technology** - Multi-pass cleaning ensures nothing gets missed
 - **Lightning Fast** - O(1) domain lookup with intelligent caching
 
@@ -34,24 +34,24 @@
 ## Cleaner Capabilities
 
 ### Social Media
-- **Facebook** - 80+ parameters removed (fbclid, fb_action_ids, mibextid, etc.)
-- **Instagram** - 50+ parameters removed (igshid, ig_mid, ig_cache_key, etc.)
-- **Twitter/X** - 45+ parameters removed (s, t, ref_src, twclid, etc.)
-- **TikTok** - 80+ parameters removed (_t, sec_uid, share_app_id, etc.)
-- **LinkedIn** - 70+ parameters removed (trackingId, lipi, midToken, etc.)
-- **Reddit** - 55+ parameters removed (context, rdt_cid, feature, etc.)
+- **Facebook** - 119 parameters removed (fbclid, fb_action_ids, mibextid, etc.)
+- **Instagram** - 67 parameters removed (igshid, ig_mid, ig_cache_key, etc.)
+- **Twitter/X** - 99 parameters removed (s, t, ref_src, twclid, etc.)
+- **TikTok** - 124 parameters removed (_t, sec_uid, share_app_id, etc.)
+- **LinkedIn** - 117 parameters removed (trackingId, lipi, midToken, etc.)
+- **Reddit** - 91 parameters removed (context, rdt_cid, feature, etc.)
 
 ### E-commerce
-- **Amazon** - 75+ parameters removed (tag, ref_, ascsubtag, etc.)
+- **Amazon** - 147 parameters removed (tag, ref_, ascsubtag, etc.)
 - **AliExpress** - 100+ parameters removed (spm, algo_pvid, aff_trace_key, etc.)
 
 ### Content Platforms
-- **YouTube** - 70+ parameters removed (si, pp, feature, embeds_euri, etc.)
-- **Substack** - 65+ parameters removed (token, r, utm_*, etc.) - **NEW!**
+- **YouTube** - 139 parameters removed (si, pp, feature, embeds_euri, etc.)
+- **Substack** - 87 parameters removed (token, r, utm_*, etc.) - **NEW!**
 
 ### Search & Utilities
-- **Google Search** - URL extraction plus 65+ parameters removed
-- **General Tracking** - 50+ universal parameters for any website
+- **Google Search** - URL extraction plus 140 parameters removed
+- **General Tracking** - 106 universal parameters for any website
 
 ## Why This Matters
 - **Superior Privacy** - Most comprehensive tracking removal available

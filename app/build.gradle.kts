@@ -91,10 +91,10 @@ android {
         }
     }
     
-    // Google Play dependenciesInfo block for Play Store submissions
+    // F-Droid: Disable Google Play metadata
     dependenciesInfo {
-        includeInBundle = true
-        includeInApk = true
+        includeInBundle = false
+        includeInApk = false
     }
 
     lint {

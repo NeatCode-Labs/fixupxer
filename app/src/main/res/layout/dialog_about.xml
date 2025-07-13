@@ -3,27 +3,41 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingTop="@dimen/padding_large"
+    android:paddingStart="@dimen/padding_large"
+    android:paddingEnd="@dimen/padding_large"
+    android:paddingBottom="@dimen/padding_small">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/about"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
+        android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+        android:textColor="?android:attr/textColorPrimary"
+        android:layout_marginBottom="@dimen/margin_medium"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/about_text"
-        android:textSize="16sp"
-        android:layout_marginBottom="16dp"/>
+        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+        android:textColor="?android:attr/textColorSecondary"
+        android:layout_marginBottom="@dimen/margin_large"/>
 
-    <Button
-        android:id="@+id/closeButton"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/close"/>
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="@dimen/margin_medium">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/closeButton"
+            style="@style/Widget.Material3.Button.TextButton.Dialog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/close"/>
+
+    </LinearLayout>
 
 </LinearLayout> 

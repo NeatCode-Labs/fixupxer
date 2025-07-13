@@ -216,7 +216,8 @@ class UrlProcessor @Inject constructor(
      * Check if a URL is an Instagram URL
      */
     fun isInstagramUrl(url: String): Boolean {
-        return url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true)
+        return url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) ||
+               url.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)
     }
     
     private fun convertToKkInstagram(url: String): String {
@@ -248,12 +249,10 @@ class UrlProcessor @Inject constructor(
      */
     fun isTwitterUrl(url: String): Boolean {
         val lowerUrl = url.lowercase()
-        if (!(lowerUrl.contains(Constants.TWITTER_DOMAIN) ||
-              lowerUrl.contains(Constants.X_DOMAIN) ||
-              lowerUrl.contains(Constants.FXTWITTER_DOMAIN))) return false
-
-        // Treat as Twitter/X link even if it doesn't contain /status/ so we can still clean tracking
-        return true
+        return lowerUrl.contains(Constants.TWITTER_DOMAIN) ||
+               lowerUrl.contains(Constants.X_DOMAIN) ||
+               lowerUrl.contains(Constants.FXTWITTER_DOMAIN) ||
+               lowerUrl.contains(Constants.FIXUPX_DOMAIN)
     }
     
     /**
@@ -261,7 +260,8 @@ class UrlProcessor @Inject constructor(
      */
     fun isFacebookUrl(url: String): Boolean {
         val lowerUrl = url.lowercase()
-        return lowerUrl.contains(Constants.FACEBOOK_DOMAIN)
+        return lowerUrl.contains(Constants.FACEBOOK_DOMAIN) || 
+               lowerUrl.contains(Constants.FACEBOOKEZ_DOMAIN)
     }
     
     /**
@@ -272,13 +272,18 @@ class UrlProcessor @Inject constructor(
             // If it's not a Twitter/X URL, return unchanged
             if (!isTwitterUrl(url)) return url
 
+            // Extract fragment if present
+            val fragmentIndex = url.indexOf('#')
+            val urlWithoutFragment = if (fragmentIndex > -1) url.substring(0, fragmentIndex) else url
+            val fragment = if (fragmentIndex > -1) url.substring(fragmentIndex) else ""
+
             // Use regex to robustly extract username and status id
             val regex = Regex("https?://(?:www\\.)?(?:${Constants.TWITTER_DOMAIN}|${Constants.X_DOMAIN})/([A-Za-z0-9_]+)/status/(\\d+)", RegexOption.IGNORE_CASE)
-            val match = regex.find(url)
+            val match = regex.find(urlWithoutFragment)
             if (match != null) {
                 val username = match.groupValues[1]
                 val statusId = match.groupValues[2]
-                "https://${Constants.FIXUPX_DOMAIN}/$username${Constants.TWITTER_STATUS_PATH}$statusId"
+                "https://${Constants.FIXUPX_DOMAIN}/$username${Constants.TWITTER_STATUS_PATH}$statusId$fragment"
             } else {
                 url // Not a standard status URL
             }
@@ -331,18 +336,32 @@ class UrlProcessor @Inject constructor(
      */
     private fun convertToFacebookez(url: String): String {
         if (url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)) return url
-        val pattern = Pattern.compile("(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(facebook\\.com)", Pattern.CASE_INSENSITIVE)
-        val matcher = pattern.matcher(url)
-        return if (matcher.find()) matcher.replaceAll("\$1\$2${Constants.FACEBOOKEZ_DOMAIN}")
-        else url.replace(Constants.FACEBOOK_DOMAIN, Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)
+        
+        // Pattern to match Facebook URLs with any prefix (m., web., www., etc.)
+        // This regex captures the protocol and removes any subdomain prefixes
+        val regex = Regex("(https?://)(?:www\\.)?(?:[a-z]+\\.)?facebook\\.com", RegexOption.IGNORE_CASE)
+        
+        return if (regex.containsMatchIn(url)) {
+            // Remove all prefixes and convert to facebookez.com
+            url.replace(regex, "$1${Constants.FACEBOOKEZ_DOMAIN}")
+        } else {
+            // Fallback for edge cases
+            url.replace(Constants.FACEBOOK_DOMAIN, Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)
+        }
     }
 
     private fun convertFromFacebookez(url: String): String {
         if (url.contains(Constants.FACEBOOK_DOMAIN, ignoreCase = true) && !url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)) return url
-        val pattern = Pattern.compile("(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(facebookez\\.com)", Pattern.CASE_INSENSITIVE)
-        val matcher = pattern.matcher(url)
-        return if (matcher.find()) matcher.replaceAll("\$1\$2${Constants.FACEBOOK_DOMAIN}")
-        else url.replace(Constants.FACEBOOKEZ_DOMAIN, Constants.FACEBOOK_DOMAIN, ignoreCase = true)
+        
+        // Pattern to match facebookez URLs with any prefix (though they shouldn't have any after conversion)
+        val regex = Regex("(https?://)(?:www\\.)?(?:[a-z]+\\.)?facebookez\\.com", RegexOption.IGNORE_CASE)
+        
+        return if (regex.containsMatchIn(url)) {
+            // Convert back to plain facebook.com without prefixes
+            url.replace(regex, "$1${Constants.FACEBOOK_DOMAIN}")
+        } else {
+            url.replace(Constants.FACEBOOKEZ_DOMAIN, Constants.FACEBOOK_DOMAIN, ignoreCase = true)
+        }
     }
     
     /**

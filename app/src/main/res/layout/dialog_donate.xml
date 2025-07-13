@@ -1,65 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:paddingTop="@dimen/padding_large"
+    android:paddingStart="@dimen/padding_large"
+    android:paddingEnd="@dimen/padding_large"
+    android:paddingBottom="@dimen/padding_small">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/donate_dialog_title"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="@color/primary"
-        android:layout_marginBottom="16dp"/>
+        android:text="@string/donate"
+        android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+        android:textColor="?android:attr/textColorPrimary"
+        android:layout_marginBottom="@dimen/margin_medium"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/donate_text"
-        android:textSize="16sp"
-        android:textColor="@color/dark_gray"
-        android:layout_marginBottom="24dp"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="20dp">
-
-    <Button
-            android:id="@+id/buttonMaybeLater"
-            android:layout_width="0dp"
-        android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:text="@string/donate_dialog_negative"
-            android:textColor="@color/dark_gray"/>
-
-    <Button
-            android:id="@+id/buttonDonate"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            style="@style/Widget.MaterialComponents.Button"
-            android:text="@string/donate_dialog_positive"
-            android:backgroundTint="@color/primary"/>
-    </LinearLayout>
-
+        android:text="@string/donate_message"
+        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+        android:textColor="?android:attr/textColorSecondary"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/margin_large"/>
+    
     <TextView
         android:id="@+id/textViewMonero"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/monero_donation_text"
-        android:textSize="14sp"
-        android:textColor="@color/primary"
+        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
         android:gravity="center"
-        android:padding="12dp"
         android:background="?attr/selectableItemBackground"
+        android:padding="@dimen/padding_medium"
+        android:textColor="@color/primary"
         android:clickable="true"
-        android:focusable="true"/>
+        android:focusable="true"
+        android:layout_marginBottom="@dimen/margin_large" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="@dimen/margin_medium">
+        
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonMaybeLater"
+            style="@style/Widget.Material3.Button.TextButton.Dialog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/maybe_later"
+            android:layout_marginEnd="@dimen/margin_medium" />
+        
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonDonate"
+            style="@style/Widget.Material3.Button.TextButton.Dialog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/donate" />
+            
+    </LinearLayout>
 
 </LinearLayout> 

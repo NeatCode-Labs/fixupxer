@@ -51,6 +51,7 @@
 -keep class * extends androidx.room.RoomDatabase
 -keep @androidx.room.Entity class *
 -dontwarn androidx.room.paging.**
+-keep class com.fixupxer.data.database.** { *; }
 
 # Timber
 -dontwarn org.jetbrains.annotations.**

@@ -105,11 +105,38 @@ object InputValidator {
                 // More intelligent domain detection - look for domain patterns
                 val domainPattern = Regex("([a-z0-9]([a-z0-9\\-]*[a-z0-9])?\\.)+[a-z]{2,}", RegexOption.IGNORE_CASE)
                 val mainUrl = input.split("?", "#")[0]
-                val domainsMatches = domainPattern.findAll(mainUrl).toList()
+                
+                // Extract only the domain part (protocol + domain, without path)
+                val domainPart = try {
+                    val protocolEnd = mainUrl.indexOf("://")
+                    if (protocolEnd > 0) {
+                        val afterProtocol = mainUrl.substring(protocolEnd + 3)
+                        val pathStart = afterProtocol.indexOfAny(charArrayOf('/', '?', '#'))
+                        if (pathStart > 0) {
+                            mainUrl.substring(0, protocolEnd + 3 + pathStart)
+                        } else {
+                            mainUrl
+                        }
+                    } else {
+                        mainUrl
+                    }
+                } catch (e: Exception) {
+                    mainUrl
+                }
+                
+                val domainsMatches = domainPattern.findAll(domainPart).toList()
                 val distinctDomains = domainsMatches.map { it.value.lowercase() }.distinct()
                 
-                // Count dots only in the main domain part (before query parameters)
-                val domainDots = mainUrl.count { it == '.' }
+                // Count dots only in the actual domain part (not in the path)
+                // Extract just the domain from the URL
+                val domainOnly = try {
+                    val urlWithoutProtocol = mainUrl.removePrefix("https://").removePrefix("http://")
+                    val domainEnd = urlWithoutProtocol.indexOfAny(charArrayOf('/', ':', '?', '#'))
+                    if (domainEnd > 0) urlWithoutProtocol.substring(0, domainEnd) else urlWithoutProtocol
+                } catch (e: Exception) {
+                    mainUrl
+                }
+                val domainDots = domainOnly.count { it == '.' }
                 
                 // Refined glue detection: look for patterns like
                 // "google.cominstagram.com" → ".cominstagram.com"
@@ -130,6 +157,8 @@ object InputValidator {
                 Timber.d("InputValidator: protocolCount=$protocolCount, wwwCount=$wwwCount")
                 Timber.d("InputValidator: domains.size=${domainsMatches.size}, distinct=${distinctDomains.size}, domainDots=$domainDots")
                 Timber.d("InputValidator: mainUrl='$mainUrl'")
+                Timber.d("InputValidator: domainPart='$domainPart'")
+                Timber.d("InputValidator: domainOnly='$domainOnly'")
                 Timber.d("InputValidator: hasTldGlue=$hasTldGlue")
                 Timber.d("InputValidator: hasGluedUrls=$hasGluedUrls")
                 

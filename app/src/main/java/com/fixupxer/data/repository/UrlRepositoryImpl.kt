@@ -4,6 +4,7 @@ import com.fixupxer.PreferencesManager
 import com.fixupxer.UrlProcessor
 import com.fixupxer.domain.model.ProcessedUrlResult
 import com.fixupxer.domain.repository.UrlRepository
+import com.fixupxer.domain.repository.HistoryRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -16,15 +17,29 @@ import javax.inject.Inject
  */
 class UrlRepositoryImpl @Inject constructor(
     private val urlProcessor: UrlProcessor,
-    private val preferencesManager: PreferencesManager
+    private val preferencesManager: PreferencesManager,
+    private val historyRepository: HistoryRepository
 ) : UrlRepository {
     
     override suspend fun processUrl(url: String): ProcessedUrlResult = processUrl(url, false)
     
-    override suspend fun processUrl(url: String, forceCleanTracking: Boolean): ProcessedUrlResult = withContext(Dispatchers.IO) {
+    override suspend fun processUrl(url: String, forceCleanTracking: Boolean): ProcessedUrlResult = 
+        processUrl(url, forceCleanTracking, null)
+    
+    override suspend fun processUrl(url: String, forceCleanTracking: Boolean, previousProcessedUrl: String?): ProcessedUrlResult = withContext(Dispatchers.IO) {
+        
         if (url.isEmpty()) return@withContext ProcessedUrlResult(url, true)
         
         val isInstagram = urlProcessor.isInstagramUrl(url)
+        val isTwitter = urlProcessor.isTwitterUrl(url)
+        val isFacebook = urlProcessor.isFacebookUrl(url)
+        
+        val platform = when {
+            isInstagram -> "Instagram"
+            isTwitter -> "Twitter/X"
+            isFacebook -> "Facebook"
+            else -> "Other"
+        }
         
         val (processedUrl, wasAlreadyClean) = if (isInstagram) {
             // For Instagram URLs, use the Instagram conversion preference
@@ -33,7 +48,7 @@ class UrlRepositoryImpl @Inject constructor(
                 cleanTracking = true, // Always clean tracking
                 convertTwitter = preferencesManager.isConvertInstagramEnabled()
             )
-        } else if (urlProcessor.isFacebookUrl(url)) {
+        } else if (isFacebook) {
             // For Facebook URLs, use the Instagram conversion preference (same toggle)
             urlProcessor.processUrl(
                 url,
@@ -49,6 +64,84 @@ class UrlRepositoryImpl @Inject constructor(
             )
         }
         
+        // Save to history if enabled and URL was modified
+        // If previousProcessedUrl is provided, compare against that instead of the original URL
+        val shouldSaveHistory = if (previousProcessedUrl != null) {
+            // For toggle changes: only save if the new result differs from previous result
+            preferencesManager.isHistoryEnabled() && processedUrl != previousProcessedUrl
+        } else {
+            // For initial processing: save if the result differs from input
+            preferencesManager.isHistoryEnabled() && url != processedUrl
+        }
+        
+        if (shouldSaveHistory) {
+            
+            val trackingRemoved = !wasAlreadyClean
+            
+            val conversionType = when {
+                url.contains("instagram.com") && processedUrl.contains("kkinstagram.com") -> "Domain converted"
+                url.contains("kkinstagram.com") && processedUrl.contains("instagram.com") -> "Domain converted"
+                url.contains("facebook.com") && processedUrl.contains("facebookez.com") -> "Domain converted"
+                url.contains("facebookez.com") && processedUrl.contains("facebook.com") -> "Domain converted"
+                url.contains("twitter.com") && processedUrl.contains("fixupx.com") -> "Domain converted"
+                url.contains("x.com") && processedUrl.contains("fixupx.com") -> "Domain converted"
+                url.contains("fixupx.com") && processedUrl.contains("x.com") -> "Domain converted"
+                url.contains("fixupx.com") && processedUrl.contains("twitter.com") -> "Domain converted"
+                url.contains("fxtwitter.com") && processedUrl.contains("fixupx.com") -> "Domain converted"
+                url.contains("fxtwitter.com") && processedUrl.contains("x.com") -> "Domain converted"
+                trackingRemoved -> "Tracking removed"
+                else -> "URL cleaned"
+            }
+            
+            try {
+                historyRepository.insertHistory(
+                    originalUrl = url,
+                    cleanedUrl = processedUrl,
+                    platform = platform,
+                    conversionType = conversionType
+                )
+                
+                // Trim history to max entries
+                val maxEntries = preferencesManager.getMaxHistoryEntries()
+                historyRepository.trimHistory(maxEntries)
+                
+            } catch (e: Exception) {
+                // Silently ignore errors
+            }
+        }
+        
+        ProcessedUrlResult(processedUrl, wasAlreadyClean)
+    }
+    
+    override suspend fun processUrlWithoutHistory(url: String): ProcessedUrlResult = withContext(Dispatchers.IO) {
+        if (url.isEmpty()) return@withContext ProcessedUrlResult(url, true)
+        
+        val isInstagram = urlProcessor.isInstagramUrl(url)
+        val isFacebook = urlProcessor.isFacebookUrl(url)
+        
+        val (processedUrl, wasAlreadyClean) = if (isInstagram) {
+            // For Instagram URLs, use the Instagram conversion preference
+            urlProcessor.processUrl(
+                url,
+                cleanTracking = true, // Always clean tracking
+                convertTwitter = preferencesManager.isConvertInstagramEnabled()
+            )
+        } else if (isFacebook) {
+            // For Facebook URLs, use the Instagram conversion preference (same toggle)
+            urlProcessor.processUrl(
+                url,
+                cleanTracking = preferencesManager.isCleanTrackingEnabled(),
+                convertTwitter = preferencesManager.isConvertInstagramEnabled()
+            )
+        } else {
+            // For other URLs, use the standard preferences
+            urlProcessor.processUrl(
+                url,
+                cleanTracking = preferencesManager.isCleanTrackingEnabled(),
+                convertTwitter = preferencesManager.isConvertTwitterEnabled()
+            )
+        }
+        
         ProcessedUrlResult(processedUrl, wasAlreadyClean)
     }
     
@@ -57,7 +150,9 @@ class UrlRepositoryImpl @Inject constructor(
     }
     
     override suspend fun cleanUrl(url: String): String = withContext(Dispatchers.IO) {
-        urlProcessor.cleanUrl(url)
+        // Clean URL with history tracking
+        val result = processUrl(url, true)
+        result.url
     }
     
     override fun isInstagramUrl(url: String): Boolean = urlProcessor.isInstagramUrl(url)

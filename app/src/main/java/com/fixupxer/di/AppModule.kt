@@ -5,6 +5,8 @@ import com.fixupxer.PreferencesManager
 import com.fixupxer.UrlProcessor
 import com.fixupxer.domain.repository.UrlRepository
 import com.fixupxer.data.repository.UrlRepositoryImpl
+import com.fixupxer.domain.repository.HistoryRepository
+import com.fixupxer.data.repository.HistoryRepositoryImpl
 import com.fixupxer.cleaners.cache.CleanerCache
 import com.fixupxer.cleaners.CleanerService
 import com.fixupxer.cleaners.CleanerRegistry
@@ -51,4 +53,10 @@ object AppModule {
     fun provideUrlRepository(
         urlRepository: UrlRepositoryImpl
     ): UrlRepository = urlRepository
+    
+    @Provides
+    @Singleton
+    fun provideHistoryRepository(
+        historyRepository: HistoryRepositoryImpl
+    ): HistoryRepository = historyRepository
 } 

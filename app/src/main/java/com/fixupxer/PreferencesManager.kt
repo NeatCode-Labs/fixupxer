@@ -15,6 +15,9 @@ class PreferencesManager(context: Context) {
         private const val KEY_CLEAN_TRACKING = "clean_tracking"
         private const val KEY_CONVERT_TWITTER = "convert_twitter"
         private const val KEY_CONVERT_INSTAGRAM = "convert_instagram"
+        private const val KEY_HISTORY_ENABLED = "history_enabled"
+        private const val KEY_MAX_HISTORY_ENTRIES = "max_history_entries"
+        private const val DEFAULT_MAX_HISTORY_ENTRIES = 100
     }
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -59,5 +62,33 @@ class PreferencesManager(context: Context) {
      */
     fun setConvertInstagramEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_CONVERT_INSTAGRAM, enabled) }
+    }
+    
+    /**
+     * Check if history is enabled
+     */
+    fun isHistoryEnabled(): Boolean {
+        return prefs.getBoolean(KEY_HISTORY_ENABLED, true) // Enabled by default
+    }
+    
+    /**
+     * Set whether history is enabled
+     */
+    fun setHistoryEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_HISTORY_ENABLED, enabled) }
+    }
+    
+    /**
+     * Get maximum number of history entries to keep
+     */
+    fun getMaxHistoryEntries(): Int {
+        return prefs.getInt(KEY_MAX_HISTORY_ENTRIES, DEFAULT_MAX_HISTORY_ENTRIES)
+    }
+    
+    /**
+     * Set maximum number of history entries to keep
+     */
+    fun setMaxHistoryEntries(maxEntries: Int) {
+        prefs.edit { putInt(KEY_MAX_HISTORY_ENTRIES, maxEntries) }
     }
 } 

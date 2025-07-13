@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/padding_large"
+    android:paddingEnd="@dimen/padding_small"
+    android:paddingTop="@dimen/padding_small"
+    android:paddingBottom="@dimen/padding_small"
+    android:background="?android:attr/selectableItemBackground"
+    tools:ignore="Overdraw">
+
+    <!-- Original URL -->
+    <TextView
+        android:id="@+id/textViewOriginalUrl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="https://example.com/page?utm_source=test"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="@dimen/text_size_small"
+        android:ellipsize="end"
+        android:maxLines="2" />
+
+    <!-- Arrow and Processed URL -->
+    <TextView
+        android:id="@+id/textViewProcessedUrl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        app:drawableStartCompat="@drawable/arrow_downward"
+        android:drawablePadding="@dimen/margin_medium"
+        app:drawableTint="@color/primary"
+        tools:text="https://example.com/page"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="@dimen/text_size_small"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:gravity="center_vertical" />
+
+    <!-- Metadata -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/margin_small">
+
+        <TextView
+            android:id="@+id/textViewTimestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="2 min ago"
+            android:textColor="?android:attr/textColorTertiary"
+            android:textSize="@dimen/text_size_tiny" />
+
+        <TextView
+            android:id="@+id/textViewPlatform"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_medium"
+            tools:text="• Twitter"
+            android:textColor="?android:attr/textColorTertiary"
+            android:textSize="@dimen/text_size_tiny"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/margin_small"
+        android:gravity="end">
+
+        <ImageButton
+            android:id="@+id/buttonCopy"
+            android:layout_width="@dimen/min_touch_target_size"
+            android:layout_height="@dimen/min_touch_target_size"
+            android:src="@drawable/ic_copy"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/copy_content_desc"
+            android:padding="@dimen/padding_small"
+            app:tint="@color/primary" />
+
+        <ImageButton
+            android:id="@+id/buttonShare"
+            android:layout_width="@dimen/min_touch_target_size"
+            android:layout_height="@dimen/min_touch_target_size"
+            android:src="@drawable/ic_share"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/share_content_desc"
+            android:padding="@dimen/padding_small"
+            android:layout_marginStart="@dimen/margin_small"
+            app:tint="@color/primary" />
+
+    </LinearLayout>
+
+</LinearLayout> 

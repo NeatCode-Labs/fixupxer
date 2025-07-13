@@ -1,11 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base application theme. -->
-    <style name="Theme.FixupXer" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
+    <!-- Base application theme for Android 8.1 (API 27+) -->
+    <style name="Theme.FixupXer" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Set window background to white -->
+        <item name="android:windowBackground">@color/white</item>
         
-        <!-- Ensure proper UI scaling for devices with notches/cutouts -->
+        <!-- Edge-to-edge support -->
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+        
+        <!-- Light theme indicators -->
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorSecondaryVariant">@color/accent_dark</item>
+        <item name="colorOnSecondary">@color/white</item>
+        
+        <!-- Background colors -->
+        <item name="android:colorBackground">@color/white</item>
+        <item name="colorOnBackground">@color/black</item>
+        
+        <!-- Surface colors -->
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/black</item>
     </style>
 </resources> 

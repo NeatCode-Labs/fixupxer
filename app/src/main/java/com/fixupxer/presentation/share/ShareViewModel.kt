@@ -25,6 +25,7 @@ import kotlinx.coroutines.withTimeout
 @HiltViewModel
 class ShareViewModel @Inject constructor(
     private val urlRepository: UrlRepository,
+    private val urlProcessor: UrlProcessor,
     application: Application
 ) : AndroidViewModel(application) {
     
@@ -85,17 +86,20 @@ class ShareViewModel @Inject constructor(
                     
                     // Check URL type to determine toggle visibility
                     val isInstagram = url.contains("instagram.com", ignoreCase = true) || 
-                                    url.contains("kkinstagram.com", ignoreCase = true) ||
-                                    url.contains("facebook.com", ignoreCase = true) ||
-                                    url.contains("facebookez.com", ignoreCase = true)
-                    val isTwitter = urlRepository.isTwitterUrl(url) || 
+                                    url.contains("kkinstagram.com", ignoreCase = true)
+                    
+                    val isTwitter = url.contains("twitter.com", ignoreCase = true) ||
                                    url.contains("x.com", ignoreCase = true) ||
                                    url.contains("fixupx.com", ignoreCase = true) || 
                                    url.contains("fxtwitter.com", ignoreCase = true)
                     
+                    // Facebook URLs use the Instagram toggle
+                    val isFacebook = url.contains("facebook.com", ignoreCase = true) ||
+                                     url.contains("facebookez.com", ignoreCase = true)
+                    
                     _uiState.update { 
                         it.copy(
-                            isInstagramUrl = isInstagram, 
+                            isInstagramUrl = isInstagram || isFacebook,  // Show Instagram toggle for Facebook too
                             isTwitterUrl = isTwitter
                         ) 
                     }
@@ -130,217 +134,22 @@ class ShareViewModel @Inject constructor(
         
         viewModelScope.launch {
             try {
-                val result = when {
-                    // Instagram scenarios
-                    url.contains("instagram.com") && !url.contains("kkinstagram.com") -> {
-                        Timber.d("ShareViewModel Scenario: Instagram URL detected")
-                when {
-                            _uiState.value.isInstagramConversionEnabled -> {
-                                // Toggle ON: convert to kkinstagram.com
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                val convertedUrl = cleanUrl.replace("instagram.com", "kkinstagram.com")
-                                Timber.d("ShareViewModel Instagram toggle ON: $url -> $convertedUrl")
-                                convertedUrl
-                            }
-                            else -> {
-                                // Toggle OFF: show "Nothing to do!" for clean URLs
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                if (cleanUrl == url) {
-                                    Timber.d("ShareViewModel Instagram toggle OFF: $url -> Nothing to do!")
-                                    getApplication<Application>().getString(R.string.nothing_to_do)
-                        } else {
-                                    Timber.d("ShareViewModel Instagram toggle OFF: $url -> $cleanUrl")
-                                    cleanUrl
-                                }
-                            }
-                        }
-                    }
-                    
-                    // kkinstagram scenarios
-                    url.contains("kkinstagram.com") -> {
-                        Timber.d("ShareViewModel Scenario: kkinstagram URL detected")
-                        when {
-                            _uiState.value.isInstagramConversionEnabled -> {
-                                // Toggle ON: show "Nothing to do!" for clean URLs
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                if (cleanUrl == url) {
-                                    Timber.d("ShareViewModel kkinstagram toggle ON: $url -> Nothing to do!")
-                                    getApplication<Application>().getString(R.string.nothing_to_do)
-                        } else {
-                                    Timber.d("ShareViewModel kkinstagram toggle ON: $url -> $cleanUrl")
-                                    cleanUrl
-                                }
-                            }
-                            else -> {
-                                // Toggle OFF: convert to instagram.com
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                val convertedUrl = cleanUrl.replace("kkinstagram.com", "instagram.com")
-                                Timber.d("ShareViewModel kkinstagram toggle OFF: $url -> $convertedUrl")
-                                convertedUrl
-                        }
-                    }
-                    }
-                    
-                    // Facebook scenarios
-                    url.contains("facebook.com") && !url.contains("facebookez.com") -> {
-                        Timber.d("ShareViewModel Scenario: Facebook URL detected")
-                        when {
-                            _uiState.value.isInstagramConversionEnabled -> {
-                                // Toggle ON: convert to facebookez.com (remove all prefixes)
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                // Remove all possible prefixes and convert to facebookez.com
-                                val convertedUrl = cleanUrl.replace(Regex("https?://(www\\.|m\\.|mobile\\.|touch\\.|web\\.)?facebook\\.com"), "https://facebookez.com")
-                                Timber.d("ShareViewModel Facebook toggle ON: $url -> $convertedUrl")
-                                convertedUrl
-                            }
-                            else -> {
-                                // Toggle OFF: show "Nothing to do!" for clean URLs
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                if (cleanUrl == url) {
-                                    Timber.d("ShareViewModel Facebook toggle OFF: $url -> Nothing to do!")
-                                    getApplication<Application>().getString(R.string.nothing_to_do)
-                        } else {
-                                    Timber.d("ShareViewModel Facebook toggle OFF: $url -> $cleanUrl")
-                                    cleanUrl
-                                }
-                            }
-                        }
-                    }
-                    
-                    // facebookez.com scenarios
-                    url.contains("facebookez.com") -> {
-                        Timber.d("ShareViewModel Scenario: facebookez.com URL detected")
-                        when {
-                            _uiState.value.isInstagramConversionEnabled -> {
-                                // Toggle ON: show "Nothing to do!" for clean URLs
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                if (cleanUrl == url) {
-                                    Timber.d("ShareViewModel facebookez.com toggle ON: $url -> Nothing to do!")
-                                    getApplication<Application>().getString(R.string.nothing_to_do)
-                        } else {
-                                    Timber.d("ShareViewModel facebookez.com toggle ON: $url -> $cleanUrl")
-                                    cleanUrl
-                                }
-                            }
-                            else -> {
-                                // Toggle OFF: convert to facebook.com
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                val convertedUrl = cleanUrl.replace("facebookez.com", "facebook.com")
-                                Timber.d("ShareViewModel facebookez.com toggle OFF: $url -> $convertedUrl")
-                                convertedUrl
-                            }
-                        }
-                    }
-                    
-                    // X.com scenarios
-                    url.contains("x.com") && !url.contains("fixupx.com") && !url.contains("fxtwitter.com") -> {
-                        Timber.d("ShareViewModel Scenario: X.com URL detected")
-                        when {
-                            _uiState.value.isTwitterConversionEnabled -> {
-                                // Toggle ON: convert to fixupx.com
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                val convertedUrl = cleanUrl.replace("x.com", "fixupx.com")
-                                Timber.d("ShareViewModel X.com toggle ON: $url -> $convertedUrl")
-                                convertedUrl
-                            }
-                            else -> {
-                                // Toggle OFF: show "Nothing to do!" for clean URLs
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                if (cleanUrl == url) {
-                                    Timber.d("ShareViewModel X.com toggle OFF: $url -> Nothing to do!")
-                                    getApplication<Application>().getString(R.string.nothing_to_do)
-                        } else {
-                                    Timber.d("ShareViewModel X.com toggle OFF: $url -> $cleanUrl")
-                                    cleanUrl
-                                }
-                            }
-                        }
-                    }
-                    
-                    // fixupx.com scenarios
-                    url.contains("fixupx.com") -> {
-                        Timber.d("ShareViewModel Scenario: fixupx.com URL detected")
-                        when {
-                            _uiState.value.isTwitterConversionEnabled -> {
-                                // Toggle ON: show "Nothing to do!" for clean URLs
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                if (cleanUrl == url) {
-                                    Timber.d("ShareViewModel fixupx.com toggle ON: $url -> Nothing to do!")
-                                    getApplication<Application>().getString(R.string.nothing_to_do)
-                        } else {
-                                    Timber.d("ShareViewModel fixupx.com toggle ON: $url -> $cleanUrl")
-                                    cleanUrl
-                        }
-                    }
-                            else -> {
-                                // Toggle OFF: convert to x.com
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                val convertedUrl = cleanUrl.replace("fixupx.com", "x.com")
-                                Timber.d("ShareViewModel fixupx.com toggle OFF: $url -> $convertedUrl")
-                                convertedUrl
-                            }
-                        }
-                    }
-                    
-                    // fxtwitter.com scenarios
-                    url.contains("fxtwitter.com") -> {
-                        Timber.d("ShareViewModel Scenario: fxtwitter.com URL detected")
-                        when {
-                            _uiState.value.isTwitterConversionEnabled -> {
-                                // Toggle ON: convert to fixupx.com
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                val convertedUrl = cleanUrl.replace("fxtwitter.com", "fixupx.com")
-                                Timber.d("ShareViewModel fxtwitter.com toggle ON: $url -> $convertedUrl")
-                                convertedUrl
-                            }
-                            else -> {
-                                // Toggle OFF: convert to x.com
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                val convertedUrl = cleanUrl.replace("fxtwitter.com", "x.com")
-                                Timber.d("ShareViewModel fxtwitter.com toggle OFF: $url -> $convertedUrl")
-                                convertedUrl
-                            }
-                        }
-                    }
-                    
-                    // twitter.com scenarios
-                    url.contains("twitter.com") && !url.contains("fxtwitter.com") -> {
-                        Timber.d("ShareViewModel Scenario: twitter.com URL detected")
-                        when {
-                            _uiState.value.isTwitterConversionEnabled -> {
-                                // Toggle ON: convert to fixupx.com
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                val convertedUrl = cleanUrl.replace("twitter.com", "fixupx.com")
-                                Timber.d("ShareViewModel twitter.com toggle ON: $url -> $convertedUrl")
-                                convertedUrl
-                            }
-                            else -> {
-                                // Toggle OFF: convert to x.com
-                                val cleanUrl = urlRepository.cleanUrl(url)
-                                val convertedUrl = cleanUrl.replace("twitter.com", "x.com")
-                                Timber.d("ShareViewModel twitter.com toggle OFF: $url -> $convertedUrl")
-                                convertedUrl
-                            }
-                        }
-                    }
-                    
-                    // Other URLs (no toggle scenarios)
-                    else -> {
-                        Timber.d("ShareViewModel Scenario: Other URL detected")
-                        val cleanUrl = urlRepository.cleanUrl(url)
-                        if (cleanUrl == url) {
-                            Timber.d("ShareViewModel Other URL: $url -> Nothing to do!")
+                // Use processUrl which handles history saving and all conversion logic
+                val result = urlRepository.processUrl(url, false)
+                val processedUrl = result.url
+                
+                Timber.d("ShareViewModel processUrl result: $url -> $processedUrl")
+                
+                // Check if nothing was changed
+                val finalResult = if (processedUrl == url) {
                     getApplication<Application>().getString(R.string.nothing_to_do)
                 } else {
-                            Timber.d("ShareViewModel Other URL: $url -> $cleanUrl")
-                            cleanUrl
-                        }
-                    }
+                    processedUrl
                 }
                 
-                _uiState.update {
+                _uiState.update { 
                     it.copy(
-                        processedUrl = result,
+                        processedUrl = finalResult,
                         isLoading = false,
                         error = null
                     )
@@ -364,10 +173,10 @@ class ShareViewModel @Inject constructor(
             urlRepository.setInstagramConversionEnabled(enabled)
             _uiState.update { it.copy(isInstagramConversionEnabled = enabled) }
             
-            // Re-process the URL with new setting
+            // Re-process the URL with new setting WITHOUT going through the full flow
             val sharedText = _uiState.value.sharedText
             if (sharedText.isNotEmpty()) {
-                processSharedText(sharedText)
+                reprocessUrlLocally()
             }
         }
     }
@@ -377,11 +186,50 @@ class ShareViewModel @Inject constructor(
             urlRepository.setTwitterConversionEnabled(enabled)
             _uiState.update { it.copy(isTwitterConversionEnabled = enabled) }
             
-            // Re-process the URL with new setting
+            // Re-process the URL with new setting WITHOUT going through the full flow
             val sharedText = _uiState.value.sharedText
             if (sharedText.isNotEmpty()) {
-                processSharedText(sharedText)
+                reprocessUrlLocally()
             }
+        }
+    }
+    
+    private suspend fun reprocessUrlLocally() {
+        try {
+            val sharedText = _uiState.value.sharedText
+            val validated = InputValidator.validateAndSanitizeInput(sharedText) ?: return
+            val url = UrlProcessor.findFirstValidUrl(validated) ?: return
+            
+            // Get the current processed URL before reprocessing
+            val currentProcessedUrl = _uiState.value.processedUrl
+            
+            // Skip if current result is the "nothing to do" message
+            val previousUrl = if (currentProcessedUrl == getApplication<Application>().getString(R.string.nothing_to_do)) {
+                null
+            } else {
+                currentProcessedUrl
+            }
+            
+            // Re-process through repository with the previous result for proper history comparison
+            val result = urlRepository.processUrl(url, false, previousUrl)
+            val processedUrl = result.url
+            
+            // Check if nothing was changed
+            val finalResult = if (processedUrl == url) {
+                getApplication<Application>().getString(R.string.nothing_to_do)
+            } else {
+                processedUrl
+            }
+            
+            _uiState.update { 
+                it.copy(
+                    processedUrl = finalResult,
+                    isLoading = false,
+                    error = null
+                )
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error reprocessing URL locally")
         }
     }
     

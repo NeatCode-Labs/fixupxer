@@ -1,0 +1,11 @@
+FixupXer v1.4.4 - Android 15 Edge-to-Edge Compliance
+
+Key Updates:
+• Fixed deprecated API warnings for Android 15 edge-to-edge support
+• Improved navigation bar icon visibility with proper SystemBarStyle
+• Centralized all edge-to-edge configuration in BaseActivity
+• Moved all hardcoded dimensions to resources for better maintainability
+• Fixed ObsoleteSdkInt lint warning
+• Enhanced responsive design with screen-specific dimensions
+
+Technical improvements ensure full Android 15 compatibility while maintaining backward compatibility to Android 5. 

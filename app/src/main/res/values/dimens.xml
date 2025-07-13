@@ -11,11 +11,17 @@
     <dimen name="padding_xlarge">32dp</dimen>
     
     <!-- Margins -->
-    <dimen name="margin_small">4dp</dimen>
-    <dimen name="margin_medium">8dp</dimen>
-    <dimen name="margin_large">16dp</dimen>
-    <dimen name="margin_xlarge">24dp</dimen>
-    <dimen name="margin_xxlarge">32dp</dimen>
+    <dimen name="margin_tiny">2dp</dimen>
+    <dimen name="margin_extra_small">4dp</dimen>
+    <dimen name="margin_small">8dp</dimen>
+    <dimen name="margin_medium">16dp</dimen>
+    <dimen name="margin_large">24dp</dimen>
+    <dimen name="margin_xlarge">32dp</dimen>
+    <dimen name="margin_xxlarge">40dp</dimen>
+    <dimen name="margin_extra_large">32dp</dimen>
+    
+    <!-- Minimum content height for small screen detection -->
+    <dimen name="min_content_height">500dp</dimen>
     
     <!-- Title padding -->
     <dimen name="title_padding_top">16dp</dimen>
@@ -24,11 +30,22 @@
     <dimen name="icon_button_size">48dp</dimen>
     <dimen name="arrow_icon_size">48dp</dimen>
     <dimen name="icon_button_padding">12dp</dimen>
+    <dimen name="icon_small_size">20dp</dimen>
     
     <!-- Card dimensions -->
     <dimen name="shared_text_card_height">56dp</dimen>
     <dimen name="card_corner_radius">12dp</dimen>
     <dimen name="card_stroke_width">1dp</dimen>
+    <dimen name="app_bar_elevation">4dp</dimen>
+    
+    <!-- Button dimensions -->
+    <dimen name="button_corner_radius">24dp</dimen>
+    <dimen name="button_padding_horizontal">16dp</dimen>
+    <dimen name="button_padding_vertical">12dp</dimen>
+    <dimen name="button_shadow_padding">3dp</dimen>
+    
+    <!-- Edit text dimensions -->
+    <dimen name="edit_text_corner_radius">4dp</dimen>
     
     <!-- Text sizes -->
     <dimen name="text_size_title">22sp</dimen>
@@ -39,4 +56,15 @@
     <!-- Minimum heights -->
     <dimen name="min_touch_target_size">48dp</dimen>
     <dimen name="processed_url_min_height">24dp</dimen>
+    
+    <!-- Dialog dimensions -->
+    <dimen name="dialog_max_height">400dp</dimen>
+    <dimen name="dialog_min_height">200dp</dimen>
+    <dimen name="dialog_empty_state_height">200dp</dimen>
+    
+    <!-- Toggle layout dimensions -->
+    <dimen name="toggle_margin_top">12dp</dimen>
+    <dimen name="toggle_margin_bottom">16dp</dimen>
+    <dimen name="toggle_padding">12dp</dimen>
+    <dimen name="toggle_corner_radius">8dp</dimen>
 </resources> 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- App and Title info -->
     <string name="app_name">FixupXer - URL Enhancer</string>
     <string name="app_title">FixupXer - URL Enhancer</string>
@@ -16,6 +16,22 @@
     <string name="open">Open</string>
     <string name="reset">Reset</string>
     <string name="donate">Donate</string>
+    <string name="history">History</string>
+    
+    <!-- History strings -->
+    <string name="history_title">Conversion History</string>
+    <string name="enable_history">Enable history</string>
+    <string name="max_history_entries">Max history entries</string>
+    <string name="no_history">No conversion history yet</string>
+    <string name="clear_all">Clear All</string>
+    <string name="platform_label">• %s</string>
+    <string name="clear_history_confirm">Clear all history?</string>
+    <string name="history_cleared">History cleared</string>
+    <string name="history_entry_deleted">Entry deleted</string>
+    <string name="select_max_entries">Select max entries</string>
+    <string name="max_entries_hint">Enter max number of entries</string>
+    <string name="invalid_max_entries">Please enter a valid number greater than 0</string>
+    <string name="default_max_entries">100</string>
     
     <!-- Instagram conversion toggle -->
     <string name="convert_instagram_toggle">Create embeddable link?</string>
@@ -58,10 +74,14 @@
     <string name="bug_report_email">neatcodelabs@gmail.com</string>
     <string name="bug_report_subject">FixupXer Bug Report</string>
     <string name="disclaimer_dialog_title">Disclaimer</string>
-    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not collect, store, or transmit any user data or URLs to external servers.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Proxy services such as facebookez.com, fixupx.com and kkinstagram.com are not owned or maintained by us and may stop working at any given time.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses usage of third-party proxy services such as facebookez.com, fixupx.com and kkinstagram.com. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.]]></string>
+    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not transmit any user data or URLs to external servers. If history is enabled, processed URLs are stored locally on your device only and can be cleared at any time.<br/><br/> <b>History Feature</b><br/> The optional history feature stores your URL conversions locally on your device. This data never leaves your device and can be disabled or cleared at any time through the History settings.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Proxy services such as facebookez.com, fixupx.com and kkinstagram.com are not owned or maintained by us and may stop working at any given time.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses usage of third-party proxy services such as facebookez.com, fixupx.com and kkinstagram.com. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.]]></string>
     
     <!-- Donate dialog -->
     <string name="donate_text">If you find FixupXer useful, please consider supporting its development. Your donation helps maintain and improve the app.</string>
+    <string name="donate_message">If you find FixupXer useful, please consider supporting its development. Your donation helps maintain and improve the app.</string>
+    <string name="donate_message_monero">Monero (click to copy address)</string>
+    <string name="maybe_later">Maybe Later</string>
+    <string name="monero_address" translatable="false" tools:ignore="Typos">48xHkJEcebJMeKfKKiWoqhmHQSrdpkRwzRPoYGNv5bP9LkQRc5pBd5UBMngF84DFEgHBPM1JupPjrbp3XMk7XJMW8sd9qfB</string>
     <string name="donate_dialog_title">Support Development</string>
     <string name="donate_dialog_positive">Donate</string>
     <string name="donate_dialog_negative">Maybe Later</string>
@@ -115,5 +135,9 @@
     <string name="open_button_desc">Open processed URL</string>
     <string name="url_conversion_desc">URL conversion</string>
     <string name="back_button_desc">Go back</string>
+    
+    <!-- History Dialog - Additional strings -->
+    <string name="max_entries_updated">Max entries updated to %d</string>
+    <string name="ok">OK</string>
     
 </resources>

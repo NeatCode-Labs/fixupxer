@@ -4,6 +4,7 @@
     <dimen name="icon_button_size">44dp</dimen>
     <dimen name="arrow_icon_size">40dp</dimen>
     <dimen name="icon_button_padding">10dp</dimen>
+    <dimen name="icon_small_size">18dp</dimen>
     
     <!-- Card dimensions for small screens -->
     <dimen name="shared_text_card_height">48dp</dimen>
@@ -18,4 +19,27 @@
     <dimen name="padding_medium">12dp</dimen>
     <dimen name="padding_large">20dp</dimen>
     <dimen name="padding_xlarge">28dp</dimen>
+    
+    <!-- Dialog dimensions for small screens -->
+    <dimen name="dialog_max_height">280dp</dimen>
+    <dimen name="dialog_min_height">150dp</dimen>
+    <dimen name="dialog_empty_state_height">150dp</dimen>
+    
+    <!-- Toggle layout dimensions for small screens -->
+    <dimen name="toggle_margin_top">8dp</dimen>
+    <dimen name="toggle_margin_bottom">12dp</dimen>
+    <dimen name="toggle_padding">8dp</dimen>
+    <dimen name="toggle_corner_radius">6dp</dimen>
+    
+    <!-- Button dimensions for small screens -->
+    <dimen name="button_corner_radius">20dp</dimen>
+    <dimen name="button_padding_horizontal">12dp</dimen>
+    <dimen name="button_padding_vertical">10dp</dimen>
+    <dimen name="button_shadow_padding">2dp</dimen>
+    
+    <!-- Edit text dimensions for small screens -->
+    <dimen name="edit_text_corner_radius">3dp</dimen>
+    
+    <!-- Card dimensions for small screens -->
+    <dimen name="card_corner_radius">10dp</dimen>
 </resources> 

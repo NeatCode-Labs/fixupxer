@@ -39,4 +39,7 @@
     <!-- Text colors -->
     <color name="primary_text">#212121</color>
     <color name="secondary_text">#757575</color>
+    
+    <!-- Additional colors -->
+    <color name="error">#D32F2F</color>
 </resources>

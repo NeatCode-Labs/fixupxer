@@ -4,6 +4,7 @@
     <dimen name="icon_button_size">56dp</dimen>
     <dimen name="arrow_icon_size">56dp</dimen>
     <dimen name="icon_button_padding">16dp</dimen>
+    <dimen name="icon_small_size">24dp</dimen>
     
     <!-- Card dimensions for tablets -->
     <dimen name="shared_text_card_height">72dp</dimen>
@@ -24,4 +25,24 @@
     <dimen name="margin_large">24dp</dimen>
     <dimen name="margin_xlarge">32dp</dimen>
     <dimen name="margin_xxlarge">40dp</dimen>
+    
+    <!-- Dialog dimensions for tablets -->
+    <dimen name="dialog_max_height">500dp</dimen>
+    <dimen name="dialog_min_height">250dp</dimen>
+    <dimen name="dialog_empty_state_height">250dp</dimen>
+    
+    <!-- Toggle layout dimensions for tablets -->
+    <dimen name="toggle_margin_top">16dp</dimen>
+    <dimen name="toggle_margin_bottom">20dp</dimen>
+    <dimen name="toggle_padding">16dp</dimen>
+    <dimen name="toggle_corner_radius">10dp</dimen>
+    
+    <!-- Button dimensions for tablets -->
+    <dimen name="button_corner_radius">28dp</dimen>
+    <dimen name="button_padding_horizontal">20dp</dimen>
+    <dimen name="button_padding_vertical">14dp</dimen>
+    <dimen name="button_shadow_padding">4dp</dimen>
+    
+    <!-- Edit text dimensions for tablets -->
+    <dimen name="edit_text_corner_radius">5dp</dimen>
 </resources> 

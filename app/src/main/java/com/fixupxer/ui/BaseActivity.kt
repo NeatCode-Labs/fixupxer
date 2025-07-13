@@ -2,16 +2,18 @@ package com.fixupxer.ui
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.View
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
-import androidx.core.view.OnApplyWindowInsetsListener
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -19,29 +21,73 @@ import com.fixupxer.R
 import com.fixupxer.utils.Constants
 import timber.log.Timber
 import com.fixupxer.BuildConfig
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 
 /**
  * Base activity with common functionality for all activities
  */
 abstract class BaseActivity : AppCompatActivity() {
-    protected var windowInsetsListener: OnApplyWindowInsetsListener? = null
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Configure window insets and status bar
+        // Enable edge-to-edge display with Android 15 compliant approach
+        setupEdgeToEdge()
+        
+        // Configure window insets for proper padding
         setupWindowInsets()
     }
     
-    private fun setupWindowInsets() {
-        // Enable edge-to-edge display
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-            
-        // Set status bar appearance
-            val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-        insetsController.isAppearanceLightStatusBars = true // dark icons on light background
+    private fun setupEdgeToEdge() {
+        // For Android 15 (SDK 35+) edge-to-edge is enforced by default
+        // For earlier versions, we need to enable it manually
         
-        // Apply window insets dynamically
+        // Use the modern enableEdgeToEdge approach with proper configuration
+        // This automatically handles the deprecated statusBarColor and navigationBarColor
+        enableEdgeToEdge(
+            // Configure status bar to show dark icons on light background
+            statusBarStyle = SystemBarStyle.light(
+                Color.TRANSPARENT,
+                Color.TRANSPARENT
+            ),
+            // Configure navigation bar based on API level
+            navigationBarStyle = when {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 -> {
+                    // Android 8.1+ supports light navigation bar icons
+                    SystemBarStyle.light(
+                        Color.TRANSPARENT,
+                        Color.TRANSPARENT
+                    )
+                }
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
+                    // Android 6-7: Add slight scrim for visibility
+                    SystemBarStyle.light(
+                        Color.argb(0x33, 0, 0, 0), // 20% black scrim
+                        Color.argb(0x33, 0, 0, 0)
+                    )
+                }
+                else -> {
+                    // Android 5: Add darker scrim for white-only icons
+                    SystemBarStyle.light(
+                        Color.argb(0x4D, 0, 0, 0), // 30% black scrim
+                        Color.argb(0x4D, 0, 0, 0)
+                    )
+                }
+            }
+        )
+        
+        // Additional configuration for API 29+ to disable contrast enforcement
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
+        
+        // Ensure the window background is set for proper edge-to-edge rendering
+        window.decorView.setBackgroundColor(Color.WHITE)
+    }
+    
+    private fun setupWindowInsets() {
+        // Apply window insets dynamically to handle system bars
         ViewCompat.setOnApplyWindowInsetsListener(window.decorView.rootView) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             
@@ -50,17 +96,6 @@ abstract class BaseActivity : AppCompatActivity() {
             if (appBarLayout != null) {
                 // Use the actual status bar height instead of fixed padding
                 appBarLayout.setPadding(0, insets.top, 0, 0)
-            
-                // Find the title/header view inside AppBarLayout and adjust its padding
-                val titleView = appBarLayout.findViewById<TextView>(R.id.titleTextView) 
-                    ?: appBarLayout.findViewById<FrameLayout>(R.id.titleFrameLayout)
-                    
-                titleView?.setPadding(
-                    titleView.paddingLeft,
-                    resources.getDimensionPixelSize(R.dimen.title_padding_top),
-                    titleView.paddingRight,
-                    titleView.paddingBottom
-                )
             }
             
             // Apply bottom padding to the main content if needed
@@ -72,16 +107,19 @@ abstract class BaseActivity : AppCompatActivity() {
                 insets.bottom
             )
             
+            // Apply symmetrical padding to footer to match title spacing
+            val footer = view.findViewById<TextView>(R.id.footerTextView)
+            if (footer != null) {
+                val titleInternalPadding = resources.getDimensionPixelSize(R.dimen.padding_medium)
+                footer.setPadding(
+                    footer.paddingLeft,
+                    footer.paddingTop,
+                    footer.paddingRight,
+                    insets.bottom + titleInternalPadding
+                )
+            }
+            
             WindowInsetsCompat.CONSUMED
-        }
-    }
-    
-    override fun onDestroy() {
-        super.onDestroy()
-        // Clean up insets listener to prevent memory leaks
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R && windowInsetsListener != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(window.decorView, null)
-            windowInsetsListener = null
         }
     }
     

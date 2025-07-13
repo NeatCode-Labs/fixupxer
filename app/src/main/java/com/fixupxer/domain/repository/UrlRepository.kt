@@ -14,12 +14,22 @@ interface UrlRepository {
     suspend fun processUrl(url: String): ProcessedUrlResult
     
     /**
-     * Process a URL with option to force tracking removal
+     * Process a URL with force clean tracking option
      */
     suspend fun processUrl(url: String, forceCleanTracking: Boolean): ProcessedUrlResult
     
     /**
-     * Process URL for sharing - always converts to alternative domains
+     * Process a URL with optional previous result for comparison
+     */
+    suspend fun processUrl(url: String, forceCleanTracking: Boolean, previousProcessedUrl: String?): ProcessedUrlResult
+    
+    /**
+     * Process a URL without saving to history - for UI updates only
+     */
+    suspend fun processUrlWithoutHistory(url: String): ProcessedUrlResult
+    
+    /**
+     * Process URL for sharing (always converts to alternative domains)
      */
     suspend fun processUrlForSharing(url: String): String
     

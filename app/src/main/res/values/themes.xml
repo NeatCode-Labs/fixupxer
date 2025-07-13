@@ -3,11 +3,8 @@
 
     <!-- Base application theme. -->
     <style name="Theme.FixupXer" parent="Theme.Material3.Light.NoActionBar">
-        <!-- Prevent overdraw by setting window background to null -->
-        <item name="android:windowBackground">@null</item>
-        
-        <!-- Status bar color -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- Set window background to white to match the app screens -->
+        <item name="android:windowBackground">@color/white</item>
         
         <!-- Primary brand color -->
         <item name="colorPrimary">@color/primary</item>
@@ -21,8 +18,10 @@
         
         <!-- Background colors -->
         <item name="android:colorBackground">@color/background</item>
-        <item name="colorSurface">@color/white</item>
         <item name="colorOnBackground">@color/black</item>
+        
+        <!-- Surface colors -->
+        <item name="colorSurface">@color/white</item>
         <item name="colorOnSurface">@color/black</item>
         
         <!-- Default text color -->
@@ -37,9 +36,9 @@
         
     <!-- Material card style -->
     <style name="CardStyle" parent="Widget.Material3.CardView.Elevated">
-        <item name="cardCornerRadius">12dp</item>
+        <item name="cardCornerRadius">@dimen/card_corner_radius</item>
         <item name="cardElevation">0dp</item>
-        <item name="strokeWidth">1dp</item>
+        <item name="strokeWidth">@dimen/card_stroke_width</item>
         <item name="strokeColor">@color/card_stroke</item>
     </style>
     
@@ -54,6 +53,6 @@
         <item name="android:textColor">@color/button_text</item>
         <item name="strokeColor">@color/button_stroke</item>
         <item name="backgroundTint">@color/button_background</item>
-        <item name="cornerRadius">24dp</item>
+        <item name="cornerRadius">@dimen/button_corner_radius</item>
     </style>
 </resources>

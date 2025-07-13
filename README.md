@@ -7,10 +7,12 @@ FixupXer is a privacy-focused Android app that cleans tracking parameters from U
 ## Screenshots
 
 <p align="center">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/main_screen_thumbnail.jpg" width="200" alt="Main Screen">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/mainscreen_filled_thumbnail.jpg" width="200" alt="Main Screen Filled">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/share_screen_thumbnail.jpg" width="200" alt="Share Screen">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/sharescreen_instagram_thumbnail.jpg" width="200" alt="Share Screen Instagram">
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/main_empty_th.png" width="200" alt="Main Screen">
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/main_filled_th.png" width="200" alt="Main Screen with URL">
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/share_filled_th.png" width="200" alt="Share Screen">
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/history_th.png" width="200" alt="History">
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/about_th.png" width="200" alt="About Dialog">
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/infographics_th.png" width="200" alt="Features Infographic">
 </p>
 
 

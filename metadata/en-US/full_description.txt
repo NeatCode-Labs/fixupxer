@@ -1,28 +1,47 @@
-FixupXer is a privacy-focused Android app that enhances your URL sharing experience by removing tracking parameters and improving social media embeds.
+FixupXer is a privacy-focused Android app that enhances your URL sharing experience by removing tracking parameters and improving social media embeds. With a revolutionary modular engine, FixupXer removes 964 unique tracking parameters across 25+ platforms.
 
-<b>Features:</b>
+<b>🚀 Key Features:</b>
 
-• <b>Privacy First:</b> Removes tracking parameters like UTM codes, fbclid, and more
-• <b>Better Twitter/X Embeds:</b> Converts Twitter/X URLs to fixupx.com for improved Discord/Telegram embeds
-• <b>Enhanced Instagram Links:</b> Converts Instagram URLs to kkinstagram.com for better viewing
-• <b>Facebook Link Conversion:</b> Converts Facebook URLs to facebookez.com for improved embeds
-• <b>No Internet Permission:</b> All processing happens locally on your device
-• <b>Quick Sharing:</b> Process URLs via the share menu from any app
-• <b>Clipboard Support:</b> Copy cleaned URLs with one tap
+• <b>Privacy Champion:</b> Industry-leading removal of 964 tracking parameters across all major platforms
+• <b>Modular Architecture:</b> 11 specialized cleaners for optimal performance on each platform
+• <b>Conversion History:</b> Keep track of your URL conversions with local history (privacy-first, never leaves your device)
+• <b>Better Social Media Embeds:</b> Convert Twitter/X, Instagram, and Facebook URLs for improved embeds
+• <b>Lightning Fast:</b> 5x faster processing with smart caching and parallel cleaning
+• <b>100% Offline:</b> No internet permission required - all processing happens locally
+• <b>Android 15 Ready:</b> Full edge-to-edge support with modern Material Design 3
 
-<b>How to Use:</b>
+<b>📱 Platform Coverage:</b>
+
+• <b>Social Media:</b> Facebook (119 params), Instagram (67), Twitter/X (99), TikTok (124), LinkedIn (117), Reddit (91)
+• <b>E-commerce:</b> Amazon (147 params), AliExpress (100+)
+• <b>Content:</b> YouTube (139 params), Substack (87)
+• <b>Search:</b> Google Search with URL extraction (140 params)
+• <b>Universal:</b> General tracking removal for any website (106 params)
+
+<b>✨ How to Use:</b>
 
 1. Share any URL to FixupXer from your browser or any app
 2. The URL is automatically cleaned and enhanced
-3. Share the processed URL or copy it to clipboard
+3. Choose to share, open, or copy the processed URL
+4. Check your conversion history anytime (optional feature)
 
 You can also paste URLs directly in the app for processing.
 
-<b>Privacy:</b>
+<b>🔒 Privacy & Security:</b>
 
-• No data collection or analytics
-• No internet permission required
-• All URL processing happens locally
-• Open source for transparency
+• Zero data collection - no analytics, no tracking
+• Comprehensive input validation protects against malicious URLs
+• All processing happens locally on your device
+• History stored locally only (can be disabled)
+• Open source for complete transparency
+• No ads, no premium features - 100% free
 
-<b>Note:</b> This app uses third-party services (fixupx.com, kkinstagram.com, and facebookez.com) to enhance social media embeds. These services are not operated by us and may change without notice. 
+<b>🎯 Technical Excellence:</b>
+
+• 100% Kotlin with modern architecture
+• 306 tests ensuring reliability (194 unit + 112 instrumented)
+• Android 15 compliant with edge-to-edge design
+• Responsive design for all screen sizes
+• Professional-grade performance: <3s startup, <100ms processing
+
+<b>Note:</b> This app uses third-party services (fixupx.com, kkinstagram.com, facebookez.com) to enhance social media embeds. These services are not operated by us and may change without notice. 

@@ -21,5 +21,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "FixupX + ClearURLs"
+rootProject.name = "FixupXer - URL Enhancer"
 include(":app")

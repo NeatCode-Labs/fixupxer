@@ -126,7 +126,7 @@ dependencies {
     
     // Material Design
     implementation(libs.material)
-    implementation(libs.androidx.appcompat)
+    implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.preference:preference-ktx:1.2.1")
     
     // Coroutines

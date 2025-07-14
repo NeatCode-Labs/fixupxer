@@ -29,6 +29,8 @@ FixupXer is a free Android app that makes your shared links cleaner, safer, and 
   <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/main_filled_th.png" width="200" alt="Processing URL">
   <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/share_filled_th.png" width="200" alt="Share Screen">
   <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/history_th.png" width="200" alt="History">
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/about_th.png" width="200" alt="About Dialog">
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/infographics_th.png" width="200" alt="Features Infographic">
 </p>
 
 ## 🚀 How to Use FixupXer

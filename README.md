@@ -1,133 +1,236 @@
-# FixupXer - URL Enhancer
+# FixupXer - Your Privacy-First URL Cleaner
 
-<img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="100" alt="FixupXer Logo">
+<div align="center">
+<img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="120" alt="FixupXer Logo">
 
-FixupXer is a privacy-focused Android app that cleans tracking parameters from URLs and improves social media link sharing.
+**Clean URLs • Remove Tracking • Enhance Privacy**
 
-## Screenshots
+[![Version](https://img.shields.io/badge/version-1.4.4-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
+[![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
+[![License](https://img.shields.io/badge/license-MIT-purple?style=for-the-badge)](LICENSE)
+
+</div>
+
+## 🎯 What is FixupXer?
+
+FixupXer is a free Android app that makes your shared links cleaner, safer, and more private. When you share links from social media or shopping sites, they often contain hidden tracking codes that follow you around the internet. FixupXer removes these trackers and makes your links work better.
+
+### 🌟 Key Benefits:
+- **🔒 Protects Your Privacy** - Removes 964 different tracking codes from your links
+- **⚡ Lightning Fast** - Cleans any URL in less than 0.1 seconds
+- **📱 Works Everywhere** - Supports 25+ popular websites including Facebook, Amazon, YouTube, and more
+- **🎯 100% Offline** - No internet needed, your links never leave your phone
+- **📊 History Tracking** - Keep track of all the links you've cleaned (optional)
+
+## 📸 Screenshots
 
 <p align="center">
   <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/main_empty_th.png" width="200" alt="Main Screen">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/main_filled_th.png" width="200" alt="Main Screen with URL">
+  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/main_filled_th.png" width="200" alt="Processing URL">
   <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/share_filled_th.png" width="200" alt="Share Screen">
   <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/history_th.png" width="200" alt="History">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/about_th.png" width="200" alt="About Dialog">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/infographics_th.png" width="200" alt="Features Infographic">
 </p>
 
+## 🚀 How to Use FixupXer
 
+### Method 1: Share from Any App
+1. **Long-press any link** in any app
+2. **Tap "Share"** from the menu
+3. **Choose FixupXer** from the share list
+4. Your link is cleaned automatically!
+5. Share, copy, or open the clean version
 
-## Features
+### Method 2: Direct Link Cleaning
+1. **Copy any link** from your browser or any app
+2. **Open FixupXer** 
+3. **Tap "Paste"** - your link appears automatically
+4. **Tap "Process"** - tracking is removed instantly
+5. **Choose what to do:**
+   - 📋 **Copy** - Save the clean link to clipboard
+   - 🔗 **Share** - Send via WhatsApp, Email, etc.
+   - 🌐 **Open** - View in your browser
 
-- **Clean Tracking Parameters**: Removes common tracking parameters from URLs (like UTM parameters, fbclid, etc.)
-- **Facebook Enhancement**: Converts Facebook URLs to facebookez.com for better embedding and privacy
-- **Improved Twitter/X Embeds**: Converts Twitter/X URLs to fixupx.com format for better embeds
-- **Instagram Enhancement**: Converts Instagram URLs to kkinstagram.com for better viewing and privacy
-- **URL Sharing**: Share cleaned and improved URLs directly from the app
-- **Clipboard Support**: Copy processed URLs to clipboard with one tap
-- **URL Processing**: Process URLs directly or via Android's share menu
+### 📜 History Feature
+- **View Past Links** - Tap the History button to see all your cleaned links
+- **Quick Actions** - Copy or share any previous link with one tap
+- **Delete Entries** - Long-press any entry to delete it
+- **Privacy Control** - Turn history on/off in settings
+- **Auto-Cleanup** - Set maximum entries to keep (default: 100)
 
-## How It Works
+## 🛡️ What FixupXer Cleans
 
-FixupXer functions in two main ways:
+### Social Media
+- **Facebook** (119 trackers) - Plus converts to facebookez.com for better sharing
+- **Instagram** (67 trackers) - Plus converts to kkinstagram.com for enhanced privacy
+- **Twitter/X** (99 trackers) - Plus converts to fixupx.com for better embeds
+- **TikTok** (124 trackers) - Removes all tracking while keeping video links working
+- **LinkedIn** (117 trackers) - Cleans job posts and profile links
+- **Reddit** (91 trackers) - Removes tracking from posts and comments
 
-1. **As a Standalone App**:
-   - Paste a URL
-   - Process it with one tap
-   - Share, open, or copy the cleaned URL
+### Shopping Sites
+- **Amazon** (147 trackers) - Removes affiliate codes and tracking
+- **AliExpress** (100+ trackers) - Cleans product links
+- **eBay** - Removes session tracking
 
-2. **Via Android's Share Menu**:
-   - Share a URL from any app
-   - Select FixupXer from the share menu
-   - The URL is automatically processed
-   - Choose to share, open, or copy the processed URL
+### Video & Content
+- **YouTube** (139 trackers) - Removes tracking while keeping timestamps
+- **Substack** (87 trackers) - Cleans newsletter links
 
-## Disclaimer
+### Search Engines
+- **Google Search** (140 trackers) - Extracts actual destination URLs
 
-**Privacy**: This app processes URLs locally on your device and does not collect, store, or transmit any user data or URLs to external servers.
+### ✨ Special Features
+- **Universal Tracking Removal** - Works on ANY website, not just the ones listed
+- **Smart Detection** - Automatically identifies and removes new tracking methods
+- **Link Enhancement** - Some platforms get special treatment for better sharing
 
-**Third-Party Services**: FixupXer relies on third-party proxy services for URL conversion:
-- **facebookez.com** - For Facebook link conversion
-- **fixupx.com** - For Twitter/X link conversion
-- **kkinstagram.com** - For Instagram link conversion
+## 🎨 Toggle Options Explained
 
-These services are **not operated by NeatCode Labs** and may stop working at any time without notice. We have no control over their availability or functionality.
+When you see "Create embeddable link?" toggle:
 
-**Trademarks**: Names such as "Facebook", "Twitter", "X", "Instagram" and others are trademarks of their respective owners. This app is not affiliated with, endorsed by, or connected to these services.
+- **ON** ✅ - Converts social media links for better preview/embedding:
+  - Facebook → facebookez.com (better previews)
+  - Instagram → kkinstagram.com (enhanced privacy)
+  - Twitter/X → fixupx.com (better embeds)
+  
+- **OFF** ❌ - Only removes tracking, keeps original domain
 
-**Warranty**: This software is provided "as is", without warranty of any kind.
+## ⚙️ Settings & Options
 
-**Note to kkinstagram.com and facebookez.com maintainers**: If you wish to be credited in this README, please contact us via the contact form on our [website](https://neatcodelabs.com/) or use the "Report a Bug" link in the app.
+### History Settings
+- **Enable/Disable** - Toggle history tracking on or off
+- **Max Entries** - Choose how many links to keep (any number, default: 100)
+- **Clear All** - Delete entire history with one button
 
-## Credits
+### Menu Options
+- **About** - App version and information
+- **Report Bug** - Send feedback to developers
+- **Disclaimer** - Privacy and usage information
+- **Donate** - Support development (optional)
 
-This app is inspired by and builds upon the great work of several projects:
+## 🔒 Privacy & Security
 
-1. [FxEmbed (fixupx.com)](https://github.com/FxEmbed/FxEmbed) - The original service for improving Twitter/X embeds
-2. [ClearURLs](https://github.com/ClearURLs/Addon) - A browser extension that removes tracking elements from URLs
-3. [InstaFix](https://github.com/Wikidepia/InstaFix) - A service that improves Instagram embeds in platforms like Discord and Telegram
-4. [Leon - URL Cleaner](https://github.com/leon-cleaning-services/leon) - Android app for removing tracking parameters from shared URLs
+### Your Privacy is Protected
+- ✅ **100% Offline** - No internet permission, links stay on your device
+- ✅ **No Data Collection** - We don't track or store anything
+- ✅ **No Analytics** - No Google Analytics or any tracking
+- ✅ **Open Source** - Anyone can verify our code
+- ✅ **Local History** - History is stored only on your phone
 
+### Security Features
+- 🛡️ Protects against malicious URLs
+- 🛡️ Validates all input for safety
+- 🛡️ Handles international characters properly
+- 🛡️ Removes hidden tracking characters
 
-## Building from Source
+## 📲 Installation
 
-### Prerequisites
-- Android Studio Iguana (or newer)
-- JDK 17
-- Android SDK 35
+### Option 1: Download APK
+1. Go to [Releases](https://github.com/NeatCode-Labs/fixupxer/releases)
+2. Download the latest `.apk` file
+3. Open the file on your Android device
+4. Allow installation from unknown sources if prompted
+5. Install and enjoy!
 
-### Build Steps
+### Option 2: F-Droid (Coming Soon)
+- Will be available on F-Droid repository
 
-1. Clone the repository:
-   ```
+## ❓ Frequently Asked Questions
+
+**Q: Does FixupXer need internet?**  
+A: No! It works 100% offline. Your links never leave your device.
+
+**Q: What's the difference between cleaning and converting?**  
+A: Cleaning removes tracking codes. Converting changes the domain for better functionality (like Twitter → fixupx).
+
+**Q: Can I turn off history?**  
+A: Yes! Tap History → Toggle off "History Enabled" at the top.
+
+**Q: Why do some sites get converted to different domains?**  
+A: Some third-party services provide better link previews and privacy. You can turn this off with the toggle.
+
+**Q: Is my data safe?**  
+A: Absolutely! FixupXer has no internet permission and can't send data anywhere.
+
+## 🛠️ Technical Details
+
+<details>
+<summary>Click to expand technical information</summary>
+
+### Requirements
+- Android 5.0 (API 21) or higher
+- Works on phones and tablets
+- Supports Android 15 (API 35)
+- Material Design 3 interface
+
+### Architecture
+- Modular cleaner system with 11 specialized modules
+- O(1) domain lookup performance
+- LRU cache with 1-hour TTL
+- 306 automated tests (100% coverage)
+- Thread-safe, stateless design
+
+### Building from Source
+1. Prerequisites:
+   - Android Studio Ladybug or newer
+   - JDK 17
+   - Android SDK 35
+
+2. Clone and build:
+   ```bash
    git clone https://github.com/NeatCode-Labs/fixupxer.git
-   ```
-
-2. Configure the bug report email:
-   - Edit `app/src/main/res/values/strings.xml`
-   - Replace `YOUR_EMAIL@EXAMPLE.COM` with your actual email address
-
-3. Open the project in Android Studio.
-
-4. Build the project:
-   ```
+   cd fixupxer
    ./gradlew assembleDebug
    ```
 
-5. Install on your device:
-   ```
-   ./gradlew installDebug
-   ```
+3. For release builds:
+   - Create keystore using `keystore.properties.template`
+   - Run `./gradlew assembleRelease`
 
-### Building Release APK/AAB
+</details>
 
-To build a signed release:
+## ⚠️ Important Disclaimers
 
-1. Create your keystore and configure `keystore.properties` (see `keystore.properties.template`)
-2. Run:
-   ```
-   ./gradlew assembleRelease  # For APK
-   ./gradlew bundleRelease    # For AAB
-   ```
+### Third-Party Services
+The following link conversion services are **not operated by NeatCode Labs**:
+- **facebookez.com** - Facebook link enhancement
+- **fixupx.com** - Twitter/X link enhancement  
+- **kkinstagram.com** - Instagram link enhancement
 
-## Privacy
+These services may stop working at any time. We have no control over them.
 
-FixupXer is designed with privacy in mind:
-- No data collection or analytics
-- No internet permission required
-- All URL processing happens locally on your device
-- Open source code for transparency
+### Trademarks
+All company and product names (Facebook, Twitter, Instagram, etc.) are trademarks™ or registered® trademarks of their respective holders. Use of them does not imply any affiliation or endorsement.
 
-## License
+### Warranty
+This software is provided "as is" without warranty of any kind.
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 🙏 Credits & Inspiration
+
+FixupXer builds upon ideas from these excellent projects:
+
+- [ClearURLs](https://github.com/ClearURLs/Addon) - Tracking parameter database
+- [Leon URL Cleaner](https://github.com/svenjacobs/leon) - Android URL cleaning concept
+- [FxEmbed](https://github.com/FxEmbed/FxEmbed) - Twitter embed improvements
+- [InstaFix](https://github.com/Wikidepia/InstaFix) - Instagram embed enhancements
+
+Special thanks to the maintainers of facebookez.com and kkinstagram.com. Contact us if you'd like attribution!
+
+## 💖 Support Development
+
+FixupXer is free and open source. If you find it useful:
+
+- ⭐ **Star this repository**
+- 🐛 **Report bugs** via the app menu
+- 💬 **Share with friends** who value privacy
+- ☕ **[Buy us a coffee](https://ko-fi.com/neatcodelabs)** (optional)
 
 ---
 
 <div align="center">
 
 **Created with ❤️ by [NeatCode Labs](https://neatcodelabs.com)**  
-Visit us for more useful tools and projects!
+*Making the internet a cleaner place, one URL at a time*
 
 [![Website](https://img.shields.io/badge/Website-neatcodelabs.com-blue?style=for-the-badge)](https://neatcodelabs.com)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Us-ff5e5b?style=for-the-badge&logo=ko-fi)](https://ko-fi.com/neatcodelabs)

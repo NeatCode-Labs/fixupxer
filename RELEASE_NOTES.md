@@ -95,7 +95,7 @@
 - **Smart Management** - Enable/disable history and set max entries (50-1000)
 - **Quick Actions** - Copy or share any past conversion with one tap
 - **Privacy First** - History is stored locally only, never leaves your device
-- **Easy Cleanup** - Clear all history with one button or swipe to delete individual entries
+- **Easy Cleanup** - Clear all history with one button or long-press to delete individual entries
 
 ### Critical Bug Fixes
 - **Facebook Prefix Removal** - Fixed m., web., www. prefixes not being removed properly

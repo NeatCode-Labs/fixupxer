@@ -172,7 +172,7 @@ This document summarizes all modifications made to the FixupXer Android app sinc
         * Implemented history dialog with Material Design 3
         * Added enable/disable toggle and max entries setting (50-1000)
         * Quick actions: copy/share past conversions
-        * Swipe to delete individual entries or clear all
+        * Long-press to delete individual entries or clear all
         * Shows relative timestamps and platform labels
     - **Critical Bug Fixes:**
         * Fixed ShareActivity creating duplicate history entries on toggle changes

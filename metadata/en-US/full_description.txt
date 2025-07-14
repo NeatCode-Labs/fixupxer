@@ -39,7 +39,7 @@ You can also paste URLs directly in the app for processing.
 <b>🎯 Technical Excellence:</b>
 
 • 100% Kotlin with modern architecture
-• 306 tests ensuring reliability (194 unit + 112 instrumented)
+• 198 tests ensuring reliability (86 unit + 112 instrumented)
 • Android 15 compliant with edge-to-edge design
 • Responsive design for all screen sizes
 • Professional-grade performance: <3s startup, <100ms processing

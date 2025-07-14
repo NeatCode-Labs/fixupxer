@@ -7,7 +7,7 @@ What's New:
 • 100% responsive - No hardcoded values, adapts to all screen sizes
 • Multi-screen support - Optimized for phones and tablets
 • Clean code - Fixed lint warnings, centralized edge-to-edge logic
-• Full test coverage - 306 tests passing (194 unit + 112 instrumented)
+• Full test coverage - 198 tests passing (86 unit + 112 instrumented)
 • Performance - 297ms startup, ~41MB memory usage
 • Professional build - Signed APK (4.3MB) and AAB (5.2MB)
 

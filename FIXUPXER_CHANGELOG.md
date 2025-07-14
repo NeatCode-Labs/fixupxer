@@ -227,7 +227,7 @@ This document summarizes all modifications made to the FixupXer Android app sinc
         * Removed redundant `textColor` attributes from dialog buttons
         * Ensured all buttons follow Material Design 3 guidelines
     - **Comprehensive Testing:**
-        * All 205 tests passing (97 unit tests, 108 instrumentation tests)
+        * All 198 tests passing (86 unit tests, 112 instrumentation tests)
         * 100% test coverage across all features
         * Total test execution time: ~5 minutes
         * Zero build warnings or lint errors
@@ -277,7 +277,7 @@ This document summarizes all modifications made to the FixupXer Android app sinc
         * Removed deprecated navigation bar fix method entirely
         * Clean implementation following Google's design guidelines
     - **Comprehensive Testing:**
-        * All 306 tests passing (194 unit tests, 112 instrumented tests)
+        * All 198 tests passing (86 unit tests, 112 instrumented tests)
         * 100% test coverage maintained
         * Tested on Pixel 9 Pro API 36 emulator
         * Performance: 297ms startup, ~41MB memory usage

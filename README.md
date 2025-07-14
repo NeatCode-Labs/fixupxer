@@ -169,7 +169,7 @@ A: Absolutely! FixupXer has no internet permission and can't send data anywhere.
 - Modular cleaner system with 11 specialized modules
 - O(1) domain lookup performance
 - LRU cache with 1-hour TTL
-- 306 automated tests (100% coverage)
+- 198 automated tests (100% coverage)
 - Thread-safe, stateless design
 
 ### Building from Source

@@ -1,3 +1,37 @@
+# FixupXer v1.4.5 - Multi-Subdomain URL Support
+
+## 🎯 What's New - Fixed MailChimp & Enterprise URL Support
+
+### Multi-Subdomain URL Support
+- **MailChimp Compatibility** - Fixed false positive detection of MailChimp tracking links
+- **Enterprise Services** - Now supports AWS, Azure, Google Cloud, and other enterprise domains
+- **Legitimate Multi-Subdomain URLs** - Allows URLs with 3-4 dots (e.g., `customer.us14.list-manage.com`)
+- **Maintained Security** - Glued URLs still properly detected and blocked
+- **Future-Proof** - Supports modern web architecture with multiple subdomain levels
+
+### URL Detection Improvements
+- **Increased Threshold** - Changed domain dots limit from >2 to >5 for better accuracy
+- **Smart Detection** - Glued URLs still caught by `tldGluePattern` and `detectGluedUrls()`
+- **False Positive Reduction** - Eliminates incorrect blocking of legitimate services
+- **Comprehensive Coverage** - Works with email marketing, cloud platforms, CDNs, and enterprise services
+
+### Technical Details
+- **Minimal Code Change** - Single line modification in InputValidator.kt
+- **Backward Compatible** - All existing functionality preserved
+- **Test Verified** - All 112 tests pass, confirming no regressions
+- **Performance Unchanged** - No impact on app speed or memory usage
+
+## Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 22
+- Material Design 3 with full edge-to-edge support
+
+## Download
+- [FixupXer-v1.4.5-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.4.5/FixupXer-v1.4.5-release.apk)
+
+---
+
 # FixupXer v1.4.4 - Android 15 Edge-to-Edge Compliance
 
 ## 🎯 What's New - Full Android 15 Compliance & Enhanced Responsive Design

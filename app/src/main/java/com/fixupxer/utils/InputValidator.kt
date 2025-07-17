@@ -171,7 +171,7 @@ object InputValidator {
                 val result = protocolCount > 1 ||
                         wwwCount > 1 ||
                         domainsMatches.size > 1 ||
-                        domainDots > 2 ||
+                        domainDots > 5 ||
                         (hasGluedUrls && distinctDomains.size > 1) ||
                         hasTldGlue
                 Timber.d("InputValidator: hasMultipleUrls result=$result")

@@ -24,14 +24,14 @@ android {
         applicationId = "com.fixupxer"
         minSdk = 21
         targetSdk = 35
-        versionCode = 21
-        versionName = "1.4.4"
+        versionCode = 22
+        versionName = "1.4.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         // Add build config fields
-        buildConfigField("String", "VERSION_NAME", "\"1.4.4\"")
-        buildConfigField("int", "VERSION_CODE", "21")
+        buildConfigField("String", "VERSION_NAME", "\"1.4.5\"")
+        buildConfigField("int", "VERSION_CODE", "22")
     }
 
     signingConfigs {

@@ -40,10 +40,19 @@ Builds:
     prebuild:
       - sed -i -e '/org.gradle.java.home/d' ../gradle.properties
       - sed -i -e '/jetbrains/d' ../settings.gradle.kts
+  - versionName: 1.4.5
+    versionCode: 22
+    commit: v1.4.5
+    subdir: app
+    gradle:
+      - yes
+    prebuild:
+      - sed -i -e '/org.gradle.java.home/d' ../gradle.properties
+      - sed -i -e '/jetbrains/d' ../settings.gradle.kts
 
 AllowedAPKSigningKeys: 78e36950963a98ea39fe30b955c27364e187feca85a1af6ad10987d15f18ec2f
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.4.4
-CurrentVersionCode: 21
+CurrentVersion: 1.4.5
+CurrentVersionCode: 22

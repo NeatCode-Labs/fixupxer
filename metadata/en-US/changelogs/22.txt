@@ -1,0 +1,8 @@
+Multi-Subdomain URL Support & False Positive Fixes
+
+What's New:
+• Fixed MailChimp tracking links false positives (list-manage.com)
+• Increased domain dots threshold to >5 to allow legitimate multi-subdomain URLs
+• Supports AWS, Azure, Google Cloud, enterprise SSO/CDN domains
+• Security maintained: glued URLs still detected
+• All 112 tests pass, no performance impact 

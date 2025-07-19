@@ -127,15 +127,32 @@ When you see "Create embeddable link?" toggle:
 
 ## 📲 Installation
 
-### Option 1: Download APK
-1. Go to [Releases](https://github.com/NeatCode-Labs/fixupxer/releases)
+<div align="center">
+
+[![Google Play](https://img.shields.io/badge/Google%20Play-Download-green?style=for-the-badge&logo=google-play)](https://play.google.com/store/apps/details?id=com.fixupxer)
+[![F-Droid](https://img.shields.io/badge/F--Droid-Download-blue?style=for-the-badge&logo=f-droid)](https://f-droid.org/packages/com.fixupxer/)
+[![GitHub](https://img.shields.io/badge/GitHub-Download%20APK-black?style=for-the-badge&logo=github)](https://github.com/NeatCode-Labs/fixupxer/releases)
+
+</div>
+
+### Option 1: Google Play Store
+1. Visit the [Google Play Store](https://play.google.com/store/apps/details?id=com.fixupxer)
+2. Tap "Install" 
+3. The app will download and install automatically
+4. Open and enjoy!
+
+### Option 2: F-Droid
+1. Visit [F-Droid](https://f-droid.org/packages/com.fixupxer/)
+2. Tap "Download APK" or add the F-Droid repository
+3. Install through F-Droid app or directly
+4. Open and enjoy!
+
+### Option 3: Download APK
+1. Go to [GitHub Releases](https://github.com/NeatCode-Labs/fixupxer/releases)
 2. Download the latest `.apk` file
 3. Open the file on your Android device
 4. Allow installation from unknown sources if prompted
 5. Install and enjoy!
-
-### Option 2: F-Droid (Coming Soon)
-- Will be available on F-Droid repository
 
 ## ❓ Frequently Asked Questions
 

@@ -5,9 +5,11 @@
 
 **Clean URLs • Remove Tracking • Enhance Privacy**
 
-[![Version](https://img.shields.io/badge/version-1.4.4-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
+[![Version](https://img.shields.io/badge/version-1.4.5-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
 [![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
 [![License](https://img.shields.io/badge/license-MIT-purple?style=for-the-badge)](LICENSE)
+[![Google Play](https://img.shields.io/badge/Google%20Play-Download-green?style=for-the-badge&logo=google-play)](https://play.google.com/store/apps/details?id=com.fixupxer)
+[![F-Droid](https://img.shields.io/badge/F--Droid-Download-blue?style=for-the-badge&logo=f-droid)](https://f-droid.org/packages/com.fixupxer/)
 
 </div>
 
@@ -126,14 +128,6 @@ When you see "Create embeddable link?" toggle:
 - 🛡️ Removes hidden tracking characters
 
 ## 📲 Installation
-
-<div align="center">
-
-[![Google Play](https://img.shields.io/badge/Google%20Play-Download-green?style=for-the-badge&logo=google-play)](https://play.google.com/store/apps/details?id=com.fixupxer)
-[![F-Droid](https://img.shields.io/badge/F--Droid-Download-blue?style=for-the-badge&logo=f-droid)](https://f-droid.org/packages/com.fixupxer/)
-[![GitHub](https://img.shields.io/badge/GitHub-Download%20APK-black?style=for-the-badge&logo=github)](https://github.com/NeatCode-Labs/fixupxer/releases)
-
-</div>
 
 ### Option 1: Google Play Store
 1. Visit the [Google Play Store](https://play.google.com/store/apps/details?id=com.fixupxer)

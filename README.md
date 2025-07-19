@@ -8,6 +8,7 @@
 [![Version](https://img.shields.io/badge/version-1.4.5-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
 [![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
 [![License](https://img.shields.io/badge/license-MIT-purple?style=for-the-badge)](LICENSE)
+
 [![Google Play](https://img.shields.io/badge/Google%20Play-Download-green?style=for-the-badge&logo=google-play)](https://play.google.com/store/apps/details?id=com.fixupxer)
 [![F-Droid](https://img.shields.io/badge/F--Droid-Download-blue?style=for-the-badge&logo=f-droid)](https://f-droid.org/packages/com.fixupxer/)
 

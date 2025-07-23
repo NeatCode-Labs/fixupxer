@@ -5,12 +5,9 @@
 
 **Clean URLs • Remove Tracking • Enhance Privacy**
 
-[![Version](https://img.shields.io/badge/version-1.4.5-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
+[![Version](https://img.shields.io/badge/version-1.4.6-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
 [![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-green?style=for-the-badge)](LICENSE)
-
-[![Google Play](https://img.shields.io/badge/Google%20Play-Download-green?style=for-the-badge&logo=google-play)](https://play.google.com/store/apps/details?id=com.fixupxer)
-[![F-Droid](https://img.shields.io/badge/F--Droid-Download-blue?style=for-the-badge&logo=f-droid)](https://f-droid.org/packages/com.fixupxer/)
 
 [![Google Play](https://img.shields.io/badge/Google%20Play-Download-green?style=for-the-badge&logo=google-play)](https://play.google.com/store/apps/details?id=com.fixupxer)
 [![F-Droid](https://img.shields.io/badge/F--Droid-Download-blue?style=for-the-badge&logo=f-droid)](https://f-droid.org/packages/com.fixupxer/)
@@ -57,6 +54,81 @@ FixupXer is a free Android app that makes your shared links cleaner, safer, and 
    - 📋 **Copy** - Save the clean link to clipboard
    - 🔗 **Share** - Send via WhatsApp, Email, etc.
    - 🌐 **Open** - View in your browser
+
+### Method 3: Browser Mode (Advanced) 🌐
+
+Browser mode turns FixupXer into an optional "filter browser". When enabled and set as the system-wide default browser, every web link (http or https) is routed to FixupXer first for cleaning.
+
+#### How to Enable Browser Mode:
+
+1. **Enable Browser Mode** - Open FixupXer → tap the three-line menu ▸ **Settings** ▸ **Browser integration** ▸ Turn on **"Enable FixupXer as browser"**
+2. **Set as Default Browser** - Go to **System Settings ▸ Apps ▸ Choose default apps ▸ Browser app** and select **FixupXer**
+   - Android will not switch browsers automatically, you must do this manually
+
+#### Understanding Native App Behavior vs FixupXer Browser Mode:
+
+In normal Android behavior, many apps (YouTube, Instagram, X, etc.) register to handle their own links directly. This is expected and allows apps to open immediately when you tap their links.
+
+When you set FixupXer as your default browser, this changes the behavior:
+- **If native app handlers are enabled:** Android sends the link directly to the native app, bypassing FixupXer entirely
+- **If you want FixupXer to clean the links first:** You need to disable the native app handlers
+
+#### To Ensure FixupXer Processes Links Before Native Apps:
+
+**Method 1:** Open **System Settings ▸ Apps ▸ [App Name] ▸ Set as default** ▸ Switch off **"Open supported links"**
+
+**Method 2:** Long press on app ▸ click on **ⓘ** ▸ **Set as default** ▸ Switch off **"Open supported links"**
+
+Repeat the process for **each** app whose links you want FixupXer to clean and then forward to the native app.
+
+**Important:** If you disable native app handlers, make sure to set your action priority to **Follow action order** and put **Open in native app** first in the list if you want native apps opening your link clicks.
+
+#### After Links Are Cleaned - Choose Your Action:
+
+After a link is cleaned, FixupXer can either:
+
+- **Ask every time** — Android's chooser appears and you decide where to send the cleaned link
+- **Follow priority list** — FixupXer looks at your ordered list of actions and executes the first one that works:
+    1. Open in native app (only if such an app exists and is allowed)
+    2. Open in browser
+    3. Share menu
+    4. Copy to clipboard
+
+You can reorder the list under **Settings ▸ Action priority**. Drag and drop items to match your workflow.
+
+**Tip:** If the top action cannot be performed (e.g., no native app installed), FixupXer automatically moves to the next item—no error dialogs, no extra taps.
+
+#### Troubleshooting Browser Mode:
+
+• **Native apps bypass FixupXer entirely**  
+*Expected:* All links get cleaned by FixupXer first  
+*Actual:* Instagram, YouTube, etc. open directly without cleaning  
+*Solution:* Disable "Open supported links" for each app in System Settings ▸ Apps ▸ [App Name] ▸ Set as default
+
+• **"Ask every time" doesn't show chooser**  
+*Expected:* Android shows app choices for every link  
+*Actual:* Links open directly in one app  
+*Solution:* This happens when only one app can handle the URL. FixupXer now manually adds native apps to ensure multiple options
+
+• **Browser mode toggle doesn't work**  
+*Expected:* FixupXer becomes default browser immediately  
+*Actual:* Nothing changes after toggling  
+*Solution:* You must manually set FixupXer as default: System Settings ▸ Apps ▸ Default apps ▸ Browser ▸ FixupXer
+
+• **Conversion settings have no effect**  
+*Expected:* URLs convert to FixupX/kkInstagram  
+*Actual:* URLs stay as x.com/instagram.com  
+*Solution:* Browser mode has separate conversion settings. Tap "Conversion defaults" to configure them
+
+• **YouTube opens wrong app**  
+*Expected:* Links open in ReVanced YouTube  
+*Actual:* Official YouTube app opens  
+*Solution:* Set action mode to "Follow action order" with "Open in native app" first. FixupXer prioritizes ReVanced when available
+
+• **Links don't open in any app**  
+*Expected:* Cleaned links open in native apps  
+*Actual:* "No app can handle this link" error  
+*Solution:* Domain conversion (x.com→fixupx.com) may break app recognition. Disable conversions in "Conversion defaults" if you prefer native apps
 
 ### 📜 History Feature
 - **View Past Links** - Tap the History button to see all your cleaned links
@@ -105,12 +177,18 @@ When you see "Create embeddable link?" toggle:
 
 ## ⚙️ Settings & Options
 
+### Browser Integration
+- **Enable/Disable Browser Mode** - Set FixupXer as your default browser
+- **Action Priority Configuration** - Reorder post-clean actions by dragging
+- **How to Use Instructions** - Detailed step-by-step browser mode guide
+
 ### History Settings
 - **Enable/Disable** - Toggle history tracking on or off
 - **Max Entries** - Choose how many links to keep (any number, default: 100)
 - **Clear All** - Delete entire history with one button
 
 ### Menu Options
+- **Settings** - Configure browser mode and action priorities
 - **About** - App version and information
 - **Report Bug** - Send feedback to developers
 - **Disclaimer** - Privacy and usage information

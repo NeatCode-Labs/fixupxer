@@ -1,47 +1,35 @@
-FixupXer is a privacy-focused Android app that enhances your URL sharing experience by removing tracking parameters and improving social media embeds. With a revolutionary modular engine, FixupXer removes 964 unique tracking parameters across 25+ platforms.
+FixupXer removes tracking parameters from URLs to protect your privacy and make links cleaner. When you share links from social media, shopping sites, or other platforms, they often contain hidden tracking codes that follow you around the internet. FixupXer strips these away.
 
-<b>🚀 Key Features:</b>
+== Key Features ==
 
-• <b>Privacy Champion:</b> Industry-leading removal of 964 tracking parameters across all major platforms
-• <b>Modular Architecture:</b> 11 specialized cleaners for optimal performance on each platform
-• <b>Conversion History:</b> Keep track of your URL conversions with local history (privacy-first, never leaves your device)
-• <b>Better Social Media Embeds:</b> Convert Twitter/X, Instagram, and Facebook URLs for improved embeds
-• <b>Lightning Fast:</b> 5x faster processing with smart caching and parallel cleaning
-• <b>100% Offline:</b> No internet permission required - all processing happens locally
-• <b>Android 15 Ready:</b> Full edge-to-edge support with modern Material Design 3
+• Browser Mode: Set FixupXer as your default browser for automatic system-wide URL cleaning
+• Privacy Protection: Removes 1000+ tracking parameters from all major platforms  
+• Fast Processing: Cleans any URL in under 0.1 seconds with advanced caching
+• Offline Operation: Works completely offline - your URLs never leave your device
+• Platform Support: Works with 25+ platforms including YouTube, Facebook, Amazon, Twitter/X, Instagram, TikTok, Google Search, LinkedIn, Reddit, and more
+• Smart Conversions: Optional conversion to privacy-friendly alternatives (fixupx.com for Twitter, kkinstagram.com for Instagram)
+• History Tracking: Keep track of cleaned URLs with optional history feature
+• Configurable Actions: Choose what happens after cleaning - open in app, browser, share, or copy to clipboard
 
-<b>📱 Platform Coverage:</b>
+== Browser Mode Setup ==
 
-• <b>Social Media:</b> Facebook (119 params), Instagram (67), Twitter/X (99), TikTok (124), LinkedIn (117), Reddit (91)
-• <b>E-commerce:</b> Amazon (147 params), AliExpress (100+)
-• <b>Content:</b> YouTube (139 params), Substack (87)
-• <b>Search:</b> Google Search with URL extraction (140 params)
-• <b>Universal:</b> General tracking removal for any website (106 params)
+1. Enable Browser Mode in Settings
+2. Set FixupXer as your default browser in Android Settings
+3. Configure your preferred post-clean actions
+4. All web links will now be automatically cleaned before opening
 
-<b>✨ How to Use:</b>
+== Privacy & Security ==
 
-1. Share any URL to FixupXer from your browser or any app
-2. The URL is automatically cleaned and enhanced
-3. Choose to share, open, or copy the processed URL
-4. Check your conversion history anytime (optional feature)
+• Zero permissions required - no internet, location, or personal data access
+• 100% open source and auditable
+• No data collection or transmission
+• Works entirely on your device
 
-You can also paste URLs directly in the app for processing.
+== Technical Excellence ==
 
-<b>🔒 Privacy & Security:</b>
+• Modular architecture with 11 specialized URL cleaners
+• Thread-safe design optimized for modern Android devices
+• Material Design 3 interface with full Android 15 compliance
+• Comprehensive test suite with 212 tests ensuring reliability
 
-• Zero data collection - no analytics, no tracking
-• Comprehensive input validation protects against malicious URLs
-• All processing happens locally on your device
-• History stored locally only (can be disabled)
-• Open source for complete transparency
-• No ads, no premium features - 100% free
-
-<b>🎯 Technical Excellence:</b>
-
-• 100% Kotlin with modern architecture
-• 198 tests ensuring reliability (86 unit + 112 instrumented)
-• Android 15 compliant with edge-to-edge design
-• Responsive design for all screen sizes
-• Professional-grade performance: <3s startup, <100ms processing
-
-<b>Note:</b> This app uses third-party services (fixupx.com, kkinstagram.com, facebookez.com) to enhance social media embeds. These services are not operated by us and may change without notice. 
+Perfect for privacy-conscious users who want cleaner, safer links without the tracking. 

@@ -78,4 +78,12 @@ lint/tmp/
 # Release builds and sensitive docs
 FixupXer-*.apk
 FixupXer-*.aab
-KEYSTORE_INFO.md 
+KEYSTORE_INFO.md
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Internal documentation
+GITHUB_UPDATE_INSTRUCTIONS.md 

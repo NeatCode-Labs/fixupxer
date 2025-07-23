@@ -69,12 +69,13 @@
     <string name="report_bug">Report a Bug</string>
     <string name="separator">|</string>
     <string name="about_dialog_title">About FixupXer</string>
-    <string name="about_text">FixupXer cleans URLs and converts links for better embedding and sharing.\n\nVersion %1$s</string>
+    <string name="about_text">FixupXer cleans URLs and converts links for better embedding and sharing.\n\nVersion %1$s\n\nLicensed under GPL-3.0-or-later</string>
     <string name="about_dialog_positive">OK</string>
+    <string name="license_info">This app is free software licensed under the GNU General Public License v3.0 or later. You can view the source code at https://github.com/NeatCode-Labs/fixupxer</string>
     <string name="bug_report_email">neatcodelabs@gmail.com</string>
     <string name="bug_report_subject">FixupXer Bug Report</string>
     <string name="disclaimer_dialog_title">Disclaimer</string>
-    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not transmit any user data or URLs to external servers. If history is enabled, processed URLs are stored locally on your device only and can be cleared at any time.<br/><br/> <b>History Feature</b><br/> The optional history feature stores your URL conversions locally on your device. This data never leaves your device and can be disabled or cleared at any time through the History settings.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Proxy services such as facebookez.com, fixupx.com and kkinstagram.com are not owned or maintained by us and may stop working at any given time.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses usage of third-party proxy services such as facebookez.com, fixupx.com and kkinstagram.com. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.]]></string>
+    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not transmit any user data or URLs to external servers. If history is enabled, processed URLs are stored locally on your device only and can be cleared at any time.<br/><br/> <b>History Feature</b><br/> The optional history feature stores your URL conversions locally on your device. This data never leaves your device and can be disabled or cleared at any time through the History settings.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Proxy services such as facebookez.com, fixupx.com and kkinstagram.com are not owned or maintained by us and may stop working at any given time.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses usage of third-party proxy services such as facebookez.com, fixupx.com and kkinstagram.com. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.<br/><br/> <b>License</b><br/> FixupXer is free software licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). You have the freedom to use, modify, and distribute this software under the terms of the GPL. Source code is available at https://github.com/NeatCode-Labs/fixupxer]]></string>
     
     <!-- Donate dialog -->
     <string name="donate_text">If you find FixupXer useful, please consider supporting its development. Your donation helps maintain and improve the app.</string>
@@ -139,5 +140,48 @@
     <!-- History Dialog - Additional strings -->
     <string name="max_entries_updated">Max entries updated to %d</string>
     <string name="ok">OK</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="browser_integration">Browser integration</string>
+    <string name="enable_browser_mode">Enable FixupXer as browser</string>
+    <string name="read_this">How to Use</string>
+    <string name="after_clean_behavior">After-clean behavior</string>
+    <string name="action_mode_ask">Ask every time</string>
+    <string name="action_mode_priority">Follow action order</string>
+    <string name="action_priority">Action priority</string>
+    <string name="action_native_app">Open in native app</string>
+    <string name="action_browser">Open in browser</string>
+    <string name="action_share_menu">Share menu</string>
+    <string name="action_clipboard">Copy to clipboard</string>
+    <string name="drag_handle_description">Drag to reorder</string>
+    
+    <!-- Instructions Dialog -->
+    <string name="instructions_title">Instructions</string>
+    <string name="instructions_section1_title">1 What is Browser mode?</string>
+    <string name="instructions_section1_content">Browser mode turns FixupXer into an optional \u201Cfilter browser\u201D. When it is enabled <b>and</b> you set FixupXer as the system-wide default browser, every web link (http or https) is routed to FixupXer first. The app removes tracking parameters, unnecessary redirects, and other clutter, then performs the next action you have configured.</string>
+    
+    <string name="instructions_section2_title">2 How do I enable it?</string>
+    <string name="instructions_section2_content"><![CDATA[• Make sure the <b>Enable FixupXer as browser</b> switch is on.<br/>• Android will not switch browsers automatically. Now go to <b>System Settings ▸ Apps ▸ Choose default apps ▸ Browser app</b> and select <b>FixupXer</b>.<br/><br/>You can undo this at any time by choosing a different browser or by turning the switch back off.]]></string>
+    
+    <string name="instructions_section3_title">3 Understanding native app behavior vs FixupXer browser mode</string>
+    <string name="instructions_section3_content"><![CDATA[In normal Android behavior, many apps (YouTube, Instagram, X, etc.) register to handle their own links directly. This is expected and allows apps to open immediately when you tap their links.<br/><br/>When you set FixupXer as your default browser, this changes the behavior:<br/>• <b>If native app handlers are enabled:</b> Android sends the link directly to the native app, bypassing FixupXer entirely.<br/>• <b>If you want FixupXer to clean the links first:</b> You need to disable the native app handlers.<br/><br/>To ensure FixupXer processes links before native apps open them:<br/>Method 1: Open <b>System Settings ▸ Apps ▸ App Name ▸ Set as default ▸ </b>Switch off <b>\u201COpen supported links\u201D</b>.<br/>Method 2: Long press on app ▸ click on <b>\u24D8</b> ▸ <b>Set as default ▸ </b>Switch off <b>\u201COpen supported links\u201D</b>.<br/><br/>Repeat the process for <b>each</b> app whose links you want FixupXer to clean and then forward to the native app.<br/><br/><b>Important:</b> If you disable native app handlers, make sure to set your action priority to <b>Follow action order</b> and put <b>Open in native app</b> first in the list if you want native apps opening your link clicks.]]></string>
+    
+    <string name="instructions_section4_title">4 Ask vs Priority list</string>
+    <string name="instructions_section4_content"><![CDATA[After a link is cleaned, FixupXer can either:<br/><br/>• <b>Ask every time</b> — Android\'s chooser appears and you decide where to send the cleaned link.<br/>• <b>Follow priority list</b> — FixupXer looks at your ordered list of actions and executes the first one that works:<br/><br/>    1. Open in native app (only if such an app exists and is allowed).<br/>    2. Open in browser.<br/>    3. Share menu.<br/>    4. Copy to clipboard.<br/><br/>You can reorder the list under <b>Settings ▸ Action priority</b>. Drag and drop items to match your workflow.<br/><br/><b>Tip:</b> If the top action cannot be performed (e.g., no native app installed), FixupXer automatically moves to the next item—no error dialogs, no extra taps.]]></string>
+    
+    <string name="instructions_section5_title">5 Troubleshooting</string>
+    <string name="instructions_section5_content"><![CDATA[<b>• Native apps bypass FixupXer entirely</b><br/><i>Expected:</i> All links get cleaned by FixupXer first.<br/><i>Actual:</i> Instagram, YouTube, etc. open directly without cleaning.<br/><i>Solution:</i> Disable \u201COpen supported links\u201D for each app in System Settings ▸ Apps ▸ [App Name] ▸ Set as default.<br/><br/><b>• \u201CAsk every time\u201D doesn\'t show chooser</b><br/><i>Expected:</i> Android shows app choices for every link.<br/><i>Actual:</i> Links open directly in one app.<br/><i>Solution:</i> This happens when only one app can handle the URL. FixupXer now manually adds native apps to ensure multiple options.<br/><br/><b>• Browser mode toggle doesn\'t work</b><br/><i>Expected:</i> FixupXer becomes default browser immediately.<br/><i>Actual:</i> Nothing changes after toggling.<br/><i>Solution:</i> You must manually set FixupXer as default: System Settings ▸ Apps ▸ Default apps ▸ Browser ▸ FixupXer.<br/><br/><b>• Conversion settings have no effect</b><br/><i>Expected:</i> URLs convert to FixupX/kkInstagram.<br/><i>Actual:</i> URLs stay as x.com/instagram.com.<br/><i>Solution:</i> Browser mode has separate conversion settings. Tap \u201CConversion defaults\u201D to configure them.<br/><br/><b>• YouTube opens wrong app</b><br/><i>Expected:</i> Links open in ReVanced YouTube.<br/><i>Actual:</i> Official YouTube app opens.<br/><i>Solution:</i> Set action mode to \u201CFollow action order\u201D with \u201COpen in native app\u201D first. FixupXer prioritizes ReVanced when available.<br/><br/><b>• Links don\'t open in any app</b><br/><i>Expected:</i> Cleaned links open in native apps.<br/><i>Actual:</i> \u201CNo app can handle this link\u201D error.<br/><i>Solution:</i> Domain conversion (x.com→fixupx.com) may break app recognition. Disable conversions in \u201CConversion defaults\u201D if you prefer native apps.]]></string>
+    
+    <!-- Additional missing strings -->
+    <string name="conversion_defaults">Conversion defaults</string>
+    <string name="conversion_defaults_title">Browser Conversion Settings</string>
+    <string name="action_priority_instructions">Drag items to reorder action priority. FixupXer will attempt actions from top to bottom until one succeeds.</string>
+    <string name="conversion_defaults_explanation">When acting as a browser, configure which social media platforms should be converted to alternative domains. These settings are separate from the main app conversion toggles.</string>
+    <string name="convert_twitter_browser">Convert Twitter/X links</string>
+    <string name="convert_instagram_browser">Convert Instagram links</string>
+    <string name="convert_facebook_browser">Convert Facebook links</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
     
 </resources>

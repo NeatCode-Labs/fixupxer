@@ -1,3 +1,72 @@
+# FixupXer v1.4.6 - Browser Mode, Professional UI & ReVanced YouTube Support
+
+## 🎯 What's New - Complete Browser Integration, Professional UI & Enhanced YouTube Experience
+
+### Revolutionary Browser Mode 🌐
+- **System-Wide URL Cleaning** - Set FixupXer as your default browser to automatically clean ALL links
+- **Configurable Action Priorities** - Drag-and-drop interface to customize what happens after cleaning
+- **Smart Native App Integration** - Properly handles app-specific links while cleaning tracking
+- **ReVanced YouTube Priority** - Automatically prefers ReVanced YouTube over official YouTube app
+- **Comprehensive Instructions** - Built-in "How to Use" guide with step-by-step browser setup
+- **Flexible Post-Clean Actions** - Choose from native app, browser, share menu, or clipboard
+- **Zero-Configuration Option** - Works out-of-the-box with sensible defaults
+
+### Enhanced YouTube Experience 📺
+- **ReVanced YouTube Support** - Prioritizes ReVanced YouTube (app.revanced.android.youtube) when available
+- **Smart Fallback System** - Falls back to official YouTube if ReVanced isn't installed
+- **Ad-Free Integration** - Seamlessly works with community-built ad-free YouTube alternatives
+- **Intelligent App Detection** - Automatically detects and prioritizes the best YouTube app available
+
+### Professional UI/UX Improvements ✨
+- **Perfect Text Formatting** - All instruction text now displays with proper line breaks and spacing
+- **Unicode Typography** - Professional quotation marks ("") and symbols (ⓘ) for clarity
+- **Material Design 3 Compliance** - Polished interface following Google's latest design guidelines
+- **Enhanced Settings Screen** - Comprehensive configuration options with drag-and-drop priority lists
+- **Improved Menu Structure** - Dedicated Settings and Instructions sections for better organization
+- **Edge-to-Edge Support** - Full Android 15 compliance with proper system bar handling
+
+### Technical Excellence 🔧
+- **HTML Text Rendering** - Proper `<br/>` tags and CDATA sections for perfect formatting
+- **Lint-Free Codebase** - All code quality issues resolved for professional standards
+- **API Compatibility** - Proper deprecated API handling for Android SDK transitions
+- **Thread-Safe Operations** - Enterprise-grade architecture for reliable performance
+- **Comprehensive Testing** - All 212 tests passing with 100% success rate
+
+### Browser Mode Setup (Step-by-Step):
+
+1. **Enable Browser Integration:**
+   - Open FixupXer → Menu → Settings → Browser integration → Turn ON
+
+2. **Set as Default Browser:**
+   - Go to System Settings → Apps → Default apps → Browser → Choose FixupXer
+
+3. **Configure Native Apps (Optional):**
+   - For apps you want FixupXer to clean first: System Settings → Apps → [App Name] → "Open supported links" → Turn OFF
+   - For apps you want to open directly: Leave "Open supported links" ON
+
+4. **Customize Actions:**
+   - In FixupXer Settings → Action priority → Drag to reorder your preferred actions
+
+### New Features Summary:
+- 🌐 **Browser Mode** - System-wide automatic URL cleaning
+- 📺 **ReVanced YouTube Support** - Priority for ad-free YouTube alternatives
+- ⚙️ **Settings Screen** - Comprehensive configuration interface  
+- 📋 **Action Priorities** - Customizable post-clean behavior
+- 📖 **Instructions Dialog** - Built-in step-by-step guidance
+- ✨ **UI Polish** - Professional typography and formatting
+- 🔧 **Code Quality** - Zero lint issues and improved architecture
+
+## Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 23
+- Material Design 3 with full edge-to-edge support
+
+## Download
+- [FixupXer-v1.4.6-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.4.6/FixupXer-v1.4.6-release.apk)
+
+---
+
 # FixupXer v1.4.5 - Multi-Subdomain URL Support
 
 ## 🎯 What's New - Fixed MailChimp & Enterprise URL Support

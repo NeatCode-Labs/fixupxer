@@ -24,14 +24,14 @@ android {
         applicationId = "com.fixupxer"
         minSdk = 21
         targetSdk = 35
-        versionCode = 22
-        versionName = "1.4.5"
+        versionCode = 23
+        versionName = "1.4.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         // Add build config fields
-        buildConfigField("String", "VERSION_NAME", "\"1.4.5\"")
-        buildConfigField("int", "VERSION_CODE", "22")
+        buildConfigField("String", "VERSION_NAME", "\"1.4.6\"")
+        buildConfigField("int", "VERSION_CODE", "23")
     }
 
     signingConfigs {
@@ -81,6 +81,8 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            // Include LICENSE files in APK/AAB for GPL compliance
+            // Note: includes are handled via assets folder
         }
     }
     
@@ -91,7 +93,7 @@ android {
         }
     }
     
-    // F-Droid: Disable Google Play metadata
+    // Google Play dependenciesInfo block for Play Store submissions
     dependenciesInfo {
         includeInBundle = false
         includeInApk = false

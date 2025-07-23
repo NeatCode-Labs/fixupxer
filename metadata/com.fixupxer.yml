@@ -1,6 +1,6 @@
 Categories:
   - Internet
-License: MIT
+License: GPL-3.0-or-later
 WebSite: https://neatcodelabs.com/
 SourceCode: https://github.com/NeatCode-Labs/fixupxer
 IssueTracker: https://github.com/NeatCode-Labs/fixupxer/issues
@@ -49,10 +49,19 @@ Builds:
     prebuild:
       - sed -i -e '/org.gradle.java.home/d' ../gradle.properties
       - sed -i -e '/jetbrains/d' ../settings.gradle.kts
+  - versionName: 1.4.6
+    versionCode: 23
+    commit: v1.4.6
+    subdir: app
+    gradle:
+      - yes
+    prebuild:
+      - sed -i -e '/org.gradle.java.home/d' ../gradle.properties
+      - sed -i -e '/jetbrains/d' ../settings.gradle.kts
 
 AllowedAPKSigningKeys: 78e36950963a98ea39fe30b955c27364e187feca85a1af6ad10987d15f18ec2f
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 1.4.5
-CurrentVersionCode: 22
+CurrentVersion: 1.4.6
+CurrentVersionCode: 23

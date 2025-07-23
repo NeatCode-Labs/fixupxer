@@ -5,9 +5,12 @@
 
 **Clean URLs • Remove Tracking • Enhance Privacy**
 
-[![Version](https://img.shields.io/badge/version-1.4.4-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
+[![Version](https://img.shields.io/badge/version-1.4.5-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
 [![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
-[![License](https://img.shields.io/badge/license-MIT-purple?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPL--3.0--or--later-green?style=for-the-badge)](LICENSE)
+
+[![Google Play](https://img.shields.io/badge/Google%20Play-Download-green?style=for-the-badge&logo=google-play)](https://play.google.com/store/apps/details?id=com.fixupxer)
+[![F-Droid](https://img.shields.io/badge/F--Droid-Download-blue?style=for-the-badge&logo=f-droid)](https://f-droid.org/packages/com.fixupxer/)
 
 </div>
 
@@ -127,15 +130,24 @@ When you see "Create embeddable link?" toggle:
 
 ## 📲 Installation
 
-### Option 1: Download APK
-1. Go to [Releases](https://github.com/NeatCode-Labs/fixupxer/releases)
+### Option 1: Google Play Store
+1. Visit the [Google Play Store](https://play.google.com/store/apps/details?id=com.fixupxer)
+2. Tap "Install" 
+3. The app will download and install automatically
+4. Open and enjoy!
+
+### Option 2: F-Droid
+1. Visit [F-Droid](https://f-droid.org/packages/com.fixupxer/)
+2. Tap "Download APK" or add the F-Droid repository
+3. Install through F-Droid app or directly
+4. Open and enjoy!
+
+### Option 3: Download APK
+1. Go to [GitHub Releases](https://github.com/NeatCode-Labs/fixupxer/releases)
 2. Download the latest `.apk` file
 3. Open the file on your Android device
 4. Allow installation from unknown sources if prompted
 5. Install and enjoy!
-
-### Option 2: F-Droid (Coming Soon)
-- Will be available on F-Droid repository
 
 ## ❓ Frequently Asked Questions
 
@@ -205,6 +217,31 @@ These services may stop working at any time. We have no control over them.
 All company and product names (Facebook, Twitter, Instagram, etc.) are trademarks™ or registered® trademarks of their respective holders. Use of them does not imply any affiliation or endorsement.
 
 ### Warranty
+
+## 📄 License
+
+FixupXer is licensed under the **GNU General Public License v3.0 or later (GPL-3.0-or-later)**.
+
+### Retroactive Licensing
+
+All versions of FixupXer, including historical commits prior to this GPL migration, are hereby relicensed under the terms of the GNU General Public License version 3 or any later version at your option. This supersedes any previous license notices.
+
+### License Summary
+
+- ✅ **Commercial use** - You can use this software for commercial purposes
+- ✅ **Modification** - You can modify the source code  
+- ✅ **Distribution** - You can distribute the software
+- ✅ **Patent use** - You can use any patents related to this software
+- ✅ **Private use** - You can use this software privately
+- ❗ **Disclose source** - If you distribute this software, you must include the source code
+- ❗ **License and copyright notice** - Include the license and copyright notice
+- ❗ **Same license** - Derivatives must use the same license
+- ❌ **Liability** - No warranty or liability is provided
+- ❌ **Warranty** - No warranty is provided
+
+For the complete license terms, see the [LICENSE](LICENSE) file or visit <https://www.gnu.org/licenses/gpl-3.0.html>.
+
+---
 This software is provided "as is" without warranty of any kind.
 
 ## 🙏 Credits & Inspiration

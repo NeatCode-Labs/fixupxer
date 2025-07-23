@@ -1,0 +1,40 @@
+version = 1
+SPDX-PackageName = "FixupXer"
+SPDX-PackageSupplier = "NeatCode Labs <neatcodelabs@gmail.com>"
+SPDX-PackageDownloadLocation = "https://github.com/NeatCode-Labs/fixupxer"
+
+[[annotations]]
+path = ["fdroidvenv/**", ".venv/**", "build/**", ".gradle/**", "screenshots/**", "android_icons/**", "GITHUB/fixupxer/screenshots/**", "GITHUB/fixupxer/android_icons/**", "gradle/wrapper/**", ".idea/**", "app/build/**", "GITHUB/fixupxer/build/**", "GITHUB/fixupxer/.gradle/**", "GITHUB/fixupxer/app/build/**", ".vscode/**", "**/__pycache__/**", "**/.pytest_cache/**", "bundletool.jar"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Various"
+SPDX-License-Identifier = "LicenseRef-ThirdParty"
+
+[[annotations]]
+path = ["gradlew", "gradlew.bat"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2007-2022 The original author or authors"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = ["**.png", "**.jpg", "**.jpeg", "**.gif", "**.jar", "**.apk", "**.aab"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2020-2025 NeatCode Labs"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = [".gitignore", "**.properties", "gradle.properties", "local.properties", "keystore.properties", "settings.gradle.kts"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2020-2025 NeatCode Labs"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["**.md", "**.txt", "docs/**", "app/src/test/resources/**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2020-2025 NeatCode Labs"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["app/src/main/res/**/*.xml", "app/src/main/AndroidManifest.xml", "GITHUB/fixupxer/app/src/main/res/**/*.xml", "GITHUB/fixupxer/app/src/main/AndroidManifest.xml", "**.toml", "**.kts", "**.pro"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2020-2025 NeatCode Labs"
+SPDX-License-Identifier = "GPL-3.0-or-later"

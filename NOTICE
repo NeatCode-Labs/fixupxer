@@ -1,0 +1,72 @@
+FixupXer - URL Enhancer
+Copyright (C) 2020-2025 NeatCode Labs
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+===============================================================================
+
+This software uses the following third-party libraries and components:
+
+AndroidX Libraries
+- Copyright The Android Open Source Project
+- Licensed under Apache License 2.0
+- https://developer.android.com/jetpack/androidx
+
+Material Design Components
+- Copyright Google LLC
+- Licensed under Apache License 2.0
+- https://material.io/develop/android
+
+Kotlin Standard Library
+- Copyright JetBrains s.r.o.
+- Licensed under Apache License 2.0
+- https://kotlinlang.org/
+
+Hilt/Dagger
+- Copyright Google LLC
+- Licensed under Apache License 2.0
+- https://dagger.dev/hilt/
+
+Room Database
+- Copyright The Android Open Source Project
+- Licensed under Apache License 2.0
+- https://developer.android.com/training/data-storage/room
+
+Timber
+- Copyright Jake Wharton
+- Licensed under Apache License 2.0
+- https://github.com/JakeWharton/timber
+
+Gson
+- Copyright Google Inc.
+- Licensed under Apache License 2.0
+- https://github.com/google/gson
+
+===============================================================================
+
+Credits & Inspiration
+
+FixupXer builds upon ideas from these excellent projects:
+
+- ClearURLs (https://github.com/ClearURLs/Addon) - Tracking parameter database
+- Leon URL Cleaner (https://github.com/svenjacobs/leon) - Android URL cleaning concept  
+- FxEmbed (https://github.com/FxEmbed/FxEmbed) - Twitter embed improvements
+- InstaFix (https://github.com/Wikidepia/InstaFix) - Instagram embed enhancements
+
+Special thanks to the maintainers of facebookez.com and kkinstagram.com for their link enhancement services.
+
+===============================================================================
+
+For a complete list of dependencies and their licenses, see the project's
+build.gradle.kts files and the LICENSES directory.

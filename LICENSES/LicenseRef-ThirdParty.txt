@@ -1,0 +1,14 @@
+Third-Party Components License Notice
+
+This file covers various third-party components, tools, and generated files that are included in the FixupXer project but are not subject to the main project license.
+
+These components include but are not limited to:
+- Virtual environment files (fdroidvenv/*, .venv/*)
+- Build artifacts and generated files (build/*, .gradle/*)
+- Screenshots and media files for documentation
+- Gradle wrapper files and build tools
+- Binary assets and icons
+
+Each component retains its original license terms. Where no specific license is indicated, components are used under fair use principles for documentation, build, or development purposes.
+
+For specific licensing information about individual components, please refer to their original sources or contact the project maintainers.

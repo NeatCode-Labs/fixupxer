@@ -41,7 +41,7 @@ git config alias.cs "commit -s"
 
 Then use `git cs` instead of `git commit`.
 
-## �� Getting Started
+## 🚀 Getting Started
 
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:

@@ -3,7 +3,7 @@
 <div align="center">
 <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="120" alt="FixupXer Logo">
 
-**Clean URLs • Remove Tracking • Enhance Privacy**
+**Clean URLs • Get embeddable links • Use Browser Mode**
 
 [![Version](https://img.shields.io/badge/version-1.4.6-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
 [![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
@@ -12,6 +12,8 @@
 [![Google Play](https://img.shields.io/badge/Google%20Play-Download-green?style=for-the-badge&logo=google-play)](https://play.google.com/store/apps/details?id=com.fixupxer)
 [![F-Droid](https://img.shields.io/badge/F--Droid-Download-blue?style=for-the-badge&logo=f-droid)](https://f-droid.org/packages/com.fixupxer/)
 
+[<img src="https://shields.rbtlog.dev/simple/com.fixupxer?style=for-the-badge" alt="RB shield">](https://shields.rbtlog.dev/com.fixupxer)
+
 </div>
 
 ## 🎯 What is FixupXer?
@@ -19,7 +21,7 @@
 FixupXer is a free Android app that makes your shared links cleaner, safer, and more private. When you share links from social media or shopping sites, they often contain hidden tracking codes that follow you around the internet. FixupXer removes these trackers and makes your links work better.
 
 ### 🌟 Key Benefits:
-- **🔒 Protects Your Privacy** - Removes 964 different tracking codes from your links
+- **🔒 Protects Your Privacy** - Removes 1000+ different tracking codes from your links
 - **⚡ Lightning Fast** - Cleans any URL in less than 0.1 seconds
 - **📱 Works Everywhere** - Supports 25+ popular websites including Facebook, Amazon, YouTube, and more
 - **🎯 100% Offline** - No internet needed, your links never leave your phone
@@ -28,12 +30,12 @@ FixupXer is a free Android app that makes your shared links cleaner, safer, and 
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/main_empty_th.png" width="200" alt="Main Screen">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/main_filled_th.png" width="200" alt="Processing URL">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/share_filled_th.png" width="200" alt="Share Screen">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/history_th.png" width="200" alt="History">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/about_th.png" width="200" alt="About Dialog">
-  <img src="https://github.com/NeatCode-Labs/fixupxer/blob/main/screenshots/infographics_th.png" width="200" alt="Features Infographic">
+  <img src="./screenshots/main_empty.png" width="200" alt="Main Screen">
+  <img src="./screenshots/main_filled.png" width="200" alt="Processing URL">
+  <img src="./screenshots/share_filled.png" width="200" alt="Share Screen">
+  <img src="./screenshots/history.png" width="200" alt="History">
+  <img src="./screenshots/about.png" width="200" alt="About Dialog">
+  <img src="./screenshots/infographics.png" width="200" alt="Features Infographic">
 </p>
 
 ## 🚀 How to Use FixupXer

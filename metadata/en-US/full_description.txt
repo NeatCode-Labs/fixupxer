@@ -1,35 +1,36 @@
 FixupXer removes tracking parameters from URLs to protect your privacy and make links cleaner. When you share links from social media, shopping sites, or other platforms, they often contain hidden tracking codes that follow you around the internet. FixupXer strips these away.
 
-== Key Features ==
+<b>Key Features</b>
 
-• Browser Mode: Set FixupXer as your default browser for automatic system-wide URL cleaning
-• Privacy Protection: Removes 1000+ tracking parameters from all major platforms  
-• Fast Processing: Cleans any URL in under 0.1 seconds with advanced caching
-• Offline Operation: Works completely offline - your URLs never leave your device
-• Platform Support: Works with 25+ platforms including YouTube, Facebook, Amazon, Twitter/X, Instagram, TikTok, Google Search, LinkedIn, Reddit, and more
-• Smart Conversions: Optional conversion to privacy-friendly alternatives (fixupx.com for Twitter, kkinstagram.com for Instagram)
-• History Tracking: Keep track of cleaned URLs with optional history feature
-• Configurable Actions: Choose what happens after cleaning - open in app, browser, share, or copy to clipboard
+* Browser Mode: Set FixupXer as your default browser for automatic system-wide URL cleaning
+* Direct Sharing: Share your links directly to FixupXer, no need to open the main app
+* Privacy Protection: Removes 1000+ tracking parameters from all major platforms
+* Fast Processing: Cleans any URL in under 0.1 seconds with advanced caching
+* Offline Operation: Works completely offline - your URLs never leave your device
+* Platform Support: Works with 25+ platforms including YouTube, Facebook, Amazon, Twitter/X, Instagram, TikTok, Google Search, LinkedIn, Reddit, and more
+* Smart Conversions: Optional conversion to privacy-friendly alternatives (fixupx.com for Twitter, kkinstagram.com for Instagram)
+* History Tracking: Keep track of cleaned URLs with optional history feature
+* Configurable Actions: Choose what happens after cleaning - open in app, browser, share, or copy to clipboard
 
-== Browser Mode Setup ==
+<b>Browser Mode Setup</b>
 
 1. Enable Browser Mode in Settings
 2. Set FixupXer as your default browser in Android Settings
 3. Configure your preferred post-clean actions
 4. All web links will now be automatically cleaned before opening
 
-== Privacy & Security ==
+<b>Privacy & Security</b>
 
-• Zero permissions required - no internet, location, or personal data access
-• 100% open source and auditable
-• No data collection or transmission
-• Works entirely on your device
+* Zero permissions required - no internet, location, or personal data access
+* 100% open source and auditable
+* No data collection or transmission
+* Works entirely on your device
 
-== Technical Excellence ==
+<b>Technical Excellence</b>
 
-• Modular architecture with 11 specialized URL cleaners
-• Thread-safe design optimized for modern Android devices
-• Material Design 3 interface with full Android 15 compliance
-• Comprehensive test suite with 212 tests ensuring reliability
+* Modular architecture with 11 specialized URL cleaners
+* Thread-safe design optimized for modern Android devices
+* Material Design 3 interface with full Android 15 compliance
+* Comprehensive test suite with 212 tests ensuring reliability
 
 Perfect for privacy-conscious users who want cleaner, safer links without the tracking. 

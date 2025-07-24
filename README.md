@@ -12,7 +12,9 @@
 [![Google Play](https://img.shields.io/badge/Google%20Play-Download-green?style=for-the-badge&logo=google-play)](https://play.google.com/store/apps/details?id=com.fixupxer)
 [![F-Droid](https://img.shields.io/badge/F--Droid-Download-blue?style=for-the-badge&logo=f-droid)](https://f-droid.org/packages/com.fixupxer/)
 
-[<img src="https://shields.rbtlog.dev/simple/com.fixupxer?style=for-the-badge" alt="RB shield">](https://shields.rbtlog.dev/com.fixupxer)
+<a href="https://apt.izzysoft.de/packages/com.fixupxer">
+  <img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroidButton_nofont.svg" alt="Get it on IzzyOnDroid" width="150"/>
+</a>
 
 </div>
 

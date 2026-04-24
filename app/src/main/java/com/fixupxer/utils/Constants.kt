@@ -37,6 +37,9 @@ object Constants {
     // Domain identifiers
     const val INSTAGRAM_DOMAIN = "instagram.com"
     const val KKINSTAGRAM_DOMAIN = "kkinstagram.com"
+    const val EEINSTAGRAM_DOMAIN = "eeinstagram.com"
+    const val INSTAGRAM7_DOMAIN = "instagram7.com"
+    val INSTAGRAM_PROXY_DOMAINS = listOf(KKINSTAGRAM_DOMAIN, EEINSTAGRAM_DOMAIN, INSTAGRAM7_DOMAIN)
     const val TWITTER_DOMAIN = "twitter.com"
     const val X_DOMAIN = "x.com"
     const val FIXUPX_DOMAIN = "fixupx.com"

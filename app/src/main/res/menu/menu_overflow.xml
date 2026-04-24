@@ -3,13 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     
     <item
-        android:id="@+id/action_about"
-        android:title="@string/about"
-        app:showAsAction="never" />
-    
-    <item
-        android:id="@+id/action_report_bug"
-        android:title="@string/report_bug"
+        android:id="@+id/action_settings"
+        android:title="@string/settings_title"
         app:showAsAction="never" />
     
     <item
@@ -18,8 +13,18 @@
         app:showAsAction="never" />
     
     <item
+        android:id="@+id/action_report_bug"
+        android:title="@string/report_bug"
+        app:showAsAction="never" />
+    
+    <item
         android:id="@+id/action_donate"
         android:title="@string/donate"
+        app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/action_about"
+        android:title="@string/about"
         app:showAsAction="never" />
     
 </menu> 

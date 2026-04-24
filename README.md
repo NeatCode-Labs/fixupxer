@@ -5,7 +5,7 @@
 
 **Clean URLs • Get embeddable links • Use Browser Mode**
 
-[![Version](https://img.shields.io/badge/version-1.4.6-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
+[![Version](https://img.shields.io/badge/version-1.4.7-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
 [![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-green?style=for-the-badge)](LICENSE)
 
@@ -170,14 +170,26 @@ You can reorder the list under **Settings ▸ Action priority**. Drag and drop i
 
 ## 🎨 Toggle Options Explained
 
-When you see "Create embeddable link?" toggle:
+When you see the "Embed?" toggle:
 
 - **ON** ✅ - Converts social media links for better preview/embedding:
   - Facebook → facebookez.com (better previews)
-  - Instagram → kkinstagram.com (enhanced privacy)
+  - Instagram → configurable proxy (kkinstagram.com / eeinstagram.com / instagram7.com)
   - Twitter/X → fixupx.com (better embeds)
   
 - **OFF** ❌ - Only removes tracking, keeps original domain
+
+### Instagram embed proxy selection
+
+Instagram proxies occasionally go offline. To keep embeds working, FixupXer now lets you choose which proxy is used:
+
+- **kkinstagram.com** (default)
+- **eeinstagram.com**
+- **instagram7.com**
+
+When you share or paste an Instagram link and the **Embed?** toggle is visible, a small label on the right shows *Active: &lt;proxy&gt;. Change.* — tap **Change.** to pick another proxy. Your choice is persistent across all three screens (Main, Share, and Settings).
+
+The setting also lives under **Settings ▸ Instagram embed proxy** on both Google Play and F-Droid builds. On the Main screen, tapping **Change.** opens Settings; on the Share screen it opens the same chooser as an inline dialog so the share flow isn't interrupted.
 
 ## ⚙️ Settings & Options
 
@@ -294,7 +306,7 @@ A: Absolutely! FixupXer has no internet permission and can't send data anywhere.
 The following link conversion services are **not operated by NeatCode Labs**:
 - **facebookez.com** - Facebook link enhancement
 - **fixupx.com** - Twitter/X link enhancement  
-- **kkinstagram.com** - Instagram link enhancement
+- **kkinstagram.com** / **eeinstagram.com** / **instagram7.com** - Instagram link enhancement (user-selectable)
 
 These services may stop working at any time. We have no control over them.
 

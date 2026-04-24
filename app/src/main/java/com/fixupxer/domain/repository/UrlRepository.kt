@@ -107,5 +107,9 @@ interface UrlRepository {
      */
     suspend fun setTwitterConversionEnabled(enabled: Boolean)
     
+    /**
+     * Process URL for browser mode with browser-specific conversion settings
+     */
+    suspend fun processUrlForBrowser(url: String): ProcessedUrlResult
 
 } 

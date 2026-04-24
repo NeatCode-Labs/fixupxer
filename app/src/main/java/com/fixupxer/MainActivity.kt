@@ -57,6 +57,9 @@ import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InputValidator
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.ui.dialogs.HistoryDialogHelper
+import com.fixupxer.ui.dialogs.InstagramProxyDialogHelper
+import com.fixupxer.utils.PostCleanRunner
+import com.fixupxer.domain.repository.UrlRepository
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import dagger.hilt.android.AndroidEntryPoint
@@ -67,6 +70,9 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 import javax.inject.Inject
+import androidx.core.text.HtmlCompat
+import android.widget.ScrollView
+import com.fixupxer.ui.SettingsActivity
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
@@ -79,6 +85,9 @@ class MainActivity : BaseActivity() {
     
     @Inject
     lateinit var preferencesManager: PreferencesManager
+    
+    @Inject
+    lateinit var urlRepository: UrlRepository
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,7 +106,49 @@ class MainActivity : BaseActivity() {
         observeViewModel()
         setupSmartFooter()
         
+        // Handle VIEW intent if present
+        handleViewIntentIfPresent(intent)
+        
         Timber.d("MainActivity onCreate completed")
+    }
+    
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleViewIntentIfPresent(intent)
+    }
+    
+    private fun handleViewIntentIfPresent(intent: Intent?) {
+        if (intent?.action == Intent.ACTION_VIEW && intent.data != null) {
+            val uri = intent.data
+            val scheme = uri?.scheme
+            
+            Timber.d("handleViewIntentIfPresent: URI=$uri, scheme=$scheme")
+            
+            // Only handle http and https schemes
+            if (scheme == "http" || scheme == "https") {
+                lifecycleScope.launch {
+                    try {
+                        // Clean the URL using browser-specific preferences
+                        val result = urlRepository.processUrlForBrowser(uri.toString())
+                        val cleanedUri = Uri.parse(result.url)
+                        
+                        Timber.d("URL cleaned: $uri -> $cleanedUri")
+                        
+                        // Run post-clean action
+                        val postCleanRunner = PostCleanRunner(this@MainActivity, preferencesManager)
+                        postCleanRunner.run(cleanedUri)
+                        
+                        // Finish the activity to avoid stacking
+                        finish()
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to handle VIEW intent")
+                        Toast.makeText(this@MainActivity, "Failed to process URL", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                }
+            }
+        }
     }
     
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -107,6 +158,10 @@ class MainActivity : BaseActivity() {
     
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_settings -> {
+                openSettings()
+                true
+            }
             R.id.action_about -> {
                 showAboutDialog()
                 true
@@ -312,6 +367,10 @@ class MainActivity : BaseActivity() {
         binding.switchTwitter.setOnCheckedChangeListener { _, isChecked ->
             viewModel.onTwitterConversionToggled(isChecked)
         }
+
+        binding.textViewChangeProxy.setOnClickListener {
+            onChangeProxyClick()
+        }
     }
     
     private fun observeViewModel() {
@@ -319,7 +378,12 @@ class MainActivity : BaseActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     // Update UI based on state
-                    binding.instagramToggleContainer.isVisible = state.isInstagramUrl
+                    binding.instagramToggleContainer.isVisible = state.isInstagramUrl || state.isFacebookUrl
+                    // The 'Currently using: <proxy>. Change.' row applies only to Instagram
+                    binding.instagramProxyRow.isVisible = state.isInstagramUrl
+                    if (state.isInstagramUrl) {
+                        refreshProxyLabel()
+                    }
                     binding.switchInstagram.isChecked = state.isInstagramConversionEnabled
                     
                     binding.twitterToggleContainer.isVisible = state.isTwitterUrl
@@ -338,6 +402,23 @@ class MainActivity : BaseActivity() {
                 }
             }
         }
+    }
+
+    private fun onChangeProxyClick() {
+        val intent = Intent(this, SettingsActivity::class.java)
+        val canLaunchSettings = intent.resolveActivity(packageManager) != null
+        if (canLaunchSettings) {
+            startActivity(intent)
+        } else {
+            InstagramProxyDialogHelper.show(this, preferencesManager) {
+                refreshProxyLabel()
+            }
+        }
+    }
+
+    private fun refreshProxyLabel() {
+        binding.textViewInstagramProxyStatus.text =
+            getString(R.string.currently_using_proxy, preferencesManager.getInstagramProxy())
     }
     
     private fun shareProcessedUrl() {
@@ -469,4 +550,11 @@ class MainActivity : BaseActivity() {
         )
         historyDialogHelper.showHistoryDialog()
     }
+    
+    private fun openSettings() {
+        val intent = Intent(this, SettingsActivity::class.java)
+        startActivity(intent)
+    }
+    
+
 } 

@@ -1,3 +1,50 @@
+# FixupXer v1.4.7 - Selectable Instagram Embed Proxy + F-Droid Settings Menu
+
+## 🎯 What's New
+
+### Choose Your Instagram Proxy
+Instagram embed proxies occasionally go offline. Previously FixupXer only used `kkinstagram.com`, so when it went down your Instagram embeds broke. v1.4.7 lets you pick the active proxy and persists that choice.
+
+- **3 Instagram proxies supported** — `kkinstagram.com`, `eeinstagram.com`, `instagram7.com`.
+- **Persistent user choice** — whichever proxy you select stays in effect across Main, Share, and Settings. Stored in `SharedPreferences`, survives app restarts and upgrades.
+- **"Active: &lt;proxy&gt;. Change." row** — visible next to the `Embed?` toggle on Main and Share screens when the URL is an Instagram link. One-tap access to change the proxy.
+- **Settings section** — `Settings ▸ Instagram embed proxy` shows a three-option radio group (both builds). On the Main screen, *Change.* jumps to Settings. On the Share screen, *Change.* opens the same chooser as an inline dialog — required because the share flow is declared `android:noHistory="true"` and must not be destroyed mid-share.
+- **Cross-proxy swap** — paste an `eeinstagram.com` link, pick `instagram7.com`, and the URL is swapped directly without round-tripping through `instagram.com`.
+- **Browser mode parity** — the optional browser mode now reads the same Instagram proxy preference, so cleaned links land on your preferred proxy regardless of entry point.
+
+### Settings Menu Now Available on F-Droid (Issue #3)
+Previously the F-Droid build shipped without a Settings menu entry, so browser mode was inaccessible to F-Droid users (reported by @Milliw on /e/OS 3.1.1). v1.4.7 closes this gap:
+
+- **Settings menu item** now present in the overflow menu on both Google and F-Droid builds.
+- **Browser mode integration** (default-browser alias, priority actions, conversion defaults) fully available in F-Droid.
+- Codebase now uniformly sync'd root → GITHUB; the only remaining difference is `dependenciesInfo = false/false` in the F-Droid `build.gradle.kts` (required for F-Droid reproducibility) and the omission of `adi-registration.properties` (Google-only marketing asset).
+
+### Fastlane Metadata Fixes (Issue #4)
+Feedback from @IzzySoft (F-Droid):
+- `short_description.txt` trimmed from 82 → 72 chars (≤80 limit).
+- `changelogs/23.txt` trimmed from 1324 → 440 chars (≤500 limit).
+- Older oversize changelogs (12, 13, 15, 21) also trimmed to respect the 500-char cap.
+- New `changelogs/25.txt` added for v1.4.7 (440 chars).
+
+### UI / UX Improvements
+- Toggle label shortened from "Create embeddable link?" to **Embed?** (single horizontal row).
+- Proxy row auto-hides for Facebook URLs (single-proxy platform).
+- Disclaimer text now lists all three Instagram proxies as third-party services.
+- All accessibility attributes preserved, including `contentDescription` on the new "Change." link.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 25
+- APK Size: 4.33 MB (Google), 4.19 MB (F-Droid)
+- Tests: 113 unit + 144 instrumentation = **257 tests, 100% pass rate**
+- 0 permissions, 0 network calls, 0 hardcoded secrets (verified)
+
+## Download
+- [FixupXer-v1.4.7-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.4.7/FixupXer-v1.4.7-release.apk)
+
+---
+
 # FixupXer v1.4.6 - Browser Mode, Professional UI & ReVanced YouTube Support
 
 ## 🎯 What's New - Complete Browser Integration, Professional UI & Enhanced YouTube Experience

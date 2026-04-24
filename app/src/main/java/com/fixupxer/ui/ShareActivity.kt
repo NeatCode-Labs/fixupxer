@@ -49,6 +49,7 @@ import com.fixupxer.presentation.share.ShareViewModel
 import com.fixupxer.utils.Constants
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.ui.dialogs.HistoryDialogHelper
+import com.fixupxer.ui.dialogs.InstagramProxyDialogHelper
 import com.fixupxer.PreferencesManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
@@ -129,7 +130,7 @@ class ShareActivity : BaseActivity() {
     
     override fun onPause() {
         super.onPause()
-        // Clear state when activity loses focus
+        // Clear state when activity loses focus (one-shot share flow)
         viewModel.clearState()
         finish() // Destroy activity when it loses focus
     }
@@ -254,6 +255,10 @@ class ShareActivity : BaseActivity() {
         binding.buttonOpen.setOnClickListener {
             openProcessedUrl()
         }
+
+        binding.textViewChangeProxy.setOnClickListener {
+            onChangeProxyClick()
+        }
         
         binding.footerTextView.setOnClickListener {
             try {
@@ -273,7 +278,13 @@ class ShareActivity : BaseActivity() {
                     // Update UI based on state
                     binding.textViewSharedText.text = state.sharedText.ifEmpty { getString(R.string.no_url_found) }
                     
-                    binding.instagramToggleContainer.isVisible = state.isInstagramUrl
+                    binding.instagramToggleContainer.isVisible = state.isInstagramUrl || state.isFacebookUrl
+                    // The 'Currently using: <proxy>. Change.' row is only relevant for Instagram
+                    // (it has 3 proxies); Facebook has a single proxy and keeps the row hidden.
+                    binding.instagramProxyRow.isVisible = state.isInstagramUrl
+                    if (state.isInstagramUrl) {
+                        refreshProxyLabel()
+                    }
                     
                     // Temporarily remove listener to avoid triggering when setting programmatically
                     binding.switchInstagram.setOnCheckedChangeListener(null)
@@ -400,5 +411,24 @@ class ShareActivity : BaseActivity() {
         } else {
             Toast.makeText(this, getString(R.string.no_url_to_open), Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun onChangeProxyClick() {
+        // ShareActivity is marked android:noHistory="true" in the manifest, which makes
+        // the system call finish() automatically whenever it loses focus. Launching
+        // Settings would therefore destroy the share context. Show the proxy chooser
+        // inline as a dialog and re-process the shared URL so the preview updates
+        // immediately — no app restart required.
+        InstagramProxyDialogHelper.show(this, preferencesManager) {
+            refreshProxyLabel()
+            // Trigger a local re-process with the current toggle state so the
+            // "Processed URL" field reflects the freshly selected proxy.
+            viewModel.onInstagramConversionToggled(binding.switchInstagram.isChecked)
+        }
+    }
+
+    private fun refreshProxyLabel() {
+        binding.textViewInstagramProxyStatus.text =
+            getString(R.string.currently_using_proxy, preferencesManager.getInstagramProxy())
     }
 } 

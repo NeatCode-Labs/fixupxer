@@ -194,4 +194,39 @@ class HistoryDatabaseTest {
         assertFalse(history[0].cleanedUrl.contains("m.facebookez.com"))
         assertTrue(history[0].cleanedUrl.startsWith("https://facebookez.com"))
     }
+
+    @Test
+    fun testEeinstagramEntry() = runBlocking {
+        // Verify that an entry converted to eeinstagram.com round-trips correctly
+        val entry = UrlHistoryEntity(
+            originalUrl = "https://www.instagram.com/p/ABC/",
+            cleanedUrl = "https://www.eeinstagram.com/p/ABC/",
+            platform = "Instagram",
+            conversionType = "Domain converted",
+            timestamp = System.currentTimeMillis()
+        )
+        historyDao.insert(entry)
+
+        val history = historyDao.getAllHistory().first()
+        assertEquals(1, history.size)
+        assertEquals("https://www.eeinstagram.com/p/ABC/", history[0].cleanedUrl)
+        assertEquals("Instagram", history[0].platform)
+    }
+
+    @Test
+    fun testInstagram7Entry() = runBlocking {
+        // Verify that an entry converted to instagram7.com round-trips correctly
+        val entry = UrlHistoryEntity(
+            originalUrl = "https://www.instagram.com/p/XYZ/",
+            cleanedUrl = "https://www.instagram7.com/p/XYZ/",
+            platform = "Instagram",
+            conversionType = "Domain converted",
+            timestamp = System.currentTimeMillis()
+        )
+        historyDao.insert(entry)
+
+        val history = historyDao.getAllHistory().first()
+        assertEquals(1, history.size)
+        assertEquals("https://www.instagram7.com/p/XYZ/", history[0].cleanedUrl)
+    }
 } 

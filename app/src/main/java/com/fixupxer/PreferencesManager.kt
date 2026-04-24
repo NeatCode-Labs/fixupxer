@@ -23,6 +23,7 @@ package com.fixupxer
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.fixupxer.utils.Constants
 
 /**
  * Manages user preferences for the app
@@ -35,6 +36,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_CLEAN_TRACKING = "clean_tracking"
         private const val KEY_CONVERT_TWITTER = "convert_twitter"
         private const val KEY_CONVERT_INSTAGRAM = "convert_instagram"
+        private const val KEY_INSTAGRAM_PROXY = "instagram_proxy_domain"
         private const val KEY_HISTORY_ENABLED = "history_enabled"
         private const val KEY_MAX_HISTORY_ENTRIES = "max_history_entries"
         private const val DEFAULT_MAX_HISTORY_ENTRIES = 100
@@ -103,7 +105,29 @@ class PreferencesManager(context: Context) {
     fun setConvertInstagramEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_CONVERT_INSTAGRAM, enabled) }
     }
-    
+
+    /**
+     * Get the currently selected Instagram embed proxy domain.
+     * Defaults to [Constants.KKINSTAGRAM_DOMAIN] for users upgrading from earlier versions.
+     */
+    fun getInstagramProxy(): String {
+        val value = prefs.getString(KEY_INSTAGRAM_PROXY, Constants.KKINSTAGRAM_DOMAIN)
+            ?: Constants.KKINSTAGRAM_DOMAIN
+        // Guard against unknown stored values (e.g. manual SharedPreferences editing)
+        return if (Constants.INSTAGRAM_PROXY_DOMAINS.contains(value)) {
+            value
+        } else {
+            Constants.KKINSTAGRAM_DOMAIN
+        }
+    }
+
+    /**
+     * Set the selected Instagram embed proxy domain.
+     */
+    fun setInstagramProxy(domain: String) {
+        prefs.edit { putString(KEY_INSTAGRAM_PROXY, domain) }
+    }
+
     /**
      * Check if history is enabled
      */

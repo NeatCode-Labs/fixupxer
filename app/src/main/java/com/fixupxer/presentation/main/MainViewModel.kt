@@ -69,9 +69,16 @@ class MainViewModel @Inject constructor(
     }
     
     fun onUrlChanged(url: String) {
-        val showInstagramToggle = if (url.isNotEmpty()) {
-            url.contains("instagram.com", ignoreCase = true) || 
+        val isInstagram = if (url.isNotEmpty()) {
+            url.contains("instagram.com", ignoreCase = true) ||
             url.contains("kkinstagram.com", ignoreCase = true) ||
+            url.contains("eeinstagram.com", ignoreCase = true) ||
+            url.contains("instagram7.com", ignoreCase = true)
+        } else {
+            false
+        }
+
+        val isFacebook = if (url.isNotEmpty()) {
             url.contains("facebook.com", ignoreCase = true) ||
             url.contains("facebookez.com", ignoreCase = true)
         } else {
@@ -90,7 +97,8 @@ class MainViewModel @Inject constructor(
         _uiState.update { 
             it.copy(
                 inputUrl = url,
-                isInstagramUrl = showInstagramToggle,
+                isInstagramUrl = isInstagram,
+                isFacebookUrl = isFacebook,
                 isTwitterUrl = showTwitterToggle,
                 error = null,
                 showErrorToast = false
@@ -174,6 +182,7 @@ class MainViewModel @Inject constructor(
                 inputUrl = "",
                 processedUrl = "",
                 isInstagramUrl = false,
+                isFacebookUrl = false,
                 error = null,
                 showErrorToast = false
             )
@@ -186,6 +195,7 @@ class MainViewModel @Inject constructor(
                 inputUrl = "",
                 processedUrl = "",
                 isInstagramUrl = false,
+                isFacebookUrl = false,
                 error = getApplication<Application>().getString(R.string.error_multiple_urls),
                 showErrorToast = false
             )
@@ -201,6 +211,7 @@ data class MainUiState(
     val processedUrl: String = "",
     val isLoading: Boolean = false,
     val isInstagramUrl: Boolean = false,
+    val isFacebookUrl: Boolean = false,
     val isInstagramConversionEnabled: Boolean = true,
     val isTwitterUrl: Boolean = false,
     val isTwitterConversionEnabled: Boolean = true,

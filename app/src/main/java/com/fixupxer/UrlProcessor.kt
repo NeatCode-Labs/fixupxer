@@ -44,10 +44,16 @@ class UrlProcessor @Inject constructor(
     
     /**
      * Process a URL by cleaning tracking parameters and optionally converting 
-     * Twitter/X URLs to fixupx.com format
+     * Twitter/X URLs to fixupx.com format and Instagram URLs to a selected proxy
+     * @param instagramProxy which Instagram proxy to convert to (default kkinstagram.com)
      * @return Pair of (processedUrl, wasAlreadyClean)
      */
-    fun processUrl(url: String, cleanTracking: Boolean, convertTwitter: Boolean): Pair<String, Boolean> {
+    fun processUrl(
+        url: String,
+        cleanTracking: Boolean,
+        convertTwitter: Boolean,
+        instagramProxy: String = Constants.KKINSTAGRAM_DOMAIN
+    ): Pair<String, Boolean> {
         if (url.isEmpty()) {
             throw IllegalArgumentException("Please enter a URL")
         }
@@ -86,10 +92,11 @@ class UrlProcessor @Inject constructor(
             }
             
             // Apply domain conversions based on settings
-            val convertedUrl = when {
-                convertTwitter -> applyDomainConversions(finalUrl, convertToAlternative = true)
-                else -> applyDomainConversions(finalUrl, convertToAlternative = false)
-            }
+            val convertedUrl = applyDomainConversions(
+                finalUrl,
+                convertToAlternative = convertTwitter,
+                instagramProxy = instagramProxy
+            )
             
             // Check if any changes were made
             val wasModified = convertedUrl != decodedUrl
@@ -128,12 +135,20 @@ class UrlProcessor @Inject constructor(
     /**
      * Apply domain conversions based on settings
      */
-    private fun applyDomainConversions(url: String, convertToAlternative: Boolean): String {
+    private fun applyDomainConversions(
+        url: String,
+        convertToAlternative: Boolean,
+        instagramProxy: String = Constants.KKINSTAGRAM_DOMAIN
+    ): String {
+        val isInstagram = isInstagramUrl(url)
+        val isInstagramProxy = Constants.INSTAGRAM_PROXY_DOMAINS.any {
+            url.contains(it, ignoreCase = true)
+        }
+
         return when {
-            // Instagram conversions
-            isInstagramUrl(url) && convertToAlternative -> convertToKkInstagram(url)
-            url.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true) && !convertToAlternative -> 
-                convertFromKkInstagram(url)
+            // Instagram conversions — covers instagram.com + any of the 3 proxies
+            isInstagram && convertToAlternative -> convertToInstagramProxy(url, instagramProxy)
+            isInstagramProxy && !convertToAlternative -> convertFromInstagramProxy(url)
             
             // Twitter/X conversions
             // 1) fxtwitter domain rewrite needs to happen BEFORE generic Twitter conversion
@@ -159,9 +174,12 @@ class UrlProcessor @Inject constructor(
     
     /**
      * Process URL for sharing - this will convert to alternative
-     * domain formats like fixupx.com and kkinstagram.com
+     * domain formats like fixupx.com and the selected Instagram proxy
      */
-    fun processUrlForSharing(url: String): String {
+    fun processUrlForSharing(
+        url: String,
+        instagramProxy: String = Constants.KKINSTAGRAM_DOMAIN
+    ): String {
         if (url.isEmpty()) {
             return url
         }
@@ -177,7 +195,11 @@ class UrlProcessor @Inject constructor(
             val cleanedUrl = cleanerService.deepClean(decodedUrl)
             
             // Apply domain conversions for sharing (always convert to alternative domains)
-            applyDomainConversions(cleanedUrl, convertToAlternative = true)
+            applyDomainConversions(
+                cleanedUrl,
+                convertToAlternative = true,
+                instagramProxy = instagramProxy
+            )
         } catch (e: Exception) {
             Timber.e(e, "Error processing URL for sharing")
             url // Return original URL if there's an error
@@ -233,34 +255,75 @@ class UrlProcessor @Inject constructor(
     }
     
     /**
-     * Check if a URL is an Instagram URL
+     * Check if a URL is an Instagram URL (instagram.com or any of the supported proxies)
      */
     fun isInstagramUrl(url: String): Boolean {
-        return url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) ||
-               url.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)
+        if (url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true)) return true
+        return Constants.INSTAGRAM_PROXY_DOMAINS.any { url.contains(it, ignoreCase = true) }
     }
-    
-    private fun convertToKkInstagram(url: String): String {
-        if (url.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)) return url
 
-        val pattern = Pattern.compile("(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(instagram\\.com)", Pattern.CASE_INSENSITIVE)
+    /**
+     * Convert instagram.com / any proxy in [url] to the [targetProxy] domain.
+     * - If [url] already uses [targetProxy], it is returned unchanged.
+     * - If [url] uses instagram.com, it is replaced with [targetProxy].
+     * - If [url] uses a different proxy (e.g. eeinstagram.com while target is instagram7.com),
+     *   that proxy is swapped with [targetProxy].
+     */
+    private fun convertToInstagramProxy(url: String, targetProxy: String): String {
+        if (url.contains(targetProxy, ignoreCase = true)) return url
+
+        val domainAlternation = "instagram\\.com|kkinstagram\\.com|eeinstagram\\.com|instagram7\\.com"
+        val pattern = Pattern.compile(
+            "(https?://)((?:www\\.)?(?:[a-z0-9]+\\.)?)($domainAlternation)",
+            Pattern.CASE_INSENSITIVE
+        )
         val matcher = pattern.matcher(url)
         return if (matcher.find()) {
-            matcher.replaceAll("\$1\$2${Constants.KKINSTAGRAM_DOMAIN}")
+            matcher.replaceAll("\$1\$2${targetProxy}")
         } else {
-            url.replace(Constants.INSTAGRAM_DOMAIN, Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)
+            // Fallback: swap any known domain token directly
+            var result = url
+            val knownDomains = listOf(Constants.INSTAGRAM_DOMAIN) + Constants.INSTAGRAM_PROXY_DOMAINS
+            for (domain in knownDomains) {
+                if (result.contains(domain, ignoreCase = true)) {
+                    result = result.replace(domain, targetProxy, ignoreCase = true)
+                    break
+                }
+            }
+            result
         }
     }
 
-    private fun convertFromKkInstagram(url: String): String {
-        if (url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) && !url.contains(Constants.KKINSTAGRAM_DOMAIN, ignoreCase = true)) return url
+    /**
+     * Convert any Instagram proxy in [url] back to instagram.com.
+     */
+    private fun convertFromInstagramProxy(url: String): String {
+        // Already on instagram.com and no proxy is present
+        if (url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) &&
+            Constants.INSTAGRAM_PROXY_DOMAINS.none { url.contains(it, ignoreCase = true) }
+        ) {
+            return url
+        }
 
-        val pattern = Pattern.compile("(https?://)((?:www\\.)?(?:[a-z]+\\.)?)(kkinstagram\\.com)", Pattern.CASE_INSENSITIVE)
+        val proxyAlternation = Constants.INSTAGRAM_PROXY_DOMAINS.joinToString("|") {
+            it.replace(".", "\\.")
+        }
+        val pattern = Pattern.compile(
+            "(https?://)((?:www\\.)?(?:[a-z0-9]+\\.)?)($proxyAlternation)",
+            Pattern.CASE_INSENSITIVE
+        )
         val matcher = pattern.matcher(url)
         return if (matcher.find()) {
             matcher.replaceAll("\$1\$2${Constants.INSTAGRAM_DOMAIN}")
         } else {
-            url.replace(Constants.KKINSTAGRAM_DOMAIN, Constants.INSTAGRAM_DOMAIN, ignoreCase = true)
+            var result = url
+            for (proxy in Constants.INSTAGRAM_PROXY_DOMAINS) {
+                if (result.contains(proxy, ignoreCase = true)) {
+                    result = result.replace(proxy, Constants.INSTAGRAM_DOMAIN, ignoreCase = true)
+                    break
+                }
+            }
+            result
         }
     }
     

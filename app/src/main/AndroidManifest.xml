@@ -4,6 +4,32 @@
 
     <!-- No internet permission required - privacy focused -->
     
+    <!-- Package visibility for Android 11+ -->
+    <queries>
+        <!-- Query for browsers -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <!-- Query for common apps we might want to open -->
+        <package android:name="com.android.chrome" />
+        <package android:name="com.google.android.youtube" />
+        <package android:name="app.revanced.android.youtube" />
+        <package android:name="com.instagram.android" />
+        <package android:name="com.twitter.android" />
+        <package android:name="com.facebook.katana" />
+        <package android:name="com.reddit.frontpage" />
+        <package android:name="com.linkedin.android" />
+        <package android:name="com.substack.app" />
+        <package android:name="com.amazon.mShop.android.shopping" />
+        <package android:name="com.google.android.googlequicksearchbox" />
+        <package android:name="com.zhiliaoapp.musically" />
+    </queries>
+    
     <application
         android:name=".FixupXerApplication"
         android:allowBackup="true"
@@ -29,15 +55,6 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            
-            <!-- App links for direct URL handling -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" />
-                <data android:scheme="http" />
-            </intent-filter>
         </activity>
         
         <!-- Activity to handle shared URLs -->
@@ -61,6 +78,29 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+        
+        <!-- Settings Activity -->
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:theme="@style/Theme.FixupXer"
+            android:label="@string/settings_title"
+            android:parentActivityName=".MainActivity"
+            android:exported="false" />
+        
+        <!-- Browser mode alias - disabled by default -->
+        <activity-alias
+            android:name="${applicationId}.BrowserAlias"
+            android:targetActivity=".MainActivity"
+            android:exported="true"
+            android:enabled="false">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+            </intent-filter>
+        </activity-alias>
         
     </application>
 

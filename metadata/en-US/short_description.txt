@@ -1,1 +1,1 @@
-Clean tracking parameters from URLs & fix embeds (Instagram, Twitter/X, Facebook) 
+Clean tracking from URLs and fix embeds (Instagram, Twitter/X, Facebook)

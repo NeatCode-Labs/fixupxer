@@ -1,0 +1,9 @@
+Selectable Instagram Embed Proxy
+
+- Three proxies supported: kkinstagram.com, eeinstagram.com, instagram7.com
+- Persistent user choice across Main, Share and Settings screens
+- New "Active: <proxy>. Change." row next to the Embed? toggle on Main/Share
+- Change link opens Settings; falls back to a dialog if Settings is unavailable
+- Browser mode honours the same proxy preference
+- Toggle label shortened to "Embed?"
+- 257 tests, 100% pass

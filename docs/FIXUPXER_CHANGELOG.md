@@ -1,9 +1,9 @@
 # FixupXer App - Development Summary
-## Version Progression: v1.4.6 → v1.2.1 (Latest to Oldest)
+## Version Progression: v1.4.7 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 17 (v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
-**Current Version:** v1.4.6 (versionCode: 23)  
-**Development Period:** v1.2.1 (Initial) → v1.4.6 (Current)
+**Total Versions Released:** 18 (v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
+**Current Version:** v1.4.7 (versionCode: 25)  
+**Development Period:** v1.2.1 (Initial) → v1.4.7 (Current)
 
 ---
 
@@ -26,6 +26,27 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v1.4.6 → v1.4.7
+- **Focus:** Selectable Instagram embed proxy + F-Droid Settings parity + fastlane metadata compliance
+- **Key Changes:**
+  - Added two new Instagram proxies alongside `kkinstagram.com`: `eeinstagram.com` and `instagram7.com`
+  - New `KEY_INSTAGRAM_PROXY` string preference in `PreferencesManager` (default: `kkinstagram.com`)
+  - `UrlProcessor.processUrl(...)` and `processUrlForSharing(...)` accept a new `instagramProxy` parameter (default-kept for backward-compatible tests)
+  - Generic `convertToInstagramProxy(url, targetProxy)` and `convertFromInstagramProxy(url)` replace the old `kkinstagram`-specific helpers; cross-proxy swaps are supported
+  - `InstagramCleaner.matches()`, `CleanerService.describeAction()`, `PostCleanRunner` native-app mapping and `UrlRepositoryImpl` history classification all extended to cover the three proxies
+  - ViewModel split: `isFacebookUrl` now a dedicated UI-state field, so only Instagram URLs expose the proxy row
+  - New layout inside `instagramToggleContainer`: single horizontal row with `[icon] Embed? [switch]` on the left and `Active: <proxy>. Change.` on the right (Instagram only)
+  - New `InstagramProxyDialogHelper` (radio `AlertDialog`) hosts the proxy chooser:
+    - `MainActivity.onChangeProxyClick()` launches `SettingsActivity` when `Intent.resolveActivity()` succeeds (primary path) and falls back to the dialog otherwise
+    - `ShareActivity.onChangeProxyClick()` always uses the dialog. `ShareActivity` is declared `android:noHistory="true"` in the manifest, so the system calls `finish()` the moment the activity loses focus — launching `SettingsActivity` from Share would therefore destroy the share context mid-flow. An earlier attempt with an `isNavigatingAway` flag could not work around `noHistory`. Showing the dialog keeps the share context alive and re-processes the URL in place so the preview updates immediately. The one-shot share contract (`onPause → clearState → finish`) is preserved unchanged
+  - New Settings section "Instagram embed proxy" with three `MaterialRadioButton` choices positioned above Browser Integration
+  - Browser mode reads the same `getInstagramProxy()` preference — both entry points honour the user's choice
+  - `disclaimer_text` updated to list all three proxies as third-party services
+  - **Issue #3 fix:** F-Droid build now ships with the same Settings menu (and therefore browser mode) as Google Play. Root-of-truth sync direction is now strict: all source changes go root → GITHUB; F-Droid-only files (metadata, proguard rules, gradle.properties) are the sole exceptions. The only intentional build-config difference is `dependenciesInfo.includeInBundle/includeInApk = false` in the GITHUB `app/build.gradle.kts`, plus the omission of Google's `adi-registration.properties`.
+  - **Issue #4 fix:** fastlane metadata trimmed to respect F-Droid limits: `short_description.txt` 82→72 chars (≤80 limit), `changelogs/23.txt` 1324→440 chars (≤500 limit); older oversize changelogs (12, 13, 15, 21) also trimmed; new `changelogs/25.txt` added for v1.4.7.
+- **Tests added:** `InstagramProxySelectionTest` (17 unit cases covering forward/backward/cross-proxy/no-op/dirty/subdomain), `InstagramProxyPreferenceTest`, `SettingsActivityProxyTest`, `MainActivityProxyLabelTest`, `ShareActivityProxyLabelTest`; extensions in `UrlValidationImprovementsTest` and `HistoryDatabaseTest` for the two new proxies
+- **Impact:** Users can recover from proxy outages in a single tap; `kkinstagram` remains the default so upgrades are invisible for existing installs; F-Droid users get parity with Google Play build
 
 ### v1.4.5 → v1.4.6
 - **Focus:** Browser mode, UI/UX polish, and ReVanced YouTube support
@@ -488,7 +509,8 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.4.3 | 20 | UI polish & production ready | ✅ Released |
 | v1.4.4 | 21 | Android 15 edge-to-edge compliance | ✅ Released |
 | v1.4.5 | 22 | Multi-subdomain URL support | ✅ Released |
-| v1.4.6 | 23 | Browser mode integration | ✅ Current |
+| v1.4.6 | 23 | Browser mode integration | ✅ Released |
+| v1.4.7 | 25 | Selectable Instagram embed proxy | ✅ Current |
 
 ### Build Artifacts:
 - **APK:** `

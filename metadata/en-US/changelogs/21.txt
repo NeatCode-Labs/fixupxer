@@ -1,18 +1,10 @@
-Android 15 Edge-to-Edge Compliance & 100% Responsive Design
+Android 15 Edge-to-Edge & 100% Responsive Design
 
-What's New:
-• Android 15 compliance - Removed deprecated status/navigation bar APIs
-• Modern edge-to-edge - Uses enableEdgeToEdge() with SystemBarStyle
-• Navigation bar fix - Icons visible on light backgrounds (all Android versions)
-• 100% responsive - No hardcoded values, adapts to all screen sizes
-• Multi-screen support - Optimized for phones and tablets
-• Clean code - Fixed lint warnings, centralized edge-to-edge logic
-• Full test coverage - 198 tests passing (86 unit + 112 instrumented)
-• Performance - 297ms startup, ~41MB memory usage
-• Professional build - Signed APK (4.3MB) and AAB (5.2MB)
-
-Technical:
-• Follows Google's Android 15 design guidelines
-• Backward compatible to Android 5.0
-• Material Design 3 with proper insets handling
-• Ready for future Android versions 
+- Removed deprecated status/navigation bar APIs
+- Modern enableEdgeToEdge() with SystemBarStyle
+- Navigation bar icons visible on light backgrounds
+- No hardcoded dimensions; phone & tablet layouts
+- Lint-clean, centralized edge-to-edge logic
+- 198 tests (86 unit + 112 instrumented) pass
+- 297 ms startup, ~41 MB memory
+- Material Design 3 with proper insets

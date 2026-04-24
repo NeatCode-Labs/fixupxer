@@ -1,16 +1,8 @@
-v1.3.4 (13)
-• Added Facebook URL conversion support
-  - Converts Facebook URLs to facebookez.com for better embeds
-  - Removes mobile prefixes (m., www., mobile.) from Facebook URLs
-  - Toggle control for Facebook conversion (Create embeddable link)
-• Fixed "Nothing to do!" message display bug
-  - Now properly shows message instead of empty field when no processing is needed
-• Enhanced URL processing logic
-  - Improved Facebook URL detection and conversion
-  - Better handling of various Facebook URL formats
-• Updated disclaimers and documentation
-  - Added Facebook service disclaimer
-  - Updated supported platforms documentation
-• Bug fixes and performance improvements
-  - Fixed UI state management issues
-  - Improved error handling and user feedback 
+v1.3.4
+
+- Added Facebook URL conversion (to facebookez.com) with mobile-prefix stripping
+- Toggle control for Facebook conversion (Create embeddable link)
+- Fixed "Nothing to do!" empty-field bug
+- Improved Facebook URL detection and format handling
+- Updated disclaimers and supported-platforms docs
+- UI state and error-handling fixes

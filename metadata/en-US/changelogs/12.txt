@@ -1,18 +1,8 @@
 FixupXer v1.3.3
 
-- Fixed Instagram URL Detection - Instagram URLs no longer incorrectly flagged as "Multiple URLs detected"
-- Fixed Case Sensitivity - Instagram post IDs now preserve case (e.g., DLRNJjEx45S won't become lowercase)
-- Enhanced Glued URL Detection - Improved detection to avoid false positives on legitimate URLs
-- Added Open Button to Share Screen - Can now open processed URLs directly from the share screen
-- Improved Accessibility - Fixed hardcoded text and added proper content descriptions
-- Better RTL Support - Fixed padding issues for right-to-left languages
-- Minor UI Improvements - Added autofill hints and fixed various layout issues
-
-Bug Fixes:
-- Fixed Instagram URLs being rejected with "Multiple URLs detected" error
-- Fixed case-sensitive URLs (like Instagram posts) being converted to lowercase
-- Fixed glued URL detection triggering on legitimate URLs containing common TLDs
-- Fixed missing Open button in ShareActivity
-- Fixed hardcoded content descriptions for better accessibility
-- Fixed RTL padding symmetry issues
-- Fixed missing autofill hints on URL input field 
+- Fixed Instagram URLs no longer flagged as "Multiple URLs detected"
+- Fixed case-sensitive Instagram post IDs being lowercased
+- Improved glued URL detection (fewer false positives on legit URLs)
+- Added Open button to Share screen
+- Better accessibility (content descriptions, autofill hints, RTL padding)
+- Minor UI fixes

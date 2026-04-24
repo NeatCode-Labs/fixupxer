@@ -32,6 +32,7 @@ import android.os.Build
 import android.widget.Toast
 import com.fixupxer.PreferencesManager
 import com.fixupxer.data.model.AfterCleanAction
+import com.fixupxer.utils.Constants
 import timber.log.Timber
 
 /**
@@ -272,7 +273,8 @@ class PostCleanRunner(
         
         // Map domains to their native app packages
         val nativeAppPackage = when {
-            url.contains("instagram.com") || url.contains("kkinstagram.com") -> "com.instagram.android"
+            url.contains(Constants.INSTAGRAM_DOMAIN) ||
+                Constants.INSTAGRAM_PROXY_DOMAINS.any { url.contains(it) } -> "com.instagram.android"
             url.contains("x.com") || url.contains("twitter.com") || url.contains("fixupx.com") -> "com.twitter.android"
             url.contains("facebook.com") || url.contains("facebookez.com") -> "com.facebook.katana"
             url.contains("reddit.com") -> "com.reddit.frontpage"
@@ -358,8 +360,9 @@ class PostCleanRunner(
                     tryAddManualApp("app.revanced.android.youtube", uri, targetIntents, manuallyAddedApps)
                     tryAddManualApp("com.google.android.youtube", uri, targetIntents, manuallyAddedApps)
                 }
-                url.contains("instagram.com") || url.contains("kkinstagram.com") -> {
-                    Timber.d("URL contains instagram.com or kkinstagram.com, trying to add Instagram app")
+                url.contains(Constants.INSTAGRAM_DOMAIN) ||
+                    Constants.INSTAGRAM_PROXY_DOMAINS.any { url.contains(it) } -> {
+                    Timber.d("URL contains Instagram or one of its proxies, trying to add Instagram app")
                     tryAddManualApp("com.instagram.android", uri, targetIntents, manuallyAddedApps)
                 }
                 url.contains("x.com") || url.contains("twitter.com") || url.contains("fixupx.com") -> {

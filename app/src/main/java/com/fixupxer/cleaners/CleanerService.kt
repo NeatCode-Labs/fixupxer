@@ -25,6 +25,7 @@ import com.fixupxer.cleaners.cache.CleanerCache
 import com.fixupxer.cleaners.model.AppliedCleaner
 import com.fixupxer.cleaners.model.ProcessingResult
 import com.fixupxer.cleaners.model.RemovedParameter
+import com.fixupxer.utils.Constants
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -261,7 +262,8 @@ class CleanerService @Inject constructor(
             
             // Domain conversion
             originalUrl.contains("twitter.com") && cleanedUrl.contains("fixupx.com") -> "Converted to FixupX"
-            originalUrl.contains("instagram.com") && cleanedUrl.contains("kkinstagram.com") -> "Converted to KKInstagram"
+            originalUrl.contains(Constants.INSTAGRAM_DOMAIN) &&
+                Constants.INSTAGRAM_PROXY_DOMAINS.any { cleanedUrl.contains(it) } -> "Converted to Instagram proxy"
             originalUrl.contains("facebook.com") && cleanedUrl.contains("facebookez.com") -> "Converted to FacebookEZ"
             
             // Product ID extraction

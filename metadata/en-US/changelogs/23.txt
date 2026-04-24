@@ -1,20 +1,11 @@
-Browser Mode Integration & Professional UI Polish
+Browser Mode & UI Polish
 
-What's New:
-• Revolutionary Browser Mode - Set FixupXer as default browser for system-wide URL cleaning
-• Professional Settings Screen - Complete configuration interface with Material Design 3
-• Drag-and-Drop Action Priorities - Customize post-clean behavior (native app, browser, share, clipboard)
-• ReVanced YouTube Support - Automatically prefers ReVanced YouTube over official YouTube app
-• Built-in Instructions Dialog - Step-by-step browser setup guide with professional formatting
-• Enhanced Native App Detection - Smart handling of app-specific links while preserving cleaning
-• Perfect Text Rendering - Fixed all formatting issues with proper HTML rendering and Unicode symbols
-• Comprehensive UI Polish - Professional typography with Unicode quotes and visual improvements
-• Zero-Configuration Option - Works perfectly out-of-the-box with intelligent defaults
-• Enhanced Menu Structure - Dedicated Settings and Instructions sections for better organization
-
-Technical Excellence:
-• All 212 tests passing with 100% success rate
-• Complete lint-free codebase for professional quality
-• Full Android 15 compliance with edge-to-edge support
-• Thread-safe browser alias management
-• Enterprise-grade architecture for reliable performance 
+- Optional browser mode: set FixupXer as default browser to auto-clean every link
+- New Settings screen (Material Design 3)
+- Drag-and-drop post-clean action priorities
+- ReVanced YouTube support (prefers ReVanced over official app)
+- Built-in "How to Use" instructions dialog
+- Smarter native-app detection
+- UI/typography polish across all dialogs
+- Full Android 15 edge-to-edge compliance
+- 212 tests, 100% pass

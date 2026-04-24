@@ -20,11 +20,13 @@
 
 package com.fixupxer
 
+import android.content.Context
 import android.content.Intent
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -40,6 +42,7 @@ import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.delay
+import androidx.test.espresso.matcher.ViewMatchers.isNotChecked
 
 /**
  * Settings related UI tests
@@ -244,6 +247,149 @@ class SettingsTest {
                 .inRoot(isDialog())
                 .check(matches(isDisplayed()))
         }
+    }
+    
+    @Test
+    fun testConversionDefaultsDialog() {
+        // Launch Settings activity directly
+        ActivityScenario.launch(com.fixupxer.ui.SettingsActivity::class.java)
+        
+        // Click on Conversion defaults button
+        onView(withId(R.id.buttonConversionDefaults))
+            .perform(scrollTo(), click())
+        
+        // Wait for dialog
+        onView(isRoot()).perform(waitFor(1000))
+        
+        // Verify dialog is shown
+        onView(withText("Browser Conversion Settings"))
+            .inRoot(isDialog())
+            .check(matches(isDisplayed()))
+        
+        // Verify explanation text is shown
+        onView(withText(containsString("When acting as a browser")))
+            .inRoot(isDialog())
+            .check(matches(isDisplayed()))
+        
+        // Verify all three toggles are present
+        onView(withId(R.id.switchBrowserTwitter))
+            .inRoot(isDialog())
+            .check(matches(isDisplayed()))
+        
+        onView(withId(R.id.switchBrowserInstagram))
+            .inRoot(isDialog())
+            .check(matches(isDisplayed()))
+        
+        onView(withId(R.id.switchBrowserFacebook))
+            .inRoot(isDialog())
+            .check(matches(isDisplayed()))
+    }
+    
+    @Test
+    fun testConversionDefaultsToggleSaving() {
+        runBlocking {
+            // Set initial states
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+            prefs.edit()
+                .putBoolean("browser_convert_twitter", true)
+                .putBoolean("browser_convert_instagram", true)
+                .putBoolean("browser_convert_facebook", true)
+                .commit()
+            
+            delay(100)
+        }
+        
+        // Launch Settings activity  
+        ActivityScenario.launch(com.fixupxer.ui.SettingsActivity::class.java)
+        
+        // Open conversion defaults dialog
+        onView(withId(R.id.buttonConversionDefaults))
+            .perform(scrollTo(), click())
+        
+        // Wait for dialog
+        onView(isRoot()).perform(waitFor(1000))
+        
+        // Toggle Twitter conversion off
+        onView(withId(R.id.switchBrowserTwitter))
+            .inRoot(isDialog())
+            .perform(click())
+        
+        // Toggle Instagram conversion off
+        onView(withId(R.id.switchBrowserInstagram))
+            .inRoot(isDialog())
+            .perform(click())
+        
+        // Save
+        onView(withId(R.id.btnSave))
+            .inRoot(isDialog())
+            .perform(click())
+        
+        // Verify dialog is dismissed
+        onView(withText("Browser Conversion Settings"))
+            .check(doesNotExist())
+        
+        // Reopen dialog to verify changes were saved
+        onView(withId(R.id.buttonConversionDefaults))
+            .perform(scrollTo(), click())
+        
+        // Verify toggles are still off
+        onView(withId(R.id.switchBrowserTwitter))
+            .inRoot(isDialog())
+            .check(matches(isNotChecked()))
+        
+        onView(withId(R.id.switchBrowserInstagram))
+            .inRoot(isDialog())
+            .check(matches(isNotChecked()))
+    }
+    
+    @Test
+    fun testConversionDefaultsCancel() {
+        runBlocking {
+            // Set initial state - all enabled
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+            prefs.edit()
+                .putBoolean("browser_convert_twitter", true)
+                .putBoolean("browser_convert_instagram", true)
+                .putBoolean("browser_convert_facebook", true)
+                .commit()
+            
+            delay(100)
+        }
+        
+        // Launch Settings activity
+        ActivityScenario.launch(com.fixupxer.ui.SettingsActivity::class.java)
+        
+        // Open conversion defaults dialog
+        onView(withId(R.id.buttonConversionDefaults))
+            .perform(scrollTo(), click())
+        
+        // Wait for dialog
+        onView(isRoot()).perform(waitFor(1000))
+        
+        // Toggle a switch
+        onView(withId(R.id.switchBrowserFacebook))
+            .inRoot(isDialog())
+            .perform(click())
+        
+        // Cancel
+        onView(withId(R.id.btnCancel))
+            .inRoot(isDialog())
+            .perform(click())
+        
+        // Verify dialog is dismissed
+        onView(withText("Browser Conversion Settings"))
+            .check(doesNotExist())
+        
+        // Reopen dialog
+        onView(withId(R.id.buttonConversionDefaults))
+            .perform(scrollTo(), click())
+        
+        // Verify change was not saved (should still be checked)
+        onView(withId(R.id.switchBrowserFacebook))
+            .inRoot(isDialog())
+            .check(matches(isChecked()))
     }
     
     // Helper function to wait

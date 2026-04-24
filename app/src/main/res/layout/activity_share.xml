@@ -146,14 +146,15 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Instagram toggle -->
+                <!-- Instagram toggle: single horizontal row. Left: [icon] Embed? [switch].
+                     Right (only for Instagram URLs): Active: <proxy>. Change. -->
                 <LinearLayout
                     android:id="@+id/instagramToggleContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="@dimen/margin_large"
                     android:gravity="center_vertical"
+                    android:layout_marginBottom="@dimen/margin_large"
                     android:background="@drawable/toggle_background"
                     android:padding="@dimen/padding_medium"
                     android:visibility="gone">
@@ -162,13 +163,12 @@
                         android:layout_width="@dimen/icon_small_size"
                         android:layout_height="@dimen/icon_small_size"
                         android:src="@drawable/ic_conversion"
-                        android:layout_marginEnd="@dimen/margin_medium"
+                        android:layout_marginEnd="@dimen/margin_small"
                         android:contentDescription="@string/url_conversion_desc" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:text="@string/convert_instagram_toggle"
                         android:textSize="@dimen/text_size_small"
                         android:textColor="@color/primary"
@@ -178,10 +178,50 @@
                         android:id="@+id/switchInstagram"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/margin_small"
                         android:checked="true"
                         android:contentDescription="@string/convert_instagram_toggle_desc"
                         app:thumbTint="@color/switch_thumb_selector"
                         app:trackTint="@color/switch_track_selector" />
+
+                    <LinearLayout
+                        android:id="@+id/instagramProxyRow"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="end|center_vertical"
+                        android:layout_marginStart="@dimen/margin_small"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/textViewInstagramProxyStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="@dimen/text_size_tiny"
+                            android:textColor="@color/dark_gray"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            tools:text="Active: kkinstagram.com." />
+
+                        <TextView
+                            android:id="@+id/textViewChangeProxy"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/margin_small"
+                            android:paddingStart="@dimen/padding_small"
+                            android:paddingEnd="@dimen/padding_small"
+                            android:paddingTop="@dimen/padding_small"
+                            android:paddingBottom="@dimen/padding_small"
+                            android:text="@string/change_proxy_link"
+                            android:textSize="@dimen/text_size_tiny"
+                            android:textColor="@color/primary"
+                            android:textStyle="bold"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:contentDescription="@string/change_proxy_link_desc" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- Twitter/X toggle -->

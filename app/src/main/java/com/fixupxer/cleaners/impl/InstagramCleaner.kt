@@ -97,7 +97,7 @@ object InstagramCleaner : UrlCleaner {
     override fun matches(url: String): Boolean {
         val lowerUrl = url.lowercase()
         return lowerUrl.contains(Constants.INSTAGRAM_DOMAIN) ||
-               lowerUrl.contains(Constants.KKINSTAGRAM_DOMAIN)
+               Constants.INSTAGRAM_PROXY_DOMAINS.any { lowerUrl.contains(it) }
     }
     
     override fun clean(url: String): String {

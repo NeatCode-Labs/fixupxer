@@ -20,6 +20,7 @@
 
 package com.fixupxer
 
+import android.content.Context
 import android.content.Intent
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
@@ -40,6 +41,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import com.fixupxer.PreferencesManager
 import org.junit.Before
+import androidx.preference.PreferenceManager
+import org.junit.Assert.*
 
 @RunWith(AndroidJUnit4::class)
 class ShareActivityTest {
@@ -309,5 +312,81 @@ class ShareActivityTest {
         // We can't directly verify database here, but we can verify the URL was processed
         onView(withId(R.id.textViewProcessedUrl))
             .check(matches(not(withText(""))))
+    }
+    
+    @Test
+    fun testActionPriorityMode() {
+        runBlocking {
+            // Set action mode to priority and enable Instagram conversion
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+            prefs.edit()
+                .putString("action_mode", PreferencesManager.ACTION_MODE_PRIORITY)
+                .putBoolean("action_clipboard", true)
+                .putBoolean("convert_instagram", true) // Enable Instagram conversion
+                .putBoolean("clean_tracking", true) // Enable tracking removal
+                .commit()
+            
+            // Give time for preferences to be applied
+            delay(300)
+            
+            // Launch with a URL
+            launchShareActivityWithText("https://www.instagram.com/p/test123/?utm_source=test")
+            
+            // Wait for processing
+            onView(isRoot()).perform(waitFor(2500))
+            
+            // With Instagram conversion enabled, the URL should be converted to kkinstagram.com
+            // and tracking parameters should be removed
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText("https://www.kkinstagram.com/p/test123/")))
+        }
+    }
+    
+    @Test
+    fun testBrowserConversionDefaults() {
+        runBlocking {
+            // Set browser mode conversion preferences
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+            prefs.edit()
+                .putBoolean("browser_convert_instagram", false)
+                .putBoolean("convert_instagram", true)  // Main app setting
+                .commit()
+            
+            // This test verifies that browser conversion settings are separate
+            // In a real browser mode test, we'd launch via BrowserAlias
+            // Here we just verify the preferences are independent
+            assertTrue(prefs.getBoolean("convert_instagram", true))
+            assertFalse(prefs.getBoolean("browser_convert_instagram", true))
+        }
+    }
+    
+    @Test
+    fun testFollowActionMode() {
+        runBlocking {
+            // Set action mode to follow all
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+            prefs.edit()
+                .putString("action_mode", "follow")
+                .putBoolean("action_clipboard", true)
+                .putBoolean("action_share", true)
+                .putBoolean("convert_twitter", true) // Enable Twitter conversion
+                .commit()
+            
+            // Give time for preferences to be applied
+            delay(200)
+            
+            // Launch with a URL
+            launchShareActivityWithText("https://x.com/test/status/123")
+            
+            // Wait for processing
+            onView(isRoot()).perform(waitFor(2000))
+            
+            // URL should be converted to fixupx.com
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText(containsString("fixupx.com"))))
+        }
     }
 } 

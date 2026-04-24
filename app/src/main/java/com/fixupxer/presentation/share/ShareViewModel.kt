@@ -105,8 +105,10 @@ class ShareViewModel @Inject constructor(
                     }
                     
                     // Check URL type to determine toggle visibility
-                    val isInstagram = url.contains("instagram.com", ignoreCase = true) || 
-                                    url.contains("kkinstagram.com", ignoreCase = true)
+                    val isInstagram = url.contains("instagram.com", ignoreCase = true) ||
+                                    url.contains("kkinstagram.com", ignoreCase = true) ||
+                                    url.contains("eeinstagram.com", ignoreCase = true) ||
+                                    url.contains("instagram7.com", ignoreCase = true)
                     
                     val isTwitter = url.contains("twitter.com", ignoreCase = true) ||
                                    url.contains("x.com", ignoreCase = true) ||
@@ -119,7 +121,8 @@ class ShareViewModel @Inject constructor(
                     
                     _uiState.update { 
                         it.copy(
-                            isInstagramUrl = isInstagram || isFacebook,  // Show Instagram toggle for Facebook too
+                            isInstagramUrl = isInstagram,
+                            isFacebookUrl = isFacebook,
                             isTwitterUrl = isTwitter
                         ) 
                     }
@@ -259,6 +262,7 @@ class ShareViewModel @Inject constructor(
                 sharedText = "",
                 processedUrl = "",
                 isInstagramUrl = false,
+                isFacebookUrl = false,
                 error = null
             )
         }
@@ -273,6 +277,7 @@ data class ShareUiState(
     val processedUrl: String = "",
     val isLoading: Boolean = false,
     val isInstagramUrl: Boolean = false,
+    val isFacebookUrl: Boolean = false,
     val isInstagramConversionEnabled: Boolean = true,
     val isTwitterUrl: Boolean = false,
     val isTwitterConversionEnabled: Boolean = true,

@@ -40,6 +40,7 @@ import com.fixupxer.databinding.ActivitySettingsBinding
 import com.fixupxer.databinding.DialogConversionDefaultsBinding
 import com.fixupxer.ui.adapters.ActionPriorityAdapter
 import com.fixupxer.utils.BrowserModeUtils
+import com.fixupxer.utils.Constants
 import com.google.android.material.switchmaterial.SwitchMaterial
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -88,6 +89,18 @@ class SettingsActivity : BaseActivity() {
     }
     
     private fun setupViews() {
+        // Instagram embed proxy radio group
+        binding.radioGroupInstagramProxy.setOnCheckedChangeListener { _, checkedId ->
+            val domain = when (checkedId) {
+                R.id.radioProxyKk -> Constants.KKINSTAGRAM_DOMAIN
+                R.id.radioProxyEe -> Constants.EEINSTAGRAM_DOMAIN
+                R.id.radioProxy7 -> Constants.INSTAGRAM7_DOMAIN
+                else -> Constants.KKINSTAGRAM_DOMAIN
+            }
+            preferencesManager.setInstagramProxy(domain)
+            Timber.d("Instagram proxy changed to: $domain")
+        }
+
         // Browser mode switch
         binding.switchBrowserMode.setOnCheckedChangeListener { _, isChecked ->
             preferencesManager.setBrowserModeEnabled(isChecked)
@@ -123,6 +136,13 @@ class SettingsActivity : BaseActivity() {
     }
     
     private fun loadSettings() {
+        // Load Instagram proxy selection
+        when (preferencesManager.getInstagramProxy()) {
+            Constants.EEINSTAGRAM_DOMAIN -> binding.radioProxyEe.isChecked = true
+            Constants.INSTAGRAM7_DOMAIN -> binding.radioProxy7.isChecked = true
+            else -> binding.radioProxyKk.isChecked = true
+        }
+
         // Load browser mode state
         val browserModeEnabled = preferencesManager.isBrowserModeEnabled()
         binding.switchBrowserMode.isChecked = browserModeEnabled

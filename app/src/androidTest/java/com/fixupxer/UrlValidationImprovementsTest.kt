@@ -244,4 +244,36 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .check(matches(withText(fixupxUrl)))
     }
+
+    @Test
+    fun testEeinstagramDomainRecognized() {
+        launchMainActivity()
+
+        // eeinstagram.com URLs should be recognized as valid (new Instagram proxy)
+        val eeinstagramUrl = "https://eeinstagram.com/p/ABC123/"
+
+        onView(withId(R.id.editTextUrl))
+            .perform(replaceText(eeinstagramUrl), closeSoftKeyboard())
+
+        onView(isRoot()).perform(waitFor(1500))
+
+        onView(withId(R.id.editTextUrl))
+            .check(matches(withText(eeinstagramUrl)))
+    }
+
+    @Test
+    fun testInstagram7DomainRecognized() {
+        launchMainActivity()
+
+        // instagram7.com URLs should be recognized as valid (new Instagram proxy)
+        val instagram7Url = "https://instagram7.com/p/XYZ789/"
+
+        onView(withId(R.id.editTextUrl))
+            .perform(replaceText(instagram7Url), closeSoftKeyboard())
+
+        onView(isRoot()).perform(waitFor(1500))
+
+        onView(withId(R.id.editTextUrl))
+            .check(matches(withText(instagram7Url)))
+    }
 } 

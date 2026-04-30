@@ -2,11 +2,6 @@
 /*
  * FixupXer - URL Enhancer
  * Copyright (C) 2020-2025  NeatCode Labs
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
  */
 
 package com.fixupxer
@@ -29,13 +24,14 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.fixupxer.ui.ShareActivity
 import com.fixupxer.utils.Constants
+import org.hamcrest.CoreMatchers.containsString
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Instrumentation tests for the "Currently using: <proxy>. Change." row in ShareActivity.
+ * Instrumentation tests for the "Active: <proxy>. Change." row in ShareActivity.
  */
 @RunWith(AndroidJUnit4::class)
 class ShareActivityProxyLabelTest {
@@ -76,27 +72,29 @@ class ShareActivityProxyLabelTest {
     }
 
     @Test
-    fun instagramShareShowsCurrentlyUsingKkinstagramByDefault() {
+    fun instagramShareShowsActiveToinstagramByDefault() {
+        // v1.4.8: default = toinstagram.com
         ActivityScenario.launch<ShareActivity>(shareIntent("https://instagram.com/p/abc")).use {
             onView(isRoot()).perform(waitFor(1500))
 
             onView(withId(R.id.instagramProxyRow))
                 .check(matches(isDisplayed()))
             onView(withId(R.id.textViewInstagramProxyStatus))
-                .check(matches(withText("Active: kkinstagram.com.")))
+                .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
         }
     }
 
     @Test
-    fun shareUsesEeinstagramWhenPrefSet() {
+    fun shareUsesAdamlikesWhenPrefSet() {
+        // toinstagram is the default; this test exercises switching to the other primary proxy
         val ctx = InstrumentationRegistry.getInstrumentation().targetContext
-        PreferencesManager(ctx).setInstagramProxy(Constants.EEINSTAGRAM_DOMAIN)
+        PreferencesManager(ctx).setInstagramProxy(Constants.ADAMLIKES_DOMAIN)
 
         ActivityScenario.launch<ShareActivity>(shareIntent("https://instagram.com/p/abc")).use {
             onView(isRoot()).perform(waitFor(1500))
 
             onView(withId(R.id.textViewInstagramProxyStatus))
-                .check(matches(withText("Active: eeinstagram.com.")))
+                .check(matches(withText("Active: ${Constants.ADAMLIKES_DOMAIN}.")))
         }
     }
 
@@ -106,29 +104,32 @@ class ShareActivityProxyLabelTest {
      * is android:noHistory="true" and would be destroyed on navigation away.
      * After picking a new proxy, the Share screen must stay on top, the label
      * must refresh, and the processed URL must be re-computed with the new proxy.
+     *
+     * Dialog labels include a Primary/Backup badge appended to the domain
+     * (e.g. "instagram7.com  · Backup"), so we match on a substring.
      */
     @Test
     fun changeProxyInShowsDialogAndUpdatesLabelInPlace() {
         ActivityScenario.launch<ShareActivity>(shareIntent("https://instagram.com/p/abc")).use {
             onView(isRoot()).perform(waitFor(1500))
 
-            // Default proxy should be kkinstagram.com
+            // Default proxy should be toinstagram.com (v1.4.8)
             onView(withId(R.id.textViewInstagramProxyStatus))
-                .check(matches(withText("Active: kkinstagram.com.")))
+                .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
 
             // Click the "Change." link -> dialog must appear (in-activity, not Settings)
             onView(withId(R.id.textViewChangeProxy)).perform(click())
             onView(isRoot()).perform(waitFor(500))
 
-            // Select instagram7.com from the dialog
-            onView(withText(Constants.INSTAGRAM7_DOMAIN))
+            // Select the instagram7.com row from the dialog (label has a "Backup" badge)
+            onView(withText(containsString(Constants.INSTAGRAM7_DOMAIN)))
                 .inRoot(isDialog())
                 .perform(click())
             onView(isRoot()).perform(waitFor(500))
 
             // Share screen must still be alive and the label must reflect the new proxy
             onView(withId(R.id.textViewInstagramProxyStatus))
-                .check(matches(withText("Active: instagram7.com.")))
+                .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
             onView(withId(R.id.instagramToggleContainer))
                 .check(matches(isDisplayed()))
         }

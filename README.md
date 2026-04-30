@@ -5,7 +5,7 @@
 
 **Clean URLs • Get embeddable links • Use Browser Mode**
 
-[![Version](https://img.shields.io/badge/version-1.4.7-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
+[![Version](https://img.shields.io/badge/version-1.4.8-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
 [![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-green?style=for-the-badge)](LICENSE)
 
@@ -145,7 +145,7 @@ You can reorder the list under **Settings ▸ Action priority**. Drag and drop i
 
 ### Social Media
 - **Facebook** (119 trackers) - Plus converts to facebookez.com for better sharing
-- **Instagram** (67 trackers) - Plus converts to kkinstagram.com for enhanced privacy
+- **Instagram** (67 trackers) - Plus converts to a user-selectable proxy (toinstagram.com, adamlikes.men, or instagram7.com) for embeddable links
 - **Twitter/X** (99 trackers) - Plus converts to fixupx.com for better embeds
 - **TikTok** (124 trackers) - Removes all tracking while keeping video links working
 - **LinkedIn** (117 trackers) - Cleans job posts and profile links
@@ -174,22 +174,27 @@ When you see the "Embed?" toggle:
 
 - **ON** ✅ - Converts social media links for better preview/embedding:
   - Facebook → facebookez.com (better previews)
-  - Instagram → configurable proxy (kkinstagram.com / eeinstagram.com / instagram7.com)
+  - Instagram → configurable proxy (toinstagram.com / adamlikes.men / instagram7.com)
   - Twitter/X → fixupx.com (better embeds)
   
 - **OFF** ❌ - Only removes tracking, keeps original domain
 
 ### Instagram embed proxy selection
 
-Instagram proxies occasionally go offline. To keep embeds working, FixupXer now lets you choose which proxy is used:
+Instagram proxies occasionally go offline. To keep embeds working, FixupXer lets you pick the active proxy:
 
-- **kkinstagram.com** (default)
-- **eeinstagram.com**
+**Primary** (rich embed — media + post / reel title and description)
+- **toinstagram.com** *(default)*
+- **adamlikes.men**
+
+**Backup** (media only, no title/description)
 - **instagram7.com**
 
 When you share or paste an Instagram link and the **Embed?** toggle is visible, a small label on the right shows *Active: &lt;proxy&gt;. Change.* — tap **Change.** to pick another proxy. Your choice is persistent across all three screens (Main, Share, and Settings).
 
-The setting also lives under **Settings ▸ Instagram embed proxy** on both Google Play and F-Droid builds. On the Main screen, tapping **Change.** opens Settings; on the Share screen it opens the same chooser as an inline dialog so the share flow isn't interrupted.
+The setting also lives under **Settings ▸ Instagram embed proxy** on both Google Play and F-Droid builds, with a small **(i)** info icon next to the title that explains the Primary / Backup distinction. On the Main screen tapping **Change.** opens Settings; on the Share screen it opens the same chooser as an inline dialog so the share flow isn't interrupted.
+
+Converted links are sent without a `www.` prefix — these proxies render best at the bare hostname. Pasting an old-style URL on a retired proxy (`kkinstagram.com`, `eeinstagram.com`) still works: FixupXer recognises it and converts it to your currently selected proxy.
 
 ## ⚙️ Settings & Options
 
@@ -306,7 +311,7 @@ A: Absolutely! FixupXer has no internet permission and can't send data anywhere.
 The following link conversion services are **not operated by NeatCode Labs**:
 - **facebookez.com** - Facebook link enhancement
 - **fixupx.com** - Twitter/X link enhancement  
-- **kkinstagram.com** / **eeinstagram.com** / **instagram7.com** - Instagram link enhancement (user-selectable)
+- **toinstagram.com** / **adamlikes.men** / **instagram7.com** - Instagram link enhancement (user-selectable; `kkinstagram.com` and `eeinstagram.com` from earlier versions are still recognised in pasted URLs and auto-converted to the active proxy)
 
 These services may stop working at any time. We have no control over them.
 
@@ -350,7 +355,7 @@ FixupXer builds upon ideas from these excellent projects:
 - [FxEmbed](https://github.com/FxEmbed/FxEmbed) - Twitter embed improvements
 - [InstaFix](https://github.com/Wikidepia/InstaFix) - Instagram embed enhancements
 
-Special thanks to the maintainers of facebookez.com and kkinstagram.com. Contact us if you'd like attribution!
+Special thanks to the maintainers of facebookez.com, toinstagram.com, adamlikes.men, and instagram7.com. Contact us if you'd like attribution!
 
 ## 💖 Support Development
 

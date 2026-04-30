@@ -85,9 +85,9 @@ class ShareActivityTest {
             // Wait for processing
             onView(isRoot()).perform(waitFor(2000))
             
-            // Verify conversion to kkinstagram.com with tracking removed
+            // v1.4.8: convert to default proxy (toinstagram.com), strip www., remove tracking
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.kkinstagram.com/p/test123/")))
+                .check(matches(withText("https://toinstagram.com/p/test123/")))
         }
     }
     
@@ -336,10 +336,10 @@ class ShareActivityTest {
             // Wait for processing
             onView(isRoot()).perform(waitFor(2500))
             
-            // With Instagram conversion enabled, the URL should be converted to kkinstagram.com
-            // and tracking parameters should be removed
+            // v1.4.8: With Instagram conversion enabled, URL converts to default proxy (toinstagram.com),
+            // www. is stripped, and tracking parameters are removed.
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.kkinstagram.com/p/test123/")))
+                .check(matches(withText("https://toinstagram.com/p/test123/")))
         }
     }
     

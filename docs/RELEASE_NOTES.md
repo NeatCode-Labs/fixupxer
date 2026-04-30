@@ -1,3 +1,39 @@
+# FixupXer v1.4.8 - Instagram Proxy Refresh (toinstagram.com / adamlikes.men)
+
+## 🎯 What's New
+
+### Refreshed Instagram Proxy List
+The two proxies shipped in v1.4.7 (`kkinstagram.com`, `eeinstagram.com`) have been retired in favour of two currently active ones. The full v1.4.8 set:
+
+- **toinstagram.com** — Primary (default), rich embed (media + post / reel title and description)
+- **adamlikes.men** — Primary, same rich embed as toinstagram.com
+- **instagram7.com** — Backup, embeds media only (no title or description)
+
+`kkinstagram.com` and `eeinstagram.com` remain *recognised* in pasted/shared URLs so existing links keep working — they are auto-converted to the user's currently selected active proxy. Stored preferences pointing at a retired proxy silently migrate to the default (`toinstagram.com`).
+
+### Bare-Hostname Conversion (no www.)
+Converted links are now sent to the proxy *without* the `www.` prefix or any host-level sub-prefix (e.g. `business.instagram.com`). The active proxies render best at the bare hostname; this change applies on every forward conversion (Main, Share, Browser mode). Reverse-conversion (toggle OFF) preserves the user's original prefix unchanged.
+
+### Primary / Backup Distinction with Inline Help
+Both the Settings ▸ Instagram embed proxy chooser and the inline Share-screen dialog group the proxies under **Primary** and **Backup** labels and include a small "i" info icon next to the title. Tapping it opens an explanation of which proxies embed rich content vs. media only, and a one-line note about the bare-hostname behaviour. This makes it obvious which proxy to switch to when one goes offline.
+
+### Visual Order
+Proxies are listed in the order toinstagram.com → adamlikes.men → instagram7.com in both the Settings radio group and the inline chooser dialog. The default selection on a clean install is the first Primary entry (`toinstagram.com`).
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 26
+- versionName: 1.4.8
+- APK Size: ~4.34 MB (Google), ~4.2 MB (F-Droid)
+- Tests: 117 unit + 147 instrumentation = **264 tests passing** (4 pre-existing scrollTo flakes in `SettingsTest`/`BrowserModeTest` are unrelated to v1.4.8 and tracked separately)
+- 0 permissions, 0 network calls, 0 hardcoded secrets (verified)
+
+## Download
+- [FixupXer-v1.4.8-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.4.8/FixupXer-v1.4.8-release.apk)
+
+---
+
 # FixupXer v1.4.7 - Selectable Instagram Embed Proxy + F-Droid Settings Menu
 
 ## 🎯 What's New

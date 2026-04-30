@@ -36,10 +36,19 @@ object Constants {
     
     // Domain identifiers
     const val INSTAGRAM_DOMAIN = "instagram.com"
-    const val KKINSTAGRAM_DOMAIN = "kkinstagram.com"
-    const val EEINSTAGRAM_DOMAIN = "eeinstagram.com"
+    // Active proxies. UI lists them in the order: toinstagram.com, adamlikes.men, instagram7.com.
+    // Primary proxies — embed media + post/reel title & description
+    const val TOINSTAGRAM_DOMAIN = "toinstagram.com"
+    const val ADAMLIKES_DOMAIN = "adamlikes.men"
+    // Backup proxy — embeds media only (no title/description)
     const val INSTAGRAM7_DOMAIN = "instagram7.com"
-    val INSTAGRAM_PROXY_DOMAINS = listOf(KKINSTAGRAM_DOMAIN, EEINSTAGRAM_DOMAIN, INSTAGRAM7_DOMAIN)
+    val INSTAGRAM_PROXY_DOMAINS = listOf(TOINSTAGRAM_DOMAIN, ADAMLIKES_DOMAIN, INSTAGRAM7_DOMAIN)
+    val INSTAGRAM_PRIMARY_PROXIES = listOf(TOINSTAGRAM_DOMAIN, ADAMLIKES_DOMAIN)
+    const val INSTAGRAM_BACKUP_PROXY = INSTAGRAM7_DOMAIN
+    const val INSTAGRAM_DEFAULT_PROXY = TOINSTAGRAM_DOMAIN
+    // Legacy proxies (no longer offered, but still detected so existing pasted links auto-convert)
+    val INSTAGRAM_LEGACY_PROXIES = listOf("kkinstagram.com", "eeinstagram.com")
+    val INSTAGRAM_ALL_KNOWN_PROXIES = INSTAGRAM_PROXY_DOMAINS + INSTAGRAM_LEGACY_PROXIES
     const val TWITTER_DOMAIN = "twitter.com"
     const val X_DOMAIN = "x.com"
     const val FIXUPX_DOMAIN = "fixupx.com"

@@ -92,13 +92,18 @@ class SettingsActivity : BaseActivity() {
         // Instagram embed proxy radio group
         binding.radioGroupInstagramProxy.setOnCheckedChangeListener { _, checkedId ->
             val domain = when (checkedId) {
-                R.id.radioProxyKk -> Constants.KKINSTAGRAM_DOMAIN
-                R.id.radioProxyEe -> Constants.EEINSTAGRAM_DOMAIN
+                R.id.radioProxyAdamlikes -> Constants.ADAMLIKES_DOMAIN
+                R.id.radioProxyTo -> Constants.TOINSTAGRAM_DOMAIN
                 R.id.radioProxy7 -> Constants.INSTAGRAM7_DOMAIN
-                else -> Constants.KKINSTAGRAM_DOMAIN
+                else -> Constants.INSTAGRAM_DEFAULT_PROXY
             }
             preferencesManager.setInstagramProxy(domain)
             Timber.d("Instagram proxy changed to: $domain")
+        }
+
+        // Instagram proxy info icon -> show tooltip dialog with primary/backup explanation
+        binding.instagramProxyInfoIcon.setOnClickListener {
+            showInstagramProxyInfoDialog()
         }
 
         // Browser mode switch
@@ -136,11 +141,11 @@ class SettingsActivity : BaseActivity() {
     }
     
     private fun loadSettings() {
-        // Load Instagram proxy selection
+        // Load Instagram proxy selection (default = toinstagram.com)
         when (preferencesManager.getInstagramProxy()) {
-            Constants.EEINSTAGRAM_DOMAIN -> binding.radioProxyEe.isChecked = true
+            Constants.ADAMLIKES_DOMAIN -> binding.radioProxyAdamlikes.isChecked = true
             Constants.INSTAGRAM7_DOMAIN -> binding.radioProxy7.isChecked = true
-            else -> binding.radioProxyKk.isChecked = true
+            else -> binding.radioProxyTo.isChecked = true
         }
 
         // Load browser mode state
@@ -216,6 +221,18 @@ class SettingsActivity : BaseActivity() {
         binding.actionPrioritySection.visibility = if (isPriorityMode) View.VISIBLE else View.GONE
     }
     
+    private fun showInstagramProxyInfoDialog() {
+        val message = HtmlCompat.fromHtml(
+            getString(R.string.instagram_proxy_info_text),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
+        )
+        AlertDialog.Builder(this)
+            .setTitle(R.string.instagram_proxy_info_title)
+            .setMessage(message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
+
     private fun showInstructionsDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_instructions, null)
         

@@ -16,7 +16,7 @@ These platforms support both tracking parameter removal AND URL conversion to al
 
 ### Social Media & Communication
 - **Facebook** - Removes 119 tracking parameters (fbclid, mibextid, __cft__, __tn__, _branch_match_id, epa, _gl, fb_action_ids, fb_action_types, fb_source, fb_ref, fb_comment_id, etc.) and converts to facebookez.com for better embedding
-- **Instagram** - Removes 67 tracking parameters (igshid, ig_cache_key, ig_mid, ig_share_sheet, utm_*, fbclid, etc.) and converts to a user-selectable proxy for better embedding: `kkinstagram.com` (default), `eeinstagram.com`, or `instagram7.com`
+- **Instagram** - Removes 67 tracking parameters (igshid, ig_cache_key, ig_mid, ig_share_sheet, utm_*, fbclid, etc.) and converts to a user-selectable proxy for better embedding: `toinstagram.com` (default, Primary), `adamlikes.men` (Primary), or `instagram7.com` (Backup). Converted links are sent without the `www.` prefix because these proxies render best at the bare hostname. Legacy proxies (`kkinstagram.com`, `eeinstagram.com`) are still recognised in pasted URLs and auto-converted to the active default.
 - **Twitter/X** - Removes 99 tracking parameters (s, t, ref_src, ref_url, via, twclid, utm_*, etc.) and converts to fixupx.com for better embedding
 
 ## Tracking Parameter Removal Platforms
@@ -93,7 +93,7 @@ The GeneralTrackingCleaner handles 106 universal tracking parameters for any web
 
 ### URL Conversion Behavior
 - **Facebook URLs** are converted to facebookez.com for better embedding and privacy by user decision (with automatic prefix removal)
-- **Instagram URLs** are converted to a user-selected proxy (kkinstagram.com / eeinstagram.com / instagram7.com) for better embedding and privacy by user decision
+- **Instagram URLs** are converted to a user-selected proxy (toinstagram.com / adamlikes.men / instagram7.com) for better embedding and privacy by user decision
 - **Twitter/X URLs** are converted to fixupx.com for better embedding and privacy by user decision
 - All other platforms only have tracking parameters removed
 

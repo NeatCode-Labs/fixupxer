@@ -108,16 +108,17 @@ class PreferencesManager(context: Context) {
 
     /**
      * Get the currently selected Instagram embed proxy domain.
-     * Defaults to [Constants.KKINSTAGRAM_DOMAIN] for users upgrading from earlier versions.
+     * Defaults to [Constants.INSTAGRAM_DEFAULT_PROXY]. If the stored value is no longer
+     * a supported (active) proxy — e.g. a user upgrading from v1.4.7 had `kkinstagram.com`
+     * or `eeinstagram.com` saved — we silently migrate to the default.
      */
     fun getInstagramProxy(): String {
-        val value = prefs.getString(KEY_INSTAGRAM_PROXY, Constants.KKINSTAGRAM_DOMAIN)
-            ?: Constants.KKINSTAGRAM_DOMAIN
-        // Guard against unknown stored values (e.g. manual SharedPreferences editing)
+        val value = prefs.getString(KEY_INSTAGRAM_PROXY, Constants.INSTAGRAM_DEFAULT_PROXY)
+            ?: Constants.INSTAGRAM_DEFAULT_PROXY
         return if (Constants.INSTAGRAM_PROXY_DOMAINS.contains(value)) {
             value
         } else {
-            Constants.KKINSTAGRAM_DOMAIN
+            Constants.INSTAGRAM_DEFAULT_PROXY
         }
     }
 

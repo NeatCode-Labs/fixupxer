@@ -95,9 +95,10 @@ class UrlProcessorTest {
     }
     
     @Test
-    fun `test convert Instagram URL to kkinstagram`() {
+    fun `test convert Instagram URL to default proxy strips www`() {
+        // v1.4.8: www. is stripped on conversion + default proxy = toinstagram.com
         val instagramUrl = "https://www.instagram.com/p/ABC123/"
-        val expected = "https://www.kkinstagram.com/p/ABC123/"
+        val expected = "https://toinstagram.com/p/ABC123/"
         val result = urlProcessor.processUrl(instagramUrl, cleanTracking = false, convertTwitter = true).first
         assertEquals(expected, result)
     }
@@ -105,18 +106,16 @@ class UrlProcessorTest {
     @Test
     fun `test Instagram URL with tracking parameters`() {
         val instagramUrl = "https://instagram.com/p/ABC123/?igshid=abcdef&utm_source=ig_web"
-        // No stubbing needed
-        
-        val expected = "https://kkinstagram.com/p/ABC123/"
+        val expected = "https://toinstagram.com/p/ABC123/"
         val result = urlProcessor.processUrl(instagramUrl, cleanTracking = true, convertTwitter = true).first
         assertEquals(expected, result)
     }
     
     @Test
-    fun `test already converted kkinstagram URL remains unchanged`() {
-        val kkinstagramUrl = "https://kkinstagram.com/p/ABC123/"
-        val result = urlProcessor.processUrl(kkinstagramUrl, cleanTracking = false, convertTwitter = true).first
-        assertEquals(kkinstagramUrl, result)
+    fun `test bare toinstagram URL remains unchanged when converting`() {
+        val proxyUrl = "https://toinstagram.com/p/ABC123/"
+        val result = urlProcessor.processUrl(proxyUrl, cleanTracking = false, convertTwitter = true).first
+        assertEquals(proxyUrl, result)
     }
     
     @Test
@@ -191,9 +190,7 @@ class UrlProcessorTest {
     @Test
     fun `test URL with @ prefix for Instagram`() {
         val urlWithAt = "@https://instagram.com/p/ABC123/"
-        // No stubbing needed
-        
-        val expected = "https://kkinstagram.com/p/ABC123/"
+        val expected = "https://toinstagram.com/p/ABC123/"
         val result = urlProcessor.processUrl(urlWithAt, cleanTracking = true, convertTwitter = true).first
         assertEquals(expected, result)
     }
@@ -220,9 +217,10 @@ class UrlProcessorTest {
     }
     
     @Test
-    fun `test Instagram subdomain handling`() {
+    fun `test Instagram subdomain stripped on conversion`() {
+        // v1.4.8: any host-level prefix (www., business., etc.) is dropped when converting to a proxy
         val businessUrl = "https://business.instagram.com/p/ABC123/"
-        val expected = "https://business.kkinstagram.com/p/ABC123/"
+        val expected = "https://toinstagram.com/p/ABC123/"
         val result = urlProcessor.processUrl(businessUrl, cleanTracking = false, convertTwitter = true).first
         assertEquals(expected, result)
     }

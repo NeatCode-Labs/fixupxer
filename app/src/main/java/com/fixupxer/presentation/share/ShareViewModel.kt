@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InputValidator
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
@@ -105,10 +106,10 @@ class ShareViewModel @Inject constructor(
                     }
                     
                     // Check URL type to determine toggle visibility
-                    val isInstagram = url.contains("instagram.com", ignoreCase = true) ||
-                                    url.contains("kkinstagram.com", ignoreCase = true) ||
-                                    url.contains("eeinstagram.com", ignoreCase = true) ||
-                                    url.contains("instagram7.com", ignoreCase = true)
+                    val isInstagram = url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) ||
+                                    Constants.INSTAGRAM_ALL_KNOWN_PROXIES.any {
+                                        url.contains(it, ignoreCase = true)
+                                    }
                     
                     val isTwitter = url.contains("twitter.com", ignoreCase = true) ||
                                    url.contains("x.com", ignoreCase = true) ||

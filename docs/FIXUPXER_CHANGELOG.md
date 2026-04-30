@@ -1,9 +1,9 @@
 # FixupXer App - Development Summary
-## Version Progression: v1.4.7 → v1.2.1 (Latest to Oldest)
+## Version Progression: v1.4.8 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 18 (v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
-**Current Version:** v1.4.7 (versionCode: 25)  
-**Development Period:** v1.2.1 (Initial) → v1.4.7 (Current)
+**Total Versions Released:** 19 (v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
+**Current Version:** v1.4.8 (versionCode: 26)  
+**Development Period:** v1.2.1 (Initial) → v1.4.8 (Current)
 
 ---
 
@@ -26,6 +26,20 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v1.4.7 → v1.4.8
+- **Focus:** Refreshed Instagram proxy list, bare-hostname conversion, inline info tooltip
+- **Key Changes:**
+  - **New active proxy set**: `toinstagram.com` (Primary, default), `adamlikes.men` (Primary), `instagram7.com` (Backup). `kkinstagram.com` and `eeinstagram.com` are retired from the chooser but still recognised in incoming URLs (`Constants.INSTAGRAM_LEGACY_PROXIES`); pasted legacy links auto-convert to the active default. Existing prefs pointing at a retired proxy silently migrate (`PreferencesManager.getInstagramProxy()` guard now uses `INSTAGRAM_DEFAULT_PROXY = TOINSTAGRAM_DOMAIN` as fallback).
+  - **Bare-hostname conversion**: `UrlProcessor.convertToInstagramProxy(...)` now strips the `www.` prefix (and any host-level sub-prefix such as `business.instagram.com`) when converting to a proxy. The proxies render best at the bare hostname. Reverse-conversion (toggle OFF) is unchanged and preserves the original prefix.
+  - **Primary / Backup labels** + **inline `i` tooltip** in both Settings ▸ Instagram embed proxy and the `InstagramProxyDialogHelper` chooser. The tooltip describes which proxies provide rich embeds (media + title + description) vs. media-only, and notes the no-www. behaviour. New string `instagram_proxy_info_text` (HTML) plus a custom dialog title view that hosts the info icon next to the title.
+  - **Visual order** in Settings + chooser: `toinstagram.com → adamlikes.men → instagram7.com`. New `radioProxyTo` and `radioProxyAdamlikes` IDs replace `radioProxyKk` / `radioProxyEe` in `activity_settings.xml`.
+  - **Default proxy**: changed from `kkinstagram.com` (v1.4.7 first release) → `adamlikes.men` (post-rebase) → `toinstagram.com` (final v1.4.8 release).
+  - `MainViewModel` and `ShareViewModel` now use `Constants.INSTAGRAM_ALL_KNOWN_PROXIES` (active + legacy) for `isInstagramUrl` detection so legacy URLs still trigger the Instagram toggle.
+  - `disclaimer_text` and the embed-toggle description updated to list the new active proxies.
+- **Tests updated:** `InstagramProxySelectionTest` rewritten for the new active set (forward / reverse / cross-proxy / `www.` stripping / legacy-migration coverage), `UrlProcessorTest` and `UrlProcessorMatrixTest` updated for the new default and bare-hostname behaviour, `InstagramProxyPreferenceTest` covers legacy-migration paths, `SettingsActivityProxyTest`/`MainActivityProxyLabelTest`/`ShareActivityProxyLabelTest` use the new IDs and labels, `BidirectionalConversionTest` updated for bare-hostname output, `HistoryDatabaseTest` and `UrlValidationImprovementsTest` cover the new domains.
+- **Tests pass rate:** 117 unit (100%) + 147 of 151 instrumentation; the 4 instrumentation failures are pre-existing `scrollTo`/visibility flakes in `SettingsTest.testConversionDefaults*` and `BrowserModeTest.testActionModeSelection` that are unrelated to v1.4.8 changes (button is reachable manually but Espresso `scrollTo()` reports zero visible area on the Pixel API 35 emulator). Tracked separately.
+- **Impact:** Users get an up-to-date proxy roster the day v1.4.7's proxies became unreliable; bare-hostname output works around proxy quirks transparently; primary/backup distinction lets users pick their preferred fallback at a glance.
 
 ### v1.4.6 → v1.4.7
 - **Focus:** Selectable Instagram embed proxy + F-Droid Settings parity + fastlane metadata compliance

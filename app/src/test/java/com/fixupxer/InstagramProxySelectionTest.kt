@@ -2,11 +2,6 @@
 /*
  * FixupXer - URL Enhancer
  * Copyright (C) 2020-2025  NeatCode Labs
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
  */
 
 package com.fixupxer
@@ -23,11 +18,19 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 
 /**
- * Unit tests for the Instagram proxy selection feature.
+ * Unit tests for the Instagram proxy selection feature (v1.4.8 proxy set).
  *
- * Verifies that [UrlProcessor.processUrl] correctly converts
- * between instagram.com and the three supported proxies
- * (kkinstagram.com, eeinstagram.com, instagram7.com), including cross-proxy swaps.
+ * Active proxies: adamlikes.men (primary), toinstagram.com (primary), instagram7.com (backup).
+ * Legacy proxies (kkinstagram.com, eeinstagram.com) are still recognized so that previously
+ * pasted/shared links continue to work, but are always converted to one of the active proxies.
+ *
+ * Verifies:
+ *   1. Forward conversion instagram.com -> any active proxy
+ *   2. Cross-proxy swaps between active and legacy domains
+ *   3. `www.` and any host-level sub-prefix is stripped on conversion
+ *      (proxies render best at the bare hostname)
+ *   4. Backward conversion: any known proxy -> instagram.com
+ *   5. isInstagramUrl recognizes the full known set
  */
 class InstagramProxySelectionTest {
 
@@ -56,149 +59,175 @@ class InstagramProxySelectionTest {
         processor = UrlProcessor(CleanerService(registry, cache, prefs))
     }
 
-    // ---------------------------------------------------------------------
-    // Forward: instagram.com -> any proxy
-    // ---------------------------------------------------------------------
-
-    @Test
-    fun `instagram_com converts to kkinstagram_com when proxy=kkinstagram`() {
-        val result = processor.processUrl(
-            "https://instagram.com/p/abc",
+    private fun convert(url: String, target: String, convertOn: Boolean = true) =
+        processor.processUrl(
+            url,
             cleanTracking = false,
-            convertTwitter = true,
-            instagramProxy = Constants.KKINSTAGRAM_DOMAIN
+            convertTwitter = convertOn,
+            instagramProxy = target
         ).first
-        assertEquals("https://kkinstagram.com/p/abc", result)
-    }
-
-    @Test
-    fun `instagram_com converts to eeinstagram_com when proxy=eeinstagram`() {
-        val result = processor.processUrl(
-            "https://instagram.com/p/abc",
-            cleanTracking = false,
-            convertTwitter = true,
-            instagramProxy = Constants.EEINSTAGRAM_DOMAIN
-        ).first
-        assertEquals("https://eeinstagram.com/p/abc", result)
-    }
-
-    @Test
-    fun `instagram_com converts to instagram7_com when proxy=instagram7`() {
-        val result = processor.processUrl(
-            "https://instagram.com/p/abc",
-            cleanTracking = false,
-            convertTwitter = true,
-            instagramProxy = Constants.INSTAGRAM7_DOMAIN
-        ).first
-        assertEquals("https://instagram7.com/p/abc", result)
-    }
 
     // ---------------------------------------------------------------------
-    // Cross-proxy: swap between proxies
+    // Forward: instagram.com -> any active proxy
     // ---------------------------------------------------------------------
 
     @Test
-    fun `kkinstagram_com converts to eeinstagram_com when proxy=eeinstagram`() {
-        val result = processor.processUrl(
-            "https://kkinstagram.com/p/abc",
-            cleanTracking = false,
-            convertTwitter = true,
-            instagramProxy = Constants.EEINSTAGRAM_DOMAIN
-        ).first
-        assertEquals("https://eeinstagram.com/p/abc", result)
+    fun `instagram_com converts to adamlikes_men`() {
+        assertEquals(
+            "https://adamlikes.men/p/abc",
+            convert("https://instagram.com/p/abc", Constants.ADAMLIKES_DOMAIN)
+        )
     }
 
     @Test
-    fun `eeinstagram_com converts to instagram7_com when proxy=instagram7`() {
-        val result = processor.processUrl(
-            "https://eeinstagram.com/p/abc",
-            cleanTracking = false,
-            convertTwitter = true,
-            instagramProxy = Constants.INSTAGRAM7_DOMAIN
-        ).first
-        assertEquals("https://instagram7.com/p/abc", result)
+    fun `instagram_com converts to toinstagram_com`() {
+        assertEquals(
+            "https://toinstagram.com/p/abc",
+            convert("https://instagram.com/p/abc", Constants.TOINSTAGRAM_DOMAIN)
+        )
     }
 
     @Test
-    fun `instagram7_com converts to kkinstagram_com when proxy=kkinstagram`() {
-        val result = processor.processUrl(
+    fun `instagram_com converts to instagram7_com`() {
+        assertEquals(
             "https://instagram7.com/p/abc",
-            cleanTracking = false,
-            convertTwitter = true,
-            instagramProxy = Constants.KKINSTAGRAM_DOMAIN
-        ).first
-        assertEquals("https://kkinstagram.com/p/abc", result)
+            convert("https://instagram.com/p/abc", Constants.INSTAGRAM7_DOMAIN)
+        )
     }
 
     // ---------------------------------------------------------------------
-    // No-op: proxy already matches target
+    // www. stripping (v1.4.8 — proxies render best at bare hostname)
     // ---------------------------------------------------------------------
 
     @Test
-    fun `kkinstagram_com unchanged when proxy=kkinstagram`() {
-        val url = "https://kkinstagram.com/p/abc"
-        val result = processor.processUrl(
-            url, cleanTracking = false, convertTwitter = true,
-            instagramProxy = Constants.KKINSTAGRAM_DOMAIN
-        ).first
-        assertEquals(url, result)
+    fun `www_instagram_com converts to bare adamlikes_men (no www)`() {
+        assertEquals(
+            "https://adamlikes.men/p/abc",
+            convert("https://www.instagram.com/p/abc", Constants.ADAMLIKES_DOMAIN)
+        )
     }
 
     @Test
-    fun `eeinstagram_com unchanged when proxy=eeinstagram`() {
-        val url = "https://eeinstagram.com/p/abc"
-        val result = processor.processUrl(
-            url, cleanTracking = false, convertTwitter = true,
-            instagramProxy = Constants.EEINSTAGRAM_DOMAIN
-        ).first
-        assertEquals(url, result)
+    fun `www_instagram_com converts to bare toinstagram_com (no www)`() {
+        assertEquals(
+            "https://toinstagram.com/reel/xyz",
+            convert("https://www.instagram.com/reel/xyz", Constants.TOINSTAGRAM_DOMAIN)
+        )
     }
 
     @Test
-    fun `instagram7_com unchanged when proxy=instagram7`() {
+    fun `host-level subdomain is stripped on conversion`() {
+        // business.instagram.com -> bare adamlikes.men (no business prefix)
+        assertEquals(
+            "https://adamlikes.men/p/abc",
+            convert("https://business.instagram.com/p/abc", Constants.ADAMLIKES_DOMAIN)
+        )
+    }
+
+    @Test
+    fun `URL already on target proxy with www gets www stripped`() {
+        assertEquals(
+            "https://adamlikes.men/p/abc",
+            convert("https://www.adamlikes.men/p/abc", Constants.ADAMLIKES_DOMAIN)
+        )
+    }
+
+    // ---------------------------------------------------------------------
+    // Cross-proxy swaps among active proxies
+    // ---------------------------------------------------------------------
+
+    @Test
+    fun `adamlikes_men converts to toinstagram_com`() {
+        assertEquals(
+            "https://toinstagram.com/p/abc",
+            convert("https://adamlikes.men/p/abc", Constants.TOINSTAGRAM_DOMAIN)
+        )
+    }
+
+    @Test
+    fun `toinstagram_com converts to instagram7_com`() {
+        assertEquals(
+            "https://instagram7.com/p/abc",
+            convert("https://toinstagram.com/p/abc", Constants.INSTAGRAM7_DOMAIN)
+        )
+    }
+
+    @Test
+    fun `instagram7_com converts to adamlikes_men`() {
+        assertEquals(
+            "https://adamlikes.men/p/abc",
+            convert("https://instagram7.com/p/abc", Constants.ADAMLIKES_DOMAIN)
+        )
+    }
+
+    // ---------------------------------------------------------------------
+    // Legacy proxies (kkinstagram, eeinstagram) — auto-migrate to active
+    // ---------------------------------------------------------------------
+
+    @Test
+    fun `legacy kkinstagram converts to adamlikes_men`() {
+        assertEquals(
+            "https://adamlikes.men/p/abc",
+            convert("https://kkinstagram.com/p/abc", Constants.ADAMLIKES_DOMAIN)
+        )
+    }
+
+    @Test
+    fun `legacy eeinstagram converts to toinstagram_com`() {
+        assertEquals(
+            "https://toinstagram.com/p/abc",
+            convert("https://eeinstagram.com/p/abc", Constants.TOINSTAGRAM_DOMAIN)
+        )
+    }
+
+    // ---------------------------------------------------------------------
+    // No-op: bare proxy already matches target
+    // ---------------------------------------------------------------------
+
+    @Test
+    fun `bare adamlikes_men unchanged when target=adamlikes`() {
+        val url = "https://adamlikes.men/p/abc"
+        assertEquals(url, convert(url, Constants.ADAMLIKES_DOMAIN))
+    }
+
+    @Test
+    fun `bare toinstagram_com unchanged when target=toinstagram`() {
+        val url = "https://toinstagram.com/p/abc"
+        assertEquals(url, convert(url, Constants.TOINSTAGRAM_DOMAIN))
+    }
+
+    @Test
+    fun `bare instagram7_com unchanged when target=instagram7`() {
         val url = "https://instagram7.com/p/abc"
-        val result = processor.processUrl(
-            url, cleanTracking = false, convertTwitter = true,
-            instagramProxy = Constants.INSTAGRAM7_DOMAIN
-        ).first
-        assertEquals(url, result)
+        assertEquals(url, convert(url, Constants.INSTAGRAM7_DOMAIN))
     }
 
     // ---------------------------------------------------------------------
-    // Backward: any proxy -> instagram.com when convertTwitter=false
+    // Backward: any proxy -> instagram.com (Embed toggle OFF)
     // ---------------------------------------------------------------------
 
     @Test
-    fun `kkinstagram_com reverts to instagram_com when convertTwitter=false`() {
-        val result = processor.processUrl(
-            "https://kkinstagram.com/p/abc",
-            cleanTracking = false,
-            convertTwitter = false,
-            instagramProxy = Constants.EEINSTAGRAM_DOMAIN
-        ).first
-        assertEquals("https://instagram.com/p/abc", result)
+    fun `adamlikes_men reverts to instagram_com when convertOff`() {
+        assertEquals(
+            "https://instagram.com/p/abc",
+            convert("https://adamlikes.men/p/abc", Constants.ADAMLIKES_DOMAIN, convertOn = false)
+        )
     }
 
     @Test
-    fun `eeinstagram_com reverts to instagram_com when convertTwitter=false`() {
-        val result = processor.processUrl(
-            "https://eeinstagram.com/p/abc",
-            cleanTracking = false,
-            convertTwitter = false,
-            instagramProxy = Constants.KKINSTAGRAM_DOMAIN
-        ).first
-        assertEquals("https://instagram.com/p/abc", result)
+    fun `toinstagram_com reverts to instagram_com when convertOff`() {
+        assertEquals(
+            "https://instagram.com/p/abc",
+            convert("https://toinstagram.com/p/abc", Constants.ADAMLIKES_DOMAIN, convertOn = false)
+        )
     }
 
     @Test
-    fun `instagram7_com reverts to instagram_com when convertTwitter=false`() {
-        val result = processor.processUrl(
-            "https://instagram7.com/p/abc",
-            cleanTracking = false,
-            convertTwitter = false,
-            instagramProxy = Constants.KKINSTAGRAM_DOMAIN
-        ).first
-        assertEquals("https://instagram.com/p/abc", result)
+    fun `legacy kkinstagram reverts to instagram_com when convertOff`() {
+        assertEquals(
+            "https://instagram.com/p/abc",
+            convert("https://kkinstagram.com/p/abc", Constants.ADAMLIKES_DOMAIN, convertOn = false)
+        )
     }
 
     // ---------------------------------------------------------------------
@@ -206,52 +235,31 @@ class InstagramProxySelectionTest {
     // ---------------------------------------------------------------------
 
     @Test
-    fun `dirty instagram url cleans tracking and converts to eeinstagram`() {
+    fun `dirty instagram url cleans tracking and converts to toinstagram`() {
+        // Use cleanTracking = true explicitly (default helper has it off)
         val result = processor.processUrl(
             "https://instagram.com/p/abc?igshid=zzz&utm_source=ig",
             cleanTracking = true,
             convertTwitter = true,
-            instagramProxy = Constants.EEINSTAGRAM_DOMAIN
+            instagramProxy = Constants.TOINSTAGRAM_DOMAIN
         ).first
-        assertEquals("https://eeinstagram.com/p/abc", result)
-    }
-
-    @Test
-    fun `dirty instagram7 url cleans tracking without changing proxy`() {
-        val result = processor.processUrl(
-            "https://instagram7.com/p/abc?igshid=zzz&utm_source=ig",
-            cleanTracking = true,
-            convertTwitter = true,
-            instagramProxy = Constants.INSTAGRAM7_DOMAIN
-        ).first
-        assertEquals("https://instagram7.com/p/abc", result)
+        assertEquals("https://toinstagram.com/p/abc", result)
     }
 
     // ---------------------------------------------------------------------
-    // Subdomain preservation
+    // isInstagramUrl covers active + legacy
     // ---------------------------------------------------------------------
 
     @Test
-    fun `business instagram subdomain converts to business instagram7`() {
-        val result = processor.processUrl(
-            "https://business.instagram.com/p/abc",
-            cleanTracking = false,
-            convertTwitter = true,
-            instagramProxy = Constants.INSTAGRAM7_DOMAIN
-        ).first
-        assertEquals("https://business.instagram7.com/p/abc", result)
-    }
-
-    // ---------------------------------------------------------------------
-    // isInstagramUrl covers all proxies
-    // ---------------------------------------------------------------------
-
-    @Test
-    fun `isInstagramUrl recognizes all three proxies and instagram_com`() {
+    fun `isInstagramUrl recognizes active and legacy proxies and instagram_com`() {
         assertTrue(processor.isInstagramUrl("https://instagram.com/p/abc"))
+        assertTrue(processor.isInstagramUrl("https://www.instagram.com/p/abc"))
+        assertTrue(processor.isInstagramUrl("https://adamlikes.men/p/abc"))
+        assertTrue(processor.isInstagramUrl("https://toinstagram.com/p/abc"))
+        assertTrue(processor.isInstagramUrl("https://instagram7.com/p/abc"))
+        // legacy still detected so the toggle still triggers
         assertTrue(processor.isInstagramUrl("https://kkinstagram.com/p/abc"))
         assertTrue(processor.isInstagramUrl("https://eeinstagram.com/p/abc"))
-        assertTrue(processor.isInstagramUrl("https://instagram7.com/p/abc"))
         assertFalse(processor.isInstagramUrl("https://example.com/p/abc"))
     }
 }

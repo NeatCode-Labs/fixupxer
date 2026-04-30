@@ -1,0 +1,6 @@
+v1.4.8 — Refreshed Instagram proxy roster
+
+• Active proxies: toinstagram.com (Primary, default) and adamlikes.men (Primary) embed media + post/reel title and description; instagram7.com (Backup) embeds media only
+• Retired kkinstagram.com and eeinstagram.com — old links auto-convert to your active proxy
+• Converted links now use the bare hostname (no www.) which these proxies render best
+• New "i" info icon in Settings and chooser dialog explains Primary vs Backup

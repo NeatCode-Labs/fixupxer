@@ -75,48 +75,46 @@ class BidirectionalConversionTest {
     // ============ INSTAGRAM BIDIRECTIONAL TESTS ============
     
     @Test
-    fun testCleanInstagramToKkinstagramConversion() {
+    fun testCleanInstagramToProxyConversionStripsWww() {
         runBlocking {
-            // Clean instagram.com → kkinstagram.com (toggle ON)
+            // v1.4.8: Clean instagram.com → toinstagram.com (default proxy), www. prefix is stripped
             preferencesManager.setConvertInstagramEnabled(true)
             delay(100)
-            
+
             launchShareActivityWithText("https://www.instagram.com/p/test123/")
             onView(isRoot()).perform(waitFor(2000))
-            
-            // Should convert to kkinstagram with toggle ON
+
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.kkinstagram.com/p/test123/")))
+                .check(matches(withText("https://toinstagram.com/p/test123/")))
         }
     }
-    
+
     @Test
-    fun testCleanKkinstagramToInstagramConversion() {
+    fun testCleanProxyToInstagramConversion() {
         runBlocking {
-            // Clean kkinstagram.com → instagram.com (toggle OFF)
+            // Clean toinstagram.com → instagram.com (toggle OFF)
             preferencesManager.setConvertInstagramEnabled(false)
             delay(100)
-            
-            launchShareActivityWithText("https://www.kkinstagram.com/p/test123/")
+
+            launchShareActivityWithText("https://toinstagram.com/p/test123/")
             onView(isRoot()).perform(waitFor(2000))
-            
-            // Should convert back to instagram.com
+
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.instagram.com/p/test123/")))
+                .check(matches(withText("https://instagram.com/p/test123/")))
         }
     }
-    
+
     @Test
-    fun testDirtyKkinstagramToCleanInstagram() {
+    fun testLegacyKkinstagramRevertsToInstagramWhenToggleOff() {
         runBlocking {
-            // Dirty kkinstagram.com → Clean instagram.com (toggle OFF)
+            // v1.4.8: Reverting a legacy proxy preserves the original www. prefix
+            // (only forward-conversion to an active proxy strips host prefixes).
             preferencesManager.setConvertInstagramEnabled(false)
             delay(100)
-            
+
             launchShareActivityWithText("https://www.kkinstagram.com/p/test123/?utm_source=app&igshid=abc")
             onView(isRoot()).perform(waitFor(2000))
-            
-            // Should clean and convert to instagram.com
+
             onView(withId(R.id.textViewProcessedUrl))
                 .check(matches(withText("https://www.instagram.com/p/test123/")))
         }
@@ -345,10 +343,10 @@ class BidirectionalConversionTest {
             
             launchShareActivityWithText("https://WWW.INSTAGRAM.COM/p/TEST123/")
             onView(isRoot()).perform(waitFor(2000))
-            
-            // Should convert case-insensitively
+
+            // v1.4.8: case-insensitive match + www. (any case) is stripped → default = toinstagram.com
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://WWW.kkinstagram.com/p/TEST123/")))
+                .check(matches(withText("https://toinstagram.com/p/TEST123/")))
         }
     }
     
@@ -385,18 +383,17 @@ class BidirectionalConversionTest {
     }
     
     @Test
-    fun testDirtyKkinstagramToCleanKkinstagram() {
+    fun testDirtyToinstagramStaysOnToinstagramWhenAlreadyDefault() {
         runBlocking {
-            // Dirty kkinstagram.com → Clean kkinstagram.com (toggle ON)
+            // v1.4.8: Dirty toinstagram.com → Clean toinstagram.com (toggle ON, default proxy)
             preferencesManager.setConvertInstagramEnabled(true)
             delay(100)
-            
-            launchShareActivityWithText("https://www.kkinstagram.com/p/test/?utm_source=ig_web&igshid=test")
+
+            launchShareActivityWithText("https://toinstagram.com/p/test/?utm_source=ig_web&igshid=test")
             onView(isRoot()).perform(waitFor(2000))
-            
-            // Should clean but stay kkinstagram
+
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.kkinstagram.com/p/test/")))
+                .check(matches(withText("https://toinstagram.com/p/test/")))
         }
     }
 } 

@@ -2,11 +2,6 @@
 /*
  * FixupXer - URL Enhancer
  * Copyright (C) 2020-2025  NeatCode Labs
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
  */
 
 package com.fixupxer
@@ -24,8 +19,8 @@ import org.junit.runner.RunWith
 /**
  * Instrumentation tests for Instagram proxy persistence in [PreferencesManager].
  *
- * Uses the real [SharedPreferences] (on-device) to verify that the default proxy
- * is kkinstagram.com and that set/get round-trips correctly for all supported proxies.
+ * Active proxy set (v1.4.8): toinstagram.com, adamlikes.men, instagram7.com.
+ * Default = toinstagram.com. Legacy proxies (kkinstagram, eeinstagram) silently migrate.
  */
 @RunWith(AndroidJUnit4::class)
 class InstagramProxyPreferenceTest {
@@ -34,39 +29,40 @@ class InstagramProxyPreferenceTest {
 
     @Before
     fun setup() {
-        val ctx = ApplicationProvider.getApplicationContext<Context>()
-        // Clear the relevant SharedPreferences entry so each test starts clean.
-        ctx.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
-            .edit()
-            .remove("instagram_proxy_domain")
-            .commit()
-        prefs = PreferencesManager(ctx)
+        clearProxyPref()
+        prefs = PreferencesManager(ApplicationProvider.getApplicationContext<Context>())
     }
 
     @After
     fun tearDown() {
-        val ctx = ApplicationProvider.getApplicationContext<Context>()
-        ctx.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+        clearProxyPref()
+    }
+
+    private fun clearProxyPref() {
+        ApplicationProvider.getApplicationContext<Context>()
+            .getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
             .edit()
             .remove("instagram_proxy_domain")
             .commit()
     }
 
     @Test
-    fun defaultProxyIsKkinstagram() {
-        assertEquals(Constants.KKINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
+    fun defaultProxyIsToinstagram() {
+        // Default = Constants.INSTAGRAM_DEFAULT_PROXY = toinstagram.com
+        assertEquals(Constants.TOINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
+        assertEquals(Constants.INSTAGRAM_DEFAULT_PROXY, prefs.getInstagramProxy())
     }
 
     @Test
-    fun setKkinstagramPersists() {
-        prefs.setInstagramProxy(Constants.KKINSTAGRAM_DOMAIN)
-        assertEquals(Constants.KKINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
+    fun setToinstagramPersists() {
+        prefs.setInstagramProxy(Constants.TOINSTAGRAM_DOMAIN)
+        assertEquals(Constants.TOINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
     }
 
     @Test
-    fun setEeinstagramPersists() {
-        prefs.setInstagramProxy(Constants.EEINSTAGRAM_DOMAIN)
-        assertEquals(Constants.EEINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
+    fun setAdamlikesPersists() {
+        prefs.setInstagramProxy(Constants.ADAMLIKES_DOMAIN)
+        assertEquals(Constants.ADAMLIKES_DOMAIN, prefs.getInstagramProxy())
     }
 
     @Test
@@ -77,13 +73,35 @@ class InstagramProxyPreferenceTest {
 
     @Test
     fun invalidStoredValueFallsBackToDefault() {
-        // Write an unknown value directly and verify the getter guards against it.
-        val ctx = ApplicationProvider.getApplicationContext<Context>()
-        ctx.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+        ApplicationProvider.getApplicationContext<Context>()
+            .getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
             .edit()
             .putString("instagram_proxy_domain", "malicious.example")
             .commit()
 
-        assertEquals(Constants.KKINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
+        assertEquals(Constants.TOINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
+    }
+
+    @Test
+    fun legacyKkinstagramStoredValueMigratesToDefault() {
+        // A user upgrading from v1.4.7 may have kkinstagram.com saved.
+        ApplicationProvider.getApplicationContext<Context>()
+            .getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+            .edit()
+            .putString("instagram_proxy_domain", "kkinstagram.com")
+            .commit()
+
+        assertEquals(Constants.TOINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
+    }
+
+    @Test
+    fun legacyEeinstagramStoredValueMigratesToDefault() {
+        ApplicationProvider.getApplicationContext<Context>()
+            .getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+            .edit()
+            .putString("instagram_proxy_domain", "eeinstagram.com")
+            .commit()
+
+        assertEquals(Constants.TOINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
     }
 }

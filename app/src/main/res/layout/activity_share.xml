@@ -202,7 +202,7 @@
                             android:textColor="@color/dark_gray"
                             android:maxLines="1"
                             android:ellipsize="end"
-                            tools:text="Active: kkinstagram.com." />
+                            tools:text="Active: adamlikes.men." />
 
                         <TextView
                             android:id="@+id/textViewChangeProxy"

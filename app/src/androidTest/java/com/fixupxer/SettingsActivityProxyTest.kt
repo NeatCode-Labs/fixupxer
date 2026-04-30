@@ -2,11 +2,6 @@
 /*
  * FixupXer - URL Enhancer
  * Copyright (C) 2020-2025  NeatCode Labs
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
  */
 
 package com.fixupxer
@@ -31,7 +26,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Instrumentation tests for the Instagram embed proxy radio group in [SettingsActivity].
+ * Instrumentation tests for the Instagram embed proxy radio group in [SettingsActivity]
+ * (v1.4.8 proxy set: toinstagram.com + adamlikes.men [primary], instagram7.com [backup]; default = toinstagram.com).
  */
 @RunWith(AndroidJUnit4::class)
 class SettingsActivityProxyTest {
@@ -55,9 +51,10 @@ class SettingsActivityProxyTest {
     }
 
     @Test
-    fun defaultRadioIsKkinstagram() {
+    fun defaultRadioIsToinstagram() {
+        // Default = Constants.INSTAGRAM_DEFAULT_PROXY = toinstagram.com
         ActivityScenario.launch(SettingsActivity::class.java).use {
-            onView(withId(R.id.radioProxyKk))
+            onView(withId(R.id.radioProxyTo))
                 .perform(scrollTo())
                 .check(matches(isDisplayed()))
                 .check(matches(isChecked()))
@@ -65,14 +62,14 @@ class SettingsActivityProxyTest {
     }
 
     @Test
-    fun clickEeinstagramPersistsChoice() {
+    fun clickAdamlikesPersistsChoice() {
         ActivityScenario.launch(SettingsActivity::class.java).use {
-            onView(withId(R.id.radioProxyEe)).perform(scrollTo(), click())
+            onView(withId(R.id.radioProxyAdamlikes)).perform(scrollTo(), click())
         }
 
         val ctx = InstrumentationRegistry.getInstrumentation().targetContext
         val prefs = PreferencesManager(ctx)
-        assertEquals(Constants.EEINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
+        assertEquals(Constants.ADAMLIKES_DOMAIN, prefs.getInstagramProxy())
     }
 
     @Test
@@ -95,6 +92,15 @@ class SettingsActivityProxyTest {
             onView(withId(R.id.radioProxy7))
                 .perform(scrollTo())
                 .check(matches(isChecked()))
+        }
+    }
+
+    @Test
+    fun infoIconIsDisplayed() {
+        ActivityScenario.launch(SettingsActivity::class.java).use {
+            onView(withId(R.id.instagramProxyInfoIcon))
+                .perform(scrollTo())
+                .check(matches(isDisplayed()))
         }
     }
 }

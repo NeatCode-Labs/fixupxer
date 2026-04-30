@@ -103,18 +103,21 @@ class UrlProcessorMatrixTest {
             Case("non-special dirty, no toggle", "https://example.com/page?utm_source=abc", true, false, "https://example.com/page", false, false),
 
             // === Instagram ===
+            // Default proxy is toinstagram.com (Constants.INSTAGRAM_DEFAULT_PROXY).
             // Clean instagram.com
             Case("instagram clean, toggle OFF", "https://instagram.com/p/1", true, false, "https://instagram.com/p/1", true, true),
-            Case("instagram clean, toggle ON", "https://instagram.com/p/1", true, true, "https://kkinstagram.com/p/1", false, false),
+            Case("instagram clean, toggle ON", "https://instagram.com/p/1", true, true, "https://toinstagram.com/p/1", false, false),
             // Dirty instagram.com
             Case("instagram dirty, toggle OFF", "https://instagram.com/p/1?utm_source=abc", true, false, "https://instagram.com/p/1", false, false),
-            Case("instagram dirty, toggle ON", "https://instagram.com/p/1?utm_source=abc", true, true, "https://kkinstagram.com/p/1", false, false),
-            // Clean kkinstagram.com
-            Case("kkinstagram clean, toggle OFF", "https://kkinstagram.com/p/1", true, false, "https://instagram.com/p/1", false, false),
-            Case("kkinstagram clean, toggle ON", "https://kkinstagram.com/p/1", true, true, "https://kkinstagram.com/p/1", true, true),
-            // Dirty kkinstagram.com
-            Case("kkinstagram dirty, toggle OFF", "https://kkinstagram.com/p/1?utm_source=abc", true, false, "https://instagram.com/p/1", false, false),
-            Case("kkinstagram dirty, toggle ON", "https://kkinstagram.com/p/1?utm_source=abc", true, true, "https://kkinstagram.com/p/1", false, false),
+            Case("instagram dirty, toggle ON", "https://instagram.com/p/1?utm_source=abc", true, true, "https://toinstagram.com/p/1", false, false),
+            // Clean active default proxy (toinstagram.com): no-op when toggle ON, reverts to instagram when OFF
+            Case("toinstagram clean, toggle OFF", "https://toinstagram.com/p/1", true, false, "https://instagram.com/p/1", false, false),
+            Case("toinstagram clean, toggle ON", "https://toinstagram.com/p/1", true, true, "https://toinstagram.com/p/1", true, true),
+            // Legacy proxy auto-migration: kkinstagram converts to default (toinstagram.com) when toggle ON
+            Case("legacy kkinstagram clean, toggle OFF", "https://kkinstagram.com/p/1", true, false, "https://instagram.com/p/1", false, false),
+            Case("legacy kkinstagram clean, toggle ON", "https://kkinstagram.com/p/1", true, true, "https://toinstagram.com/p/1", false, false),
+            // www. is stripped on conversion (proxies render best at bare hostname)
+            Case("www instagram, toggle ON", "https://www.instagram.com/p/1", true, true, "https://toinstagram.com/p/1", false, false),
 
             // === X/Twitter/Fixupx/FxTwitter ===
             // Clean x.com

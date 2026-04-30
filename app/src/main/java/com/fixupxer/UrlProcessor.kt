@@ -35,7 +35,7 @@ import java.util.regex.Pattern
  * A utility class for processing URLs to:
  * 1. Remove tracking parameters (like ClearURLs)
  * 2. Convert Twitter/X URLs to FixupX format for better embedding
- * 3. Convert Instagram URLs to kkinstagram.com for better embedding
+ * 3. Convert Instagram URLs to a user-selected proxy for better embedding
  */
 @Singleton
 class UrlProcessor @Inject constructor(
@@ -45,14 +45,14 @@ class UrlProcessor @Inject constructor(
     /**
      * Process a URL by cleaning tracking parameters and optionally converting 
      * Twitter/X URLs to fixupx.com format and Instagram URLs to a selected proxy
-     * @param instagramProxy which Instagram proxy to convert to (default kkinstagram.com)
+     * @param instagramProxy which Instagram proxy to convert to (default [Constants.INSTAGRAM_DEFAULT_PROXY])
      * @return Pair of (processedUrl, wasAlreadyClean)
      */
     fun processUrl(
         url: String,
         cleanTracking: Boolean,
         convertTwitter: Boolean,
-        instagramProxy: String = Constants.KKINSTAGRAM_DOMAIN
+        instagramProxy: String = Constants.INSTAGRAM_DEFAULT_PROXY
     ): Pair<String, Boolean> {
         if (url.isEmpty()) {
             throw IllegalArgumentException("Please enter a URL")
@@ -138,10 +138,10 @@ class UrlProcessor @Inject constructor(
     private fun applyDomainConversions(
         url: String,
         convertToAlternative: Boolean,
-        instagramProxy: String = Constants.KKINSTAGRAM_DOMAIN
+        instagramProxy: String = Constants.INSTAGRAM_DEFAULT_PROXY
     ): String {
         val isInstagram = isInstagramUrl(url)
-        val isInstagramProxy = Constants.INSTAGRAM_PROXY_DOMAINS.any {
+        val isInstagramProxy = Constants.INSTAGRAM_ALL_KNOWN_PROXIES.any {
             url.contains(it, ignoreCase = true)
         }
 
@@ -178,7 +178,7 @@ class UrlProcessor @Inject constructor(
      */
     fun processUrlForSharing(
         url: String,
-        instagramProxy: String = Constants.KKINSTAGRAM_DOMAIN
+        instagramProxy: String = Constants.INSTAGRAM_DEFAULT_PROXY
     ): String {
         if (url.isEmpty()) {
             return url
@@ -255,36 +255,34 @@ class UrlProcessor @Inject constructor(
     }
     
     /**
-     * Check if a URL is an Instagram URL (instagram.com or any of the supported proxies)
+     * Check if a URL is an Instagram URL (instagram.com or any of the supported / legacy proxies).
+     * Legacy proxies are detected so existing pasted links still trigger the conversion flow.
      */
     fun isInstagramUrl(url: String): Boolean {
         if (url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true)) return true
-        return Constants.INSTAGRAM_PROXY_DOMAINS.any { url.contains(it, ignoreCase = true) }
+        return Constants.INSTAGRAM_ALL_KNOWN_PROXIES.any { url.contains(it, ignoreCase = true) }
     }
 
     /**
      * Convert instagram.com / any proxy in [url] to the [targetProxy] domain.
-     * - If [url] already uses [targetProxy], it is returned unchanged.
-     * - If [url] uses instagram.com, it is replaced with [targetProxy].
-     * - If [url] uses a different proxy (e.g. eeinstagram.com while target is instagram7.com),
-     *   that proxy is swapped with [targetProxy].
+     * - If [url] already uses [targetProxy] AND has no `www.`/sub prefix, it is returned unchanged.
+     * - Any `www.` prefix or sub-prefix on the host is stripped (active proxies prefer bare hostnames).
+     * - Legacy proxy hostnames (kkinstagram.com, eeinstagram.com) are also rewritten.
      */
     private fun convertToInstagramProxy(url: String, targetProxy: String): String {
-        if (url.contains(targetProxy, ignoreCase = true)) return url
-
-        val domainAlternation = "instagram\\.com|kkinstagram\\.com|eeinstagram\\.com|instagram7\\.com"
+        val knownAlternation = (listOf(Constants.INSTAGRAM_DOMAIN) + Constants.INSTAGRAM_ALL_KNOWN_PROXIES)
+            .joinToString("|") { it.replace(".", "\\.") }
         val pattern = Pattern.compile(
-            "(https?://)((?:www\\.)?(?:[a-z0-9]+\\.)?)($domainAlternation)",
+            "(https?://)(?:www\\.)?(?:[a-z0-9]+\\.)?($knownAlternation)",
             Pattern.CASE_INSENSITIVE
         )
         val matcher = pattern.matcher(url)
         return if (matcher.find()) {
-            matcher.replaceAll("\$1\$2${targetProxy}")
+            // Replace whole prefix+hostname with `https://${targetProxy}` — drops `www.` and any sub.
+            matcher.replaceAll("\$1${targetProxy}")
         } else {
-            // Fallback: swap any known domain token directly
             var result = url
-            val knownDomains = listOf(Constants.INSTAGRAM_DOMAIN) + Constants.INSTAGRAM_PROXY_DOMAINS
-            for (domain in knownDomains) {
+            for (domain in listOf(Constants.INSTAGRAM_DOMAIN) + Constants.INSTAGRAM_ALL_KNOWN_PROXIES) {
                 if (result.contains(domain, ignoreCase = true)) {
                     result = result.replace(domain, targetProxy, ignoreCase = true)
                     break
@@ -295,17 +293,17 @@ class UrlProcessor @Inject constructor(
     }
 
     /**
-     * Convert any Instagram proxy in [url] back to instagram.com.
+     * Convert any Instagram proxy in [url] (current or legacy) back to instagram.com.
      */
     private fun convertFromInstagramProxy(url: String): String {
         // Already on instagram.com and no proxy is present
         if (url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) &&
-            Constants.INSTAGRAM_PROXY_DOMAINS.none { url.contains(it, ignoreCase = true) }
+            Constants.INSTAGRAM_ALL_KNOWN_PROXIES.none { url.contains(it, ignoreCase = true) }
         ) {
             return url
         }
 
-        val proxyAlternation = Constants.INSTAGRAM_PROXY_DOMAINS.joinToString("|") {
+        val proxyAlternation = Constants.INSTAGRAM_ALL_KNOWN_PROXIES.joinToString("|") {
             it.replace(".", "\\.")
         }
         val pattern = Pattern.compile(
@@ -317,7 +315,7 @@ class UrlProcessor @Inject constructor(
             matcher.replaceAll("\$1\$2${Constants.INSTAGRAM_DOMAIN}")
         } else {
             var result = url
-            for (proxy in Constants.INSTAGRAM_PROXY_DOMAINS) {
+            for (proxy in Constants.INSTAGRAM_ALL_KNOWN_PROXIES) {
                 if (result.contains(proxy, ignoreCase = true)) {
                     result = result.replace(proxy, Constants.INSTAGRAM_DOMAIN, ignoreCase = true)
                     break

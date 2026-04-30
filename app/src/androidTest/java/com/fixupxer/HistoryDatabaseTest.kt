@@ -56,10 +56,10 @@ class HistoryDatabaseTest {
 
     @Test
     fun testInsertAndRetrieveHistory() = runBlocking {
-        // Insert a history entry
+        // Insert a history entry (v1.4.8 active proxy = adamlikes.men)
         val entry = UrlHistoryEntity(
             originalUrl = "https://www.instagram.com/p/test?utm_source=test",
-            cleanedUrl = "https://www.kkinstagram.com/p/test",
+            cleanedUrl = "https://adamlikes.men/p/test",
             platform = "Instagram",
             conversionType = "Domain converted",
             timestamp = System.currentTimeMillis()
@@ -196,11 +196,11 @@ class HistoryDatabaseTest {
     }
 
     @Test
-    fun testEeinstagramEntry() = runBlocking {
-        // Verify that an entry converted to eeinstagram.com round-trips correctly
+    fun testToinstagramEntry() = runBlocking {
+        // Verify that an entry converted to toinstagram.com (primary v1.4.8 proxy) round-trips correctly
         val entry = UrlHistoryEntity(
             originalUrl = "https://www.instagram.com/p/ABC/",
-            cleanedUrl = "https://www.eeinstagram.com/p/ABC/",
+            cleanedUrl = "https://toinstagram.com/p/ABC/",
             platform = "Instagram",
             conversionType = "Domain converted",
             timestamp = System.currentTimeMillis()
@@ -209,7 +209,25 @@ class HistoryDatabaseTest {
 
         val history = historyDao.getAllHistory().first()
         assertEquals(1, history.size)
-        assertEquals("https://www.eeinstagram.com/p/ABC/", history[0].cleanedUrl)
+        assertEquals("https://toinstagram.com/p/ABC/", history[0].cleanedUrl)
+        assertEquals("Instagram", history[0].platform)
+    }
+
+    @Test
+    fun testAdamlikesEntry() = runBlocking {
+        // Verify that an entry converted to adamlikes.men (primary v1.4.8 proxy) round-trips correctly
+        val entry = UrlHistoryEntity(
+            originalUrl = "https://www.instagram.com/p/DEF/",
+            cleanedUrl = "https://adamlikes.men/p/DEF/",
+            platform = "Instagram",
+            conversionType = "Domain converted",
+            timestamp = System.currentTimeMillis()
+        )
+        historyDao.insert(entry)
+
+        val history = historyDao.getAllHistory().first()
+        assertEquals(1, history.size)
+        assertEquals("https://adamlikes.men/p/DEF/", history[0].cleanedUrl)
         assertEquals("Instagram", history[0].platform)
     }
 

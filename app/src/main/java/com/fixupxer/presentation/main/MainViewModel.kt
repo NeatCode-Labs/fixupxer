@@ -26,6 +26,7 @@ import androidx.lifecycle.viewModelScope
 import com.fixupxer.R
 import com.fixupxer.domain.repository.UrlRepository
 import com.fixupxer.UrlProcessor
+import com.fixupxer.utils.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,10 +71,8 @@ class MainViewModel @Inject constructor(
     
     fun onUrlChanged(url: String) {
         val isInstagram = if (url.isNotEmpty()) {
-            url.contains("instagram.com", ignoreCase = true) ||
-            url.contains("kkinstagram.com", ignoreCase = true) ||
-            url.contains("eeinstagram.com", ignoreCase = true) ||
-            url.contains("instagram7.com", ignoreCase = true)
+            url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) ||
+                Constants.INSTAGRAM_ALL_KNOWN_PROXIES.any { url.contains(it, ignoreCase = true) }
         } else {
             false
         }

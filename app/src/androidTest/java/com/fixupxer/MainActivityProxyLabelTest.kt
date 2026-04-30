@@ -2,11 +2,6 @@
 /*
  * FixupXer - URL Enhancer
  * Copyright (C) 2020-2025  NeatCode Labs
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
  */
 
 package com.fixupxer
@@ -35,7 +30,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Instrumentation tests for the "Currently using: <proxy>. Change." row in MainActivity.
+ * Instrumentation tests for the "Active: <proxy>. Change." row in MainActivity.
  */
 @RunWith(AndroidJUnit4::class)
 class MainActivityProxyLabelTest {
@@ -67,7 +62,8 @@ class MainActivityProxyLabelTest {
     }
 
     @Test
-    fun instagramUrlShowsCurrentlyUsingKkinstagramByDefault() {
+    fun instagramUrlShowsActiveToinstagramByDefault() {
+        // v1.4.8: default = toinstagram.com
         ActivityScenario.launch(MainActivity::class.java).use {
             onView(withId(R.id.editTextUrl))
                 .perform(replaceText("https://instagram.com/p/abc"), closeSoftKeyboard())
@@ -76,7 +72,7 @@ class MainActivityProxyLabelTest {
             onView(withId(R.id.instagramProxyRow))
                 .check(matches(isDisplayed()))
             onView(withId(R.id.textViewInstagramProxyStatus))
-                .check(matches(withText("Active: kkinstagram.com.")))
+                .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
             onView(withId(R.id.textViewChangeProxy))
                 .check(matches(isDisplayed()))
         }
@@ -93,7 +89,23 @@ class MainActivityProxyLabelTest {
             onView(isRoot()).perform(waitFor(1500))
 
             onView(withId(R.id.textViewInstagramProxyStatus))
-                .check(matches(withText("Active: instagram7.com.")))
+                .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
+        }
+    }
+
+    @Test
+    fun changingPrefToAdamlikesUpdatesLabelOnRelaunch() {
+        // toinstagram is the default; this test exercises switching to the other primary proxy
+        val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+        PreferencesManager(ctx).setInstagramProxy(Constants.ADAMLIKES_DOMAIN)
+
+        ActivityScenario.launch(MainActivity::class.java).use {
+            onView(withId(R.id.editTextUrl))
+                .perform(replaceText("https://instagram.com/p/abc"), closeSoftKeyboard())
+            onView(isRoot()).perform(waitFor(1500))
+
+            onView(withId(R.id.textViewInstagramProxyStatus))
+                .check(matches(withText("Active: ${Constants.ADAMLIKES_DOMAIN}.")))
         }
     }
 
@@ -104,7 +116,6 @@ class MainActivityProxyLabelTest {
                 .perform(replaceText("https://facebook.com/user/posts/1"), closeSoftKeyboard())
             onView(isRoot()).perform(waitFor(1500))
 
-            // Toggle container is visible for Facebook but the proxy row is not.
             onView(withId(R.id.instagramToggleContainer))
                 .check(matches(isDisplayed()))
             onView(withId(R.id.instagramProxyRow))

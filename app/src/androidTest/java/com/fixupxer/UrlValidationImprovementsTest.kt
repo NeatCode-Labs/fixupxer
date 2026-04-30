@@ -212,18 +212,34 @@ class UrlValidationImprovementsTest {
     }
     
     @Test
-    fun testKkinstagramDomainRecognized() {
+    fun testAdamlikesDomainRecognized() {
         launchMainActivity()
-        
-        // Kkinstagram.com URLs should be recognized as valid
+
+        // adamlikes.men URLs (primary v1.4.8 proxy) should be recognized as valid
+        val adamlikesUrl = "https://adamlikes.men/p/ABC123/"
+
+        onView(withId(R.id.editTextUrl))
+            .perform(replaceText(adamlikesUrl), closeSoftKeyboard())
+
+        onView(isRoot()).perform(waitFor(1500))
+
+        onView(withId(R.id.editTextUrl))
+            .check(matches(withText(adamlikesUrl)))
+    }
+
+    @Test
+    fun testLegacyKkinstagramUrlStillRecognizedAsValid() {
+        // Legacy URLs (v1.4.7 proxies) must still pass URL validation so the app
+        // can detect them and offer to convert them to a current active proxy.
+        launchMainActivity()
+
         val kkinstagramUrl = "https://www.kkinstagram.com/p/ABC123/"
-        
+
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(kkinstagramUrl), closeSoftKeyboard())
-        
+
         onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify URL is not cleared
+
         onView(withId(R.id.editTextUrl))
             .check(matches(withText(kkinstagramUrl)))
     }
@@ -246,19 +262,19 @@ class UrlValidationImprovementsTest {
     }
 
     @Test
-    fun testEeinstagramDomainRecognized() {
+    fun testToinstagramDomainRecognized() {
         launchMainActivity()
 
-        // eeinstagram.com URLs should be recognized as valid (new Instagram proxy)
-        val eeinstagramUrl = "https://eeinstagram.com/p/ABC123/"
+        // toinstagram.com URLs (primary v1.4.8 proxy) should be recognized as valid
+        val toinstagramUrl = "https://toinstagram.com/p/ABC123/"
 
         onView(withId(R.id.editTextUrl))
-            .perform(replaceText(eeinstagramUrl), closeSoftKeyboard())
+            .perform(replaceText(toinstagramUrl), closeSoftKeyboard())
 
         onView(isRoot()).perform(waitFor(1500))
 
         onView(withId(R.id.editTextUrl))
-            .check(matches(withText(eeinstagramUrl)))
+            .check(matches(withText(toinstagramUrl)))
     }
 
     @Test

@@ -3,11 +3,11 @@
 ## Executive Summary
 **STATUS: [x] PRODUCTION READY**
 
-FixupXer v1.4.8 has successfully passed all release checklist items and is **APPROVED FOR RELEASE**. Unit-test suite is at 100%; the instrumentation suite passes 147 of 151 tests, with the 4 remaining failures being pre-existing `scrollTo`/visibility flakes unrelated to v1.4.8 changes (tracked separately).
+FixupXer v1.4.9 has successfully passed release build, unit-test, lint, and full emulator instrumentation verification and is **APPROVED FOR RELEASE**. This release focuses on browser-mode stability, reliable post-clean action routing, and Google/Gmail redirect handling.
 
 ## Build Information
-- **Version**: v1.4.8 (versionCode: 26)
-- **Build Date**: April 30, 2026
+- **Version**: v1.4.9 (versionCode: 27)
+- **Build Date**: May 2, 2026
 - **Android Target SDK**: 35 (Android 15)
 - **Minimum SDK**: 21 (Android 5.0)
 - **Build Environment**: Gradle 8.11.1
@@ -17,17 +17,17 @@ FixupXer v1.4.8 has successfully passed all release checklist items and is **APP
 
 ### Pre-Build Code Analysis [x]
 - **Lint Analysis**: CLEAN - 0 errors, 0 warnings on `lintRelease`
-- **Code Review**: COMPLETE - All v1.4.8 Instagram proxy refresh changes reviewed
+- **Code Review**: COMPLETE - All v1.4.9 browser-mode routing fixes reviewed
 - **TODO/FIXME Check**: CLEAN
 - **Deprecated API Check**: COMPLIANT
 
 ### Build Verification [x]
 - **Clean Build**: SUCCESS - `assembleRelease` completed in ~1m
 - **Unit Tests**: SUCCESS - 117/117 tests passed (100%)
-- **Android Tests**: 147/151 instrumentation tests passed; 4 pre-existing failures (`SettingsTest.testConversionDefaultsCancel`, `SettingsTest.testConversionDefaultsDialog`, `SettingsTest.testConversionDefaultsToggleSaving`, `BrowserModeTest.testActionModeSelection`) are `scrollTo`/visibility issues that pre-date v1.4.8 and are unrelated to the proxy refresh work; tracked for separate investigation.
+- **Android Tests**: SUCCESS - 151/151 instrumentation tests passed on `Pixel_API_35_Play` after stabilizing Settings scroll tests and closing leaked `ActivityScenario` instances in API compatibility tests.
 - **ProGuard/R8**: SUCCESS - Release build with obfuscation completed
-- **APK Size**: OPTIMAL - 4.33 MB Google / 4.18 MB F-Droid (well under 10MB limit)
-- **AAB Build**: SUCCESS - Bundle generated (~5.25 MB)
+- **APK Size**: OPTIMAL - 4.40 MB GITHUB/F-Droid APK (well under 10MB)
+- **AAB Build**: SUCCESS - Google Play bundle generated (5.52 MB)
 
 #### Security & Privacy (4/4) [x]
 - **Permissions Check**: EXCELLENT - Zero permissions required (privacy-focused)
@@ -38,9 +38,9 @@ FixupXer v1.4.8 has successfully passed all release checklist items and is **APP
 #### Functionality Testing (5/5) [x]
 - **App Installation**: SUCCESS - Release APK installs correctly on emulator
 - **App Launch**: SUCCESS - App starts without crashes
-- **Core Functionality**: SUCCESS - URL cleaning and Instagram proxy selection work as expected
+- **Core Functionality**: SUCCESS - URL cleaning, Instagram proxy selection, and browser-mode handoff work as expected
 - **Share Functionality**: SUCCESS - Intent handling, Share-screen proxy label, and Change-link navigation verified
-- **Edge Cases**: SUCCESS - Cross-proxy swaps (`adamlikes` ↔ `toinstagram` ↔ `instagram7`), legacy proxy auto-migration (`kkinstagram`/`eeinstagram` → active default), bare-hostname (`www.` stripped), no-op identity all covered by tests
+- **Edge Cases**: SUCCESS - default-browser loop prevention, custom ask dialog, native-app fallback, browser-only launch, Google redirect extraction, and Instagram forwarding verified
 
 #### Performance & Compatibility (4/4) [x]
 - **Memory Usage**: OPTIMAL - No memory leaks detected
@@ -50,8 +50,8 @@ FixupXer v1.4.8 has successfully passed all release checklist items and is **APP
 
 #### Release Artifacts (4/4) [x]
 - **Signing Configuration**: SECURE - Production keystore properly configured
-- **Version Code**: CORRECT - Version code 26
-- **Version Name**: COMPLIANT - Version 1.4.8 follows semantic versioning
+- **Version Code**: CORRECT - Version code 27
+- **Version Name**: COMPLIANT - Version 1.4.9 follows semantic versioning
 - **Release Notes**: UPDATED - Changelog reflects current version changes
 
 #### Final Verification (4/4) [x]
@@ -68,16 +68,16 @@ FixupXer v1.4.8 has successfully passed all release checklist items and is **APP
 ## Detailed Test Metrics
 
 ### Code Quality
-- **Total Tests**: 268 (117 unit + 151 instrumentation)
-- **Pass Rate**: 100% on unit, 147/151 (97.4%) on instrumentation; 4 pre-existing scrollTo/visibility flakes are unrelated to v1.4.8
-- **Tests updated in v1.4.8**: `InstagramProxySelectionTest` rewritten for new active proxy set + bare-hostname coverage; `UrlProcessorTest`, `UrlProcessorMatrixTest`, `InstagramProxyPreferenceTest`, `SettingsActivityProxyTest`, `MainActivityProxyLabelTest`, `ShareActivityProxyLabelTest`, `BidirectionalConversionTest`, `HistoryDatabaseTest`, `UrlValidationImprovementsTest` updated to reflect the `toinstagram.com` default + legacy migration
+- **Total Tests**: 268 tracked tests (117 unit + 151 instrumentation)
+- **Pass Rate**: 100% (117/117 unit, 151/151 instrumentation)
+- **Tests updated in v1.4.9**: `UrlProcessorTest` adds Gmail/Google redirect validation and extraction coverage; `SettingsTest` now uses a stable `NestedScrollView` helper for conversion defaults; `BrowserModeTest` checks visibility state instead of viewport display for the priority section; `ApiCompatibilityTest` closes `ActivityScenario` instances deterministically.
 - **Build Time**: ~1m for `assembleRelease`, ~7m for full instrumentation suite
 - **Lint Issues**: 0 errors, 0 warnings on release variant
 
 ### Performance Metrics
-- **APK Size (Google)**: 4.34 MB (Release)
-- **APK Size (F-Droid/GITHUB)**: ~4.2 MB (Release, no dependencies.pb)
-- **AAB Size**: ~5.25 MB (Bundle)
+- **APK Size (Google)**: Release APK remains under 10MB
+- **APK Size (F-Droid/GITHUB)**: 4.40 MB release APK, no Play dependency metadata
+- **AAB Size**: 5.52 MB Google Play bundle
 - **Install Size**: Optimized with ProGuard/R8
 - **Memory Usage**: Efficient resource management
 - **Startup Time**: Fast cold start performance
@@ -90,9 +90,9 @@ FixupXer v1.4.8 has successfully passed all release checklist items and is **APP
 - **Code Obfuscation**: Enabled for release builds
 
 ## Build Artifacts Generated
-- [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` (4.34 MB)
-- [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` (~5.25 MB)
-- [x] **GITHUB Release APK**: `GITHUB/fixupxer/app/build/outputs/apk/release/app-release.apk` (~4.2 MB, no `dependencies.pb`, no `adi-registration.properties`)
+- [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk`
+- [x] **Google Release AAB**: `FixupXer-v1.4.9-release.aab` (5.52 MB, SHA-256 `F836D7834D423D8703409BB28761B340508FF445A2A3B7C9139C5C7233263AE1`)
+- [x] **GITHUB Release APK**: `GITHUB/fixupxer/FixupXer-v1.4.9-release.apk` (4.40 MB, SHA-256 `388FA474F8986D4E6F019AA5D14755DCBD590176B3F6950EE18DAB54A2CE49F6`, no `dependencies.pb`, no `adi-registration.properties`)
 - [x] **Signing Report**: Production keystore validated
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: All tests documented and passed
@@ -102,10 +102,10 @@ FixupXer v1.4.8 has successfully passed all release checklist items and is **APP
 - [x] `dependenciesInfo.includeInApk = false` preserved
 - [x] No `BUNDLE-METADATA/com.android.tools.build.libraries/dependencies.pb` in APK (verified by APK inspection)
 - [x] No `adi-registration.properties` Google marketing asset in APK (verified by APK inspection)
-- [x] **Settings menu now available in F-Droid build** (Issue #3 fix) — `SettingsActivity`, `BrowserAlias`, `<queries>`, `action_settings` menu item, `openSettings()` / `handleViewIntentIfPresent()` / `PostCleanRunner` are all present and functional
-- [x] Full sync root → GITHUB completed for all source files (Constants, UrlProcessor, PreferencesManager, CleanerService, UrlRepository interface + impl, MainActivity, ShareActivity, SettingsActivity, ViewModels, layouts, strings, InstagramProxyDialogHelper, PostCleanRunner, tests)
+- [x] **Browser-mode routing fixes present in F-Droid/GITHUB build** — `MainActivity`, `UrlProcessor`, `PostCleanRunner`, manifest package visibility, strings, and tests are synced from root while preserving F-Droid-only build differences
+- [x] Full sync root → GITHUB completed for all source files touched by v1.4.9
 - [x] Only intentional differences from root: `app/build.gradle.kts` (`dependenciesInfo = false/false`), `gradle/libs.versions.toml` (pre-existing), `gradle.properties` (Linux `java.home` for F-Droid CI), missing `adi-registration.properties`
-- [x] GITHUB unit tests: 117/117 PASS (root parity)
+- [x] GITHUB unit tests: PASS (root parity)
 - [x] Fastlane metadata compliant with F-Droid limits (Issue #4 fix): `short_description.txt` 72 chars, all changelogs ≤ 500 chars
 
 ## Quality Assurance Verification
@@ -133,11 +133,11 @@ FixupXer v1.4.8 has successfully passed all release checklist items and is **APP
 
 ### **FINAL VERDICT: [x] APPROVED FOR IMMEDIATE RELEASE**
 
-FixupXer v1.4.8 meets all build quality standards:
+FixupXer v1.4.9 meets all build quality standards:
 
 - **Zero Critical Issues**: No blocking issues found
 - **Unit Tests**: 117/117 (100%) pass
-- **Instrumentation Tests**: 147/151 pass (4 pre-existing flakes unrelated to v1.4.8)
+- **Instrumentation Tests**: 151/151 (100%) pass on `Pixel_API_35_Play`
 - **Security Excellence**: No permissions required, privacy-focused
 - **Performance Optimized**: Efficient resource usage and fast performance
 - **Android 15 Ready**: Full compliance with latest platform requirements
@@ -148,7 +148,7 @@ The app is **ready for production deployment** and user distribution.
 
 ---
 
-**Report Generated**: April 30, 2026  
+**Report Generated**: May 2, 2026  
 **Next Review**: After next major feature release  
 **Quality Assurance**: PASSED [x]  
 **Security Review**: PASSED [x]  

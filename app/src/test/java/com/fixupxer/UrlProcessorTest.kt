@@ -77,6 +77,24 @@ class UrlProcessorTest {
     }
     
     @Test
+    fun `test Gmail Google redirect with nested URL is accepted and extracted`() {
+        val gmailRedirect = "https://www.google.com/url?q=https://gls-group.com/HR/hr/pracenje-posiljke?match%3D48610661969&source=gmail&ust=1777816100096000&usg=AOvVaw3ti1EXaAqM2E3SY72ndZNy"
+        
+        val result = urlProcessor.processUrl(gmailRedirect, cleanTracking = true, convertTwitter = false).first
+        
+        assertEquals("https://gls-group.com/HR/hr/pracenje-posiljke?match=48610661969", result)
+    }
+    
+    @Test
+    fun `test static URL extraction accepts Google redirect with nested URL`() {
+        val gmailRedirect = "https://www.google.com/url?q=https://gls-group.com/HR/hr/pracenje-posiljke?match%3D48610661969&source=gmail"
+        
+        val result = UrlProcessor.findFirstValidUrl(gmailRedirect)
+        
+        assertEquals(gmailRedirect, result)
+    }
+    
+    @Test
     fun `test convert Twitter URL to FixupX`() {
         val twitterUrl = "https://twitter.com/user/status/1234567890"
         val resultPair = urlProcessor.processUrl(twitterUrl, cleanTracking = false, convertTwitter = true)

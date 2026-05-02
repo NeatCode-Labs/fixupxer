@@ -31,6 +31,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.text.HtmlCompat
+import androidx.core.widget.TextViewCompat
 import com.fixupxer.PreferencesManager
 import com.fixupxer.R
 import com.fixupxer.utils.Constants
@@ -91,7 +92,7 @@ object InstagramProxyDialogHelper {
 
         val title = TextView(context).apply {
             text = context.getString(R.string.instagram_proxy_dialog_title)
-            setTextAppearance(android.R.style.TextAppearance_Material_Title)
+            TextViewCompat.setTextAppearance(this, android.R.style.TextAppearance_Material_Title)
             layoutParams = LinearLayout.LayoutParams(
                 0,
                 LinearLayout.LayoutParams.WRAP_CONTENT,

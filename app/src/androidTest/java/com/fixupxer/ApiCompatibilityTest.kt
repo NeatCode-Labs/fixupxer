@@ -52,86 +52,86 @@ class ApiCompatibilityTest {
         val currentApi = Build.VERSION.SDK_INT
         
         // Test app runs on current API level
-        ActivityScenario.launch(MainActivity::class.java)
+        ActivityScenario.launch(MainActivity::class.java).use {
+            Thread.sleep(1000)
+            
+            // Core functionality should work regardless of API level
+            onView(withId(R.id.editTextUrl))
+                .perform(replaceText("https://instagram.com/p/test123/"))
+            
+            onView(withId(R.id.buttonProcess))
+                .perform(click())
+            
+            Thread.sleep(500)
+            
+            // Verify processing works
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(isDisplayed()))
+        }
         
-        Thread.sleep(1000)
-        
-        // Core functionality should work regardless of API level
-        onView(withId(R.id.editTextUrl))
-            .perform(replaceText("https://instagram.com/p/test123/"))
-        
-        onView(withId(R.id.buttonProcess))
-            .perform(click())
-        
-        Thread.sleep(500)
-        
-        // Verify processing works
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(isDisplayed()))
-        
-        println("App successfully tested on API level: $currentApi")
+        assert(currentApi >= 21) { "Current API level should support FixupXer" }
     }
     
     @Test
     fun testMaterialDesignComponents() {
-        ActivityScenario.launch(MainActivity::class.java)
-        
-        Thread.sleep(1000)
-        
-        // Test Material Design components work properly
-        // Material buttons
-        onView(withId(R.id.buttonProcess))
-            .check(matches(isDisplayed()))
-        
-        onView(withId(R.id.buttonCopy))
-            .check(matches(isDisplayed()))
-        
-        // EditText with Material styling
-        onView(withId(R.id.editTextUrl))
-            .check(matches(isDisplayed()))
-        
-        // Material card views are used throughout the app
+        ActivityScenario.launch(MainActivity::class.java).use {
+            Thread.sleep(1000)
+            
+            // Test Material Design components work properly
+            // Material buttons
+            onView(withId(R.id.buttonProcess))
+                .check(matches(isDisplayed()))
+            
+            onView(withId(R.id.buttonCopy))
+                .check(matches(isDisplayed()))
+            
+            // EditText with Material styling
+            onView(withId(R.id.editTextUrl))
+                .check(matches(isDisplayed()))
+            
+            // Material card views are used throughout the app
+        }
     }
     
     @Test
     fun testThemeCompatibility() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         
-        ActivityScenario.launch(MainActivity::class.java)
-        
-        Thread.sleep(1000)
-        
-        // Test app theme works properly
-        // App should have proper theme applied
-        val theme = context.theme
-        assert(theme != null) { "App theme should not be null" }
-        
-        // UI elements should be visible with proper theming
-        onView(withId(R.id.editTextUrl))
-            .check(matches(isDisplayed()))
+        ActivityScenario.launch(MainActivity::class.java).use {
+            Thread.sleep(1000)
+            
+            // Test app theme works properly
+            // App should have proper theme applied
+            val theme = context.theme
+            assert(theme != null) { "App theme should not be null" }
+            
+            // UI elements should be visible with proper theming
+            onView(withId(R.id.editTextUrl))
+                .check(matches(isDisplayed()))
+        }
     }
     
     @Test
     fun testConfigurationChanges() {
-        val scenario = ActivityScenario.launch(MainActivity::class.java)
-        
-        Thread.sleep(1000)
-        
-        // Enter some text
-        onView(withId(R.id.editTextUrl))
-            .perform(replaceText("https://x.com/user/status/123"))
-        
-        // Process the URL first
-        onView(withId(R.id.buttonProcess))
-            .perform(click())
-        
-        Thread.sleep(500)
-        
-        // Verify URL was processed
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(isDisplayed()))
-        
-        // Configuration changes are handled by the manifest
-        // App maintains state through configChanges attribute
+        ActivityScenario.launch(MainActivity::class.java).use {
+            Thread.sleep(1000)
+            
+            // Enter some text
+            onView(withId(R.id.editTextUrl))
+                .perform(replaceText("https://x.com/user/status/123"))
+            
+            // Process the URL first
+            onView(withId(R.id.buttonProcess))
+                .perform(click())
+            
+            Thread.sleep(500)
+            
+            // Verify URL was processed
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(isDisplayed()))
+            
+            // Configuration changes are handled by the manifest
+            // App maintains state through configChanges attribute
+        }
     }
 } 

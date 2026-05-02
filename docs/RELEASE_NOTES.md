@@ -1,3 +1,37 @@
+# FixupXer v1.4.9 - Browser Mode Stability & Routing Fixes
+
+## What's New
+
+### Browser Mode Loop Fix
+FixupXer no longer re-launches itself when it is set as the default browser and post-clean behavior is set to **Ask every time** or **Follow action order**. Browser fallback now excludes FixupXer and only targets external handlers.
+
+### Reliable Ask Every Time Dialog
+**Ask every time** now uses a FixupXer-owned action dialog instead of depending on Android's system chooser. This keeps the ask step visible even when Android would otherwise auto-select a single target.
+
+### Safer Native App and Browser Routing
+The **Open in native app** action now reports failure when no native app can handle the cleaned URL, allowing priority mode to fall through to browser/share/clipboard instead of opening a generic Android share popup. Browser launching is browser-agnostic and discovers installed browsers dynamically.
+
+### Gmail / Google Redirect Handling
+Complex Google redirect links, including Gmail tracking redirects with nested destination URLs, are now accepted and cleaned correctly instead of being rejected as invalid URL formats.
+
+### YouTube and Instagram Forwarding Improvements
+YouTube native launch attempts now cover common package variants before falling back. Instagram links tested through browser mode are cleaned before being forwarded to Instagram when Android supported-link settings route them through FixupXer.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 27
+- versionName: 1.4.9
+- Google Play AAB: 5.52 MB
+- GITHUB/F-Droid APK: 4.40 MB
+- Tests: 117 unit + 151 instrumentation = **268 tests passing**
+- 0 permissions, 0 network calls, 0 hardcoded secrets (verified)
+
+## Download
+- [FixupXer-v1.4.9-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.4.9/FixupXer-v1.4.9-release.apk)
+
+---
+
 # FixupXer v1.4.8 - Instagram Proxy Refresh (toinstagram.com / adamlikes.men)
 
 ## 🎯 What's New

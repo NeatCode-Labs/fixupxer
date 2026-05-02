@@ -19,6 +19,8 @@
 
 package com.fixupxer.utils
 
+import android.app.Activity
+import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipDescription
@@ -31,6 +33,7 @@ import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import com.fixupxer.PreferencesManager
+import com.fixupxer.R
 import com.fixupxer.data.model.AfterCleanAction
 import com.fixupxer.utils.Constants
 import timber.log.Timber
@@ -46,11 +49,12 @@ class PostCleanRunner(
     /**
      * Backward-compatible run method for the existing system
      */
-    fun run(cleanedUri: Uri) {
+    fun run(cleanedUri: Uri, onComplete: (() -> Unit)? = null) {
         Timber.d("PostCleanRunner.run called with URI: $cleanedUri")
         
         if (preferencesManager == null) {
             Timber.e("PreferencesManager is null")
+            onComplete?.invoke()
             return
         }
         
@@ -59,12 +63,62 @@ class PostCleanRunner(
         
         when (actionMode) {
             PreferencesManager.ACTION_MODE_ASK -> {
-                showAppChooser(cleanedUri)
+                showAskEveryTimeDialog(cleanedUri, onComplete)
             }
             PreferencesManager.ACTION_MODE_PRIORITY -> {
                 runPriorityMode(cleanedUri)
+                onComplete?.invoke()
             }
         }
+    }
+    
+    /**
+     * Show a FixupXer-owned action picker so "Ask every time" always asks,
+     * even when Android's system chooser would auto-select the only target.
+     */
+    private fun showAskEveryTimeDialog(uri: Uri, onComplete: (() -> Unit)?) {
+        val activity = context as? Activity
+        if (activity == null || activity.isFinishing) {
+            showAppChooser(uri)
+            onComplete?.invoke()
+            return
+        }
+        
+        val actionNames = arrayOf(
+            activity.getString(R.string.action_native_app),
+            activity.getString(R.string.action_browser),
+            activity.getString(R.string.action_share_menu),
+            activity.getString(R.string.action_clipboard)
+        )
+        
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.post_clean_action_title)
+            .setItems(actionNames) { _, which ->
+                val actionName = when (which) {
+                    0 -> PreferencesManager.ACTION_NATIVE_APP
+                    1 -> PreferencesManager.ACTION_BROWSER
+                    2 -> PreferencesManager.ACTION_SHARE_MENU
+                    3 -> PreferencesManager.ACTION_CLIPBOARD
+                    else -> PreferencesManager.ACTION_SHARE_MENU
+                }
+                when (actionName) {
+                    PreferencesManager.ACTION_NATIVE_APP -> {
+                        if (!launchNativeApp(uri)) {
+                            launchBrowser(uri)
+                        }
+                    }
+                    PreferencesManager.ACTION_BROWSER -> launchBrowser(uri)
+                    PreferencesManager.ACTION_SHARE_MENU -> share(uri)
+                    PreferencesManager.ACTION_CLIPBOARD -> {
+                        copyToClipboard(uri)
+                    }
+                }
+                onComplete?.invoke()
+            }
+            .setOnCancelListener {
+                onComplete?.invoke()
+            }
+            .show()
     }
     
     /**
@@ -228,8 +282,8 @@ class PostCleanRunner(
             return true
         }
         
-        // If that fails, show system chooser
-        return showAppChooser(uri)
+        // Let priority mode continue to the browser/share fallback when no native app exists.
+        return false
     }
     
     /**
@@ -240,31 +294,22 @@ class PostCleanRunner(
         
         // For YouTube URLs, try ReVanced YouTube first, then official YouTube
         if (url.contains("youtube.com") || url.contains("youtu.be")) {
-            // Try ReVanced YouTube first
-            val revancedIntent = Intent(Intent.ACTION_VIEW, uri).apply {
-                setPackage("app.revanced.android.youtube")
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            
-            try {
-                context.startActivity(revancedIntent)
-                Timber.d("Launched ReVanced YouTube")
-                return true
-            } catch (e: ActivityNotFoundException) {
-                Timber.d("ReVanced YouTube not found, trying official YouTube")
-                
-                // Try official YouTube
+            for (packageName in listOf(
+                "app.revanced.android.youtube",
+                "app.morphe.android.youtube",
+                "com.google.android.youtube"
+            )) {
                 val youtubeIntent = Intent(Intent.ACTION_VIEW, uri).apply {
-                    setPackage("com.google.android.youtube")
+                    setPackage(packageName)
+                    addCategory(Intent.CATEGORY_BROWSABLE)
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
-                
                 try {
                     context.startActivity(youtubeIntent)
-                    Timber.d("Launched official YouTube")
+                    Timber.d("Launched YouTube package: $packageName")
                     return true
                 } catch (e2: ActivityNotFoundException) {
-                    Timber.d("Official YouTube not found either")
+                    Timber.d("YouTube package not found or cannot handle URL: $packageName")
                 }
             }
             
@@ -356,8 +401,9 @@ class PostCleanRunner(
             when {
                 url.contains("youtube.com") || url.contains("youtu.be") -> {
                     Timber.d("URL contains youtube.com or youtu.be, trying to add YouTube apps")
-                    // Try ReVanced first, then official YouTube
+                    // Try common YouTube variants first, then official YouTube
                     tryAddManualApp("app.revanced.android.youtube", uri, targetIntents, manuallyAddedApps)
+                    tryAddManualApp("app.morphe.android.youtube", uri, targetIntents, manuallyAddedApps)
                     tryAddManualApp("com.google.android.youtube", uri, targetIntents, manuallyAddedApps)
                 }
                 url.contains(Constants.INSTAGRAM_DOMAIN) ||
@@ -493,32 +539,26 @@ class PostCleanRunner(
     private fun launchBrowser(uri: Uri): Boolean {
         Timber.d("launchBrowser: Trying to launch browser for $uri")
         try {
-            // First, try to launch Chrome directly
-            val chromeIntent = Intent(Intent.ACTION_VIEW, uri).apply {
-                setPackage("com.android.chrome")
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val browserIntents = resolveExternalBrowserIntents(uri)
+            if (browserIntents.isEmpty()) {
+                Timber.d("No browser target available after excluding FixupXer")
+                return false
             }
             
-            try {
-                context.startActivity(chromeIntent)
-                Timber.d("Launched Chrome directly")
+            if (browserIntents.size == 1) {
+                context.startActivity(browserIntents.first())
+                Timber.d("Launched the only external browser")
                 return true
-            } catch (e: ActivityNotFoundException) {
-                Timber.d("Chrome not found or can't handle URL, trying chooser")
             }
             
-            // If Chrome fails, show the system chooser
-            // Don't try to filter or query - just let Android handle it
-            val viewIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+            val firstIntent = browserIntents.first()
+            val extraIntents = browserIntents.drop(1).toTypedArray()
+            val chooser = Intent.createChooser(firstIntent, "Open with browser").apply {
+                putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            
-            val chooser = Intent.createChooser(viewIntent, "Open with").apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            
             context.startActivity(chooser)
-            Timber.d("Showed system chooser")
+            Timber.d("Showed browser-only chooser with ${browserIntents.size} browsers")
             return true
             
         } catch (e: Exception) {
@@ -526,6 +566,32 @@ class PostCleanRunner(
             Toast.makeText(context, "Failed to open browser", Toast.LENGTH_SHORT).show()
             return false
         }
+    }
+    
+    private fun resolveExternalBrowserIntents(uri: Uri): List<Intent> {
+        val browserIntent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_APP_BROWSER)
+        }
+        val browsers = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.packageManager.queryIntentActivities(
+                browserIntent,
+                PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong())
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            context.packageManager.queryIntentActivities(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
+        }
+        
+        return browsers
+            .filter { it.activityInfo.packageName != context.packageName }
+            .distinctBy { it.activityInfo.packageName }
+            .map { resolveInfo ->
+                Intent(Intent.ACTION_VIEW, uri).apply {
+                    setPackage(resolveInfo.activityInfo.packageName)
+                    addCategory(Intent.CATEGORY_BROWSABLE)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            }
     }
     
     /**
@@ -564,29 +630,5 @@ class PostCleanRunner(
         }
         clipboard.setPrimaryClip(clip)
         Toast.makeText(context, "URL copied to clipboard", Toast.LENGTH_SHORT).show()
-    }
-    
-    /**
-     * Check if a package is a known browser
-     */
-    private fun isBrowserPackage(packageName: String): Boolean {
-        return packageName in setOf(
-            "com.android.chrome",
-            "org.mozilla.firefox",
-            "com.microsoft.emmx",
-            "com.opera.browser",
-            "com.brave.browser",
-            "com.duckduckgo.mobile.android",
-            "com.kiwibrowser.browser",
-            "com.sec.android.app.sbrowser",
-            "com.UCMobile.intl",
-            "org.mozilla.fenix",
-            "org.mozilla.focus",
-            "com.vivaldi.browser",
-            "com.android.browser",
-            "com.chrome.beta",
-            "com.chrome.dev",
-            "com.chrome.canary"
-        )
     }
 } 

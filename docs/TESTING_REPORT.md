@@ -1,10 +1,10 @@
 # FixupXer Testing Report
 
 ## Test Execution Date
-April 30, 2026
+May 2, 2026
 
 ## Executive Summary
-117/117 unit tests pass and 147 of 151 instrumentation tests pass on the Pixel API 35 emulator (Android 15). The 4 instrumentation failures are pre-existing scrollTo/visibility flakes (`SettingsTest.testConversionDefaults*` and `BrowserModeTest.testActionModeSelection`) that are unrelated to v1.4.8 changes. FixupXer v1.4.8 is **READY FOR PRODUCTION RELEASE**.
+117/117 unit tests and 151/151 instrumentation tests pass for v1.4.9. Browser-mode routing was also verified on emulator and physical device during fix validation. FixupXer v1.4.9 is **READY FOR PRODUCTION RELEASE**.
 
 ## Test Environment
 - **Device**: Android Emulator - Pixel API 35 (Android 15)
@@ -20,18 +20,17 @@ April 30, 2026
 **Total Tests**: 117 unit tests  
 **Pass Rate**: 100%  
 **Test Classes (highlights)**:
-- `UrlProcessorTest` (19 tests, updated for v1.4.8 default = `toinstagram.com` and bare-hostname conversion)
+- `UrlProcessorTest` (updated for v1.4.9 Google/Gmail redirect acceptance, plus v1.4.8 default = `toinstagram.com` and bare-hostname conversion)
 - `UrlProcessorMatrixTest` (matrix covering instagram/proxy/legacy/www-stripping scenarios)
 - `InstagramProxySelectionTest` (rewritten in v1.4.8 — covers active set, cross-proxy, www. stripping, sub-prefix stripping, legacy auto-migration, no-op identity)
 - Cleaner implementation tests (Amazon, YouTube, GoogleSearch, Substack, etc.)
 
 ### Android Instrumentation Tests (`./gradlew connectedDebugAndroidTest`)
-**Status**: 147 / 151 PASS  
+**Status**: [x] PASSED  
 **Total Tests**: 151 tests  
-**Pre-existing failures (unrelated to v1.4.8)**: `SettingsTest.testConversionDefaultsCancel`, `SettingsTest.testConversionDefaultsDialog`, `SettingsTest.testConversionDefaultsToggleSaving`, `BrowserModeTest.testActionModeSelection` — all are Espresso `scrollTo`/visibility issues where the target view reports zero visible area on the Pixel API 35 emulator. The buttons are reachable manually; these tests need a separate fix outside the scope of v1.4.8.  
-**Passed**: 144 (100%)  
+**Passed**: 151 (100%)  
 **Failed**: 0 tests  
-**Execution Time**: ~9 min 30s
+**Execution Time**: ~13 min 14s
 
 ## Detailed Test Results by Feature
 
@@ -104,7 +103,7 @@ All tests pass after the `isFacebookUrl` UI-state addition (ViewModel default va
 - [x] History toggle / max entries dialog
 - [x] Back navigation
 - [x] **Instagram embed proxy radio group** (default = toinstagram.com, persistent selection, info icon visible)
-- *Pre-existing flake (unrelated to v1.4.8):* `testConversionDefaultsCancel`, `testConversionDefaultsDialog`, `testConversionDefaultsToggleSaving` fail with `scrollTo()` reporting zero visible area for `buttonConversionDefaults` on the Pixel API 35 emulator. Manual verification confirms the button works.
+- [x] Conversion defaults dialog, saving, and cancel flows pass with deterministic `NestedScrollView` scrolling
 
 ### 9. URL Input Validation [x]
 **Test File**: `UrlInputValidationTest.kt` — all security tests still pass.
@@ -145,7 +144,7 @@ All tests pass after the `isFacebookUrl` UI-state addition (ViewModel default va
 - **Browser Mode**: 100% (Google variant)
 - **History Management**: 100%
 - **Input Validation**: 100%
-- **Settings/Preferences**: 100% on covered features (3 unrelated SettingsTest scrollTo flakes documented above)
+- **Settings/Preferences**: 100%
 - **Share Functionality**: 100%
 
 ### Platform Coverage
@@ -161,7 +160,7 @@ All tests pass after the `isFacebookUrl` UI-state addition (ViewModel default va
   - No `adi-registration.properties` (Google-only marketing asset)
 
 ## Known Issues
-- 4 pre-existing instrumentation test failures unrelated to v1.4.8 (`SettingsTest.testConversionDefaults*` and `BrowserModeTest.testActionModeSelection`): Espresso `scrollTo()` reports zero visible area for the target view on the Pixel API 35 emulator; manual verification confirms the views work correctly. To be fixed separately (likely needs different scroll mechanic or layout adjustment for the After-clean Behavior card).
+- None blocking for v1.4.9 release. The previous Settings/BrowserMode `scrollTo` flakes are fixed.
 
 ## Performance Observations
 - All tests completed within expected timeframes
@@ -182,6 +181,6 @@ All tests pass after the `isFacebookUrl` UI-state addition (ViewModel default va
 ## Conclusion
 **Production Readiness: YES** [x]
 
-FixupXer v1.4.8 passes 117/117 unit tests and 147/151 instrumentation tests. The 4 instrumentation failures are pre-existing scrollTo/visibility flakes unrelated to v1.4.8 changes. The refreshed Instagram proxy set, bare-hostname conversion, legacy auto-migration, and Settings/Dialog info tooltip are fully covered by tests.
+FixupXer v1.4.9 passes 117/117 unit tests and 151/151 instrumentation tests. Browser-mode ask/priority routing, native-app fallback, browser fallback, Google/Gmail redirect handling, and Instagram forwarding were verified during emulator and physical-device testing.
 
 **The app is ready for production deployment.**

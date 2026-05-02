@@ -26,6 +26,7 @@ import com.fixupxer.cleaners.CleanerService
 import com.fixupxer.utils.Constants
 import timber.log.Timber
 import java.net.IDN
+import java.net.URI
 import java.net.URLDecoder
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -476,7 +477,10 @@ class UrlProcessor @Inject constructor(
         if (trimmedText.isNotEmpty() && !trimmedText.contains("\n") && !trimmedText.contains("\r")) {
             // If it starts with http:// or https://, validate it directly
             if (trimmedText.startsWith("http://") || trimmedText.startsWith("https://")) {
-                return if (isValidUrlSimple(trimmedText)) trimmedText else null
+                val simpleValid = isValidUrlSimple(trimmedText)
+                if (simpleValid) return trimmedText
+                val uri = parseValidHttpUri(trimmedText)
+                return if (uri != null) trimmedText else null
             }
             
             // If it looks like a domain without protocol
@@ -570,6 +574,22 @@ class UrlProcessor @Inject constructor(
             RegexOption.IGNORE_CASE
         )
         
+        private fun parseValidHttpUri(url: String): URI? {
+            return try {
+                val uri = URI(url)
+                if ((uri.scheme == "http" || uri.scheme == "https") &&
+                    !uri.host.isNullOrBlank() &&
+                    uri.host.contains(".")
+                ) {
+                    uri
+                } else {
+                    null
+                }
+            } catch (_: Exception) {
+                null
+            }
+        }
+        
         /**
          * Simple URL validation that works in both production and test environments (static version)
          */
@@ -659,7 +679,8 @@ class UrlProcessor @Inject constructor(
             if (trimmedText.isNotEmpty() && !trimmedText.contains("\n") && !trimmedText.contains("\r")) {
                 // If it starts with http:// or https://, validate it directly
                 if (trimmedText.startsWith("http://") || trimmedText.startsWith("https://")) {
-                    return if (isValidUrlSimple(trimmedText)) trimmedText else null
+                    if (isValidUrlSimple(trimmedText)) return trimmedText
+                    return if (parseValidHttpUri(trimmedText) != null) trimmedText else null
                 }
                 
                 // If it looks like a domain without protocol

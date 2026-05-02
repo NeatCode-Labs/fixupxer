@@ -1,0 +1,7 @@
+v1.4.9 — Browser mode stability fixes
+
+• Fixed default-browser loops when post-clean behavior used Ask every time or Follow action order
+• Ask every time now uses a FixupXer action dialog
+• Native-app failures safely fall back to browser instead of a generic share popup
+• Browser launch is browser-agnostic
+• Gmail/Google redirect URLs are accepted and cleaned correctly

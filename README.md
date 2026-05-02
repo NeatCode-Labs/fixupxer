@@ -5,7 +5,7 @@
 
 **Clean URLs • Get embeddable links • Use Browser Mode**
 
-[![Version](https://img.shields.io/badge/version-1.4.8-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
+[![Version](https://img.shields.io/badge/version-1.4.9-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
 [![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-green?style=for-the-badge)](LICENSE)
 
@@ -91,7 +91,7 @@ Repeat the process for **each** app whose links you want FixupXer to clean and t
 
 After a link is cleaned, FixupXer can either:
 
-- **Ask every time** — Android's chooser appears and you decide where to send the cleaned link
+- **Ask every time** — FixupXer shows its own action dialog and you decide where to send the cleaned link
 - **Follow priority list** — FixupXer looks at your ordered list of actions and executes the first one that works:
     1. Open in native app (only if such an app exists and is allowed)
     2. Open in browser
@@ -109,10 +109,10 @@ You can reorder the list under **Settings ▸ Action priority**. Drag and drop i
 *Actual:* Instagram, YouTube, etc. open directly without cleaning  
 *Solution:* Disable "Open supported links" for each app in System Settings ▸ Apps ▸ [App Name] ▸ Set as default
 
-• **"Ask every time" doesn't show chooser**  
-*Expected:* Android shows app choices for every link  
-*Actual:* Links open directly in one app  
-*Solution:* This happens when only one app can handle the URL. FixupXer now manually adds native apps to ensure multiple options
+• **"Ask every time" appears to be skipped**  
+*Expected:* FixupXer shows its action dialog for every cleaned link  
+*Actual:* A native app opens directly without FixupXer first  
+*Solution:* Android can bypass the default browser when an app has "Open supported links" enabled. Disable that setting for apps whose links you want FixupXer to clean first
 
 • **Browser mode toggle doesn't work**  
 *Expected:* FixupXer becomes default browser immediately  
@@ -127,12 +127,12 @@ You can reorder the list under **Settings ▸ Action priority**. Drag and drop i
 • **YouTube opens wrong app**  
 *Expected:* Links open in ReVanced YouTube  
 *Actual:* Official YouTube app opens  
-*Solution:* Set action mode to "Follow action order" with "Open in native app" first. FixupXer prioritizes ReVanced when available
+*Solution:* Set action mode to "Follow action order" with "Open in native app" first. FixupXer tries ReVanced-compatible package names before the official YouTube app when available
 
-• **Links don't open in any app**  
+• **Links fall back to browser instead of native app**  
 *Expected:* Cleaned links open in native apps  
-*Actual:* "No app can handle this link" error  
-*Solution:* Domain conversion (x.com→fixupx.com) may break app recognition. Disable conversions in "Conversion defaults" if you prefer native apps
+*Actual:* The browser opens instead  
+*Solution:* This means no installed native app accepted the cleaned URL. FixupXer safely falls back to your browser action instead of opening a generic share popup
 
 ### 📜 History Feature
 - **View Past Links** - Tap the History button to see all your cleaned links

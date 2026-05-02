@@ -1,9 +1,9 @@
 # FixupXer App - Development Summary
-## Version Progression: v1.4.8 → v1.2.1 (Latest to Oldest)
+## Version Progression: v1.4.9 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 19 (v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
-**Current Version:** v1.4.8 (versionCode: 26)  
-**Development Period:** v1.2.1 (Initial) → v1.4.8 (Current)
+**Total Versions Released:** 20 (v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
+**Current Version:** v1.4.9 (versionCode: 27)  
+**Development Period:** v1.2.1 (Initial) → v1.4.9 (Current)
 
 ---
 
@@ -26,6 +26,20 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v1.4.8 → v1.4.9
+- **Focus:** Browser-mode stability, reliable post-clean actions, and Android routing correctness
+- **Key Changes:**
+  - Fixed the default-browser loop/crash when FixupXer was selected as Android's browser and post-clean behavior was set to **Ask every time** or **Follow action order**. Browser fallback now excludes FixupXer itself instead of allowing the system to route the cleaned URL back into the app.
+  - Replaced chooser-dependent **Ask every time** behavior with a FixupXer-owned action dialog, so the app asks consistently even when Android has only one external handler.
+  - Made **Open in native app** fail cleanly when no native app accepts the cleaned URL, allowing priority mode to fall through to browser/share/clipboard instead of showing Android's generic share popup.
+  - Refactored browser launch to discover installed browsers dynamically via `CATEGORY_APP_BROWSER`, avoiding hardcoded browser preference order.
+  - Added direct launch coverage for common YouTube package variants before falling back.
+  - Improved URL extraction so Gmail/Google redirect links with nested destination URLs are accepted and cleaned correctly.
+  - Removed temporary debug instrumentation used during physical-device verification.
+- **Tests updated:** `UrlProcessorTest` covers Gmail/Google redirect acceptance and extraction; browser-mode routing was verified on emulator and physical device with YouTube, GLS/Gmail, and Instagram flows.
+- **Tests pass rate:** 117 unit (100%) + 151 instrumentation (100%) on `Pixel_API_35_Play`. The previous Settings/BrowserMode `scrollTo` flakes were fixed by using deterministic nested scrolling, checking visibility state instead of viewport display where appropriate, and closing `ActivityScenario` instances in API compatibility tests.
+- **Impact:** Browser mode now behaves predictably as a system-wide cleaner: links are cleaned once, the ask dialog appears when FixupXer receives the link, native app failures fall back safely, and generic browser handling remains browser-agnostic.
 
 ### v1.4.7 → v1.4.8
 - **Focus:** Refreshed Instagram proxy list, bare-hostname conversion, inline info tooltip
@@ -524,7 +538,9 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.4.4 | 21 | Android 15 edge-to-edge compliance | ✅ Released |
 | v1.4.5 | 22 | Multi-subdomain URL support | ✅ Released |
 | v1.4.6 | 23 | Browser mode integration | ✅ Released |
-| v1.4.7 | 25 | Selectable Instagram embed proxy | ✅ Current |
+| v1.4.7 | 25 | Selectable Instagram embed proxy | ✅ Released |
+| v1.4.8 | 26 | Instagram proxy refresh | ✅ Released |
+| v1.4.9 | 27 | Browser mode stability & routing fixes | ✅ Current |
 
 ### Build Artifacts:
 - **APK:** `

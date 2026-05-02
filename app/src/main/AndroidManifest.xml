@@ -15,10 +15,15 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.APP_BROWSER" />
+        </intent>
         <!-- Query for common apps we might want to open -->
         <package android:name="com.android.chrome" />
         <package android:name="com.google.android.youtube" />
         <package android:name="app.revanced.android.youtube" />
+        <package android:name="app.morphe.android.youtube" />
         <package android:name="com.instagram.android" />
         <package android:name="com.twitter.android" />
         <package android:name="com.facebook.katana" />

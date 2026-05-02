@@ -43,6 +43,9 @@ import androidx.preference.PreferenceManager
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.delay
 import androidx.test.espresso.matcher.ViewMatchers.isNotChecked
+import androidx.core.widget.NestedScrollView
+import org.hamcrest.Matcher
+import android.view.ViewParent
 
 /**
  * Settings related UI tests
@@ -256,7 +259,7 @@ class SettingsTest {
         
         // Click on Conversion defaults button
         onView(withId(R.id.buttonConversionDefaults))
-            .perform(scrollTo(), click())
+            .perform(nestedScrollTo(), click())
         
         // Wait for dialog
         onView(isRoot()).perform(waitFor(1000))
@@ -305,7 +308,7 @@ class SettingsTest {
         
         // Open conversion defaults dialog
         onView(withId(R.id.buttonConversionDefaults))
-            .perform(scrollTo(), click())
+            .perform(nestedScrollTo(), click())
         
         // Wait for dialog
         onView(isRoot()).perform(waitFor(1000))
@@ -331,7 +334,7 @@ class SettingsTest {
         
         // Reopen dialog to verify changes were saved
         onView(withId(R.id.buttonConversionDefaults))
-            .perform(scrollTo(), click())
+            .perform(nestedScrollTo(), click())
         
         // Verify toggles are still off
         onView(withId(R.id.switchBrowserTwitter))
@@ -363,7 +366,7 @@ class SettingsTest {
         
         // Open conversion defaults dialog
         onView(withId(R.id.buttonConversionDefaults))
-            .perform(scrollTo(), click())
+            .perform(nestedScrollTo(), click())
         
         // Wait for dialog
         onView(isRoot()).perform(waitFor(1000))
@@ -384,7 +387,7 @@ class SettingsTest {
         
         // Reopen dialog
         onView(withId(R.id.buttonConversionDefaults))
-            .perform(scrollTo(), click())
+            .perform(nestedScrollTo(), click())
         
         // Verify change was not saved (should still be checked)
         onView(withId(R.id.switchBrowserFacebook))
@@ -399,6 +402,23 @@ class SettingsTest {
             override fun getDescription() = "Wait for $millis milliseconds"
             override fun perform(uiController: UiController, view: View) {
                 uiController.loopMainThreadForAtLeast(millis)
+            }
+        }
+    }
+
+    private fun nestedScrollTo(): ViewAction {
+        return object : ViewAction {
+            override fun getConstraints(): Matcher<View> = isAssignableFrom(View::class.java)
+            override fun getDescription() = "Scroll enclosing NestedScrollView to target view"
+            override fun perform(uiController: UiController, view: View) {
+                var y = view.top
+                var parent: ViewParent? = view.parent
+                while (parent is View && parent !is NestedScrollView) {
+                    y += parent.top
+                    parent = (parent as View).parent
+                }
+                (parent as? NestedScrollView)?.scrollTo(0, y)
+                uiController.loopMainThreadUntilIdle()
             }
         }
     }

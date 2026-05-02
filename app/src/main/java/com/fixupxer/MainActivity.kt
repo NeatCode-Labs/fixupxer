@@ -137,10 +137,10 @@ class MainActivity : BaseActivity() {
                         
                         // Run post-clean action
                         val postCleanRunner = PostCleanRunner(this@MainActivity, preferencesManager)
-                        postCleanRunner.run(cleanedUri)
-                        
-                        // Finish the activity to avoid stacking
-                        finish()
+                        postCleanRunner.run(cleanedUri) {
+                            // Finish only after the user has made a choice in ask mode.
+                            finish()
+                        }
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to handle VIEW intent")
                         Toast.makeText(this@MainActivity, "Failed to process URL", Toast.LENGTH_SHORT).show()

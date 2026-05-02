@@ -153,7 +153,7 @@ class BrowserModeTest {
         
         // Verify action priority section becomes visible
         onView(withId(R.id.actionPrioritySection))
-            .check(matches(isDisplayed()))
+            .check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
         
         // Verify preference is updated
         Thread.sleep(500) // Allow time for preference update

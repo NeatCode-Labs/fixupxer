@@ -92,7 +92,7 @@ FixupXer v1.4.9 has successfully passed release build, unit-test, lint, and full
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk`
 - [x] **Google Release AAB**: `FixupXer-v1.4.9-release.aab` (5.52 MB, SHA-256 `F836D7834D423D8703409BB28761B340508FF445A2A3B7C9139C5C7233263AE1`)
-- [x] **GITHUB Release APK**: `GITHUB/fixupxer/FixupXer-v1.4.9-release.apk` (4.40 MB, SHA-256 `388FA474F8986D4E6F019AA5D14755DCBD590176B3F6950EE18DAB54A2CE49F6`, no `dependencies.pb`, no `adi-registration.properties`)
+- [x] **GITHUB Release APK**: `GITHUB/fixupxer/FixupXer-v1.4.9-release.apk` (4.40 MB, SHA-256 `7997F683ECE48B0260E2FAE361FF9E78EB51BA543341F3CF7AC26A7890DEC007`, no `dependencies.pb`, no `adi-registration.properties`)
 - [x] **Signing Report**: Production keystore validated
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: All tests documented and passed

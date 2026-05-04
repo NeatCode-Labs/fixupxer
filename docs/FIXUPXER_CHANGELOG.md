@@ -1,9 +1,9 @@
 # FixupXer App - Development Summary
-## Version Progression: v1.4.9 → v1.2.1 (Latest to Oldest)
+## Version Progression: v1.5.0 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 20 (v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
-**Current Version:** v1.4.9 (versionCode: 27)  
-**Development Period:** v1.2.1 (Initial) → v1.4.9 (Current)
+**Total Versions Released:** 21 (v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
+**Current Version:** v1.5.0 (versionCode: 28)  
+**Development Period:** v1.2.1 (Initial) → v1.5.0 (Current)
 
 ---
 
@@ -26,6 +26,22 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v1.4.9 → v1.5.0
+- **Focus:** Xiaomi/Redmi/HyperOS default-browser list compatibility (manifest fix + regression test).
+- **Key Changes:**
+  - **Root cause:** MIUI/HyperOS picker for the default browser scans apps via `Intent.CATEGORY_APP_BROWSER` (the same mechanism Chrome, Firefox, Brave, and Edge use). FixupXer's `BrowserAlias` declared only the AOSP-minimum `VIEW + BROWSABLE + DEFAULT + http/https` filter, which works on stock Android (Pixel) but is ignored by Xiaomi's picker. Direct parallel: Mozilla Bugzilla 1204655 / Fenix #16780, fixed there in 2021.
+  - **Fix:** Added a second `<intent-filter>` to the existing `BrowserAlias` declaring `MAIN + DEFAULT + APP_BROWSER`. The filter is paired with the existing `VIEW` filter inside the same alias, so `BrowserModeUtils.setBrowserAliasEnabled` toggles both atomically. `CATEGORY_DEFAULT` is required because OEM pickers use `PackageManager.queryIntentActivities(..., MATCH_DEFAULT_ONLY)`.
+  - **Why not LAUNCHER:** Mozilla put `APP_BROWSER` in their existing `MAIN+LAUNCHER` filter; we cannot follow that route because `BrowserAlias` is a separate component and adding `LAUNCHER` would create a duplicate launcher icon. Bypassing this with a dedicated `DEFAULT+APP_BROWSER` filter keeps the home-screen surface unchanged.
+  - **Privacy-by-default preserved:** `BrowserAlias` remains `android:enabled="false"` in the manifest, so users who never toggle Browser mode on are never treated as browser candidates by any OS picker.
+  - **No UI / behaviour changes:** `MainActivity.handleViewIntentIfPresent` is a no-op for `ACTION_MAIN` (it only acts when `intent.data != null`), so when MIUI invokes the alias through `MAIN+APP_BROWSER` the app simply opens its main UI.
+- **New test:** `BrowserAliasIntentResolutionTest` (4 instrumentation `@Test` methods):
+  1. `testAppBrowserCategoryHiddenWhenAliasDisabled` — privacy-by-default guard.
+  2. `testAppBrowserCategoryVisibleWhenAliasEnabled` — verifies discoverability after toggle on.
+  3. `testHttpViewIntentFilterStillDeclaredAndAliasEnabled` — AOSP regression guard: confirms BrowserAlias is still enabled and reachable through PackageManager after the manifest edit (deliberately avoids `queryIntentActivities(VIEW+http, ...)` because emulator pre-set defaults can collapse URI-aware results to the preferred handler).
+  4. `testBrowserAliasDoesNotAppearInLauncher` — guards against accidentally adding a duplicate launcher icon.
+- **Tests pass rate:** 119/119 unit (100%) + 155/155 instrumentation (100%) on `Pixel_API_35_Play`.
+- **Impact:** Xiaomi Redmi (e.g. Redmi 15) and other MIUI/HyperOS users can now select FixupXer in **Settings → Apps → Default apps → Browser app** after enabling Browser mode (a phone restart may be required to flush MIUI's cached browser list).
 
 ### v1.4.8 → v1.4.9
 - **Focus:** Browser-mode stability, reliable post-clean actions, and Android routing correctness

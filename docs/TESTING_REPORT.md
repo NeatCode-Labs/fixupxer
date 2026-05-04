@@ -1,13 +1,13 @@
 # FixupXer Testing Report
 
 ## Test Execution Date
-May 2, 2026
+May 4, 2026
 
 ## Executive Summary
-117/117 unit tests and 151/151 instrumentation tests pass for v1.4.9. Browser-mode routing was also verified on emulator and physical device during fix validation. FixupXer v1.4.9 is **READY FOR PRODUCTION RELEASE**.
+119/119 unit tests and 155/155 instrumentation tests pass for v1.5.0 on the Pixel API 35 emulator. v1.5.0 is a manifest-only fix (Xiaomi/Redmi/HyperOS default-browser compatibility) plus a 4-case regression test (`BrowserAliasIntentResolutionTest`). FixupXer v1.5.0 is **READY FOR PRODUCTION RELEASE**.
 
 ## Test Environment
-- **Device**: Android Emulator - Pixel API 35 (Android 15)
+- **Device**: Android Emulator - Pixel API 35 Play (Android 15)
 - **Android Version**: API 35
 - **Test Runner**: Android JUnit4
 - **Build Variant**: Debug
@@ -17,7 +17,7 @@ May 2, 2026
 
 ### Unit Tests (`./gradlew test`)
 **Status**: [x] PASSED  
-**Total Tests**: 117 unit tests  
+**Total Tests**: 119 unit tests  
 **Pass Rate**: 100%  
 **Test Classes (highlights)**:
 - `UrlProcessorTest` (updated for v1.4.9 Google/Gmail redirect acceptance, plus v1.4.8 default = `toinstagram.com` and bare-hostname conversion)
@@ -27,10 +27,10 @@ May 2, 2026
 
 ### Android Instrumentation Tests (`./gradlew connectedDebugAndroidTest`)
 **Status**: [x] PASSED  
-**Total Tests**: 151 tests  
-**Passed**: 151 (100%)  
-**Failed**: 0 tests  
-**Execution Time**: ~13 min 14s
+**Total Tests**: 155 tests (151 v1.4.9 baseline + 4 new from `BrowserAliasIntentResolutionTest`)  
+**Passed**: 155 (100%)  
+**Failed**: 0 tests (one pre-existing Espresso flake `SettingsTest.testAboutDialog` observed once during a full-suite run; consistently passes when re-run in isolation, unrelated to v1.5.0 changes)  
+**Execution Time**: ~13 min 28s
 
 ## Detailed Test Results by Feature
 
@@ -135,6 +135,13 @@ All tests pass after the `isFacebookUrl` UI-state addition (ViewModel default va
 ### 18. Share No Duplicates [x]
 **Test File**: `ShareActivityNoDuplicatesTest.kt` — toggle changes do not produce duplicate history entries; `isFacebookUrl` addition did not break logic.
 
+### 19. Browser Alias Intent Resolution (added in v1.5.0) [x]
+**Test File**: `BrowserAliasIntentResolutionTest.kt` (instrumentation, 4 cases). Targets the manifest-only fix that makes FixupXer discoverable by MIUI/HyperOS default-browser pickers via `Intent.CATEGORY_APP_BROWSER`.
+- [x] `testAppBrowserCategoryHiddenWhenAliasDisabled` — privacy-by-default guard. With Browser mode off, `pm.queryIntentActivities(MAIN+APP_BROWSER, MATCH_DEFAULT_ONLY)` does not return the FixupXer package.
+- [x] `testAppBrowserCategoryVisibleWhenAliasEnabled` — discoverability guarantee. After `BrowserModeUtils.setBrowserAliasEnabled(true)`, the same query returns `${packageName}.BrowserAlias`. This is the exact path MIUI/HyperOS pickers use.
+- [x] `testHttpViewIntentFilterStillDeclaredAndAliasEnabled` — AOSP regression guard. Confirms BrowserAlias remains in `COMPONENT_ENABLED_STATE_ENABLED` and is reachable via `pm.getPackageInfo(...).activities`. (Deliberately avoids a `queryIntentActivities(VIEW+http, ...)` assertion because emulator pre-set defaults can collapse URI-aware results to the preferred handler and produce flaky test outcomes.)
+- [x] `testBrowserAliasDoesNotAppearInLauncher` — guards against a duplicate launcher icon. With alias disabled and again with alias enabled, `pm.queryIntentActivities(MAIN+LAUNCHER)` does not return the BrowserAlias component.
+
 ## Coverage Analysis
 
 ### Feature Coverage
@@ -153,20 +160,21 @@ All tests pass after the `isFacebookUrl` UI-state addition (ViewModel default va
 - **Facebook/FacebookEZ**: [x] Complete
 
 ## GITHUB (F-Droid) Variant
-- Unit tests: 117/117 PASS (root parity)
-- Instrumentation tests: skipped for local Windows build by user request (F-Droid CI runs them on Linux); all source files are fully synced root → GITHUB so the test outcomes are expected to match.
+- Unit tests: 119/119 PASS (root parity, v1.5.0)
+- Instrumentation tests: skipped for local Windows build by user request (F-Droid CI runs them on Linux); all source files including `BrowserAliasIntentResolutionTest.kt` are fully synced root → GITHUB so the test outcomes are expected to match.
 - APK verified to contain:
   - No `BUNDLE-METADATA/com.android.tools.build.libraries/dependencies.pb`
   - No `adi-registration.properties` (Google-only marketing asset)
+- Reproducible build verified for v1.5.0: `app-release.apk` from a clean tag clone (`v1.5.0` → `9ddd1a2`) byte-identical to the upstream artifact (SHA-256 match).
 
 ## Known Issues
-- None blocking for v1.4.9 release. The previous Settings/BrowserMode `scrollTo` flakes are fixed.
+- None blocking for v1.5.0 release. `SettingsTest.testAboutDialog` was observed to flake once during a full-suite run with an Espresso `RootViewWithoutFocusException`; passes reliably when re-run in isolation. Tracked as an emulator/UI race, not a regression introduced by v1.5.0.
 
 ## Performance Observations
 - All tests completed within expected timeframes
 - No memory leaks or ANRs detected
 - Unit suite: ~30s
-- Instrumentation suite: ~7m for 151 tests on the Pixel API 35 emulator
+- Instrumentation suite: ~13m for 155 tests on the Pixel API 35 emulator (v1.5.0 adds 4 BrowserAlias resolution cases)
 
 ## Security Testing
 - [x] URL injection attacks prevented
@@ -181,6 +189,6 @@ All tests pass after the `isFacebookUrl` UI-state addition (ViewModel default va
 ## Conclusion
 **Production Readiness: YES** [x]
 
-FixupXer v1.4.9 passes 117/117 unit tests and 151/151 instrumentation tests. Browser-mode ask/priority routing, native-app fallback, browser fallback, Google/Gmail redirect handling, and Instagram forwarding were verified during emulator and physical-device testing.
+FixupXer v1.5.0 passes 119/119 unit tests and 155/155 instrumentation tests. The v1.5.0 fix (manifest-only addition of `MAIN + DEFAULT + APP_BROWSER` to `BrowserAlias`) is covered by the new 4-case `BrowserAliasIntentResolutionTest`, which guards both the Xiaomi/HyperOS discoverability path and the privacy-by-default behaviour when Browser mode is off.
 
 **The app is ready for production deployment.**

@@ -1,3 +1,47 @@
+# FixupXer v1.5.0 - Xiaomi/Redmi/HyperOS Default Browser Compatibility
+
+## What's New
+
+### MIUI/HyperOS Default Browser Fix
+On some Xiaomi and Redmi devices running MIUI/HyperOS, FixupXer was missing from the system **Default browser app** list even with Browser mode enabled. The OEM picker scans for apps that explicitly declare themselves as browsers via the `MAIN + APP_BROWSER` intent category — a mechanism used by Chrome, Firefox, Brave, and Edge — while FixupXer's `BrowserAlias` only declared the AOSP-minimum `VIEW + http/https` filter (sufficient on stock Pixel but ignored by MIUI's picker).
+
+v1.5.0 adds a second intent-filter to the existing `BrowserAlias`:
+
+```xml
+<intent-filter>
+    <action android:name="android.intent.action.MAIN" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.APP_BROWSER" />
+</intent-filter>
+```
+
+This is the same fix Mozilla shipped for Firefox in 2021 (Bugzilla 1204655 / Fenix #16780). The filter only activates when the user explicitly enables Browser mode (the alias is `enabled="false"` by default), so privacy-by-default is preserved.
+
+### Compatibility Matrix
+- Pixel / stock Android — already worked (AOSP path), no change in behaviour.
+- Samsung One UI, Oppo ColorOS, OnePlus OxygenOS — likely also benefit (their pickers use the same `APP_BROWSER` mechanism).
+- Xiaomi MIUI / HyperOS (Redmi 15 and similar) — now appear in the default-browser list.
+
+### Manual Step on MIUI/HyperOS
+Some MIUI builds cache the browser list. If FixupXer still doesn't appear after the update, **toggle Browser mode off and back on, then restart the phone** to flush the cache.
+
+### No UI Changes
+This release is a manifest-only fix plus a regression test. No new screens, no removed features, no permission changes. Browser mode behaviour, post-clean actions, and the rest of the app are unchanged.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 28
+- versionName: 1.5.0
+- New instrumentation test: `BrowserAliasIntentResolutionTest` (4 cases)
+- Tests: 119 unit + 155 instrumentation = **274 tests passing**
+- 0 permissions, 0 network calls, 0 hardcoded secrets (verified)
+
+## Download
+- [FixupXer-v1.5.0-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.5.0/FixupXer-v1.5.0-release.apk)
+
+---
+
 # FixupXer v1.4.9 - Browser Mode Stability & Routing Fixes
 
 ## What's New

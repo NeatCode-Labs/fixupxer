@@ -1,0 +1,6 @@
+v1.5.0 — Xiaomi/Redmi/HyperOS default-browser fix
+
+• Fixed FixupXer not appearing in the system Default browser app list on MIUI/HyperOS devices (e.g. Redmi 15) when Browser mode is enabled
+• Added the MAIN + APP_BROWSER intent-filter to BrowserAlias (same fix Mozilla shipped for Firefox)
+• Privacy preserved: alias stays disabled until you toggle Browser mode on
+• On MIUI, restart the phone after enabling Browser mode to flush the cached list

@@ -105,6 +105,12 @@
                 <data android:scheme="http" />
                 <data android:scheme="https" />
             </intent-filter>
+            <!-- v1.5.0: explicit browser-app declaration for OEM pickers (MIUI/HyperOS, OneUI, ColorOS) -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.APP_BROWSER" />
+            </intent-filter>
         </activity-alias>
         
     </application>

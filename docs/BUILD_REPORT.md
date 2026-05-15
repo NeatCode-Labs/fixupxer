@@ -3,11 +3,11 @@
 ## Executive Summary
 **STATUS: [x] PRODUCTION READY**
 
-FixupXer v1.5.0 has successfully passed release build, unit-test, lint, and full emulator instrumentation verification and is **APPROVED FOR RELEASE**. This release adds the `MAIN + APP_BROWSER` intent-filter to the existing `BrowserAlias` so FixupXer appears in the system Default-browser list on Xiaomi/Redmi/HyperOS devices when Browser mode is enabled. Manifest-only fix plus a 4-case regression test; no UI changes, no new permissions, privacy-by-default preserved.
+FixupXer v1.5.1 has successfully passed release build, unit-test, lint, and full emulator instrumentation verification and is **APPROVED FOR RELEASE**. This release unifies the Instagram proxy chooser: Main and Share now both open the same `InstagramProxyDialogHelper` dialog, and the entire **Instagram embed proxy** card is removed from Settings. UI-only refactor; conversion logic and persistence are unchanged. No new permissions, privacy-by-default preserved.
 
 ## Build Information
-- **Version**: v1.5.0 (versionCode: 28)
-- **Build Date**: May 4, 2026
+- **Version**: v1.5.1 (versionCode: 29)
+- **Build Date**: May 15, 2026
 - **Android Target SDK**: 35 (Android 15)
 - **Minimum SDK**: 21 (Android 5.0)
 - **Build Environment**: Gradle 8.11.1
@@ -16,18 +16,18 @@ FixupXer v1.5.0 has successfully passed release build, unit-test, lint, and full
 ## Test Results Summary
 
 ### Pre-Build Code Analysis [x]
-- **Lint Analysis**: CLEAN - 0 errors, 0 warnings on `lintRelease` (numbers re-verified during v1.5.0 build run; documented below)
-- **Code Review**: COMPLETE - v1.5.0 manifest fix and new instrumentation test reviewed
+- **Lint Analysis**: CLEAN - 0 errors, 0 warnings on `lintRelease` (numbers re-verified during v1.5.1 build run; documented below)
+- **Code Review**: COMPLETE - v1.5.1 UI refactor and updated instrumentation test reviewed
 - **TODO/FIXME Check**: CLEAN
 - **Deprecated API Check**: COMPLIANT
 
 ### Build Verification [x]
-- **Clean Build**: SUCCESS - `assembleRelease` completes signed build (re-verified during v1.5.0 build run)
-- **Unit Tests**: SUCCESS - 119/119 tests passed (100%). Two extra tests beyond the v1.4.9 baseline of 117 come from the proxy-selection coverage that landed alongside v1.4.9 work-in-progress (`InstagramProxySelectionTest`); v1.5.0 itself touches no unit-test code.
-- **Android Tests**: SUCCESS - 155/155 instrumentation tests pass on `Pixel_API_35_Play` (151 v1.4.9 baseline + 4 new from `BrowserAliasIntentResolutionTest`). One pre-existing Espresso flake (`SettingsTest.testAboutDialog`, `RootViewWithoutFocusException`) was observed once during a full-suite run but consistently passes when re-run in isolation; it is not related to v1.5.0 changes.
+- **Clean Build**: SUCCESS - `assembleRelease` completes signed build (re-verified during v1.5.1 build run)
+- **Unit Tests**: SUCCESS - 119/119 tests passed (100%). Same suite size as v1.5.0 (no unit tests touched by this release).
+- **Android Tests**: SUCCESS — **152/152 instrumentation tests pass** on `Pixel_API_35_Play` (`./gradlew connectedDebugAndroidTest`). Suite size = 155 v1.5.0 baseline − 5 deleted `SettingsActivityProxyTest` cases + 2 new `MainActivityProxyLabelTest` regressions (`changeProxyShowsDialogAndUpdatesLabelInPlace` for the dialog flow on Main, `processedInstagramUrlReprocessesAfterProxyChange` for the auto-reprocess parity with Share) = 152. One pre-existing `KeyboardNavigationTest.testKeyboardInputAndDismissal` flake (Espresso `typeText()` swallowing the first character before the soft keyboard is fully attached) was observed once during a full-suite run; passes reliably (4/4) when re-run in isolation. Unrelated to v1.5.1.
 - **ProGuard/R8**: SUCCESS - Release build with obfuscation completed
-- **APK Size**: OPTIMAL - 4.20 MB GITHUB/F-Droid APK and 4.34 MB Google APK (well under 10MB)
-- **AAB Build**: SUCCESS - Google Play bundle generated (5.27 MB)
+- **APK Size**: OPTIMAL - 4.34 MB Google APK (4.20 MB GITHUB/F-Droid APK, recorded below); both well under 10MB
+- **AAB Build**: SUCCESS - Google Play bundle generated (size recorded below)
 
 #### Security & Privacy (4/4) [x]
 - **Permissions Check**: EXCELLENT - Zero permissions required (privacy-focused)
@@ -40,7 +40,7 @@ FixupXer v1.5.0 has successfully passed release build, unit-test, lint, and full
 - **App Launch**: SUCCESS - App starts without crashes
 - **Core Functionality**: SUCCESS - URL cleaning, Instagram proxy selection, and browser-mode handoff work as expected
 - **Share Functionality**: SUCCESS - Intent handling, Share-screen proxy label, and Change-link navigation verified
-- **Edge Cases**: SUCCESS - default-browser loop prevention, custom ask dialog, native-app fallback, browser-only launch, Google redirect extraction, Instagram forwarding, and v1.5.0 OEM-picker discovery (`MAIN + APP_BROWSER`) verified via the new `BrowserAliasIntentResolutionTest`
+- **Edge Cases**: SUCCESS - default-browser loop prevention, custom ask dialog, native-app fallback, browser-only launch, Google redirect extraction, Instagram forwarding, OEM-picker discovery (`MAIN + APP_BROWSER`), and v1.5.1 dialog-based proxy chooser on Main + Share screens (Settings entry removed) all verified
 
 #### Performance & Compatibility (4/4) [x]
 - **Memory Usage**: OPTIMAL - No memory leaks detected
@@ -50,8 +50,8 @@ FixupXer v1.5.0 has successfully passed release build, unit-test, lint, and full
 
 #### Release Artifacts (4/4) [x]
 - **Signing Configuration**: SECURE - Production keystore properly configured
-- **Version Code**: CORRECT - Version code 28
-- **Version Name**: COMPLIANT - Version 1.5.0 follows semantic versioning
+- **Version Code**: CORRECT - Version code 29
+- **Version Name**: COMPLIANT - Version 1.5.1 follows semantic versioning
 - **Release Notes**: UPDATED - Changelog reflects current version changes
 
 #### Final Verification (4/4) [x]
@@ -68,16 +68,18 @@ FixupXer v1.5.0 has successfully passed release build, unit-test, lint, and full
 ## Detailed Test Metrics
 
 ### Code Quality
-- **Total Tests**: 274 (119 unit + 155 instrumentation). v1.5.0 adds the 4 `@Test` methods from `BrowserAliasIntentResolutionTest` on top of the inherited 270-test v1.4.9 work-in-progress baseline (119 unit + 151 instrumentation).
-- **Pass Rate**: 100% (119/119 unit, 155/155 instrumentation; one pre-existing Espresso flake observed and re-verified to pass in isolation).
-- **New tests in v1.5.0**: `BrowserAliasIntentResolutionTest` covers the OEM-picker discovery path (`MAIN + APP_BROWSER`), the AOSP regression guard (BrowserAlias remains enabled and reachable through `PackageManager` after the manifest edit), the privacy-by-default guard (alias hidden when disabled), and the no-duplicate-launcher-icon guarantee.
-- **Build Time**: ~1m for `assembleRelease`, ~7-13m for full instrumentation suite (unchanged from v1.4.9 envelope)
-- **Lint Issues**: 0 errors on release variant (`lintRelease` clean, re-verified during v1.5.0 build run)
+- **Total Tests**: 271 (119 unit + 152 instrumentation). v1.5.1 deletes 5 `SettingsActivityProxyTest` cases (radio buttons removed) and adds 2 new `MainActivityProxyLabelTest` regressions for the dialog-based **Change.** flow and the auto-reprocess parity with Share. Net delta: −3 instrumentation cases vs v1.5.0's 155.
+- **Pass Rate**: 100% (119/119 unit + 152/152 instrumentation on `Pixel_API_35_Play`; one pre-existing `KeyboardNavigationTest` flake observed once and re-verified to pass in isolation).
+- **New tests in v1.5.1**:
+  1. `MainActivityProxyLabelTest.changeProxyShowsDialogAndUpdatesLabelInPlace` — taps **Change.** in MainActivity, asserts the dialog appears (`isDialog()` root matcher), picks `instagram7.com`, verifies the **Active: <proxy>. Change.** label updates in place while MainActivity stays in the foreground, AND verifies the Processed URL field stays empty (no auto-reprocess for fresh inputs). Mirrors the Share-screen regression.
+  2. `MainActivityProxyLabelTest.processedInstagramUrlReprocessesAfterProxyChange` — types an Instagram URL, taps Process to populate Processed URL with the default proxy, taps **Change.**, picks `instagram7.com`, then asserts the Processed URL field is automatically refreshed to use `instagram7.com` (and no longer contains the old `toinstagram.com`). Guards the v1.5.1 reprocess-after-proxy-change behaviour.
+- **Build Time**: ~1m for `assembleRelease`, ~7-13m for full instrumentation suite (unchanged envelope)
+- **Lint Issues**: 0 errors on release variant (`lintRelease` clean, re-verified during v1.5.1 build run)
 
 ### Performance Metrics
-- **APK Size (Google)**: Release APK remains under 10MB
-- **APK Size (F-Droid/GITHUB)**: 4.40 MB release APK, no Play dependency metadata
-- **AAB Size**: 5.52 MB Google Play bundle
+- **APK Size (Google)**: 4.34 MB release APK
+- **APK Size (F-Droid/GITHUB)**: 4.19 MB release APK, no Play dependency metadata
+- **AAB Size**: 5.26 MB Google Play bundle
 - **Install Size**: Optimized with ProGuard/R8
 - **Memory Usage**: Efficient resource management
 - **Startup Time**: Fast cold start performance
@@ -90,12 +92,12 @@ FixupXer v1.5.0 has successfully passed release build, unit-test, lint, and full
 - **Code Obfuscation**: Enabled for release builds
 
 ## Build Artifacts Generated
-- [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` (4.34 MB, SHA-256 `3352E0F8E589571B07B2DDB9591F954081509EDE7955368C02EB19A0990F6490`)
-- [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` (5.27 MB, SHA-256 `37A33F58428D0DBA12995A649B1EA23C6D58375457F77E240738BFA9CAD3F1C5`)
-- [x] **GITHUB Release APK**: `GITHUB/fixupxer/app/build/outputs/apk/release/app-release.apk` (4.20 MB, SHA-256 `96EF8E58820A2D64077914517865928F865CBDA15335A40B302E543B94FF2716`); APK manually inspected — no `BUNDLE-METADATA/.../dependencies.pb`, no `adi-registration.properties`
+- [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` (4.34 MB, SHA-256 `3CCB4AE2E62C0B8655C7396F1DA9E91A7930C8451D2260B8E02838B70F1FB865`)
+- [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` (5.26 MB, SHA-256 `4590700B8878668EC0434F1F63F334764C3B48D4F89B53A8359713A622A9E243`)
+- [x] **GITHUB Release APK**: `GITHUB/fixupxer/app/build/outputs/apk/release/app-release.apk` (4.19 MB, SHA-256 `4D32210111FFFA3D5F3D86BF9F05E302AA3E7B89A588E8AD54BF1FBF103871EA`); APK manually inspected — no `BUNDLE-METADATA/.../dependencies.pb`, no `adi-registration.properties`
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
 - [x] **ProGuard Mapping**: Code obfuscation applied
-- [x] **Test Reports**: 119/119 unit + 155/155 instrumentation, all green
+- [x] **Test Reports**: 119/119 unit + 152/152 instrumentation, all green
 
 ## GITHUB (F-Droid) Variant Verification
 - [x] `dependenciesInfo.includeInBundle = false` preserved
@@ -104,8 +106,9 @@ FixupXer v1.5.0 has successfully passed release build, unit-test, lint, and full
 - [x] No `adi-registration.properties` Google marketing asset in APK (verified by APK inspection)
 - [x] **Browser-mode routing fixes present in F-Droid/GITHUB build** — `MainActivity`, `UrlProcessor`, `PostCleanRunner`, manifest package visibility, strings, and tests are synced from root while preserving F-Droid-only build differences
 - [x] **v1.5.0 manifest fix synced**: `MAIN + DEFAULT + APP_BROWSER` intent-filter present in both `app/src/main/AndroidManifest.xml` (root) and `GITHUB/fixupxer/app/src/main/AndroidManifest.xml`; `BrowserAliasIntentResolutionTest.kt` synced into both `androidTest` trees
-- [x] Full sync root → GITHUB completed for all source files touched by v1.5.0
-- [ ] **Reproducible build verification** (post-tag step): clone `v1.5.0` tag of `GITHUB/fixupxer` into `$env:TEMP\fixupxer-v1.5.0`, build `assembleRelease` from the clean clone, compare APK hash with `GITHUB/fixupxer/app/build/outputs/apk/release/app-release.apk`. Done by the release operator after pushing the tag.
+- [x] **v1.5.1 UI refactor synced**: `MainActivity.kt`, `SettingsActivity.kt`, `activity_settings.xml`, `strings.xml`, `ids.xml`, `MainActivityProxyLabelTest.kt` copied 1:1 to GITHUB; `SettingsActivityProxyTest.kt` deleted in both trees
+- [x] Full sync root → GITHUB completed for all source files touched by v1.5.1
+- [ ] **Reproducible build verification** (post-tag step): clone `v1.5.1` tag of `GITHUB/fixupxer` into `$env:TEMP\fixupxer-v1.5.1`, build `assembleRelease` from the clean clone, compare APK hash with `GITHUB/fixupxer/app/build/outputs/apk/release/app-release.apk`. Done by the release operator after pushing the tag.
 - [x] Only intentional differences from root: `app/build.gradle.kts` (`dependenciesInfo = false/false`), `gradle/libs.versions.toml` (pre-existing), `gradle.properties` (Linux `java.home` for F-Droid CI), missing `adi-registration.properties`
 - [x] GITHUB unit tests: PASS (root parity)
 - [x] Fastlane metadata compliant with F-Droid limits (Issue #4 fix): `short_description.txt` 72 chars, all changelogs ≤ 500 chars
@@ -135,23 +138,23 @@ FixupXer v1.5.0 has successfully passed release build, unit-test, lint, and full
 
 ### **FINAL VERDICT: [x] APPROVED FOR IMMEDIATE RELEASE**
 
-FixupXer v1.5.0 meets all build quality standards:
+FixupXer v1.5.1 meets all build quality standards:
 
 - **Zero Critical Issues**: No blocking issues found
-- **Unit Tests**: 119/119 (100%) — re-verified during v1.5.0 build run
-- **Instrumentation Tests**: 155/155 (100%) — 151 v1.4.9 baseline + 4 new from `BrowserAliasIntentResolutionTest`, re-verified on `Pixel_API_35_Play`
+- **Unit Tests**: 119/119 (100%) — re-verified during v1.5.1 build run
+- **Instrumentation Tests**: 152/152 (100%) on `Pixel_API_35_Play` — see "Build Verification" above for the run summary
 - **Security Excellence**: No permissions required, privacy-focused; `BrowserAlias` remains `enabled="false"` until the user opts into Browser mode
 - **Performance Optimized**: Efficient resource usage and fast performance
 - **Android 15 Ready**: Full compliance with latest platform requirements
 - **Production Quality**: Meets all Google Play Store and F-Droid requirements
 - **Dual-variant consistency**: Both Google and F-Droid builds pass the same test suite; F-Droid APK verified free of Google Play dependency metadata
-- **Xiaomi/Redmi compatibility**: New `MAIN + DEFAULT + APP_BROWSER` filter makes FixupXer discoverable in MIUI/HyperOS default-browser pickers when Browser mode is enabled (matches the fix Mozilla shipped for Firefox in 2021 — Bugzilla 1204655)
+- **Unified proxy chooser**: Main + Share now use the same `InstagramProxyDialogHelper` dialog; Settings entry removed. Auto-reprocess after picking a different proxy works on both screens, but only when a Processed URL already exists for an Instagram input — fresh inputs still belong to the explicit Process button. Conversion logic and persistence keys unchanged — existing users keep their selection.
 
 The app is **ready for production deployment** and user distribution.
 
 ---
 
-**Report Generated**: May 4, 2026  
+**Report Generated**: May 15, 2026  
 **Next Review**: After next major feature release  
 **Quality Assurance**: PASSED [x]  
 **Security Review**: PASSED [x]  

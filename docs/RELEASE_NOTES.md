@@ -1,3 +1,43 @@
+# FixupXer v1.5.1 - Unified Instagram Proxy Selector
+
+## What's New
+
+### One Selector, Two Screens
+v1.5.1 cleans up Instagram proxy management. The chooser now lives on the screens where you actually use it — Main and Share — and is **gone from Settings**. Both screens open the same dialog when you tap **Change.**, so the flow is identical regardless of where you start.
+
+### What changed
+- **Main screen — Change. now opens the proxy dialog directly** (previously it launched Settings). No more screen switch, no lost context.
+- **Auto-reprocess parity with Share** — if a Processed URL already exists for an Instagram input on the Main screen (i.e. you've already tapped Process), picking a different proxy now refreshes the Processed URL field automatically. Fresh inputs that haven't been processed yet still go through the explicit **Process URL** button — typing a new link does not auto-process.
+- **Share screen — unchanged behaviour** (already used the dialog inline because Share is `noHistory="true"`); still re-processes the shared URL after you pick a different proxy.
+- **Settings — Instagram embed proxy section removed.** That whole card is gone, along with its info icon and three radio buttons. Settings now opens straight to Browser Integration / Conversion Defaults / Action Mode.
+- **Persistence and conversion logic — unchanged.** The selected proxy still lives under `instagram_proxy_domain` in `SharedPreferences`. Existing users keep their selection. Default remains `toinstagram.com`.
+
+### Why
+Two surfaces with the same chooser were redundant. Settings used to be the "source of truth", but it was an unnecessary detour when Main and Share already render the **Active: \<proxy\>. Change.** row inline.
+
+### Cleanup details
+- Removed: `MaterialCardView` for Instagram proxy in `activity_settings.xml`, the radio listener and `loadSettings` proxy block in `SettingsActivity.kt`, the duplicated `showInstagramProxyInfoDialog()` (the dialog helper already owns the info icon).
+- Removed strings: `settings_instagram_proxy_title`, `settings_instagram_proxy_summary`, `instagram_proxy_to`, `instagram_proxy_adamlikes`, `instagram_proxy_7`.
+- Kept strings (still used by `InstagramProxyDialogHelper`): `instagram_proxy_primary_label`, `instagram_proxy_backup_label`, `instagram_proxy_dialog_title`, `instagram_proxy_info_*`.
+- Added `res/values/ids.xml` declaring `instagramProxyInfoIcon` (the dialog helper builds its title row programmatically and needs the ID to outlive the layout removal).
+
+### Tests
+- Removed: `SettingsActivityProxyTest` (tested radio buttons that no longer exist).
+- Added: `MainActivityProxyLabelTest.changeProxyShowsDialogAndUpdatesLabelInPlace` — clicking **Change.** opens the dialog and updates the label in place; Processed URL field stays empty when no Process tap preceded.
+- Added: `MainActivityProxyLabelTest.processedInstagramUrlReprocessesAfterProxyChange` — covers the auto-reprocess parity (Process → change proxy → Processed URL refreshes with the new proxy).
+- Unit tests: 119 / 119 passing. Instrumentation: 152 / 152 passing on `Pixel_API_35_Play`.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 29
+- versionName: 1.5.1
+
+## Download
+- [FixupXer-v1.5.1-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.5.1/FixupXer-v1.5.1-release.apk)
+
+---
+
 # FixupXer v1.5.0 - Xiaomi/Redmi/HyperOS Default Browser Compatibility
 
 ## What's New

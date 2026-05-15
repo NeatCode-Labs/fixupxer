@@ -43,11 +43,6 @@
     <string name="currently_using_proxy">Active: %1$s.</string>
     <string name="change_proxy_link">Change.</string>
     <string name="change_proxy_link_desc">Change Instagram embed proxy</string>
-    <string name="settings_instagram_proxy_title">Instagram embed proxy</string>
-    <string name="settings_instagram_proxy_summary">Choose which proxy handles Instagram embeds. Proxies may go offline; switch if one stops working.</string>
-    <string name="instagram_proxy_adamlikes" translatable="false">adamlikes.men</string>
-    <string name="instagram_proxy_to" translatable="false">toinstagram.com</string>
-    <string name="instagram_proxy_7" translatable="false">instagram7.com</string>
     <string name="instagram_proxy_primary_label">Primary</string>
     <string name="instagram_proxy_backup_label">Backup</string>
     <string name="instagram_proxy_dialog_title">Choose Instagram proxy</string>

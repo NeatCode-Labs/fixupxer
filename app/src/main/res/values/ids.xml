@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Persistent IDs that are referenced from Kotlin code (R.id.xxx) but not
+        declared in any layout XML. Defining them here keeps the IDs available
+        regardless of which layouts include them at runtime.
+    -->
+    <item name="instagramProxyInfoIcon" type="id" />
+</resources>

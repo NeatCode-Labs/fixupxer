@@ -1,7 +1,12 @@
-# Android Test Coverage for FixupXer v1.4.9
+# Android Test Coverage for FixupXer v1.5.1
 
 ## Overview
-This document describes the Android instrumentation tests covering all major features through v1.4.9. v1.4.9 fixes browser-mode routing and stabilizes the full emulator suite: 151/151 instrumentation tests pass on `Pixel_API_35_Play`, alongside 117/117 unit tests.
+This document describes the Android instrumentation tests covering all major features through v1.5.1. v1.5.1 unifies the Instagram proxy chooser: Main and Share both open `InstagramProxyDialogHelper` directly, and the Settings entry is removed.
+
+Test-suite delta vs v1.5.0:
+- **Removed**: `SettingsActivityProxyTest.kt` (5 cases) — the radio buttons it covered no longer exist.
+- **Added**: `MainActivityProxyLabelTest.changeProxyShowsDialogAndUpdatesLabelInPlace` — clicks **Change.** on the Main screen, asserts the dialog appears (`isDialog()` root matcher), picks `instagram7.com`, and verifies the label updates in place while MainActivity stays in the foreground; also asserts the Processed URL field stays empty (no auto-reprocess for fresh inputs). Mirrors the existing Share-screen regression.
+- **Added**: `MainActivityProxyLabelTest.processedInstagramUrlReprocessesAfterProxyChange` — types an Instagram URL, taps Process to populate Processed URL with the default proxy, opens the proxy dialog, picks `instagram7.com`, and verifies the Processed URL field is automatically refreshed (no extra Process tap required) and no longer contains the previous proxy domain. Guards the v1.5.1 reprocess-after-proxy-change parity with Share.
 
 v1.4.8 refreshed the Instagram proxy roster (`toinstagram.com` Primary/default, `adamlikes.men` Primary, `instagram7.com` Backup) and introduced bare-hostname conversion. Legacy proxies (`kkinstagram.com`, `eeinstagram.com`) remain detected for auto-migration.
 
@@ -22,18 +27,13 @@ v1.4.8 refreshed the Instagram proxy roster (`toinstagram.com` Primary/default, 
 - [x] Legacy `kkinstagram.com` stored value migrates to default
 - [x] Legacy `eeinstagram.com` stored value migrates to default
 
-### SettingsActivityProxyTest.kt (instrumentation)
-- [x] Default radio is `radioProxyTo` (toinstagram.com)
-- [x] Clicking adamlikes persists the choice
-- [x] Clicking instagram7 persists the choice
-- [x] Previously selected proxy restored on relaunch
-- [x] Info icon visible
-
 ### MainActivityProxyLabelTest.kt (instrumentation)
 - [x] Instagram URL shows "Active: toinstagram.com." by default
 - [x] Changing pref to adamlikes.men updates label on relaunch
 - [x] Changing pref to instagram7 updates label on relaunch
 - [x] Facebook URL keeps toggle container visible but hides proxy row
+- [x] **v1.5.1**: Clicking "Change." opens the inline dialog (not Settings) and updates the label in place; MainActivity stays in the foreground; Processed URL field stays empty when no Process tap preceded
+- [x] **v1.5.1**: When a Processed URL already exists for an Instagram input, picking a different proxy auto-refreshes the Processed URL field with the new proxy (parity with Share)
 
 ### ShareActivityProxyLabelTest.kt (instrumentation)
 - [x] Instagram share shows "Active: toinstagram.com." by default
@@ -282,6 +282,6 @@ All scenarios from the URL_CONVERSION_TEST_COVERAGE.md are now fully tested with
 - Tests require Android emulator or device; final v1.4.9 verification used `Pixel_API_35_Play`.
 - Emulator animations should be disabled for stable Espresso runs (`window_animation_scale`, `transition_animation_scale`, `animator_duration_scale` = `0`).
 - Wait times in tests account for async UI processing where idling resources are not available.
-- SettingsActivity tests are active and passing, including browser conversion defaults and Instagram proxy selection.
+- SettingsActivity tests are active and passing for browser conversion defaults. Instagram proxy selection coverage moved to `MainActivityProxyLabelTest` + `ShareActivityProxyLabelTest` after v1.5.1 removed the Settings entry.
 - All core v1.4.9 browser-mode fixes and v1.4.8 Instagram proxy behavior are covered by active tests.
 - Bidirectional URL conversions are comprehensively tested.

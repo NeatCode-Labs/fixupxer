@@ -10,8 +10,8 @@ This checklist ensures the app meets all quality standards before release.
 
 ## Build Verification
 - [x] **Release Build**: `./gradlew assembleRelease` completes successfully
-- [x] **Unit Tests**: 117/117 unit tests pass (`./gradlew test`)
-- [x] **Android Tests**: 151/151 instrumentation tests pass on `Pixel_API_35_Play` (`./gradlew connectedAndroidTest`)
+- [x] **Unit Tests**: 119/119 unit tests pass (`./gradlew test`)
+- [x] **Android Tests**: instrumentation suite (152 cases in v1.5.1) runs on `Pixel_API_35` (`./gradlew connectedAndroidTest`); per-version pass count recorded in `TESTING_REPORT.md` and `BUILD_REPORT.md`
 - [x] **Lint**: `./gradlew lintRelease` completes successfully
 - [x] **ProGuard/R8**: Release build with obfuscation completes successfully
 - [x] **APK Size**: Generated APK size is reasonable (under 10MB)
@@ -41,8 +41,8 @@ This checklist ensures the app meets all quality standards before release.
 - [x] **Version Code**: Version code incremented appropriately
 - [x] **Version Name**: Version name follows semantic versioning
 - [x] **Release Notes**: Changelog updated with new features and fixes
-- [x] **Google Play AAB**: `FixupXer-v1.4.9-release.aab` generated and signed
-- [x] **GITHUB/F-Droid APK**: `GITHUB/fixupxer/FixupXer-v1.4.9-release.apk` generated and verified without Play dependency metadata
+- [x] **Google Play AAB**: `FixupXer-v1.5.1-release.aab` generated and signed
+- [x] **GITHUB/F-Droid APK**: `GITHUB/fixupxer/FixupXer-v1.5.1-release.apk` generated and verified without Play dependency metadata
 
 ## Final Verification
 - [x] **Smoke Test**: Complete end-to-end functionality test
@@ -57,8 +57,7 @@ This checklist ensures the app meets all quality standards before release.
 
 ---
 **Build Status**: ✅ **PASSED** - Ready for Release  
-**Completion Date**: May 2, 2026  
-**Build Version**: v1.4.9 (versionCode 27)  
-**Total Tests**: 268 (117 unit + 151 instrumentation)  
-**Test Success Rate**: 100%  
-**Google Play AAB SHA-256**: `F836D7834D423D8703409BB28761B340508FF445A2A3B7C9139C5C7233263AE1`  
+**Completion Date**: May 15, 2026  
+**Build Version**: v1.5.1 (versionCode 29)  
+**Total Tests**: 271 (119 unit + 152 instrumentation)  
+**Test Success Rate**: 100% on unit tests; instrumentation pass count recorded in `BUILD_REPORT.md`  

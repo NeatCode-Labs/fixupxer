@@ -1,0 +1,51 @@
+[B][SIZE=4]🔧 FixupXer Version History (Latest → Oldest)[/SIZE][/B]
+
+[B]• v1.5.1[/B] - Unified the Instagram proxy chooser: Main and Share now both open the same dialog when you tap "Change.", and the redundant Instagram embed proxy section is removed from Settings; on Main, picking a different proxy after you've already pressed "Process URL" automatically refreshes the Processed URL field (fresh inputs still go through the Process button); selection is still persistent and existing users keep their pick (default toinstagram.com)
+
+[B]• v1.5.0[/B] - Fixed FixupXer not appearing in the default-browser list on Xiaomi Redmi / MIUI / HyperOS devices by adding the MAIN + APP_BROWSER intent-filter to the BrowserAlias (same approach Mozilla shipped for Firefox); privacy-by-default preserved (alias still disabled until Browser mode is toggled on)
+
+[B]• v1.4.9[/B] - Fixed browser-mode default-browser loops, made "Ask every time" use a reliable FixupXer action dialog, added safer native-app fallback to browser, improved Google/Gmail redirect handling, and kept browser launching browser-agnostic
+
+[B]• v1.4.8[/B] - Refreshed Instagram proxy roster (toinstagram.com Primary/default + adamlikes.men Primary + instagram7.com Backup), bare-hostname conversion (drops www.), inline "i" info tooltip in Settings and chooser dialog, automatic migration of legacy proxy URLs (kkinstagram, eeinstagram)
+
+[B]• v1.4.7[/B] - Added selectable Instagram embed proxy (kkinstagram.com, eeinstagram.com, instagram7.com) with persistent user choice across Main, Share, and Settings screens, plus dialog fallback on F-Droid build
+
+[B]• v1.4.6[/B] - Added optional browser mode with system-wide URL cleaning, comprehensive Settings screen with Material Design 3, configurable post-clean actions, and enhanced ReVanced YouTube support
+
+[B]• v1.4.5[/B] - Fixed MailChimp false positive detection and enhanced enterprise URL support for multi-subdomain services like AWS, Azure, and Google Cloud
+
+[B]• v1.4.4[/B] - Achieved full Android 15 edge-to-edge compliance by removing deprecated APIs and implementing modern enableEdgeToEdge() with proper navigation bar icon visibility fixes
+
+[B]• v1.4.3[/B] - Expanded test coverage to 112 comprehensive test cases with bidirectional conversion testing and enhanced quality assurance for all major platforms
+
+[B]• v1.4.2[/B] - Implemented LRU cache system with smart caching and O(1) lookup performance, achieving 5x performance improvement for repeated URL cleaning operations
+
+[B]• v1.4.1[/B] - Added comprehensive test suite with 86 unit tests and 38 instrumentation tests, ensuring production-ready stability with enterprise-grade error handling
+
+[B]• v1.4.0[/B] - Complete engine overhaul with revolutionary modular architecture featuring 11 specialized cleaners, 964 unique tracking parameters, and professional thread-safe design
+
+[B]• v1.3.5[/B] - Enhanced UI/UX with Material Design 3 interface improvements, better accessibility, responsive design, and polished user experience across all device sizes
+
+[B]• v1.3.4[/B] - Expanded URL processing capabilities with advanced algorithms, improved domain coverage, enhanced conversion logic, and significant performance optimizations
+
+[B]• v1.3.3[/B] - Fixed critical Instagram URL false positive detection, resolved case sensitivity issues, and improved glued URL detection to avoid false positives
+
+[B]• v1.3.2[/B] - Updated build configurations for F-Droid compliance, enhanced open-source distribution compatibility, and prepared for broader user accessibility
+
+[B]• v1.3.1[/B] - Implemented comprehensive security hardening with InputValidator utility class, multi-layer validation, and protection against 8 major attack vector categories
+
+[B]• v1.3.0[/B] - Major URL logic overhaul with extensive detection improvements, toggle functionality fixes, UI updates, and enhanced ShareActivity lifecycle management
+
+[B]• v1.2.5[/B] - Comprehensive lint fixes, code quality improvements, dependency updates, and enhanced static analysis compliance for professional maintainability standards
+
+[B]• v1.2.4[/B] - Implemented comprehensive behavioral matrix testing with automated test case generation and enhanced quality assurance for regression prevention
+
+[B]• v1.2.3[/B] - Refined URL processing logic with improved tracking parameter removal, enhanced domain conversion accuracy, and better error handling for edge cases
+
+[B]• v1.2.2[/B] - Established initial behavioral matrix framework with basic URL processing updates and foundation for systematic feature development
+
+[B]• v1.2.1[/B] - Foundation version where detailed changelog documentation began
+
+[B]• v1.0.2 → v1.2.0[/B] - Early development versions (detailed changes available via GitHub tag selector)
+
+[I]Note: Complete development history from initial release v1.0.2 through v1.2.0 can be viewed using the GitHub repository's tag selector for commit-by-commit changes.[/I] 

@@ -1,10 +1,10 @@
 # FixupXer Testing Report
 
 ## Test Execution Date
-May 4, 2026
+May 15, 2026
 
 ## Executive Summary
-119/119 unit tests and 155/155 instrumentation tests pass for v1.5.0 on the Pixel API 35 emulator. v1.5.0 is a manifest-only fix (Xiaomi/Redmi/HyperOS default-browser compatibility) plus a 4-case regression test (`BrowserAliasIntentResolutionTest`). FixupXer v1.5.0 is **READY FOR PRODUCTION RELEASE**.
+119/119 unit tests and 152/152 instrumentation tests pass for v1.5.1 on the `Pixel_API_35_Play` emulator. v1.5.1 is a UI-only refactor: Main and Share now both open `InstagramProxyDialogHelper` directly when the user taps **Change.**, and the duplicate Instagram embed proxy section is removed from Settings. Main also gains auto-reprocess parity with Share — picking a different proxy refreshes the Processed URL field automatically when one already exists for an Instagram input (fresh inputs still go through the explicit Process button). The instrumentation suite shrinks by 3 cases (5 deleted from `SettingsActivityProxyTest`, 2 added to `MainActivityProxyLabelTest`). FixupXer v1.5.1 is **READY FOR PRODUCTION RELEASE**.
 
 ## Test Environment
 - **Device**: Android Emulator - Pixel API 35 Play (Android 15)
@@ -27,15 +27,17 @@ May 4, 2026
 
 ### Android Instrumentation Tests (`./gradlew connectedDebugAndroidTest`)
 **Status**: [x] PASSED  
-**Total Tests**: 155 tests (151 v1.4.9 baseline + 4 new from `BrowserAliasIntentResolutionTest`)  
+**Total Tests**: 152 tests (155 v1.5.0 baseline minus 5 deleted `SettingsActivityProxyTest` cases plus 2 new `MainActivityProxyLabelTest` regressions: `changeProxyShowsDialogAndUpdatesLabelInPlace` and `processedInstagramUrlReprocessesAfterProxyChange`)  
+**Pass Rate**: 100% (one pre-existing `KeyboardNavigationTest.testKeyboardInputAndDismissal` flake observed once and re-verified to pass 4/4 in isolation)  
+**Run Time**: ~13m on `Pixel_API_35_Play`  
 **Passed**: 155 (100%)  
-**Failed**: 0 tests (one pre-existing Espresso flake `SettingsTest.testAboutDialog` observed once during a full-suite run; consistently passes when re-run in isolation, unrelated to v1.5.0 changes)  
+**Failed**: 0  
 **Execution Time**: ~13 min 28s
 
 ## Detailed Test Results by Feature
 
 ### 1. Instagram Proxy Selection (refreshed in v1.4.8) [x]
-**Test Files**: `InstagramProxySelectionTest.kt` (unit), `InstagramProxyPreferenceTest.kt` (instrumentation), `SettingsActivityProxyTest.kt`, `MainActivityProxyLabelTest.kt`, `ShareActivityProxyLabelTest.kt`
+**Test Files**: `InstagramProxySelectionTest.kt` (unit), `InstagramProxyPreferenceTest.kt` (instrumentation), `MainActivityProxyLabelTest.kt`, `ShareActivityProxyLabelTest.kt` (`SettingsActivityProxyTest.kt` deleted in v1.5.1 — the radio buttons it covered no longer exist; the dialog-based **Change.** flow is now exercised end-to-end by `MainActivityProxyLabelTest.changeProxyShowsDialogAndUpdatesLabelInPlace`, the auto-reprocess parity by `MainActivityProxyLabelTest.processedInstagramUrlReprocessesAfterProxyChange`, and the Share counterpart by `ShareActivityProxyLabelTest.changeProxyInShowsDialogAndUpdatesLabelInPlace`)
 - [x] Forward conversion: `instagram.com` → each of `toinstagram.com`, `adamlikes.men`, `instagram7.com`
 - [x] Cross-proxy swaps among the active set
 - [x] **Bare-hostname (v1.4.8)**: `www.instagram.com` → `<proxy>` (no `www.`); `business.instagram.com` → `<proxy>` (sub-prefix stripped)
@@ -98,12 +100,12 @@ All tests pass after the `isFacebookUrl` UI-state addition (ViewModel default va
 - [x] Legacy `kkinstagram.com` URLs still validated (so they can be auto-migrated)
 
 ### 8. Settings [x]
-**Test File**: `SettingsTest.kt` + `SettingsActivityProxyTest.kt`  
+**Test File**: `SettingsTest.kt`  
 - [x] About dialog display
 - [x] History toggle / max entries dialog
 - [x] Back navigation
-- [x] **Instagram embed proxy radio group** (default = toinstagram.com, persistent selection, info icon visible)
 - [x] Conversion defaults dialog, saving, and cancel flows pass with deterministic `NestedScrollView` scrolling
+- v1.5.1: the Instagram embed proxy radio group is removed from Settings; coverage moved to `MainActivityProxyLabelTest` + `ShareActivityProxyLabelTest` (dialog-based **Change.** flow). `SettingsActivityProxyTest` deleted.
 
 ### 9. URL Input Validation [x]
 **Test File**: `UrlInputValidationTest.kt` — all security tests still pass.
@@ -160,21 +162,22 @@ All tests pass after the `isFacebookUrl` UI-state addition (ViewModel default va
 - **Facebook/FacebookEZ**: [x] Complete
 
 ## GITHUB (F-Droid) Variant
-- Unit tests: 119/119 PASS (root parity, v1.5.0)
-- Instrumentation tests: skipped for local Windows build by user request (F-Droid CI runs them on Linux); all source files including `BrowserAliasIntentResolutionTest.kt` are fully synced root → GITHUB so the test outcomes are expected to match.
+- Unit tests: 119/119 PASS (root parity, v1.5.1)
+- Instrumentation tests: skipped for local Windows build by user request (F-Droid CI runs them on Linux); all source files including the v1.5.1 changes are fully synced root → GITHUB so the test outcomes are expected to match.
 - APK verified to contain:
   - No `BUNDLE-METADATA/com.android.tools.build.libraries/dependencies.pb`
   - No `adi-registration.properties` (Google-only marketing asset)
-- Reproducible build verified for v1.5.0: `app-release.apk` from a clean tag clone (`v1.5.0` → `9ddd1a2`) byte-identical to the upstream artifact (SHA-256 match).
 
 ## Known Issues
-- None blocking for v1.5.0 release. `SettingsTest.testAboutDialog` was observed to flake once during a full-suite run with an Espresso `RootViewWithoutFocusException`; passes reliably when re-run in isolation. Tracked as an emulator/UI race, not a regression introduced by v1.5.0.
+- None blocking for v1.5.1 release.
+- `SettingsTest.testAboutDialog` — pre-existing Espresso flake (`RootViewWithoutFocusException`); passes reliably when re-run in isolation, unrelated to v1.5.1 changes.
+- `KeyboardNavigationTest.testKeyboardInputAndDismissal` — pre-existing Espresso `typeText()` flake (the soft keyboard occasionally swallows the first character before it is fully attached, so "https://example.com" arrives as "ttps://example.com"). Observed once during a full v1.5.1 instrumentation run; re-runs the same test class 4/4 in isolation. Unrelated to v1.5.1 changes; lives in test code (the production app uses `replaceText` semantics elsewhere).
 
 ## Performance Observations
 - All tests completed within expected timeframes
 - No memory leaks or ANRs detected
 - Unit suite: ~30s
-- Instrumentation suite: ~13m for 155 tests on the Pixel API 35 emulator (v1.5.0 adds 4 BrowserAlias resolution cases)
+- Instrumentation suite: ~13m envelope on the Pixel API 35 emulator (v1.5.1 trims 4 cases compared with v1.5.0's 155-case suite)
 
 ## Security Testing
 - [x] URL injection attacks prevented
@@ -189,6 +192,6 @@ All tests pass after the `isFacebookUrl` UI-state addition (ViewModel default va
 ## Conclusion
 **Production Readiness: YES** [x]
 
-FixupXer v1.5.0 passes 119/119 unit tests and 155/155 instrumentation tests. The v1.5.0 fix (manifest-only addition of `MAIN + DEFAULT + APP_BROWSER` to `BrowserAlias`) is covered by the new 4-case `BrowserAliasIntentResolutionTest`, which guards both the Xiaomi/HyperOS discoverability path and the privacy-by-default behaviour when Browser mode is off.
+FixupXer v1.5.1 passes 119/119 unit tests and 152/152 instrumentation tests on `Pixel_API_35_Play`. The UI-only refactor (removing the Settings proxy entry; making Main and Share both open `InstagramProxyDialogHelper` directly; auto-reprocessing on Main when a Processed URL exists) is covered by `MainActivityProxyLabelTest.changeProxyShowsDialogAndUpdatesLabelInPlace`, `MainActivityProxyLabelTest.processedInstagramUrlReprocessesAfterProxyChange`, and the existing `ShareActivityProxyLabelTest.changeProxyInShowsDialogAndUpdatesLabelInPlace`. Conversion logic and persistence are unchanged.
 
 **The app is ready for production deployment.**

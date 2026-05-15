@@ -5,7 +5,7 @@
 
 **Clean URLs • Get embeddable links • Use Browser Mode**
 
-[![Version](https://img.shields.io/badge/version-1.5.0-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
+[![Version](https://img.shields.io/badge/version-1.5.1-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
 [![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-green?style=for-the-badge)](LICENSE)
 

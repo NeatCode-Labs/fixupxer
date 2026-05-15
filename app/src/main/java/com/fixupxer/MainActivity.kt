@@ -405,14 +405,17 @@ class MainActivity : BaseActivity() {
     }
 
     private fun onChangeProxyClick() {
-        val intent = Intent(this, SettingsActivity::class.java)
-        val canLaunchSettings = intent.resolveActivity(packageManager) != null
-        if (canLaunchSettings) {
-            startActivity(intent)
-        } else {
-            InstagramProxyDialogHelper.show(this, preferencesManager) {
-                refreshProxyLabel()
-            }
+        // Settings no longer hosts a proxy chooser (v1.5.1+); the dialog is
+        // now the single source of truth for picking the Instagram proxy on
+        // both Main and Share screens. After the user picks a proxy:
+        //   1. refresh the "Active: <proxy>." label,
+        //   2. re-process *only if* a Processed URL already exists for an
+        //      Instagram input (i.e. the user has already tapped Process once).
+        // The first-time processing flow still belongs to the Process button —
+        // pasting a fresh link does not auto-process.
+        InstagramProxyDialogHelper.show(this, preferencesManager) {
+            refreshProxyLabel()
+            viewModel.reprocessAfterProxyChange()
         }
     }
 

@@ -1,18 +1,20 @@
 # FixupXer App - Development Summary
-## Version Progression: v1.5.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v1.5.1 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 21 (v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
-**Current Version:** v1.5.0 (versionCode: 28)  
-**Development Period:** v1.2.1 (Initial) → v1.5.0 (Current)
+**Total Versions Released:** 22 (v1.5.1, v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
+**Current Version:** v1.5.1 (versionCode: 29)  
+**Development Period:** v1.2.1 (Initial) → v1.5.1 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in the complete engine overhaul in v1.4.0 and the new browser mode feature in v1.4.6. The development included a revolutionary architectural redesign, comprehensive security hardening, critical bug fixes, and a powerful browser integration feature.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in the complete engine overhaul in v1.4.0, the browser mode feature added in v1.4.6, the selectable Instagram embed proxy introduced in v1.4.7 (refreshed in v1.4.8), browser-mode stability fixes in v1.4.9, Xiaomi/HyperOS default-browser compatibility shipped in v1.5.0, and the unified Instagram proxy chooser in v1.5.1 (Settings entry removed; Main/Share use the same dialog).
 
 ### Key Achievements:
 - ✅ **Browser Mode Integration** - Optional system-wide URL filtering as default browser with configurable action priorities
+- ✅ **Selectable Instagram Embed Proxy** - User-chosen, persistent proxy for Instagram embeds with cross-proxy swap, legacy auto-migration, and bare-hostname conversion
+- ✅ **Cross-OEM Default-Browser Support** - `MAIN + APP_BROWSER` filter so Xiaomi/Redmi/HyperOS (and other non-AOSP pickers) list FixupXer as a browser candidate
 - ✅ **Professional UI/UX** - Polished Material Design 3 interface with perfect text formatting and typography
 - ✅ **Complete Engine Overhaul** - Revolutionary modular architecture with 11 specialized cleaners
 - ✅ **Industry-Leading Coverage** - 964 unique tracking parameters across all platforms
@@ -26,6 +28,24 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v1.5.0 → v1.5.1
+- **Focus:** Unified Instagram proxy selector (Main + Share use the same dialog; Settings entry removed) plus auto-reprocess parity on Main when a Processed URL already exists.
+- **Key Changes:**
+  - **Main screen** — `MainActivity.onChangeProxyClick()` now opens `InstagramProxyDialogHelper` directly (parity with Share). Previously it launched `SettingsActivity`. Settings is no longer the source of truth for picking the proxy.
+  - **Auto-reprocess on Main** — `MainViewModel.reprocessAfterProxyChange()` calls `urlRepository.processUrl(url, false, previousProcessedUrl)` only when (a) the input is an Instagram URL, and (b) a Processed URL already exists (i.e. the user has tapped Process at least once). Fresh inputs still require an explicit Process tap. The repository's `previousProcessedUrl` parameter prevents duplicate history entries when the result is identical.
+  - **Share screen** — unchanged behaviour; already used the dialog inline because `ShareActivity` is `android:noHistory="true"`. Re-processes the shared URL after a new proxy is picked.
+  - **Settings** — the entire **Instagram embed proxy** `MaterialCardView` is removed from `activity_settings.xml`. `SettingsActivity.kt` drops the radio-group listener, the info-icon click handler, the `loadSettings()` proxy block, and the duplicated `showInstagramProxyInfoDialog()` (the dialog helper already owns the info icon). Settings now opens straight to Browser Integration / Conversion Defaults / Action Mode.
+  - **Persistence + conversion logic** — unchanged. `PreferencesManager.getInstagramProxy()` / `setInstagramProxy()` and `instagram_proxy_domain` are kept; existing users keep their selection. Default remains `toinstagram.com`.
+  - **Strings cleanup** — removed `settings_instagram_proxy_title`, `settings_instagram_proxy_summary`, `instagram_proxy_to`, `instagram_proxy_adamlikes`, `instagram_proxy_7` (referenced only by the removed Settings card). Kept `instagram_proxy_primary_label`, `instagram_proxy_backup_label`, `instagram_proxy_dialog_title`, and the three `instagram_proxy_info_*` strings (still used by `InstagramProxyDialogHelper`).
+  - **New `res/values/ids.xml`** declaring `instagramProxyInfoIcon`. The dialog helper builds the title row programmatically and assigns this ID to the info icon; declaring it in `ids.xml` keeps the ID available now that no layout XML defines it.
+  - **F-Droid mirror parity** — all touched files copied 1:1 to `GITHUB/fixupxer/` (no diff fence touched). `SettingsActivityProxyTest.kt` deleted in both trees.
+- **Tests updated:**
+  - **Removed** `SettingsActivityProxyTest` (5 cases) — tested radio buttons that no longer exist.
+  - **Added** `MainActivityProxyLabelTest.changeProxyShowsDialogAndUpdatesLabelInPlace` — taps **Change.** in the Main screen and verifies (a) the dialog appears, (b) selecting `instagram7.com` updates the label in place, (c) the Main screen stays in the foreground, (d) the Processed URL field stays empty (no auto-reprocess for fresh inputs). Mirrors the existing Share-screen test.
+  - **Added** `MainActivityProxyLabelTest.processedInstagramUrlReprocessesAfterProxyChange` — types an Instagram URL, taps Process to populate Processed URL with the default proxy, opens **Change.**, picks `instagram7.com`, and verifies the Processed URL field is automatically refreshed (no extra Process tap required) and no longer contains the previous proxy domain.
+- **Tests pass rate:** 119/119 unit (100%) + 152/152 instrumentation (100%) on `Pixel_API_35_Play`. One pre-existing `KeyboardNavigationTest.testKeyboardInputAndDismissal` flake (Espresso `typeText()` swallowing the first character before the soft keyboard is fully attached) was observed once during a full-suite run; passes reliably (4/4) when re-run in isolation. Unrelated to v1.5.1.
+- **Impact:** One chooser, two screens, identical flow. Settings stops carrying redundant state; Main + Share are now the single point of interaction for the proxy. Already-processed Instagram URLs re-render with the new proxy in place — fresh inputs still belong to the Process button.
 
 ### v1.4.9 → v1.5.0
 - **Focus:** Xiaomi/Redmi/HyperOS default-browser list compatibility (manifest fix + regression test).
@@ -556,7 +576,12 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.4.6 | 23 | Browser mode integration | ✅ Released |
 | v1.4.7 | 25 | Selectable Instagram embed proxy | ✅ Released |
 | v1.4.8 | 26 | Instagram proxy refresh | ✅ Released |
-| v1.4.9 | 27 | Browser mode stability & routing fixes | ✅ Current |
+| v1.4.9 | 27 | Browser mode stability & routing fixes | ✅ Released |
+| v1.5.0 | 28 | Xiaomi/Redmi/HyperOS default-browser compatibility | ✅ Current |
 
-### Build Artifacts:
-- **APK:** `
+### Build Artifacts (v1.5.0):
+- **Google APK:** `app/build/outputs/apk/release/app-release.apk` (4.34 MB)
+- **Google AAB:** `app/build/outputs/bundle/release/app-release.aab` (5.27 MB)
+- **GITHUB / F-Droid APK:** `GITHUB/fixupxer/app/build/outputs/apk/release/app-release.apk` (4.20 MB; verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+
+For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

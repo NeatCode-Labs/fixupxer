@@ -175,6 +175,43 @@ class MainViewModel @Inject constructor(
         }
     }
     
+    /**
+     * Re-process the current input after the user picks a different Instagram proxy.
+     * Only acts when (a) the input is an Instagram URL (the only platform with multiple
+     * proxies), and (b) the user has already pressed Process at least once (so a
+     * Processed URL is currently displayed). Otherwise no-op — the regular Process
+     * button still owns the first-time processing flow.
+     *
+     * Mirrors `ShareViewModel.reprocessUrlLocally()` semantics: passes the previous
+     * processed URL to the repository so history snapshots are not duplicated.
+     */
+    fun reprocessAfterProxyChange() {
+        val state = _uiState.value
+        if (!state.isInstagramUrl) return
+        if (state.processedUrl.isEmpty()) return
+        if (state.inputUrl.isBlank()) return
+
+        viewModelScope.launch {
+            try {
+                val url = state.inputUrl.trim()
+                val nothingToDo = getApplication<Application>().getString(R.string.nothing_to_do)
+                val previousProcessedUrl = if (state.processedUrl == nothingToDo) {
+                    null
+                } else {
+                    state.processedUrl
+                }
+
+                val result = urlRepository.processUrl(url, false, previousProcessedUrl)
+                val processedUrl = result.url
+
+                val finalResult = if (processedUrl == url) nothingToDo else processedUrl
+                _uiState.update { it.copy(processedUrl = finalResult) }
+            } catch (e: Exception) {
+                Timber.e(e, "Error reprocessing URL after Instagram proxy change")
+            }
+        }
+    }
+
     fun clearInput() {
         _uiState.update { 
             it.copy(

@@ -24,7 +24,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
-import android.widget.RadioGroup
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -40,7 +39,6 @@ import com.fixupxer.databinding.ActivitySettingsBinding
 import com.fixupxer.databinding.DialogConversionDefaultsBinding
 import com.fixupxer.ui.adapters.ActionPriorityAdapter
 import com.fixupxer.utils.BrowserModeUtils
-import com.fixupxer.utils.Constants
 import com.google.android.material.switchmaterial.SwitchMaterial
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -89,23 +87,6 @@ class SettingsActivity : BaseActivity() {
     }
     
     private fun setupViews() {
-        // Instagram embed proxy radio group
-        binding.radioGroupInstagramProxy.setOnCheckedChangeListener { _, checkedId ->
-            val domain = when (checkedId) {
-                R.id.radioProxyAdamlikes -> Constants.ADAMLIKES_DOMAIN
-                R.id.radioProxyTo -> Constants.TOINSTAGRAM_DOMAIN
-                R.id.radioProxy7 -> Constants.INSTAGRAM7_DOMAIN
-                else -> Constants.INSTAGRAM_DEFAULT_PROXY
-            }
-            preferencesManager.setInstagramProxy(domain)
-            Timber.d("Instagram proxy changed to: $domain")
-        }
-
-        // Instagram proxy info icon -> show tooltip dialog with primary/backup explanation
-        binding.instagramProxyInfoIcon.setOnClickListener {
-            showInstagramProxyInfoDialog()
-        }
-
         // Browser mode switch
         binding.switchBrowserMode.setOnCheckedChangeListener { _, isChecked ->
             preferencesManager.setBrowserModeEnabled(isChecked)
@@ -141,13 +122,6 @@ class SettingsActivity : BaseActivity() {
     }
     
     private fun loadSettings() {
-        // Load Instagram proxy selection (default = toinstagram.com)
-        when (preferencesManager.getInstagramProxy()) {
-            Constants.ADAMLIKES_DOMAIN -> binding.radioProxyAdamlikes.isChecked = true
-            Constants.INSTAGRAM7_DOMAIN -> binding.radioProxy7.isChecked = true
-            else -> binding.radioProxyTo.isChecked = true
-        }
-
         // Load browser mode state
         val browserModeEnabled = preferencesManager.isBrowserModeEnabled()
         binding.switchBrowserMode.isChecked = browserModeEnabled
@@ -221,18 +195,6 @@ class SettingsActivity : BaseActivity() {
         binding.actionPrioritySection.visibility = if (isPriorityMode) View.VISIBLE else View.GONE
     }
     
-    private fun showInstagramProxyInfoDialog() {
-        val message = HtmlCompat.fromHtml(
-            getString(R.string.instagram_proxy_info_text),
-            HtmlCompat.FROM_HTML_MODE_LEGACY
-        )
-        AlertDialog.Builder(this)
-            .setTitle(R.string.instagram_proxy_info_title)
-            .setMessage(message)
-            .setPositiveButton(android.R.string.ok, null)
-            .show()
-    }
-
     private fun showInstructionsDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_instructions, null)
         

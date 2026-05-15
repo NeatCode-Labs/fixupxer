@@ -1,0 +1,7 @@
+v1.5.1 — Unified Instagram proxy chooser
+
+• Tap Change. on Main or Share to open the same proxy dialog (was Settings on Main)
+• Removed the Instagram embed proxy section from Settings — single source of truth now lives next to where you use it
+• Auto-reprocess: on Main, picking a different proxy after Process refreshes the Processed URL field automatically
+• Fresh inputs still use the explicit Process URL button
+• Existing users keep their selection; default remains toinstagram.com

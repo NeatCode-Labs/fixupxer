@@ -137,7 +137,14 @@ class UrlProcessorMatrixTest {
             Case("fxtwitter.com clean, toggle ON", "https://fxtwitter.com/user/status/1", true, true, "https://fixupx.com/user/status/1", false, false),
             // Dirty fxtwitter.com
             Case("fxtwitter.com dirty, toggle OFF", "https://fxtwitter.com/user/status/1?utm_source=abc", true, false, "https://x.com/user/status/1", false, false),
-            Case("fxtwitter.com dirty, toggle ON", "https://fxtwitter.com/user/status/1?utm_source=abc", true, true, "https://fixupx.com/user/status/1", false, false)
+            Case("fxtwitter.com dirty, toggle ON", "https://fxtwitter.com/user/status/1?utm_source=abc", true, true, "https://fixupx.com/user/status/1", false, false),
+
+            // === TikTok ===
+            Case("tiktok clean, toggle OFF", "https://www.tiktok.com/t/1", true, false, "https://www.tiktok.com/t/1", true, true),
+            Case("tiktok clean, toggle ON", "https://www.tiktok.com/t/1", true, true, "https://www.kktiktok.com/t/1", false, false),
+            Case("vm tiktok clean, toggle ON", "https://vm.tiktok.com/t/1", true, true, "https://vm.kktiktok.com/t/1", false, false),
+            Case("kktiktok clean, toggle OFF", "https://www.kktiktok.com/t/1", true, false, "https://www.tiktok.com/t/1", false, false),
+            Case("kktiktok clean, toggle ON", "https://www.kktiktok.com/t/1", true, true, "https://www.kktiktok.com/t/1", true, true)
         )
 
         cases.forEach { c ->

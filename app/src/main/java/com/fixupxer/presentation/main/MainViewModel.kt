@@ -92,6 +92,12 @@ class MainViewModel @Inject constructor(
         } else {
             false
         }
+
+        val isTikTok = if (url.isNotEmpty()) {
+            urlRepository.isTikTokUrl(url)
+        } else {
+            false
+        }
         
         _uiState.update { 
             it.copy(
@@ -99,6 +105,7 @@ class MainViewModel @Inject constructor(
                 isInstagramUrl = isInstagram,
                 isFacebookUrl = isFacebook,
                 isTwitterUrl = showTwitterToggle,
+                isTikTokUrl = isTikTok,
                 error = null,
                 showErrorToast = false
             )
@@ -219,6 +226,7 @@ class MainViewModel @Inject constructor(
                 processedUrl = "",
                 isInstagramUrl = false,
                 isFacebookUrl = false,
+                isTikTokUrl = false,
                 error = null,
                 showErrorToast = false
             )
@@ -232,6 +240,7 @@ class MainViewModel @Inject constructor(
                 processedUrl = "",
                 isInstagramUrl = false,
                 isFacebookUrl = false,
+                isTikTokUrl = false,
                 error = getApplication<Application>().getString(R.string.error_multiple_urls),
                 showErrorToast = false
             )
@@ -251,6 +260,7 @@ data class MainUiState(
     val isInstagramConversionEnabled: Boolean = true,
     val isTwitterUrl: Boolean = false,
     val isTwitterConversionEnabled: Boolean = true,
+    val isTikTokUrl: Boolean = false,
     val error: String? = null,
     val showErrorToast: Boolean = false
 ) 

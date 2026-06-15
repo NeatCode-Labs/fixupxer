@@ -104,6 +104,33 @@ class UrlProcessorTest {
     }
     
     @Test
+    fun `test convert TikTok URL to kktiktok`() {
+        val tiktokUrl = "https://www.tiktok.com/t/ZTB4YXjhF/"
+        val resultPair = urlProcessor.processUrl(tiktokUrl, cleanTracking = false, convertTwitter = true)
+        println("Converted TikTok result: ${resultPair.first}")
+        val expected = "https://www.kktiktok.com/t/ZTB4YXjhF/"
+        assertEquals(expected, resultPair.first)
+    }
+    
+    @Test
+    fun `test convert vm TikTok URL to kktiktok`() {
+        val tiktokUrl = "https://vm.tiktok.com/ZTB4YXjhF/"
+        val resultPair = urlProcessor.processUrl(tiktokUrl, cleanTracking = false, convertTwitter = true)
+        println("Converted TikTok result: ${resultPair.first}")
+        val expected = "https://vm.kktiktok.com/ZTB4YXjhF/"
+        assertEquals(expected, resultPair.first)
+    }
+
+    @Test
+    fun `test convert kktiktok URL back to tiktok`() {
+        val proxyUrl = "https://www.kktiktok.com/t/ZTB4YXjhF/"
+        val resultPair = urlProcessor.processUrl(proxyUrl, cleanTracking = false, convertTwitter = false)
+        println("Reverted TikTok result: ${resultPair.first}")
+        val expected = "https://www.tiktok.com/t/ZTB4YXjhF/"
+        assertEquals(expected, resultPair.first)
+    }
+    
+    @Test
     fun `test convert X com URL to FixupX`() {
         val xUrl = "https://x.com/user/status/1234567890"
         val resultPair = urlProcessor.processUrl(xUrl, cleanTracking = false, convertTwitter = true)

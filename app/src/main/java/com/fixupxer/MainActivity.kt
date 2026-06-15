@@ -386,7 +386,7 @@ class MainActivity : BaseActivity() {
                     }
                     binding.switchInstagram.isChecked = state.isInstagramConversionEnabled
                     
-                    binding.twitterToggleContainer.isVisible = state.isTwitterUrl
+                    binding.twitterToggleContainer.isVisible = state.isTwitterUrl || state.isTikTokUrl
                     binding.switchTwitter.isChecked = state.isTwitterConversionEnabled
                     
                     binding.progressIndicator.isVisible = state.isLoading

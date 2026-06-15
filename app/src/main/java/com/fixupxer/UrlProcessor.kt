@@ -145,6 +145,7 @@ class UrlProcessor @Inject constructor(
         val isInstagramProxy = Constants.INSTAGRAM_ALL_KNOWN_PROXIES.any {
             url.contains(it, ignoreCase = true)
         }
+        val isTikTok = isTikTokUrl(url)
 
         return when {
             // Instagram conversions — covers instagram.com + any of the 3 proxies
@@ -168,6 +169,11 @@ class UrlProcessor @Inject constructor(
             isFacebookUrl(url) && convertToAlternative -> convertToFacebookez(url)
             url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true) && !convertToAlternative ->
                 convertFromFacebookez(url)
+            
+            // TikTok conversions
+            isTikTok && convertToAlternative -> convertToKkTiktok(url)
+            url.contains(Constants.KKTIKTOK_DOMAIN, ignoreCase = true) && !convertToAlternative ->
+                convertFromKkTiktok(url)
             
             else -> url
         }
@@ -344,6 +350,56 @@ class UrlProcessor @Inject constructor(
         val lowerUrl = url.lowercase()
         return lowerUrl.contains(Constants.FACEBOOK_DOMAIN) || 
                lowerUrl.contains(Constants.FACEBOOKEZ_DOMAIN)
+    }
+    
+    /**
+     * Check if a URL is a TikTok URL
+     */
+    fun isTikTokUrl(url: String): Boolean {
+        val lowerUrl = url.lowercase()
+        return lowerUrl.contains(Constants.TIKTOK_DOMAIN) ||
+               lowerUrl.contains(Constants.KKTIKTOK_DOMAIN) ||
+               lowerUrl.contains("tiktokcdn.com") ||
+               lowerUrl.contains("tiktokv.com")
+    }
+
+    /**
+     * Convert TikTok URLs to kktiktok.com
+     */
+    private fun convertToKkTiktok(url: String): String {
+        if (url.contains(Constants.KKTIKTOK_DOMAIN, ignoreCase = true)) return url
+        
+        // Match tiktok.com or tiktokv.com and replace with kktiktok.com, preserving subdomains
+        val regex = Regex("(?<=https?://)(?:[a-zA-Z0-9-]+\\.)?(?:tiktok\\.com|tiktokv\\.com)", RegexOption.IGNORE_CASE)
+        val match = regex.find(url)
+        return if (match != null) {
+            val matchedHost = match.value
+            val targetHost = matchedHost
+                .replace("tiktok.com", "kktiktok.com", ignoreCase = true)
+                .replace("tiktokv.com", "kktiktok.com", ignoreCase = true)
+            url.replaceFirst(matchedHost, targetHost)
+        } else {
+            url.replace("tiktok.com", "kktiktok.com", ignoreCase = true)
+               .replace("tiktokv.com", "kktiktok.com", ignoreCase = true)
+        }
+    }
+
+    /**
+     * Convert kktiktok.com back to tiktok.com
+     */
+    private fun convertFromKkTiktok(url: String): String {
+        if (!url.contains(Constants.KKTIKTOK_DOMAIN, ignoreCase = true)) return url
+        
+        // Match kktiktok.com and replace with tiktok.com, preserving subdomains
+        val regex = Regex("(?<=https?://)(?:[a-zA-Z0-9-]+\\.)?kktiktok\\.com", RegexOption.IGNORE_CASE)
+        val match = regex.find(url)
+        return if (match != null) {
+            val matchedHost = match.value
+            val targetHost = matchedHost.replace("kktiktok.com", "tiktok.com", ignoreCase = true)
+            url.replaceFirst(matchedHost, targetHost)
+        } else {
+            url.replace("kktiktok.com", "tiktok.com", ignoreCase = true)
+        }
     }
     
     /**

@@ -54,11 +54,13 @@ class UrlRepositoryImpl @Inject constructor(
         val isInstagram = urlProcessor.isInstagramUrl(url)
         val isTwitter = urlProcessor.isTwitterUrl(url)
         val isFacebook = urlProcessor.isFacebookUrl(url)
+        val isTikTok = urlProcessor.isTikTokUrl(url)
         
         val platform = when {
             isInstagram -> "Instagram"
             isTwitter -> "Twitter/X"
             isFacebook -> "Facebook"
+            isTikTok -> "TikTok"
             else -> "Other"
         }
         
@@ -78,6 +80,14 @@ class UrlRepositoryImpl @Inject constructor(
                 url,
                 cleanTracking = forceCleanTracking || preferencesManager.isCleanTrackingEnabled(),
                 convertTwitter = preferencesManager.isConvertInstagramEnabled(),
+                instagramProxy = instagramProxy
+            )
+        } else if (isTikTok) {
+            // For TikTok URLs, use the Twitter conversion preference (same toggle)
+            urlProcessor.processUrl(
+                url,
+                cleanTracking = forceCleanTracking || preferencesManager.isCleanTrackingEnabled(),
+                convertTwitter = preferencesManager.isConvertTwitterEnabled(),
                 instagramProxy = instagramProxy
             )
         } else {
@@ -123,6 +133,8 @@ class UrlRepositoryImpl @Inject constructor(
                 url.contains("fixupx.com") && processedUrl.contains("twitter.com") -> "Domain converted"
                 url.contains("fxtwitter.com") && processedUrl.contains("fixupx.com") -> "Domain converted"
                 url.contains("fxtwitter.com") && processedUrl.contains("x.com") -> "Domain converted"
+                url.contains("tiktok.com") && processedUrl.contains("kktiktok.com") -> "Domain converted"
+                url.contains("kktiktok.com") && processedUrl.contains("tiktok.com") -> "Domain converted"
                 trackingRemoved -> "Tracking removed"
                 else -> "URL cleaned"
             }
@@ -197,6 +209,8 @@ class UrlRepositoryImpl @Inject constructor(
     
     override fun isTwitterUrl(url: String): Boolean = urlProcessor.isTwitterUrl(url)
     
+    override fun isTikTokUrl(url: String): Boolean = urlProcessor.isTikTokUrl(url)
+    
     override fun hasTrackingParameters(url: String): Boolean = urlProcessor.hasTrackingParameters(url)
     
     override fun isInstagramConversionEnabled(): Flow<Boolean> = flowOf(preferencesManager.isConvertInstagramEnabled())
@@ -229,11 +243,13 @@ class UrlRepositoryImpl @Inject constructor(
         val isInstagram = urlProcessor.isInstagramUrl(url)
         val isTwitter = urlProcessor.isTwitterUrl(url)
         val isFacebook = urlProcessor.isFacebookUrl(url)
+        val isTikTok = urlProcessor.isTikTokUrl(url)
         
         val platform = when {
             isInstagram -> "Instagram"
             isTwitter -> "Twitter/X"
             isFacebook -> "Facebook"
+            isTikTok -> "TikTok"
             else -> "Other"
         }
         
@@ -257,6 +273,14 @@ class UrlRepositoryImpl @Inject constructor(
                 )
             }
             isTwitter -> {
+                urlProcessor.processUrl(
+                    url,
+                    cleanTracking = preferencesManager.isCleanTrackingEnabled(),
+                    convertTwitter = preferencesManager.isBrowserConvertTwitterEnabled(),
+                    instagramProxy = instagramProxy
+                )
+            }
+            isTikTok -> {
                 urlProcessor.processUrl(
                     url,
                     cleanTracking = preferencesManager.isCleanTrackingEnabled(),

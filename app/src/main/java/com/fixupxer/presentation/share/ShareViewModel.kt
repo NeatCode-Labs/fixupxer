@@ -120,11 +120,14 @@ class ShareViewModel @Inject constructor(
                     val isFacebook = url.contains("facebook.com", ignoreCase = true) ||
                                      url.contains("facebookez.com", ignoreCase = true)
                     
+                    val isTikTok = urlRepository.isTikTokUrl(url)
+                    
                     _uiState.update { 
                         it.copy(
                             isInstagramUrl = isInstagram,
                             isFacebookUrl = isFacebook,
-                            isTwitterUrl = isTwitter
+                            isTwitterUrl = isTwitter,
+                            isTikTokUrl = isTikTok
                         ) 
                     }
                     
@@ -264,6 +267,7 @@ class ShareViewModel @Inject constructor(
                 processedUrl = "",
                 isInstagramUrl = false,
                 isFacebookUrl = false,
+                isTikTokUrl = false,
                 error = null
             )
         }
@@ -282,5 +286,6 @@ data class ShareUiState(
     val isInstagramConversionEnabled: Boolean = true,
     val isTwitterUrl: Boolean = false,
     val isTwitterConversionEnabled: Boolean = true,
+    val isTikTokUrl: Boolean = false,
     val error: String? = null
 ) 

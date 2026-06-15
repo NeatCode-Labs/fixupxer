@@ -293,7 +293,7 @@ class ShareActivity : BaseActivity() {
                         viewModel.onInstagramConversionToggled(isChecked)
                     }
                     
-                    binding.twitterToggleContainer.isVisible = state.isTwitterUrl
+                    binding.twitterToggleContainer.isVisible = state.isTwitterUrl || state.isTikTokUrl
                     
                     // Temporarily remove listener to avoid triggering when setting programmatically
                     binding.switchTwitter.setOnCheckedChangeListener(null)

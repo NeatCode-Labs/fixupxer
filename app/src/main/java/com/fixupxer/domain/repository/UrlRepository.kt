@@ -73,6 +73,13 @@ interface UrlRepository {
     fun isTwitterUrl(url: String): Boolean
     
     /**
+     * Check if a URL is a TikTok URL
+     * @param url The URL to check
+     * @return True if it's a TikTok URL
+     */
+    fun isTikTokUrl(url: String): Boolean
+    
+    /**
      * Check if a URL contains tracking parameters
      */
     fun hasTrackingParameters(url: String): Boolean

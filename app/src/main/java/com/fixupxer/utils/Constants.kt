@@ -56,6 +56,8 @@ object Constants {
     const val VXTWITTER_DOMAIN = "vxtwitter.com"
     const val FACEBOOK_DOMAIN = "facebook.com"
     const val FACEBOOKEZ_DOMAIN = "facebookez.com"
+    const val TIKTOK_DOMAIN = "tiktok.com"
+    const val KKTIKTOK_DOMAIN = "kktiktok.com"
     
     // URL path identifiers
     const val TWITTER_STATUS_PATH = "/status/"

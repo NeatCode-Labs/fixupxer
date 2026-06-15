@@ -131,6 +131,26 @@ class UrlProcessorTest {
     }
     
     @Test
+    fun `test clean TikTok URL with tracking parameters and embed ON`() {
+        val tiktokUrl = "https://www.tiktok.com/@user/video/1234567890?_r=1&_t=abc&lang=en"
+        val resultPair = urlProcessor.processUrl(tiktokUrl, cleanTracking = true, convertTwitter = true)
+        println("TikTok result: ${resultPair.first}")
+        val expected = "https://www.kktiktok.com/@user/video/1234567890?lang=en"
+        assertEquals(expected, resultPair.first)
+        assertFalse(resultPair.second)
+    }
+
+    @Test
+    fun `test clean TikTok URL with tracking parameters and embed OFF`() {
+        val tiktokUrl = "https://www.tiktok.com/@user/video/1234567890?_r=1&_t=abc&lang=en"
+        val resultPair = urlProcessor.processUrl(tiktokUrl, cleanTracking = true, convertTwitter = false)
+        println("TikTok result: ${resultPair.first}")
+        val expected = "https://www.tiktok.com/@user/video/1234567890?lang=en"
+        assertEquals(expected, resultPair.first)
+        assertFalse(resultPair.second)
+    }
+    
+    @Test
     fun `test convert X com URL to FixupX`() {
         val xUrl = "https://x.com/user/status/1234567890"
         val resultPair = urlProcessor.processUrl(xUrl, cleanTracking = false, convertTwitter = true)

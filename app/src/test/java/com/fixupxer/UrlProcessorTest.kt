@@ -113,6 +113,15 @@ class UrlProcessorTest {
     }
     
     @Test
+    fun `test convert TikTok URL without www to kktiktok`() {
+        val tiktokUrl = "https://tiktok.com/t/ZTB4YXjhF/"
+        val resultPair = urlProcessor.processUrl(tiktokUrl, cleanTracking = false, convertTwitter = true)
+        println("Converted TikTok result: ${resultPair.first}")
+        val expected = "https://kktiktok.com/t/ZTB4YXjhF/"
+        assertEquals(expected, resultPair.first)
+    }
+    
+    @Test
     fun `test convert vm TikTok URL to kktiktok`() {
         val tiktokUrl = "https://vm.tiktok.com/ZTB4YXjhF/"
         val resultPair = urlProcessor.processUrl(tiktokUrl, cleanTracking = false, convertTwitter = true)

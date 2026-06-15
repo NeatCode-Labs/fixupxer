@@ -142,6 +142,7 @@ class UrlProcessorMatrixTest {
             // === TikTok ===
             Case("tiktok clean, toggle OFF", "https://www.tiktok.com/t/1", true, false, "https://www.tiktok.com/t/1", true, true),
             Case("tiktok clean, toggle ON", "https://www.tiktok.com/t/1", true, true, "https://www.kktiktok.com/t/1", false, false),
+            Case("tiktok clean without www, toggle ON", "https://tiktok.com/t/1", true, true, "https://kktiktok.com/t/1", false, false),
             Case("vm tiktok clean, toggle ON", "https://vm.tiktok.com/t/1", true, true, "https://vm.kktiktok.com/t/1", false, false),
             Case("kktiktok clean, toggle OFF", "https://www.kktiktok.com/t/1", true, false, "https://www.tiktok.com/t/1", false, false),
             Case("kktiktok clean, toggle ON", "https://www.kktiktok.com/t/1", true, true, "https://www.kktiktok.com/t/1", true, true),

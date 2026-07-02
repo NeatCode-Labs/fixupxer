@@ -190,9 +190,9 @@ Instagram proxies occasionally go offline. To keep embeds working, FixupXer lets
 **Backup** (media only, no title/description)
 - **instagram7.com**
 
-When you share or paste an Instagram link and the **Embed?** toggle is visible, a small label on the right shows *Active: &lt;proxy&gt;. Change.* — tap **Change.** to pick another proxy. Your choice is persistent across all three screens (Main, Share, and Settings).
+When you share or paste an Instagram link and the **Embed?** toggle is visible, a small label on the right shows *Active: &lt;proxy&gt;. Change.* — tap **Change.** to pick another proxy. Your choice persists across both screens (Main and Share).
 
-The setting also lives under **Settings ▸ Instagram embed proxy** on both Google Play and F-Droid builds, with a small **(i)** info icon next to the title that explains the Primary / Backup distinction. On the Main screen tapping **Change.** opens Settings; on the Share screen it opens the same chooser as an inline dialog so the share flow isn't interrupted.
+Tapping **Change.** opens the proxy chooser as an inline dialog on both the Main and Share screens, so the flow is never interrupted. The dialog includes a small **(i)** info icon that explains the Primary / Backup distinction. If you already processed an Instagram link, picking a different proxy refreshes the result automatically.
 
 Converted links are sent without a `www.` prefix — these proxies render best at the bare hostname. Pasting an old-style URL on a retired proxy (`kkinstagram.com`, `eeinstagram.com`) still works: FixupXer recognises it and converts it to your currently selected proxy.
 
@@ -283,7 +283,7 @@ A: Absolutely! FixupXer has no internet permission and can't send data anywhere.
 - Modular cleaner system with 11 specialized modules
 - O(1) domain lookup performance
 - LRU cache with 1-hour TTL
-- 198 automated tests (100% coverage)
+- 271 automated tests (119 unit + 152 instrumentation)
 - Thread-safe, stateless design
 
 ### Building from Source

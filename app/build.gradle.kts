@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
-    id("kotlin-parcelize")
 }
 
 // Load keystore properties from external file
@@ -146,8 +145,6 @@ dependencies {
     
     // Logging
     implementation(libs.timber)
-    implementation(libs.androidx.datastore.preferences)
-    implementation(libs.gson)
     
     // Memory leak detection (debug only)
     debugImplementation(libs.leakcanary)
@@ -156,6 +153,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.gson) // JsonBasedCleanerTest čita test-cases.json
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation("androidx.test.espresso:espresso-contrib:3.5.1") // For RecyclerView actions

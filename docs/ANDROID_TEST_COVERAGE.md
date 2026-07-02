@@ -1,7 +1,7 @@
 # Android Test Coverage for FixupXer v1.5.1
 
 ## Overview
-This document describes the Android instrumentation tests covering all major features through v1.5.1. v1.5.1 unifies the Instagram proxy chooser: Main and Share both open `InstagramProxyDialogHelper` directly, and the Settings entry is removed.
+This document is the canonical test inventory (instrumentation + URL conversion matrix) covering all major features through v1.5.1. v1.5.1 unifies the Instagram proxy chooser: Main and Share both open `InstagramProxyDialogHelper` directly, and the Settings entry is removed.
 
 Test-suite delta vs v1.5.0:
 - **Removed**: `SettingsActivityProxyTest.kt` (5 cases) — the radio buttons it covered no longer exist.
@@ -270,13 +270,65 @@ All possible combinations tested:
 ```
 
 ## Current Test Status
-- **Unit Tests**: 117/117 passing
-- **Instrumentation Tests**: 151/151 passing on `Pixel_API_35_Play`
-- **Total Tests**: 268/268 passing
+- **Unit Tests**: 119/119 passing
+- **Instrumentation Tests**: 152/152 passing on `Pixel_API_35_Play`
+- **Total Tests**: 271/271 passing (v1.5.1, see `TESTING_REPORT.md` / `BUILD_REPORT.md`)
 - **Test Success Rate**: 100%
 
 ## URL Conversion Test Matrix
-All scenarios from the URL_CONVERSION_TEST_COVERAGE.md are now fully tested with the addition of BidirectionalConversionTest.kt
+
+(Merged from the former `URL_CONVERSION_TEST_COVERAGE.md`; covered primarily by `UrlProcessorMatrixTest.kt`, `BidirectionalConversionTest.kt`, `InstagramProxySelectionTest.kt`, `UrlProcessorTest.kt`, `UrlValidationImprovementsTest.kt`.)
+
+### Instagram Conversions (active + legacy proxy set)
+| Original URL | Toggle / Proxy | Expected Result | Test Status |
+|-------------|----------------|-----------------|-------------|
+| instagram.com | ON + toinstagram | toinstagram.com (default, no www.) | [x] Tested |
+| instagram.com | ON + adamlikes | adamlikes.men (no www.) | [x] Tested |
+| instagram.com | ON + instagram7 | instagram7.com | [x] Tested |
+| instagram.com + tracking | ON + any proxy | selected proxy (clean) | [x] Tested |
+| toinstagram.com | OFF | instagram.com | [x] Tested |
+| adamlikes.men | OFF | instagram.com | [x] Tested |
+| instagram7.com | OFF | instagram.com | [x] Tested |
+| kkinstagram.com | ON + active proxy | selected active proxy (legacy migration) | [x] Tested |
+| eeinstagram.com | ON + active proxy | selected active proxy (legacy migration) | [x] Tested |
+| toinstagram.com | ON + adamlikes | adamlikes.men (cross-swap) | [x] Tested |
+| adamlikes.men | ON + instagram7 | instagram7.com (cross-swap) | [x] Tested |
+| instagram7.com | ON + toinstagram | toinstagram.com (cross-swap) | [x] Tested |
+| toinstagram.com | ON + toinstagram | unchanged (no-op) | [x] Tested |
+| adamlikes.men | ON + adamlikes | unchanged (no-op) | [x] Tested |
+| instagram7.com | ON + instagram7 | unchanged (no-op) | [x] Tested |
+| www.instagram.com | ON + any proxy | selected proxy, bare hostname (www. stripped) | [x] Tested |
+| business.instagram.com | ON + any proxy | selected proxy, bare hostname (sub-prefix stripped) | [x] Tested |
+
+### Twitter/X Conversions
+| Original URL | Toggle State | Expected Result | Test Status |
+|-------------|--------------|-----------------|-------------|
+| x.com | ON | fixupx.com | [x] Tested |
+| twitter.com | ON | fixupx.com | [x] Tested |
+| x.com + tracking | ON | fixupx.com (clean) | [x] Tested |
+| twitter.com + tracking | ON | fixupx.com (clean) | [x] Tested |
+| fixupx.com | OFF | x.com | [x] Tested |
+| fixupx.com + tracking | OFF | x.com (clean) | [x] Tested |
+| fxtwitter.com | ON | fixupx.com | [x] Tested |
+| fxtwitter.com | OFF | fxtwitter.com | [x] Tested |
+
+### Facebook Conversions
+| Original URL | Toggle State | Expected Result | Test Status |
+|-------------|--------------|-----------------|-------------|
+| facebook.com | ON | facebookez.com | [x] Tested |
+| m.facebook.com | ON | facebookez.com (prefix removed) | [x] Tested |
+| web.facebook.com | ON | facebookez.com (prefix removed) | [x] Tested |
+| www.facebook.com | ON | facebookez.com (prefix removed) | [x] Tested |
+| facebook.com + tracking | ON | facebookez.com (clean) | [x] Tested |
+| facebookez.com | OFF | facebook.com | [x] Tested |
+| facebookez.com + tracking | OFF | facebook.com (clean) | [x] Tested |
+
+### URL Validation Edge Cases
+1. **Facebook Story URLs** — no false positive "Multiple URLs detected" (`https://m.facebook.com/story.php?story_fbid=123`) [x]
+2. **Case Sensitivity** — post IDs preserve case (e.g. `DLRNJjEx45S`) [x]
+3. **Glued URL Detection** — legitimate URLs with dots not flagged [x]
+4. **Query Parameters** — complex queries handled correctly [x]
+5. **Google/Gmail Redirect Extraction** — nested destination URLs accepted and cleaned (`https://www.google.com/url?q=...`) [x]
 
 ## Notes
 - Tests require Android emulator or device; final v1.4.9 verification used `Pixel_API_35_Play`.

@@ -577,11 +577,12 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.4.7 | 25 | Selectable Instagram embed proxy | ✅ Released |
 | v1.4.8 | 26 | Instagram proxy refresh | ✅ Released |
 | v1.4.9 | 27 | Browser mode stability & routing fixes | ✅ Released |
-| v1.5.0 | 28 | Xiaomi/Redmi/HyperOS default-browser compatibility | ✅ Current |
+| v1.5.0 | 28 | Xiaomi/Redmi/HyperOS default-browser compatibility | ✅ Released |
+| v1.5.1 | 29 | Unified Instagram proxy chooser (Settings entry removed) | ✅ Current |
 
-### Build Artifacts (v1.5.0):
-- **Google APK:** `app/build/outputs/apk/release/app-release.apk` (4.34 MB)
-- **Google AAB:** `app/build/outputs/bundle/release/app-release.aab` (5.27 MB)
-- **GITHUB / F-Droid APK:** `GITHUB/fixupxer/app/build/outputs/apk/release/app-release.apk` (4.20 MB; verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+### Build Artifacts (v1.5.1):
+- **Google APK:** `app/build/outputs/apk/release/app-release.apk`
+- **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
+- **GITHUB / F-Droid APK:** `GITHUB/fixupxer/app/build/outputs/apk/release/app-release.apk` (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

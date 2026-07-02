@@ -1,63 +1,65 @@
 # Android Build Checklist - FixupXer
 
 This checklist ensures the app meets all quality standards before release.
+**TEMPLATE — copy the checkboxes fresh for every release; do not reuse old [x] marks.**
+Record the per-version results (test counts, artifact names, dates) in `BUILD_REPORT.md` and `TESTING_REPORT.md`.
 
 ## Pre-Build Code Analysis
-- [x] **Lint Analysis**: No critical warnings or errors
-- [x] **Code Review**: All recent changes reviewed
-- [x] **TODO/FIXME Check**: No pending TODO or FIXME comments
-- [x] **Deprecated API Check**: No usage of deprecated Android APIs
+- [ ] **Lint Analysis**: No critical warnings or errors
+- [ ] **Code Review**: All recent changes reviewed
+- [ ] **TODO/FIXME Check**: No pending TODO or FIXME comments
+- [ ] **Deprecated API Check**: No usage of deprecated Android APIs
 
 ## Build Verification
-- [x] **Release Build**: `./gradlew assembleRelease` completes successfully
-- [x] **Unit Tests**: 119/119 unit tests pass (`./gradlew test`)
-- [x] **Android Tests**: instrumentation suite (152 cases in v1.5.1) runs on `Pixel_API_35` (`./gradlew connectedAndroidTest`); per-version pass count recorded in `TESTING_REPORT.md` and `BUILD_REPORT.md`
-- [x] **Lint**: `./gradlew lintRelease` completes successfully
-- [x] **ProGuard/R8**: Release build with obfuscation completes successfully
-- [x] **APK Size**: Generated APK size is reasonable (under 10MB)
-- [x] **AAB Build**: App Bundle builds successfully (`./gradlew bundleRelease`)
+- [ ] **Release Build**: `.\gradlew.bat assembleRelease` completes successfully
+- [ ] **Unit Tests**: all unit tests pass (`.\gradlew.bat test`)
+- [ ] **Android Tests**: full instrumentation suite passes on `Pixel_API_35_Play` (`.\gradlew.bat connectedAndroidTest`); record pass counts in `TESTING_REPORT.md` and `BUILD_REPORT.md`
+- [ ] **Lint**: `.\gradlew.bat lintRelease` completes successfully
+- [ ] **ProGuard/R8**: Release build with obfuscation completes successfully
+- [ ] **APK Size**: Generated APK size is reasonable (under 10MB)
+- [ ] **AAB Build**: App Bundle builds successfully (`.\gradlew.bat bundleRelease`)
 
 ## Security & Privacy
-- [x] **Permissions Check**: Only necessary permissions declared in manifest
-- [x] **Network Security**: Appropriate network security configuration (if applicable)
-- [x] **Secret Scanning**: No hardcoded passwords, API keys, or secrets
-- [x] **Debug Logs**: No debug logging in release builds
+- [ ] **Permissions Check**: ZERO permissions declared in manifest (privacy-first requirement)
+- [ ] **Network Security**: No network access of any kind
+- [ ] **Secret Scanning**: No hardcoded passwords, API keys, or secrets
+- [ ] **Debug Logs**: No debug logging in release builds (Timber ReleaseTree filters below WARN)
 
 ## Functionality Testing
-- [x] **App Installation**: Release APK installs correctly on device/emulator
-- [x] **App Launch**: App starts without crashes
-- [x] **Core Functionality**: Primary features work as expected
-- [x] **Share Functionality**: URL sharing and processing works correctly
-- [x] **Edge Cases**: Common edge cases handled gracefully
+- [ ] **App Installation**: Release APK installs correctly on device/emulator
+- [ ] **App Launch**: App starts without crashes
+- [ ] **Core Functionality**: Primary features work as expected
+- [ ] **Share Functionality**: URL sharing and processing works correctly
+- [ ] **Edge Cases**: Common edge cases handled gracefully
 
 ## Performance & Compatibility
-- [x] **Memory Usage**: No memory leaks detected during testing
-- [x] **ANR Check**: No Application Not Responding issues
-- [x] **API Compatibility**: Works correctly on minimum and target SDK versions
-- [x] **Device Compatibility**: Tested on target devices/emulators
+- [ ] **Memory Usage**: No memory leaks detected during testing
+- [ ] **ANR Check**: No Application Not Responding issues
+- [ ] **API Compatibility**: Works correctly on minimum (21) and target (35) SDK versions
+- [ ] **Device Compatibility**: Tested on target devices/emulators
 
 ## Release Artifacts
-- [x] **Signing Configuration**: Release builds properly signed with production keystore
-- [x] **Version Code**: Version code incremented appropriately
-- [x] **Version Name**: Version name follows semantic versioning
-- [x] **Release Notes**: Changelog updated with new features and fixes
-- [x] **Google Play AAB**: `FixupXer-v1.5.1-release.aab` generated and signed
-- [x] **GITHUB/F-Droid APK**: `GITHUB/fixupxer/FixupXer-v1.5.1-release.apk` generated and verified without Play dependency metadata
+- [ ] **Signing Configuration**: Release builds properly signed with production keystore
+- [ ] **Version Code**: Version code incremented appropriately (root AND `GITHUB/fixupxer` mirror)
+- [ ] **Version Name**: Version name follows semantic versioning
+- [ ] **Release Notes**: Changelog updated with new features and fixes
+- [ ] **Google Play AAB**: `FixupXer-vX.Y.Z-release.aab` generated and signed (from root)
+- [ ] **GITHUB/F-Droid APK**: APK built from `GITHUB/fixupxer` tree and verified WITHOUT Play dependency metadata (`dependencies.pb`) and WITHOUT `adi-registration.properties`
 
 ## Final Verification
-- [x] **Smoke Test**: Complete end-to-end functionality test
-- [x] **Regression Test**: Previously working features still function
-- [x] **Documentation**: README and documentation updated as needed
-- [x] **Backup**: Release artifacts backed up securely
+- [ ] **Smoke Test**: Complete end-to-end functionality test
+- [ ] **Regression Test**: Previously working features still function
+- [ ] **Documentation**: README and documentation updated as needed
+- [ ] **Backup**: Release artifacts backed up securely
 
 ## Sign-off
-- [x] **Developer Review**: All checklist items completed
-- [x] **Quality Assurance**: App meets quality standards for release
-- [x] **Ready for Distribution**: App approved for release to users
+- [ ] **Developer Review**: All checklist items completed
+- [ ] **Quality Assurance**: App meets quality standards for release
+- [ ] **Ready for Distribution**: App approved for release to users
 
 ---
-**Build Status**: ✅ **PASSED** - Ready for Release  
-**Completion Date**: May 15, 2026  
-**Build Version**: v1.5.1 (versionCode 29)  
-**Total Tests**: 271 (119 unit + 152 instrumentation)  
-**Test Success Rate**: 100% on unit tests; instrumentation pass count recorded in `BUILD_REPORT.md`  
+**Build Status**: (fill in)  
+**Completion Date**: (fill in)  
+**Build Version**: (fill in)  
+**Total Tests**: (fill in)  
+**Test Success Rate**: (fill in)  

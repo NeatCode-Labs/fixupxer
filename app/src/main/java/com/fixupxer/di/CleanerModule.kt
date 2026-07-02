@@ -20,10 +20,7 @@
 
 package com.fixupxer.di
 
-import com.fixupxer.PreferencesManager
 import com.fixupxer.cleaners.CleanerRegistry
-import com.fixupxer.cleaners.CleanerService
-import com.fixupxer.cleaners.cache.CleanerCache
 import com.fixupxer.cleaners.impl.AmazonCleaner
 import com.fixupxer.cleaners.impl.YouTubeCleaner
 import com.fixupxer.cleaners.impl.GoogleSearchCleaner

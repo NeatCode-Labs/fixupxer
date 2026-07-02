@@ -30,7 +30,7 @@ May 15, 2026
 **Total Tests**: 152 tests (155 v1.5.0 baseline minus 5 deleted `SettingsActivityProxyTest` cases plus 2 new `MainActivityProxyLabelTest` regressions: `changeProxyShowsDialogAndUpdatesLabelInPlace` and `processedInstagramUrlReprocessesAfterProxyChange`)  
 **Pass Rate**: 100% (one pre-existing `KeyboardNavigationTest.testKeyboardInputAndDismissal` flake observed once and re-verified to pass 4/4 in isolation)  
 **Run Time**: ~13m on `Pixel_API_35_Play`  
-**Passed**: 155 (100%)  
+**Passed**: 152 (100%)  
 **Failed**: 0  
 **Execution Time**: ~13 min 28s
 

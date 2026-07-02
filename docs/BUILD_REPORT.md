@@ -81,7 +81,7 @@ FixupXer v1.6.0 has successfully passed release build, unit-test, lint, and full
 ### Performance Metrics
 - **APK Size (Google)**: 4.35 MB release APK
 - **AAB Size**: 5.27 MB Google Play bundle
-- **APK Size (F-Droid/GITHUB)**: recorded after the reproducible tag build (see GITHUB variant section)
+- **APK Size (F-Droid/GITHUB)**: 4.20 MB release APK, no Play dependency metadata
 - **Install Size**: Optimized with ProGuard/R8
 - **Memory Usage**: Efficient resource management
 - **Startup Time**: Fast cold start performance
@@ -96,7 +96,7 @@ FixupXer v1.6.0 has successfully passed release build, unit-test, lint, and full
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` (4.35 MB, SHA-256 `3A20126D3E7FCCF7F73C20FBD9E9CAE70BDCAB9B5D58C96E14C215C8606066B9`)
 - [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` (5.27 MB, SHA-256 `3549AB64A9D5184088C8BD207C19EFC9E0D233325A3DD18436FFAE0EC480F2A6`)
-- [ ] **GITHUB Release APK**: built from a fresh clone of the `v1.6.0` tag (reproducible-build step, recorded below when done)
+- [x] **GITHUB Release APK**: `FixupXer-v1.6.0-release.apk` built from a fresh clone of the `v1.6.0` tag (4.20 MB, SHA-256 `C8CF98972B86EBAD71BD190EEC0A9ECCE2157D831427A7CB7CE43A9EC7906D14`); APK inspected — no `BUNDLE-METADATA/.../dependencies.pb`, no `adi-registration.properties`; published at https://github.com/NeatCode-Labs/fixupxer/releases/tag/v1.6.0
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: 140/140 unit + 165/165 instrumentation, all green
@@ -106,8 +106,8 @@ FixupXer v1.6.0 has successfully passed release build, unit-test, lint, and full
 - [x] `dependenciesInfo.includeInApk = false` preserved
 - [x] Version bump applied to mirror `app/build.gradle.kts` (only the 4 version lines)
 - [x] F-Droid changelog `metadata/en-US/changelogs/30.txt` added (≤ 500 chars)
-- [ ] No `BUNDLE-METADATA/com.android.tools.build.libraries/dependencies.pb` in APK (verified after tag build)
-- [ ] No `adi-registration.properties` Google marketing asset in APK (verified after tag build)
+- [x] No `BUNDLE-METADATA/com.android.tools.build.libraries/dependencies.pb` in APK (verified on the tag-clone build)
+- [x] No `adi-registration.properties` Google marketing asset in APK (verified on the tag-clone build)
 - [x] Full sync root → GITHUB for all source files touched by v1.6.0 (code, tests, docs mapping to `docs/`)
 - [x] Only intentional differences from root: `app/build.gradle.kts` (`dependenciesInfo = false/false`), `gradle.properties` (Linux `java.home` for F-Droid CI), missing `adi-registration.properties`, mirror-only `metadata/en-US/`
 - [x] GITHUB unit tests: root parity (identical source)

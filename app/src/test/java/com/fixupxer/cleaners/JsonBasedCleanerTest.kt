@@ -20,7 +20,6 @@
 
 package com.fixupxer.cleaners
 
-import com.fixupxer.PreferencesManager
 import com.fixupxer.cleaners.cache.CleanerCache
 import com.fixupxer.cleaners.impl.*
 import com.google.gson.Gson
@@ -30,7 +29,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.mockito.kotlin.mock
 import java.io.InputStreamReader
 
 /**
@@ -84,8 +82,6 @@ class JsonBasedCleanerTest(
     
     @Before
     fun setup() {
-        val preferencesManager = mock<PreferencesManager>()
-        
         val registry = CleanerRegistry()
         val cache = CleanerCache()
         
@@ -103,7 +99,7 @@ class JsonBasedCleanerTest(
             GeneralTrackingCleaner()
         ))
         
-        cleanerService = CleanerService(registry, cache, preferencesManager)
+        cleanerService = CleanerService(registry, cache)
     }
     
     @Test
@@ -126,8 +122,6 @@ class JsonTestLoader {
     
     @Before
     fun setup() {
-        val preferencesManager = mock<PreferencesManager>()
-        
         val registry = CleanerRegistry()
         val cache = CleanerCache()
         
@@ -145,7 +139,7 @@ class JsonTestLoader {
             GeneralTrackingCleaner()
         ))
         
-        cleanerService = CleanerService(registry, cache, preferencesManager)
+        cleanerService = CleanerService(registry, cache)
     }
     
     @Test

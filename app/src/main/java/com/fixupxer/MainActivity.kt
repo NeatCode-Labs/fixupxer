@@ -79,6 +79,8 @@ class MainActivity : BaseActivity() {
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
     private lateinit var urlTextWatcher: TextWatcher
+    private var footerLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+    private var textValidationJob: kotlinx.coroutines.Job? = null
     
     @Inject
     lateinit var historyRepository: HistoryRepository
@@ -129,8 +131,22 @@ class MainActivity : BaseActivity() {
             if (scheme == "http" || scheme == "https") {
                 lifecycleScope.launch {
                     try {
+                        val originalUrl = uri.toString()
+                        // Gate only: the validator's *output* is URL-decoded, and
+                        // UrlProcessor decodes again, so we must pass the ORIGINAL
+                        // URI string onward to avoid double-decoding %-encoded URLs.
+                        val validated = withContext(Dispatchers.Default) {
+                            InputValidator.validateAndSanitizeInput(originalUrl)
+                        }
+                        if (validated == null) {
+                            Timber.w("VIEW intent URL rejected by validator")
+                            Toast.makeText(this@MainActivity, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
+                            finish()
+                            return@launch
+                        }
+                        
                         // Clean the URL using browser-specific preferences
-                        val result = urlRepository.processUrlForBrowser(uri.toString())
+                        val result = urlRepository.processUrlForBrowser(originalUrl)
                         val cleanedUri = Uri.parse(result.url)
                         
                         Timber.d("URL cleaned: $uri -> $cleanedUri")
@@ -143,7 +159,7 @@ class MainActivity : BaseActivity() {
                         }
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to handle VIEW intent")
-                        Toast.makeText(this@MainActivity, "Failed to process URL", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
                         finish()
                     }
                 }
@@ -233,7 +249,8 @@ class MainActivity : BaseActivity() {
         }
         
         // Set up a global layout listener to check available space
-        parentLayout.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+        // (reference kept so it can be removed in onDestroy)
+        footerLayoutListener = object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 // Get the actual height of the parent layout (excluding system bars)
                 val parentHeight = parentLayout.height
@@ -296,7 +313,18 @@ class MainActivity : BaseActivity() {
                 
                 scrollView.layoutParams = scrollViewParams
             }
-        })
+        }
+        parentLayout.viewTreeObserver.addOnGlobalLayoutListener(footerLayoutListener)
+    }
+    
+    override fun onDestroy() {
+        footerLayoutListener?.let {
+            binding.mainScrollView.parent?.let { parent ->
+                (parent as? View)?.viewTreeObserver?.removeOnGlobalLayoutListener(it)
+            }
+        }
+        footerLayoutListener = null
+        super.onDestroy()
     }
     
     private fun setupListeners() {
@@ -308,7 +336,10 @@ class MainActivity : BaseActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 val raw = s?.toString() ?: ""
-                lifecycleScope.launch {
+                // Cancel any in-flight validation so rapid typing can't deliver
+                // out-of-order results to the ViewModel.
+                textValidationJob?.cancel()
+                textValidationJob = lifecycleScope.launch {
                     try {
                         val validated = withTimeout(200) {
                             withContext(Dispatchers.Default) {
@@ -331,6 +362,8 @@ class MainActivity : BaseActivity() {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@MainActivity, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
                         }
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e // superseded by a newer text change — don't log as error
                     } catch (e: Exception) {
                         Timber.e(e, "Error during text validation")
                     }
@@ -425,12 +458,14 @@ class MainActivity : BaseActivity() {
     }
     
     private fun shareProcessedUrl() {
-        val processedUrl = viewModel.uiState.value.processedUrl
-        if (processedUrl.isNotEmpty()) {
+        // Action buttons operate on actionUrl (always a real URL), not the display
+        // text — which may be the "Nothing to do!" message.
+        val actionUrl = viewModel.uiState.value.actionUrl
+        if (actionUrl.isNotEmpty()) {
             try {
                 val shareIntent = Intent().apply {
                     action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, processedUrl)
+                    putExtra(Intent.EXTRA_TEXT, actionUrl)
                     type = "text/plain"
                 }
                 startActivity(Intent.createChooser(shareIntent, getString(R.string.share_via)))
@@ -444,10 +479,10 @@ class MainActivity : BaseActivity() {
     }
     
     private fun openProcessedUrl() {
-        val processedUrl = viewModel.uiState.value.processedUrl
-        if (processedUrl.isNotEmpty()) {
+        val actionUrl = viewModel.uiState.value.actionUrl
+        if (actionUrl.isNotEmpty()) {
             try {
-                val intent = Intent(Intent.ACTION_VIEW, processedUrl.toUri())
+                val intent = Intent(Intent.ACTION_VIEW, actionUrl.toUri())
                 startActivity(intent)
             } catch (e: Exception) {
                 Timber.e(e, "Error opening URL")
@@ -460,15 +495,15 @@ class MainActivity : BaseActivity() {
     
     @SuppressLint("NewApi")
     private fun copyToClipboard() {
-        val processedUrl = viewModel.uiState.value.processedUrl
-        if (processedUrl.isNotEmpty()) {
+        val actionUrl = viewModel.uiState.value.actionUrl
+        if (actionUrl.isNotEmpty()) {
             val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
             if (clipboardManager == null) {
                 Timber.e("ClipboardManager not available")
                 Toast.makeText(this, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
                 return
             }
-            val clipData = ClipData.newPlainText(getString(R.string.clipboard_label_url), processedUrl)
+            val clipData = ClipData.newPlainText(getString(R.string.clipboard_label_url), actionUrl)
             clipboardManager.setPrimaryClip(clipData)
             
             // On Android < 10, show a toast notification

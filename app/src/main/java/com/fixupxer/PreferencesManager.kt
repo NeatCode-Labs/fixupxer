@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.InstagramProxyStore
 
 /**
  * Manages user preferences for the app
@@ -37,6 +38,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_CONVERT_TWITTER = "convert_twitter"
         private const val KEY_CONVERT_INSTAGRAM = "convert_instagram"
         private const val KEY_INSTAGRAM_PROXY = "instagram_proxy_domain"
+        private const val KEY_CUSTOM_INSTAGRAM_PROXIES = "custom_instagram_proxies"
         private const val KEY_HISTORY_ENABLED = "history_enabled"
         private const val KEY_MAX_HISTORY_ENTRIES = "max_history_entries"
         private const val DEFAULT_MAX_HISTORY_ENTRIES = 100
@@ -63,6 +65,12 @@ class PreferencesManager(context: Context) {
     }
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    init {
+        // Mirror persisted custom proxies into the process-wide store so stateless
+        // consumers (UrlProcessor, InstagramCleaner) see them immediately.
+        InstagramProxyStore.setCustomProxies(getCustomInstagramProxies())
+    }
 
     /**
      * Check if tracking parameter cleaning is enabled
@@ -109,13 +117,13 @@ class PreferencesManager(context: Context) {
     /**
      * Get the currently selected Instagram embed proxy domain.
      * Defaults to [Constants.INSTAGRAM_DEFAULT_PROXY]. If the stored value is no longer
-     * a supported (active) proxy — e.g. a user upgrading from v1.4.7 had `kkinstagram.com`
-     * or `eeinstagram.com` saved — we silently migrate to the default.
+     * an active proxy — e.g. a legacy domain like `eeinstagram.com` from an old version,
+     * or a custom proxy the user has since deleted — we silently migrate to the default.
      */
     fun getInstagramProxy(): String {
         val value = prefs.getString(KEY_INSTAGRAM_PROXY, Constants.INSTAGRAM_DEFAULT_PROXY)
             ?: Constants.INSTAGRAM_DEFAULT_PROXY
-        return if (Constants.INSTAGRAM_PROXY_DOMAINS.contains(value)) {
+        return if (InstagramProxyStore.activeProxies().contains(value)) {
             value
         } else {
             Constants.INSTAGRAM_DEFAULT_PROXY
@@ -123,10 +131,43 @@ class PreferencesManager(context: Context) {
     }
 
     /**
-     * Set the selected Instagram embed proxy domain.
+     * Set the selected Instagram embed proxy domain. Must be one of the active
+     * proxies (fixed roster or a saved custom proxy); anything else is ignored.
      */
     fun setInstagramProxy(domain: String) {
+        if (!InstagramProxyStore.activeProxies().contains(domain)) return
         prefs.edit { putString(KEY_INSTAGRAM_PROXY, domain) }
+    }
+
+    /**
+     * User-defined custom Instagram proxies (persisted comma-separated).
+     */
+    fun getCustomInstagramProxies(): List<String> {
+        val stored = prefs.getString(KEY_CUSTOM_INSTAGRAM_PROXIES, null)
+        return if (stored.isNullOrEmpty()) emptyList() else stored.split(",").filter { it.isNotBlank() }
+    }
+
+    /**
+     * Add a custom Instagram proxy. The caller is expected to pass a domain that
+     * already passed [InstagramProxyStore] normalization + validation.
+     */
+    fun addCustomInstagramProxy(domain: String) {
+        val current = getCustomInstagramProxies()
+        if (domain in current) return
+        persistCustomProxies(current + domain)
+    }
+
+    /**
+     * Remove a custom Instagram proxy. If it was the selected proxy,
+     * [getInstagramProxy] transparently falls back to the default.
+     */
+    fun removeCustomInstagramProxy(domain: String) {
+        persistCustomProxies(getCustomInstagramProxies() - domain)
+    }
+
+    private fun persistCustomProxies(proxies: List<String>) {
+        prefs.edit { putString(KEY_CUSTOM_INSTAGRAM_PROXIES, proxies.joinToString(",")) }
+        InstagramProxyStore.setCustomProxies(proxies)
     }
 
     /**

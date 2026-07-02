@@ -25,7 +25,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fixupxer.R
 import com.fixupxer.domain.repository.UrlRepository
-import com.fixupxer.UrlProcessor
 import com.fixupxer.utils.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,8 +32,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -70,37 +67,25 @@ class MainViewModel @Inject constructor(
     }
     
     fun onUrlChanged(url: String) {
-        val isInstagram = if (url.isNotEmpty()) {
-            url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) ||
-                Constants.INSTAGRAM_ALL_KNOWN_PROXIES.any { url.contains(it, ignoreCase = true) }
+        val isInstagram = url.isNotEmpty() && urlRepository.isInstagramUrl(url)
+
+        val isFacebook = if (url.isNotEmpty()) {
+            url.contains(Constants.FACEBOOK_DOMAIN, ignoreCase = true) ||
+                url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true) ||
+                url.contains(Constants.FB_SHORT_DOMAIN, ignoreCase = true)
         } else {
             false
         }
 
-        val isFacebook = if (url.isNotEmpty()) {
-            url.contains("facebook.com", ignoreCase = true) ||
-            url.contains("facebookez.com", ignoreCase = true)
-        } else {
-            false
-        }
-        
-        val showTwitterToggle = if (url.isNotEmpty()) {
-            urlRepository.isTwitterUrl(url) || 
-            url.contains("x.com", ignoreCase = true) ||
-            url.contains("fixupx.com", ignoreCase = true) || 
-            url.contains("fxtwitter.com", ignoreCase = true)
-        } else {
-            false
-        }
-        
+        val showTwitterToggle = url.isNotEmpty() && urlRepository.isTwitterUrl(url)
+
         _uiState.update { 
             it.copy(
                 inputUrl = url,
                 isInstagramUrl = isInstagram,
                 isFacebookUrl = isFacebook,
                 isTwitterUrl = showTwitterToggle,
-                error = null,
-                showErrorToast = false
+                error = null
             )
         }
     }
@@ -128,12 +113,12 @@ class MainViewModel @Inject constructor(
         
         val url = _uiState.value.inputUrl.trim()
         if (url.isEmpty()) {
-            _uiState.update { it.copy(processedUrl = "", error = getApplication<Application>().getString(R.string.error_please_enter_url), showErrorToast = true) }
+            _uiState.update { it.copy(processedUrl = "", actionUrl = "", error = getApplication<Application>().getString(R.string.error_please_enter_url)) }
             return
         }
         
         isProcessing = true
-        _uiState.update { it.copy(isLoading = true, error = null, showErrorToast = false) }
+        _uiState.update { it.copy(isLoading = true, error = null) }
         
         viewModelScope.launch {
             try {
@@ -143,11 +128,14 @@ class MainViewModel @Inject constructor(
                 
                 Timber.d("MainViewModel processUrl result: $url -> $processedUrl")
                 
-                // Check if nothing was changed
+                // When nothing changed, display "Nothing to do!" but keep the input URL
+                // as the actionable URL — it is already a valid, clean URL, so the
+                // Share/Open/Copy buttons keep working.
                 if (processedUrl == url) {
                     _uiState.update { 
                         it.copy(
                             processedUrl = getApplication<Application>().getString(R.string.nothing_to_do), 
+                            actionUrl = url,
                             isLoading = false
                         ) 
                     }
@@ -155,6 +143,7 @@ class MainViewModel @Inject constructor(
                     _uiState.update { 
                         it.copy(
                             processedUrl = processedUrl, 
+                            actionUrl = processedUrl,
                             isLoading = false
                         ) 
                     }
@@ -164,9 +153,9 @@ class MainViewModel @Inject constructor(
                 _uiState.update { 
                     it.copy(
                         processedUrl = "", 
+                        actionUrl = "",
                         error = e.message ?: getApplication<Application>().getString(R.string.error_processing_url), 
-                        isLoading = false,
-                        showErrorToast = true
+                        isLoading = false
                     ) 
                 }
             } finally {
@@ -178,9 +167,9 @@ class MainViewModel @Inject constructor(
     /**
      * Re-process the current input after the user picks a different Instagram proxy.
      * Only acts when (a) the input is an Instagram URL (the only platform with multiple
-     * proxies), and (b) the user has already pressed Process at least once (so a
-     * Processed URL is currently displayed). Otherwise no-op — the regular Process
-     * button still owns the first-time processing flow.
+     * proxies), and (b) the user has already pressed Process at least once (so an
+     * actionable URL exists). Otherwise no-op — the regular Process button still owns
+     * the first-time processing flow.
      *
      * Mirrors `ShareViewModel.reprocessUrlLocally()` semantics: passes the previous
      * processed URL to the repository so history snapshots are not duplicated.
@@ -188,24 +177,29 @@ class MainViewModel @Inject constructor(
     fun reprocessAfterProxyChange() {
         val state = _uiState.value
         if (!state.isInstagramUrl) return
-        if (state.processedUrl.isEmpty()) return
+        if (state.actionUrl.isEmpty()) return
         if (state.inputUrl.isBlank()) return
 
         viewModelScope.launch {
             try {
                 val url = state.inputUrl.trim()
-                val nothingToDo = getApplication<Application>().getString(R.string.nothing_to_do)
-                val previousProcessedUrl = if (state.processedUrl == nothingToDo) {
-                    null
-                } else {
-                    state.processedUrl
-                }
+                // If the previous run changed nothing (actionUrl == input), there is no
+                // distinct previous result to compare against for history purposes.
+                val previousProcessedUrl = state.actionUrl.takeIf { it != url }
 
                 val result = urlRepository.processUrl(url, false, previousProcessedUrl)
                 val processedUrl = result.url
 
-                val finalResult = if (processedUrl == url) nothingToDo else processedUrl
-                _uiState.update { it.copy(processedUrl = finalResult) }
+                if (processedUrl == url) {
+                    _uiState.update {
+                        it.copy(
+                            processedUrl = getApplication<Application>().getString(R.string.nothing_to_do),
+                            actionUrl = url
+                        )
+                    }
+                } else {
+                    _uiState.update { it.copy(processedUrl = processedUrl, actionUrl = processedUrl) }
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Error reprocessing URL after Instagram proxy change")
             }
@@ -217,10 +211,12 @@ class MainViewModel @Inject constructor(
             it.copy(
                 inputUrl = "",
                 processedUrl = "",
+                actionUrl = "",
+                isLoading = false,
                 isInstagramUrl = false,
                 isFacebookUrl = false,
-                error = null,
-                showErrorToast = false
+                isTwitterUrl = false,
+                error = null
             )
         }
     }
@@ -230,10 +226,11 @@ class MainViewModel @Inject constructor(
             it.copy(
                 inputUrl = "",
                 processedUrl = "",
+                actionUrl = "",
                 isInstagramUrl = false,
                 isFacebookUrl = false,
-                error = getApplication<Application>().getString(R.string.error_multiple_urls),
-                showErrorToast = false
+                isTwitterUrl = false,
+                error = getApplication<Application>().getString(R.string.error_multiple_urls)
             )
         }
     }
@@ -241,16 +238,20 @@ class MainViewModel @Inject constructor(
 
 /**
  * UI state for MainActivity
+ *
+ * [processedUrl] is the *display* text for the "Processed URL" field (may be the
+ * localized "Nothing to do!" message); [actionUrl] is the URL the Share/Open/Copy
+ * buttons act on — always a real URL or empty.
  */
 data class MainUiState(
     val inputUrl: String = "",
     val processedUrl: String = "",
+    val actionUrl: String = "",
     val isLoading: Boolean = false,
     val isInstagramUrl: Boolean = false,
     val isFacebookUrl: Boolean = false,
     val isInstagramConversionEnabled: Boolean = true,
     val isTwitterUrl: Boolean = false,
     val isTwitterConversionEnabled: Boolean = true,
-    val error: String? = null,
-    val showErrorToast: Boolean = false
+    val error: String? = null
 ) 

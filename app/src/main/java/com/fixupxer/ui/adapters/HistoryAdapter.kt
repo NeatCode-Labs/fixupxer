@@ -85,7 +85,10 @@ class HistoryAdapter(
                 // Copy button
                 buttonCopy.setOnClickListener {
                     val clipboard = binding.root.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val clip = ClipData.newPlainText("FixupXer URL", item.cleanedUrl)
+                    val clip = ClipData.newPlainText(
+                        binding.root.context.getString(R.string.clipboard_label_url),
+                        item.cleanedUrl
+                    )
                     clipboard.setPrimaryClip(clip)
                     Toast.makeText(binding.root.context, R.string.url_copied, Toast.LENGTH_SHORT).show()
                 }

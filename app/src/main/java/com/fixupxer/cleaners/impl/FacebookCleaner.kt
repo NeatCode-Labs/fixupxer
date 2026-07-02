@@ -127,8 +127,7 @@ object FacebookCleaner : UrlCleaner {
         val lowerUrl = url.lowercase()
         return lowerUrl.contains(Constants.FACEBOOK_DOMAIN) ||
                lowerUrl.contains(Constants.FACEBOOKEZ_DOMAIN) ||
-               lowerUrl.contains("fb.com") ||
-               lowerUrl.contains("m.facebook.com")
+               lowerUrl.contains(Constants.FB_SHORT_DOMAIN)
     }
     
     override fun clean(url: String): String {

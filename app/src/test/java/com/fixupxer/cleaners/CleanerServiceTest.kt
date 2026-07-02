@@ -20,28 +20,21 @@
 
 package com.fixupxer.cleaners
 
-import com.fixupxer.PreferencesManager
 import com.fixupxer.cleaners.cache.CleanerCache
 import com.fixupxer.cleaners.impl.*
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mock
-import org.mockito.MockitoAnnotations
-import org.mockito.kotlin.*
 
 class CleanerServiceTest {
     
     private lateinit var registry: CleanerRegistry
     private lateinit var cache: CleanerCache
-    @Mock private lateinit var preferencesManager: PreferencesManager
     
     private lateinit var cleanerService: CleanerService
     
     @Before
     fun setup() {
-        MockitoAnnotations.openMocks(this)
-        
         // Use real instances for registry and cache since they're core to the functionality
         registry = CleanerRegistry()
         cache = CleanerCache()
@@ -61,7 +54,7 @@ class CleanerServiceTest {
         ))
         
         // Create the service with real registry and cache
-        cleanerService = CleanerService(registry, cache, preferencesManager)
+        cleanerService = CleanerService(registry, cache)
     }
     
     @Test

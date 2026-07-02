@@ -62,10 +62,9 @@ object AppModule {
     @Singleton
     fun provideCleanerService(
         registry: CleanerRegistry,
-        cache: CleanerCache,
-        preferencesManager: PreferencesManager
+        cache: CleanerCache
     ): CleanerService {
-        return CleanerService(registry, cache, preferencesManager)
+        return CleanerService(registry, cache)
     }
     
     @Provides

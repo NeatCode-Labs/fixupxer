@@ -2,7 +2,21 @@
 /*
  * FixupXer - URL Enhancer
  * Copyright (C) 2020-2025  NeatCode Labs
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 
 package com.fixupxer
 
@@ -10,19 +24,20 @@ import com.fixupxer.cleaners.CleanerRegistry
 import com.fixupxer.cleaners.CleanerService
 import com.fixupxer.cleaners.cache.CleanerCache
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.InstagramProxyStore
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.kotlin.mock
 
 /**
- * Unit tests for the Instagram proxy selection feature (v1.4.8 proxy set).
+ * Unit tests for the Instagram proxy selection feature (v1.6.0 proxy set).
  *
- * Active proxies: adamlikes.men (primary), toinstagram.com (primary), instagram7.com (backup).
- * Legacy proxies (kkinstagram.com, eeinstagram.com) are still recognized so that previously
- * pasted/shared links continue to work, but are always converted to one of the active proxies.
+ * Active proxies: toinstagram.com + adamlikes.men (primary), instagram7.com + kkinstagram.com (backup).
+ * Legacy proxy (eeinstagram.com) is still recognized so that previously pasted/shared
+ * links continue to work, but is always converted to one of the active proxies.
  *
  * Verifies:
  *   1. Forward conversion instagram.com -> any active proxy
@@ -38,6 +53,8 @@ class InstagramProxySelectionTest {
 
     @Before
     fun setup() {
+        // InstagramProxyStore is global state — start every test from a clean slate.
+        InstagramProxyStore.reset()
         val registry = CleanerRegistry().apply {
             registerAll(
                 listOf(
@@ -55,8 +72,12 @@ class InstagramProxySelectionTest {
             )
         }
         val cache = CleanerCache()
-        val prefs = mock<PreferencesManager>()
-        processor = UrlProcessor(CleanerService(registry, cache, prefs))
+        processor = UrlProcessor(CleanerService(registry, cache))
+    }
+
+    @After
+    fun tearDown() {
+        InstagramProxyStore.reset()
     }
 
     private fun convert(url: String, target: String, convertOn: Boolean = true) =
@@ -161,11 +182,25 @@ class InstagramProxySelectionTest {
     }
 
     // ---------------------------------------------------------------------
-    // Legacy proxies (kkinstagram, eeinstagram) — auto-migrate to active
+    // Backup proxy kkinstagram (active since v1.6.0) + legacy eeinstagram
     // ---------------------------------------------------------------------
 
     @Test
-    fun `legacy kkinstagram converts to adamlikes_men`() {
+    fun `instagram_com converts to kkinstagram_com`() {
+        assertEquals(
+            "https://kkinstagram.com/p/abc",
+            convert("https://instagram.com/p/abc", Constants.KKINSTAGRAM_DOMAIN)
+        )
+    }
+
+    @Test
+    fun `bare kkinstagram_com unchanged when target=kkinstagram`() {
+        val url = "https://kkinstagram.com/p/abc"
+        assertEquals(url, convert(url, Constants.KKINSTAGRAM_DOMAIN))
+    }
+
+    @Test
+    fun `kkinstagram converts to adamlikes_men when another target selected`() {
         assertEquals(
             "https://adamlikes.men/p/abc",
             convert("https://kkinstagram.com/p/abc", Constants.ADAMLIKES_DOMAIN)
@@ -177,6 +212,14 @@ class InstagramProxySelectionTest {
         assertEquals(
             "https://toinstagram.com/p/abc",
             convert("https://eeinstagram.com/p/abc", Constants.TOINSTAGRAM_DOMAIN)
+        )
+    }
+
+    @Test
+    fun `legacy eeinstagram converts to kkinstagram_com`() {
+        assertEquals(
+            "https://kkinstagram.com/p/abc",
+            convert("https://eeinstagram.com/p/abc", Constants.KKINSTAGRAM_DOMAIN)
         )
     }
 
@@ -223,10 +266,18 @@ class InstagramProxySelectionTest {
     }
 
     @Test
-    fun `legacy kkinstagram reverts to instagram_com when convertOff`() {
+    fun `kkinstagram reverts to instagram_com when convertOff`() {
         assertEquals(
             "https://instagram.com/p/abc",
             convert("https://kkinstagram.com/p/abc", Constants.ADAMLIKES_DOMAIN, convertOn = false)
+        )
+    }
+
+    @Test
+    fun `legacy eeinstagram reverts to instagram_com when convertOff`() {
+        assertEquals(
+            "https://instagram.com/p/abc",
+            convert("https://eeinstagram.com/p/abc", Constants.ADAMLIKES_DOMAIN, convertOn = false)
         )
     }
 
@@ -257,8 +308,8 @@ class InstagramProxySelectionTest {
         assertTrue(processor.isInstagramUrl("https://adamlikes.men/p/abc"))
         assertTrue(processor.isInstagramUrl("https://toinstagram.com/p/abc"))
         assertTrue(processor.isInstagramUrl("https://instagram7.com/p/abc"))
-        // legacy still detected so the toggle still triggers
         assertTrue(processor.isInstagramUrl("https://kkinstagram.com/p/abc"))
+        // legacy still detected so the toggle still triggers
         assertTrue(processor.isInstagramUrl("https://eeinstagram.com/p/abc"))
         assertFalse(processor.isInstagramUrl("https://example.com/p/abc"))
     }

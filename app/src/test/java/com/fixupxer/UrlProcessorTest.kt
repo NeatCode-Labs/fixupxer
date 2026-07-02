@@ -25,7 +25,6 @@ import com.fixupxer.cleaners.CleanerRegistry
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.mockito.kotlin.*
 
 class UrlProcessorTest {
     private lateinit var urlProcessor: UrlProcessor
@@ -51,10 +50,7 @@ class UrlProcessorTest {
             )
         }
         val cache = com.fixupxer.cleaners.cache.CleanerCache()
-        val preferences = mock<com.fixupxer.PreferencesManager>()
-        val cleanerServiceReal = com.fixupxer.cleaners.CleanerService(registry, cache, preferences)
-
-        cleanerService = cleanerServiceReal
+        cleanerService = com.fixupxer.cleaners.CleanerService(registry, cache)
         urlProcessor = UrlProcessor(cleanerService)
     }
     

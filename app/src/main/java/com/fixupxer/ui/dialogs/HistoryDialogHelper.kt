@@ -34,6 +34,7 @@ import com.fixupxer.databinding.DialogMaxEntriesBinding
 import com.fixupxer.databinding.DialogClearHistoryBinding
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.ui.adapters.HistoryAdapter
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -52,6 +53,7 @@ class HistoryDialogHelper(
     private var dialog: AlertDialog? = null
     private lateinit var binding: DialogHistoryBinding
     private lateinit var adapter: HistoryAdapter
+    private var historyCollectJob: Job? = null
     
     fun showHistoryDialog() {
         binding = DialogHistoryBinding.inflate(
@@ -68,7 +70,7 @@ class HistoryDialogHelper(
         adapter = HistoryAdapter(
             onItemClick = { /* Optional: Handle item click */ },
             onItemDelete = { item ->
-                showDeleteConfirmation(item)
+                deleteHistoryEntry(item)
             }
         )
         
@@ -108,13 +110,20 @@ class HistoryDialogHelper(
     private fun createDialog() {
         dialog = AlertDialog.Builder(context)
             .setView(binding.root)
+            .setOnDismissListener {
+                historyCollectJob?.cancel()
+                historyCollectJob = null
+            }
             .create()
         
         dialog?.show()
     }
     
     private fun observeHistory() {
-        lifecycleOwner.lifecycleScope.launch {
+        // Called from both showHistoryDialog() and updateHistoryVisibility() —
+        // cancel the previous collector so we never stack duplicates.
+        historyCollectJob?.cancel()
+        historyCollectJob = lifecycleOwner.lifecycleScope.launch {
             historyRepository.getAllHistory().collectLatest { historyList ->
                 adapter.submitList(historyList)
                 
@@ -208,7 +217,8 @@ class HistoryDialogHelper(
         dialog.show()
     }
     
-    private fun showDeleteConfirmation(item: UrlHistory) {
+    /** Long-press delete of a single entry — intentionally immediate, no confirmation. */
+    private fun deleteHistoryEntry(item: UrlHistory) {
         lifecycleOwner.lifecycleScope.launch {
             historyRepository.deleteHistory(item.id)
             Timber.d("History entry deleted")

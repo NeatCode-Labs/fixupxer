@@ -1,14 +1,17 @@
-# Android Test Coverage for FixupXer v1.5.1
+# Android Test Coverage for FixupXer v1.6.0
 
 ## Overview
-This document is the canonical test inventory (instrumentation + URL conversion matrix) covering all major features through v1.5.1. v1.5.1 unifies the Instagram proxy chooser: Main and Share both open `InstagramProxyDialogHelper` directly, and the Settings entry is removed.
+This document is the canonical test inventory (instrumentation + URL conversion matrix) covering all major features through v1.6.0. v1.6.0 reinstates `kkinstagram.com` as an active Backup proxy and adds user-defined custom Instagram proxies (add/select/delete from the chooser dialog, backed by `InstagramProxyStore` + a `custom_instagram_proxies` pref).
 
-Test-suite delta vs v1.5.0:
-- **Removed**: `SettingsActivityProxyTest.kt` (5 cases) — the radio buttons it covered no longer exist.
-- **Added**: `MainActivityProxyLabelTest.changeProxyShowsDialogAndUpdatesLabelInPlace` — clicks **Change.** on the Main screen, asserts the dialog appears (`isDialog()` root matcher), picks `instagram7.com`, and verifies the label updates in place while MainActivity stays in the foreground; also asserts the Processed URL field stays empty (no auto-reprocess for fresh inputs). Mirrors the existing Share-screen regression.
-- **Added**: `MainActivityProxyLabelTest.processedInstagramUrlReprocessesAfterProxyChange` — types an Instagram URL, taps Process to populate Processed URL with the default proxy, opens the proxy dialog, picks `instagram7.com`, and verifies the Processed URL field is automatically refreshed (no extra Process tap required) and no longer contains the previous proxy domain. Guards the v1.5.1 reprocess-after-proxy-change parity with Share.
+Test-suite delta vs v1.5.1:
+- **Added**: `CustomInstagramProxyTest.kt` (unit, 18 cases) — `InstagramProxyStore` state (set/reset/active/allKnown), input normalization (protocol/`www.`/path/query/fragment stripping), hostname-format validation, reserved-domain rejection (both containment directions), duplicate detection, and `UrlProcessor` conversions with a custom proxy (forward, reverse, cross-swap with fixed proxies, no-op, detection, `InstagramCleaner` matching + `igshid` stripping).
+- **Added**: `CustomProxyDialogTest.kt` (instrumentation, 5 cases) — fixed roster + "Add custom proxy…" row present in the chooser; selecting `kkinstagram.com` updates the label; invalid input shows the inline error and keeps the input dialog open; reserved domains rejected; full add → select → delete flow including fallback to the default proxy after deleting the selected custom proxy.
+- **Updated**: `InstagramProxyPreferenceTest.kt` — `kkinstagram.com` stored value now *stays valid* (test inverted vs v1.4.8; `eeinstagram.com` still migrates); new custom-proxy cases (add persists + syncs store, duplicate add is a no-op, custom selectable, unknown domain not selectable, remove syncs store, removing the selected proxy falls back to default, custom list survives PreferencesManager recreation).
+- **Updated**: `InstagramProxySelectionTest.kt` — kk is an active Backup target (forward conversion, no-op, cross-swap, revert), ee remains the only legacy proxy; `InstagramProxyStore.reset()` in `@Before`/`@After` (the store is global state — every test touching it must reset).
+- **Updated**: `UrlProcessorMatrixTest.kt` — kk rows reclassified as active backup, ee legacy rows added, new `vxtwitter.com` rows (→ fixupx ON / → x.com OFF) and Facebook rows including `fb.com` (v1.6.0 fix) and `m.facebook.com`.
+- **Updated**: all unit test setups constructing `CleanerService` — the unused `PreferencesManager` constructor parameter was removed.
 
-v1.4.8 refreshed the Instagram proxy roster (`toinstagram.com` Primary/default, `adamlikes.men` Primary, `instagram7.com` Backup) and introduced bare-hostname conversion. Legacy proxies (`kkinstagram.com`, `eeinstagram.com`) remain detected for auto-migration.
+v1.4.8 refreshed the Instagram proxy roster and introduced bare-hostname conversion; v1.6.0's active roster is `toinstagram.com`, `adamlikes.men` (Primary) + `instagram7.com`, `kkinstagram.com` (Backup) + custom proxies. `eeinstagram.com` remains detected for auto-migration.
 
 ## v1.4.9 Test Stabilization
 - [x] `SettingsTest` conversion-defaults tests now use deterministic `NestedScrollView` scrolling instead of flaky Espresso `scrollTo()`.
@@ -16,16 +19,38 @@ v1.4.8 refreshed the Instagram proxy roster (`toinstagram.com` Primary/default, 
 - [x] `ApiCompatibilityTest` closes `ActivityScenario` instances deterministically to avoid emulator/process lifecycle crashes.
 - [x] Full `connectedAndroidTest` completed with 0 failures on `Pixel_API_35_Play`.
 
-## Instagram Proxy Selection Tests (v1.4.8)
+## Instagram Proxy Selection Tests (v1.4.8, extended v1.6.0)
 
 ### InstagramProxyPreferenceTest.kt (instrumentation)
 - [x] Default proxy is `toinstagram.com` (= `Constants.INSTAGRAM_DEFAULT_PROXY`)
 - [x] Setting toinstagram.com persists
 - [x] Setting adamlikes.men persists
 - [x] Setting instagram7.com persists
+- [x] Setting kkinstagram.com persists (active again since v1.6.0)
 - [x] Invalid stored value falls back to default
-- [x] Legacy `kkinstagram.com` stored value migrates to default
+- [x] `kkinstagram.com` stored value stays valid (v1.6.0 — inverted from the old migration test)
 - [x] Legacy `eeinstagram.com` stored value migrates to default
+- [x] Custom proxy: add persists + syncs `InstagramProxyStore`
+- [x] Custom proxy: duplicate add is a no-op
+- [x] Custom proxy: can be selected; unknown domains cannot
+- [x] Custom proxy: remove syncs store; removing the selected proxy falls back to default
+- [x] Custom proxies survive PreferencesManager recreation (app-restart simulation)
+
+### CustomProxyDialogTest.kt (instrumentation, v1.6.0)
+- [x] Chooser lists all fixed proxies (incl. kkinstagram.com) + "Add custom proxy…" row
+- [x] Selecting kkinstagram.com updates the "Active:" label
+- [x] Invalid domain shows inline error; input dialog stays open
+- [x] Reserved domain (e.g. fixupx.com) rejected with inline error
+- [x] Add → select → delete custom proxy flow; deletion of the selected proxy falls back to the default
+
+### CustomInstagramProxyTest.kt (unit, v1.6.0)
+- [x] Store state: set/get/reset, `activeProxies()` = fixed + custom, `allKnownProxies()` adds legacy
+- [x] Normalization: strips protocol, `www.`, path/query/fragment, whitespace, uppercase
+- [x] Format validation: valid hostnames/subdomains accepted; spaces, missing TLD, illegal chars, >253 chars rejected
+- [x] Reserved domains rejected in both containment directions (instagram/twitter/facebook families)
+- [x] Duplicate detection against current custom list
+- [x] Conversions: instagram.com → custom, custom → instagram.com (toggle OFF), custom ↔ fixed cross-swaps, no-op when already on target
+- [x] Detection: `isInstagramUrl` recognizes custom proxy only while registered; `InstagramCleaner` matches + strips `igshid`
 
 ### MainActivityProxyLabelTest.kt (instrumentation)
 - [x] Instagram URL shows "Active: toinstagram.com." by default
@@ -270,33 +295,40 @@ All possible combinations tested:
 ```
 
 ## Current Test Status
-- **Unit Tests**: 119/119 passing
-- **Instrumentation Tests**: 152/152 passing on `Pixel_API_35_Play`
-- **Total Tests**: 271/271 passing (v1.5.1, see `TESTING_REPORT.md` / `BUILD_REPORT.md`)
+- **Unit Tests**: 140/140 passing
+- **Instrumentation Tests**: 165/165 passing (v1.6.0 run on `Pixel_API_35_Play`, ~7m 17s)
 - **Test Success Rate**: 100%
 
 ## URL Conversion Test Matrix
 
 (Merged from the former `URL_CONVERSION_TEST_COVERAGE.md`; covered primarily by `UrlProcessorMatrixTest.kt`, `BidirectionalConversionTest.kt`, `InstagramProxySelectionTest.kt`, `UrlProcessorTest.kt`, `UrlValidationImprovementsTest.kt`.)
 
-### Instagram Conversions (active + legacy proxy set)
+### Instagram Conversions (active + custom + legacy proxy set)
 | Original URL | Toggle / Proxy | Expected Result | Test Status |
 |-------------|----------------|-----------------|-------------|
 | instagram.com | ON + toinstagram | toinstagram.com (default, no www.) | [x] Tested |
 | instagram.com | ON + adamlikes | adamlikes.men (no www.) | [x] Tested |
 | instagram.com | ON + instagram7 | instagram7.com | [x] Tested |
+| instagram.com | ON + kkinstagram | kkinstagram.com (active Backup, v1.6.0) | [x] Tested |
+| instagram.com | ON + custom proxy | custom proxy domain | [x] Tested |
 | instagram.com + tracking | ON + any proxy | selected proxy (clean) | [x] Tested |
 | toinstagram.com | OFF | instagram.com | [x] Tested |
 | adamlikes.men | OFF | instagram.com | [x] Tested |
 | instagram7.com | OFF | instagram.com | [x] Tested |
-| kkinstagram.com | ON + active proxy | selected active proxy (legacy migration) | [x] Tested |
+| kkinstagram.com | OFF | instagram.com | [x] Tested |
+| custom proxy | OFF | instagram.com | [x] Tested |
+| kkinstagram.com | ON + other proxy | selected proxy (cross-swap; kk active since v1.6.0) | [x] Tested |
 | eeinstagram.com | ON + active proxy | selected active proxy (legacy migration) | [x] Tested |
 | toinstagram.com | ON + adamlikes | adamlikes.men (cross-swap) | [x] Tested |
 | adamlikes.men | ON + instagram7 | instagram7.com (cross-swap) | [x] Tested |
 | instagram7.com | ON + toinstagram | toinstagram.com (cross-swap) | [x] Tested |
+| custom proxy | ON + fixed proxy | fixed proxy (cross-swap) | [x] Tested |
+| fixed proxy | ON + custom proxy | custom proxy (cross-swap) | [x] Tested |
 | toinstagram.com | ON + toinstagram | unchanged (no-op) | [x] Tested |
 | adamlikes.men | ON + adamlikes | unchanged (no-op) | [x] Tested |
 | instagram7.com | ON + instagram7 | unchanged (no-op) | [x] Tested |
+| kkinstagram.com | ON + kkinstagram | unchanged (no-op) | [x] Tested |
+| custom proxy | ON + same custom | unchanged (no-op) | [x] Tested |
 | www.instagram.com | ON + any proxy | selected proxy, bare hostname (www. stripped) | [x] Tested |
 | business.instagram.com | ON + any proxy | selected proxy, bare hostname (sub-prefix stripped) | [x] Tested |
 
@@ -310,12 +342,15 @@ All possible combinations tested:
 | fixupx.com | OFF | x.com | [x] Tested |
 | fixupx.com + tracking | OFF | x.com (clean) | [x] Tested |
 | fxtwitter.com | ON | fixupx.com | [x] Tested |
-| fxtwitter.com | OFF | fxtwitter.com | [x] Tested |
+| fxtwitter.com | OFF | x.com | [x] Tested |
+| vxtwitter.com | ON | fixupx.com (v1.6.0 fix) | [x] Tested |
+| vxtwitter.com | OFF | x.com (v1.6.0 fix) | [x] Tested |
 
 ### Facebook Conversions
 | Original URL | Toggle State | Expected Result | Test Status |
 |-------------|--------------|-----------------|-------------|
 | facebook.com | ON | facebookez.com | [x] Tested |
+| fb.com | ON | facebookez.com (v1.6.0 fix — short domain now converts) | [x] Tested |
 | m.facebook.com | ON | facebookez.com (prefix removed) | [x] Tested |
 | web.facebook.com | ON | facebookez.com (prefix removed) | [x] Tested |
 | www.facebook.com | ON | facebookez.com (prefix removed) | [x] Tested |

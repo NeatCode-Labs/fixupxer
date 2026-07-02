@@ -63,6 +63,7 @@ import android.view.View
 class ShareActivity : BaseActivity() {
     private lateinit var binding: ActivityShareBinding
     private val viewModel: ShareViewModel by viewModels()
+    private var footerLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
     
     @Inject
     lateinit var historyRepository: HistoryRepository
@@ -171,7 +172,8 @@ class ShareActivity : BaseActivity() {
         }
         
         // Set up a global layout listener to check available space
-        parentLayout.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+        // (reference kept so it can be removed in onDestroy)
+        footerLayoutListener = object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 // Get the actual height of the parent layout (excluding system bars)
                 val parentHeight = parentLayout.height
@@ -234,7 +236,18 @@ class ShareActivity : BaseActivity() {
                 
                 scrollView.layoutParams = scrollViewParams
             }
-        })
+        }
+        parentLayout.viewTreeObserver.addOnGlobalLayoutListener(footerLayoutListener)
+    }
+    
+    override fun onDestroy() {
+        footerLayoutListener?.let {
+            binding.mainScrollView.parent?.let { parent ->
+                (parent as? View)?.viewTreeObserver?.removeOnGlobalLayoutListener(it)
+            }
+        }
+        footerLayoutListener = null
+        super.onDestroy()
     }
     
     private fun setupListeners() {
@@ -303,8 +316,8 @@ class ShareActivity : BaseActivity() {
                     }
                     
                     binding.progressIndicator.isVisible = state.isLoading
-                    binding.buttonCopy.isEnabled = !state.isLoading && state.processedUrl.isNotEmpty()
-                    binding.buttonShare.isEnabled = !state.isLoading && state.processedUrl.isNotEmpty()
+                    binding.buttonCopy.isEnabled = !state.isLoading && state.actionUrl.isNotEmpty()
+                    binding.buttonShare.isEnabled = !state.isLoading && state.actionUrl.isNotEmpty()
                     
                     if (state.error != null) {
                         // Show the error directly in the processed-url field (no Toast)
@@ -341,8 +354,10 @@ class ShareActivity : BaseActivity() {
     
     @SuppressLint("NewApi")
     private fun copyToClipboard() {
-        val processedUrl = viewModel.uiState.value.processedUrl
-        if (processedUrl.isNotEmpty()) {
+        // Action buttons operate on actionUrl (always a real URL), not the display
+        // text — which may be the "Nothing to do!" message.
+        val actionUrl = viewModel.uiState.value.actionUrl
+        if (actionUrl.isNotEmpty()) {
             try {
                 val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
                 if (clipboardManager == null) {
@@ -350,7 +365,7 @@ class ShareActivity : BaseActivity() {
                     Toast.makeText(this, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
                     return
                 }
-                val clip = ClipData.newPlainText(getString(R.string.clipboard_label_processed_url), processedUrl)
+                val clip = ClipData.newPlainText(getString(R.string.clipboard_label_processed_url), actionUrl)
                 clipboardManager.setPrimaryClip(clip)
                 
                 // On Android < 10, show a toast notification
@@ -362,7 +377,7 @@ class ShareActivity : BaseActivity() {
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error copying to clipboard")
-                Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.error_copying_url), Toast.LENGTH_SHORT).show()
             }
         } else {
             Toast.makeText(this, getString(R.string.no_url_to_copy), Toast.LENGTH_SHORT).show()
@@ -370,12 +385,12 @@ class ShareActivity : BaseActivity() {
     }
     
     private fun shareProcessedUrl() {
-        val processedUrl = viewModel.uiState.value.processedUrl
-        if (processedUrl.isNotEmpty()) {
+        val actionUrl = viewModel.uiState.value.actionUrl
+        if (actionUrl.isNotEmpty()) {
             try {
                 val shareIntent = Intent().apply {
                     action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, processedUrl)
+                    putExtra(Intent.EXTRA_TEXT, actionUrl)
                     type = "text/plain"
                 }
                 startActivity(Intent.createChooser(shareIntent, getString(R.string.share_via)))
@@ -399,10 +414,10 @@ class ShareActivity : BaseActivity() {
     }
     
     private fun openProcessedUrl() {
-        val processedUrl = viewModel.uiState.value.processedUrl
-        if (processedUrl.isNotEmpty()) {
+        val actionUrl = viewModel.uiState.value.actionUrl
+        if (actionUrl.isNotEmpty()) {
             try {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(processedUrl))
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(actionUrl))
                 startActivity(intent)
             } catch (e: Exception) {
                 Timber.e(e, "Error opening URL")

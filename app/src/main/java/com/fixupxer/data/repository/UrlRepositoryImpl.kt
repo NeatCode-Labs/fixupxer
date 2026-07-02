@@ -26,11 +26,13 @@ import com.fixupxer.domain.model.ProcessedUrlResult
 import com.fixupxer.domain.repository.UrlRepository
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.InstagramProxyStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -41,6 +43,85 @@ class UrlRepositoryImpl @Inject constructor(
     private val preferencesManager: PreferencesManager,
     private val historyRepository: HistoryRepository
 ) : UrlRepository {
+
+    companion object {
+        // History data values persisted in Room — intentionally NOT localized;
+        // changing them would break classification of existing history entries.
+        private const val CONVERSION_DOMAIN_CONVERTED = "Domain converted"
+        private const val CONVERSION_TRACKING_REMOVED = "Tracking removed"
+        private const val CONVERSION_URL_CLEANED = "URL cleaned"
+        private const val PLATFORM_INSTAGRAM = "Instagram"
+        private const val PLATFORM_TWITTER = "Twitter/X"
+        private const val PLATFORM_FACEBOOK = "Facebook"
+        private const val PLATFORM_OTHER = "Other"
+    }
+
+    private fun detectPlatform(url: String): String = when {
+        urlProcessor.isInstagramUrl(url) -> PLATFORM_INSTAGRAM
+        urlProcessor.isTwitterUrl(url) -> PLATFORM_TWITTER
+        urlProcessor.isFacebookUrl(url) -> PLATFORM_FACEBOOK
+        else -> PLATFORM_OTHER
+    }
+
+    /**
+     * Classify how [url] → [processedUrl] should appear in history.
+     * Shared by [processUrl] and [processUrlForBrowser].
+     */
+    private fun classifyConversion(url: String, processedUrl: String, trackingRemoved: Boolean): String {
+        val knownProxies = InstagramProxyStore.allKnownProxies()
+        val urlHasProxy = knownProxies.any { url.contains(it, ignoreCase = true) }
+        val resultHasProxy = knownProxies.any { processedUrl.contains(it, ignoreCase = true) }
+        // NOTE: contains(INSTAGRAM_DOMAIN) is also true for proxy hosts like
+        // toinstagram.com (substring), so proxy checks must come first / be combined.
+        val isInstagramConversion =
+            (url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) && !urlHasProxy && resultHasProxy) ||
+                (urlHasProxy && processedUrl.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) && !resultHasProxy) ||
+                (urlHasProxy && resultHasProxy && knownProxies.none { p ->
+                    url.contains(p, ignoreCase = true) && processedUrl.contains(p, ignoreCase = true)
+                })
+
+        val isFacebookConversion =
+            ((url.contains(Constants.FACEBOOK_DOMAIN, ignoreCase = true) ||
+                url.contains(Constants.FB_SHORT_DOMAIN, ignoreCase = true)) &&
+                processedUrl.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)) ||
+                (url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true) &&
+                    processedUrl.contains(Constants.FACEBOOK_DOMAIN, ignoreCase = true) &&
+                    !processedUrl.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true))
+
+        val toFixupx = processedUrl.contains(Constants.FIXUPX_DOMAIN, ignoreCase = true)
+        val isTwitterConversion =
+            ((url.contains(Constants.TWITTER_DOMAIN, ignoreCase = true) ||
+                url.contains(Constants.X_DOMAIN, ignoreCase = true)) &&
+                !url.contains(Constants.FIXUPX_DOMAIN, ignoreCase = true) && toFixupx) ||
+                (url.contains(Constants.FIXUPX_DOMAIN, ignoreCase = true) && !toFixupx &&
+                    (processedUrl.contains(Constants.X_DOMAIN, ignoreCase = true) ||
+                        processedUrl.contains(Constants.TWITTER_DOMAIN, ignoreCase = true))) ||
+                (url.contains(Constants.FXTWITTER_DOMAIN, ignoreCase = true) &&
+                    (toFixupx || processedUrl.contains(Constants.X_DOMAIN, ignoreCase = true))) ||
+                (url.contains(Constants.VXTWITTER_DOMAIN, ignoreCase = true) &&
+                    (toFixupx || processedUrl.contains(Constants.X_DOMAIN, ignoreCase = true)))
+
+        return when {
+            isInstagramConversion || isFacebookConversion || isTwitterConversion -> CONVERSION_DOMAIN_CONVERTED
+            trackingRemoved -> CONVERSION_TRACKING_REMOVED
+            else -> CONVERSION_URL_CLEANED
+        }
+    }
+
+    private suspend fun saveHistoryEntry(url: String, processedUrl: String, platform: String, wasAlreadyClean: Boolean) {
+        val conversionType = classifyConversion(url, processedUrl, trackingRemoved = !wasAlreadyClean)
+        try {
+            historyRepository.insertHistory(
+                originalUrl = url,
+                cleanedUrl = processedUrl,
+                platform = platform,
+                conversionType = conversionType
+            )
+            historyRepository.trimHistory(preferencesManager.getMaxHistoryEntries())
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save history entry")
+        }
+    }
     
     override suspend fun processUrl(url: String): ProcessedUrlResult = processUrl(url, false)
     
@@ -52,15 +133,9 @@ class UrlRepositoryImpl @Inject constructor(
         if (url.isEmpty()) return@withContext ProcessedUrlResult(url, true)
         
         val isInstagram = urlProcessor.isInstagramUrl(url)
-        val isTwitter = urlProcessor.isTwitterUrl(url)
         val isFacebook = urlProcessor.isFacebookUrl(url)
         
-        val platform = when {
-            isInstagram -> "Instagram"
-            isTwitter -> "Twitter/X"
-            isFacebook -> "Facebook"
-            else -> "Other"
-        }
+        val platform = detectPlatform(url)
         
         val instagramProxy = preferencesManager.getInstagramProxy()
 
@@ -101,47 +176,7 @@ class UrlRepositoryImpl @Inject constructor(
         }
         
         if (shouldSaveHistory) {
-            
-            val trackingRemoved = !wasAlreadyClean
-            
-            val conversionType = when {
-                url.contains(Constants.INSTAGRAM_DOMAIN) &&
-                    Constants.INSTAGRAM_PROXY_DOMAINS.any { processedUrl.contains(it) } -> "Domain converted"
-                Constants.INSTAGRAM_PROXY_DOMAINS.any { url.contains(it) } &&
-                    processedUrl.contains(Constants.INSTAGRAM_DOMAIN) &&
-                    Constants.INSTAGRAM_PROXY_DOMAINS.none { processedUrl.contains(it) } -> "Domain converted"
-                Constants.INSTAGRAM_PROXY_DOMAINS.any { url.contains(it) } &&
-                    Constants.INSTAGRAM_PROXY_DOMAINS.any { processedUrl.contains(it) } &&
-                    Constants.INSTAGRAM_PROXY_DOMAINS.none { p ->
-                        url.contains(p) && processedUrl.contains(p)
-                    } -> "Domain converted"
-                url.contains("facebook.com") && processedUrl.contains("facebookez.com") -> "Domain converted"
-                url.contains("facebookez.com") && processedUrl.contains("facebook.com") -> "Domain converted"
-                url.contains("twitter.com") && processedUrl.contains("fixupx.com") -> "Domain converted"
-                url.contains("x.com") && processedUrl.contains("fixupx.com") -> "Domain converted"
-                url.contains("fixupx.com") && processedUrl.contains("x.com") -> "Domain converted"
-                url.contains("fixupx.com") && processedUrl.contains("twitter.com") -> "Domain converted"
-                url.contains("fxtwitter.com") && processedUrl.contains("fixupx.com") -> "Domain converted"
-                url.contains("fxtwitter.com") && processedUrl.contains("x.com") -> "Domain converted"
-                trackingRemoved -> "Tracking removed"
-                else -> "URL cleaned"
-            }
-            
-            try {
-                historyRepository.insertHistory(
-                    originalUrl = url,
-                    cleanedUrl = processedUrl,
-                    platform = platform,
-                    conversionType = conversionType
-                )
-                
-                // Trim history to max entries
-                val maxEntries = preferencesManager.getMaxHistoryEntries()
-                historyRepository.trimHistory(maxEntries)
-                
-            } catch (e: Exception) {
-                // Silently ignore errors
-            }
+            saveHistoryEntry(url, processedUrl, platform, wasAlreadyClean)
         }
         
         ProcessedUrlResult(processedUrl, wasAlreadyClean)
@@ -230,12 +265,7 @@ class UrlRepositoryImpl @Inject constructor(
         val isTwitter = urlProcessor.isTwitterUrl(url)
         val isFacebook = urlProcessor.isFacebookUrl(url)
         
-        val platform = when {
-            isInstagram -> "Instagram"
-            isTwitter -> "Twitter/X"
-            isFacebook -> "Facebook"
-            else -> "Other"
-        }
+        val platform = detectPlatform(url)
         
         // Use browser-specific conversion preferences; Instagram proxy is shared with main app
         val instagramProxy = preferencesManager.getInstagramProxy()
@@ -277,46 +307,7 @@ class UrlRepositoryImpl @Inject constructor(
         
         // Save to history if enabled and URL was modified
         if (preferencesManager.isHistoryEnabled() && url != processedUrl) {
-            val trackingRemoved = !wasAlreadyClean
-            
-            val conversionType = when {
-                url.contains(Constants.INSTAGRAM_DOMAIN) &&
-                    Constants.INSTAGRAM_PROXY_DOMAINS.any { processedUrl.contains(it) } -> "Domain converted"
-                Constants.INSTAGRAM_PROXY_DOMAINS.any { url.contains(it) } &&
-                    processedUrl.contains(Constants.INSTAGRAM_DOMAIN) &&
-                    Constants.INSTAGRAM_PROXY_DOMAINS.none { processedUrl.contains(it) } -> "Domain converted"
-                Constants.INSTAGRAM_PROXY_DOMAINS.any { url.contains(it) } &&
-                    Constants.INSTAGRAM_PROXY_DOMAINS.any { processedUrl.contains(it) } &&
-                    Constants.INSTAGRAM_PROXY_DOMAINS.none { p ->
-                        url.contains(p) && processedUrl.contains(p)
-                    } -> "Domain converted"
-                url.contains("facebook.com") && processedUrl.contains("facebookez.com") -> "Domain converted"
-                url.contains("facebookez.com") && processedUrl.contains("facebook.com") -> "Domain converted"
-                url.contains("twitter.com") && processedUrl.contains("fixupx.com") -> "Domain converted"
-                url.contains("x.com") && processedUrl.contains("fixupx.com") -> "Domain converted"
-                url.contains("fixupx.com") && processedUrl.contains("x.com") -> "Domain converted"
-                url.contains("fixupx.com") && processedUrl.contains("twitter.com") -> "Domain converted"
-                url.contains("fxtwitter.com") && processedUrl.contains("fixupx.com") -> "Domain converted"
-                url.contains("fxtwitter.com") && processedUrl.contains("x.com") -> "Domain converted"
-                trackingRemoved -> "Tracking removed"
-                else -> "URL cleaned"
-            }
-            
-            try {
-                historyRepository.insertHistory(
-                    originalUrl = url,
-                    cleanedUrl = processedUrl,
-                    platform = platform,
-                    conversionType = conversionType
-                )
-                
-                // Trim history to max entries
-                val maxEntries = preferencesManager.getMaxHistoryEntries()
-                historyRepository.trimHistory(maxEntries)
-                
-            } catch (e: Exception) {
-                // Silently ignore errors
-            }
+            saveHistoryEntry(url, processedUrl, platform, wasAlreadyClean)
         }
         
         ProcessedUrlResult(processedUrl, wasAlreadyClean)

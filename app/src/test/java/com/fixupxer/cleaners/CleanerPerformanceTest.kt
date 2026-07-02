@@ -20,12 +20,10 @@
 
 package com.fixupxer.cleaners
 
-import com.fixupxer.PreferencesManager
 import com.fixupxer.cleaners.cache.CleanerCache
 import com.fixupxer.cleaners.impl.*
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.*
 import kotlin.system.measureTimeMillis
 
 /**
@@ -38,8 +36,6 @@ class CleanerPerformanceTest {
     
     @Before
     fun setup() {
-        val preferencesManager = mock(PreferencesManager::class.java)
-        
         registry = CleanerRegistry()
         val cache = CleanerCache()
         
@@ -57,7 +53,7 @@ class CleanerPerformanceTest {
             GeneralTrackingCleaner()
         ))
         
-        cleanerService = CleanerService(registry, cache, preferencesManager)
+        cleanerService = CleanerService(registry, cache)
     }
     
     @Test

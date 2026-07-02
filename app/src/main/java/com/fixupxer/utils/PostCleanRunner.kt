@@ -25,7 +25,6 @@ import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -34,8 +33,6 @@ import android.os.Build
 import android.widget.Toast
 import com.fixupxer.PreferencesManager
 import com.fixupxer.R
-import com.fixupxer.data.model.AfterCleanAction
-import com.fixupxer.utils.Constants
 import timber.log.Timber
 
 /**
@@ -122,40 +119,6 @@ class PostCleanRunner(
     }
     
     /**
-     * Show the system chooser for the URL
-     */
-    private fun showSystemChooser(uri: Uri) {
-        Timber.d("showSystemChooser: URI=$uri")
-        try {
-            val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                addCategory(Intent.CATEGORY_BROWSABLE)
-            }
-            
-            // Create chooser that excludes FixupXer itself
-            val chooser = Intent.createChooser(intent, "Open with").apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                
-                // Exclude FixupXer from the chooser
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    val excludedComponents = arrayOf(
-                        ComponentName(context, "${context.packageName}.BrowserAlias"),
-                        ComponentName(context, "${context.packageName}.MainActivity")
-                    )
-                    putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, excludedComponents)
-                }
-            }
-            
-            context.startActivity(chooser)
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to show chooser")
-            Toast.makeText(context, "Failed to show chooser", Toast.LENGTH_SHORT).show()
-            // Fallback to share
-            share(uri)
-        }
-    }
-    
-    /**
      * Run actions in priority mode based on preferences
      */
     private fun runPriorityMode(uri: Uri) {
@@ -191,86 +154,6 @@ class PostCleanRunner(
     }
     
     /**
-     * Execute actions in priority order until one succeeds
-     */
-    @Suppress("UNUSED_PARAMETER")
-    fun runPriority(
-        originalUrl: String,
-        cleanedUrl: String,
-        actionPriority: List<AfterCleanAction>
-    ) {
-        Timber.d("runPriorityMode: Running actions in order: ${actionPriority.map { it.name }} for URI: $cleanedUrl")
-        
-        val cleanedUri = Uri.parse(cleanedUrl)
-        
-        for (action in actionPriority) {
-            Timber.d("Trying action: ${action.name}")
-            
-            val success = when (action.type) {
-                AfterCleanAction.Type.NATIVE_APP -> {
-                    launchNativeApp(cleanedUri)
-                }
-                AfterCleanAction.Type.BROWSER -> {
-                    launchBrowser(cleanedUri)
-                }
-                AfterCleanAction.Type.SHARE -> {
-                    share(cleanedUri)
-                    true // Share always succeeds via chooser
-                }
-                AfterCleanAction.Type.CLIPBOARD -> {
-                    copyToClipboard(cleanedUri)
-                    true // Clipboard always succeeds
-                }
-            }
-            
-            if (success) {
-                Timber.d("Action ${action.name} handled the URL successfully")
-                return
-            } else {
-                Timber.d("Action ${action.name} could not handle the URL, trying next...")
-            }
-        }
-        
-        Timber.w("No actions could handle the URL: $cleanedUrl")
-    }
-    
-    /**
-     * Execute actions using follow mode (all enabled actions)
-     */
-    fun runFollow(
-        originalUrl: String,
-        cleanedUrl: String,
-        enabledActions: List<AfterCleanAction>
-    ) {
-        Timber.d("runFollow: Starting with original=$originalUrl, cleaned=$cleanedUrl")
-        
-        val cleanedUri = Uri.parse(cleanedUrl)
-        
-        for (action in enabledActions) {
-            Timber.d("runFollow: Executing action: ${action.name}")
-            
-            try {
-                when (action.type) {
-                    AfterCleanAction.Type.NATIVE_APP -> {
-                        launchNativeApp(cleanedUri)
-                    }
-                    AfterCleanAction.Type.BROWSER -> {
-                        launchBrowser(cleanedUri)
-                    }
-                    AfterCleanAction.Type.SHARE -> {
-                        share(cleanedUri)
-                    }
-                    AfterCleanAction.Type.CLIPBOARD -> {
-                        copyToClipboard(cleanedUri)
-                    }
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "runFollow: Failed to execute action: ${action.name}")
-            }
-        }
-    }
-    
-    /**
      * Try to launch native app
      */
     private fun launchNativeApp(uri: Uri): Boolean {
@@ -293,7 +176,7 @@ class PostCleanRunner(
         val url = uri.toString().lowercase()
         
         // For YouTube URLs, try ReVanced YouTube first, then official YouTube
-        if (url.contains("youtube.com") || url.contains("youtu.be")) {
+        if (url.contains(Constants.YOUTUBE_DOMAIN) || url.contains(Constants.YOUTUBE_SHORT_DOMAIN)) {
             for (packageName in listOf(
                 "app.revanced.android.youtube",
                 "app.morphe.android.youtube",
@@ -319,15 +202,16 @@ class PostCleanRunner(
         // Map domains to their native app packages
         val nativeAppPackage = when {
             url.contains(Constants.INSTAGRAM_DOMAIN) ||
-                Constants.INSTAGRAM_PROXY_DOMAINS.any { url.contains(it) } -> "com.instagram.android"
-            url.contains("x.com") || url.contains("twitter.com") || url.contains("fixupx.com") -> "com.twitter.android"
-            url.contains("facebook.com") || url.contains("facebookez.com") -> "com.facebook.katana"
-            url.contains("reddit.com") -> "com.reddit.frontpage"
-            url.contains("linkedin.com") -> "com.linkedin.android"
-            url.contains("amazon.com") || url.contains("amzn.to") -> "com.amazon.mShop.android.shopping"
-            url.contains("google.com/search") || url.contains("google.com/url") -> "com.google.android.googlequicksearchbox"
-            url.contains("tiktok.com") -> "com.zhiliaoapp.musically"  // Most common TikTok package
-            url.contains("substack.com") -> "com.substack.app"
+                InstagramProxyStore.allKnownProxies().any { url.contains(it) } -> "com.instagram.android"
+            url.contains(Constants.X_DOMAIN) || url.contains(Constants.TWITTER_DOMAIN) ||
+                url.contains(Constants.FIXUPX_DOMAIN) -> "com.twitter.android"
+            url.contains(Constants.FACEBOOK_DOMAIN) || url.contains(Constants.FACEBOOKEZ_DOMAIN) -> "com.facebook.katana"
+            url.contains(Constants.REDDIT_DOMAIN) -> "com.reddit.frontpage"
+            url.contains(Constants.LINKEDIN_DOMAIN) -> "com.linkedin.android"
+            url.contains(Constants.AMAZON_DOMAIN) || url.contains(Constants.AMAZON_SHORT_DOMAIN) -> "com.amazon.mShop.android.shopping"
+            url.contains("${Constants.GOOGLE_DOMAIN}/search") || url.contains("${Constants.GOOGLE_DOMAIN}/url") -> "com.google.android.googlequicksearchbox"
+            url.contains(Constants.TIKTOK_DOMAIN) -> "com.zhiliaoapp.musically"  // Most common TikTok package
+            url.contains(Constants.SUBSTACK_DOMAIN) -> "com.substack.app"
             else -> null
         }
         
@@ -399,7 +283,7 @@ class PostCleanRunner(
             }
             
             when {
-                url.contains("youtube.com") || url.contains("youtu.be") -> {
+                url.contains(Constants.YOUTUBE_DOMAIN) || url.contains(Constants.YOUTUBE_SHORT_DOMAIN) -> {
                     Timber.d("URL contains youtube.com or youtu.be, trying to add YouTube apps")
                     // Try common YouTube variants first, then official YouTube
                     tryAddManualApp("app.revanced.android.youtube", uri, targetIntents, manuallyAddedApps)
@@ -407,39 +291,40 @@ class PostCleanRunner(
                     tryAddManualApp("com.google.android.youtube", uri, targetIntents, manuallyAddedApps)
                 }
                 url.contains(Constants.INSTAGRAM_DOMAIN) ||
-                    Constants.INSTAGRAM_PROXY_DOMAINS.any { url.contains(it) } -> {
+                    InstagramProxyStore.allKnownProxies().any { url.contains(it) } -> {
                     Timber.d("URL contains Instagram or one of its proxies, trying to add Instagram app")
                     tryAddManualApp("com.instagram.android", uri, targetIntents, manuallyAddedApps)
                 }
-                url.contains("x.com") || url.contains("twitter.com") || url.contains("fixupx.com") -> {
+                url.contains(Constants.X_DOMAIN) || url.contains(Constants.TWITTER_DOMAIN) ||
+                    url.contains(Constants.FIXUPX_DOMAIN) -> {
                     Timber.d("URL contains x.com/twitter.com/fixupx.com, trying to add Twitter app")
                     tryAddManualApp("com.twitter.android", uri, targetIntents, manuallyAddedApps)
                 }
-                url.contains("facebook.com") || url.contains("facebookez.com") -> {
+                url.contains(Constants.FACEBOOK_DOMAIN) || url.contains(Constants.FACEBOOKEZ_DOMAIN) -> {
                     Timber.d("URL contains facebook.com or facebookez.com, trying to add Facebook app")
                     tryAddManualApp("com.facebook.katana", uri, targetIntents, manuallyAddedApps)
                 }
-                url.contains("reddit.com") -> {
+                url.contains(Constants.REDDIT_DOMAIN) -> {
                     Timber.d("URL contains reddit.com, trying to add Reddit app")
                     tryAddManualApp("com.reddit.frontpage", uri, targetIntents, manuallyAddedApps)
                 }
-                url.contains("linkedin.com") -> {
+                url.contains(Constants.LINKEDIN_DOMAIN) -> {
                     Timber.d("URL contains linkedin.com, trying to add LinkedIn app")
                     tryAddManualApp("com.linkedin.android", uri, targetIntents, manuallyAddedApps)
                 }
-                url.contains("google.com/search") || url.contains("google.com/url") -> {
+                url.contains("${Constants.GOOGLE_DOMAIN}/search") || url.contains("${Constants.GOOGLE_DOMAIN}/url") -> {
                     Timber.d("URL contains google.com search/url, trying to add Google app")
                     tryAddManualApp("com.google.android.googlequicksearchbox", uri, targetIntents, manuallyAddedApps)
                 }
-                url.contains("substack.com") -> {
+                url.contains(Constants.SUBSTACK_DOMAIN) -> {
                     Timber.d("URL contains substack.com, trying to add Substack app")
                     tryAddManualApp("com.substack.app", uri, targetIntents, manuallyAddedApps)
                 }
-                url.contains("tiktok.com") -> {
+                url.contains(Constants.TIKTOK_DOMAIN) -> {
                     Timber.d("URL contains tiktok.com, trying to add TikTok app")
                     tryAddManualApp("com.zhiliaoapp.musically", uri, targetIntents, manuallyAddedApps)
                 }
-                url.contains("amazon.com") || url.contains("amzn.to") -> {
+                url.contains(Constants.AMAZON_DOMAIN) || url.contains(Constants.AMAZON_SHORT_DOMAIN) -> {
                     Timber.d("URL contains amazon.com or amzn.to, trying to add Amazon app")
                     tryAddManualApp("com.amazon.mShop.android.shopping", uri, targetIntents, manuallyAddedApps)
                 }
@@ -458,7 +343,7 @@ class PostCleanRunner(
             // Multiple apps available, create chooser with explicit intents
             val chooser = if (targetIntents.isNotEmpty()) {
                 val firstIntent = targetIntents.removeAt(0)
-                Intent.createChooser(firstIntent, "Open with").apply {
+                Intent.createChooser(firstIntent, context.getString(R.string.chooser_open_with)).apply {
                     if (targetIntents.isNotEmpty()) {
                         putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toTypedArray())
                     }
@@ -466,7 +351,7 @@ class PostCleanRunner(
                 }
             } else {
                 // Fallback to original intent if something goes wrong
-                Intent.createChooser(viewIntent, "Open with").apply {
+                Intent.createChooser(viewIntent, context.getString(R.string.chooser_open_with)).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
             }
@@ -553,7 +438,7 @@ class PostCleanRunner(
             
             val firstIntent = browserIntents.first()
             val extraIntents = browserIntents.drop(1).toTypedArray()
-            val chooser = Intent.createChooser(firstIntent, "Open with browser").apply {
+            val chooser = Intent.createChooser(firstIntent, context.getString(R.string.chooser_open_with_browser)).apply {
                 putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
@@ -563,7 +448,7 @@ class PostCleanRunner(
             
         } catch (e: Exception) {
             Timber.e(e, "Failed to launch browser")
-            Toast.makeText(context, "Failed to open browser", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
             return false
         }
     }
@@ -604,7 +489,7 @@ class PostCleanRunner(
                 putExtra(Intent.EXTRA_TEXT, uri.toString())
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
-            val chooser = Intent.createChooser(shareIntent, "Share URL")
+            val chooser = Intent.createChooser(shareIntent, context.getString(R.string.share_via))
             chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(chooser)
             Timber.d("Showed share menu")
@@ -620,7 +505,7 @@ class PostCleanRunner(
      */
     private fun copyToClipboard(uri: Uri) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText("URL", uri.toString()).apply {
+        val clip = ClipData.newPlainText(context.getString(R.string.clipboard_label_url), uri.toString()).apply {
             // Only set extras on API 24+ to maintain compatibility with minSdk 21
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 description.extras = android.os.PersistableBundle().apply {
@@ -629,6 +514,6 @@ class PostCleanRunner(
             }
         }
         clipboard.setPrimaryClip(clip)
-        Toast.makeText(context, "URL copied to clipboard", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.url_copied), Toast.LENGTH_SHORT).show()
     }
 } 

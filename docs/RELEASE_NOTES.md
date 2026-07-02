@@ -1,3 +1,46 @@
+# FixupXer v1.6.0 - Custom Instagram Proxies + kkinstagram.com Returns
+
+## What's New
+
+### Bring Your Own Instagram Proxy
+The proxy chooser (Main and Share screens → **Change.**) now has an **Add custom proxy…** row. Type any Instagram embed proxy domain — full URLs are accepted and normalized to the bare hostname — and it appears in the list with a *Custom* badge and a delete icon. You can add as many as you want, select any of them, and remove them at any time. Deleting the currently selected proxy silently falls back to the default (`toinstagram.com`).
+
+- Custom domains are validated on entry: hostname format check, duplicate check, and rejection of every domain the app already routes specially (`instagram.com`, `x.com`, `fixupx.com`, `facebook.com`, …) so a custom entry can never corrupt platform detection.
+- Custom proxies participate everywhere the fixed ones do: forward/backward conversion, cross-proxy swaps, paste detection, tracking cleanup (`igsh`, `igshid`, …), history classification, browser mode, and native-app forwarding.
+- Stored locally in `SharedPreferences` (`custom_instagram_proxies`) — like everything else in FixupXer, the list never leaves your device. The app never contacts any proxy; conversions remain a pure string swap.
+
+### kkinstagram.com Is Back
+`kkinstagram.com` (retired in v1.4.8) is active again and joins `instagram7.com` under the **Backup** label (embeds media only, no title/description). Users upgrading from ≤ v1.4.7 with `kkinstagram.com` still saved keep their selection instead of being migrated to the default. The active roster is now: toinstagram.com, adamlikes.men (Primary) + instagram7.com, kkinstagram.com (Backup) + your custom proxies. `eeinstagram.com` remains recognized-but-legacy.
+
+### Bug Fixes
+- **fb.com links** now get the facebookez.com conversion and the Facebook toggle (previously only the cleaner knew the short domain).
+- **vxtwitter.com links** now convert — to `fixupx.com` when Embed is ON, to `x.com` when OFF (parity with fxtwitter.com).
+- **Legacy/custom proxy links get Instagram cleaning** — `igsh`/`igshid` and friends are now stripped from e.g. `eeinstagram.com` links, not just the active roster.
+- **"Nothing to do!" is no longer treated as a URL** — Share/Open/Copy buttons now act on the actual clean URL instead of the literal message text.
+- **Twitter toggle no longer lingers** after clearing the input field (Main and Share).
+- **History classification** — conversions involving legacy/custom proxies are now correctly recorded as "Domain converted"; the duplicated classification logic was unified into one helper.
+- **Browser mode double-decoding fixed** — VIEW intents with %-encoded URLs were URL-decoded twice (once by the input validator, once by the processor); the validator is now used only as a gate.
+- **Share screen copy-error toast** showed the browser error message; now shows the correct one.
+- **Lifecycle hygiene** — layout listeners are removed in `onDestroy`, stale text-validation jobs are cancelled before starting new ones, and the history dialog no longer stacks duplicate database collectors.
+
+### Internal
+- All remaining hardcoded UI strings moved to `strings.xml`; all domain names centralized in `Constants.kt`.
+- New `InstagramProxyStore` — process-wide registry of fixed + custom + legacy proxies backing every detection site.
+- Dead code removed (`AfterCleanAction`, unused `PostCleanRunner` chooser paths, unused `CleanerService` dependency on `PreferencesManager`).
+- Full GPL license headers added to 4 test files that only had the SPDX short form.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 30
+- versionName: 1.6.0
+- Unit tests: 140 / 140 passing. Instrumentation: 165 / 165 passing on `Pixel_API_35_Play`.
+
+## Download
+- [FixupXer-v1.6.0-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.6.0/FixupXer-v1.6.0-release.apk)
+
+---
+
 # FixupXer v1.5.1 - Unified Instagram Proxy Selector
 
 ## What's New

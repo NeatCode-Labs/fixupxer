@@ -1,5 +1,7 @@
 [B][SIZE=4]🔧 FixupXer Version History (Latest → Oldest)[/SIZE][/B]
 
+[B]• v1.6.0[/B] - Added user-defined custom Instagram embed proxies (add/select/delete straight from the proxy chooser, validated and stored locally) and brought kkinstagram.com back as an active Backup proxy; fixed fb.com and vxtwitter.com conversions, Instagram tracking cleanup on legacy/custom proxy links, the "Nothing to do!" message being shareable as a URL, and several lifecycle/history bookkeeping bugs
+
 [B]• v1.5.1[/B] - Unified the Instagram proxy chooser: Main and Share now both open the same dialog when you tap "Change.", and the redundant Instagram embed proxy section is removed from Settings; on Main, picking a different proxy after you've already pressed "Process URL" automatically refreshes the Processed URL field (fresh inputs still go through the Process button); selection is still persistent and existing users keep their pick (default toinstagram.com)
 
 [B]• v1.5.0[/B] - Fixed FixupXer not appearing in the default-browser list on Xiaomi Redmi / MIUI / HyperOS devices by adding the MAIN + APP_BROWSER intent-filter to the BrowserAlias (same approach Mozilla shipped for Firefox); privacy-by-default preserved (alias still disabled until Browser mode is toggled on)

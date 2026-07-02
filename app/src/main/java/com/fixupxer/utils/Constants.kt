@@ -36,26 +36,42 @@ object Constants {
     
     // Domain identifiers
     const val INSTAGRAM_DOMAIN = "instagram.com"
-    // Active proxies. UI lists them in the order: toinstagram.com, adamlikes.men, instagram7.com.
     // Primary proxies — embed media + post/reel title & description
     const val TOINSTAGRAM_DOMAIN = "toinstagram.com"
     const val ADAMLIKES_DOMAIN = "adamlikes.men"
-    // Backup proxy — embeds media only (no title/description)
+    // Backup proxies — embed media only (no title/description)
     const val INSTAGRAM7_DOMAIN = "instagram7.com"
-    val INSTAGRAM_PROXY_DOMAINS = listOf(TOINSTAGRAM_DOMAIN, ADAMLIKES_DOMAIN, INSTAGRAM7_DOMAIN)
+    const val KKINSTAGRAM_DOMAIN = "kkinstagram.com"
     val INSTAGRAM_PRIMARY_PROXIES = listOf(TOINSTAGRAM_DOMAIN, ADAMLIKES_DOMAIN)
-    const val INSTAGRAM_BACKUP_PROXY = INSTAGRAM7_DOMAIN
+    val INSTAGRAM_BACKUP_PROXIES = listOf(INSTAGRAM7_DOMAIN, KKINSTAGRAM_DOMAIN)
+    // Built-in (fixed) proxies offered in the chooser, in UI order.
+    // User-defined custom proxies live in InstagramProxyStore, NOT here.
+    val INSTAGRAM_PROXY_DOMAINS = INSTAGRAM_PRIMARY_PROXIES + INSTAGRAM_BACKUP_PROXIES
     const val INSTAGRAM_DEFAULT_PROXY = TOINSTAGRAM_DOMAIN
     // Legacy proxies (no longer offered, but still detected so existing pasted links auto-convert)
-    val INSTAGRAM_LEGACY_PROXIES = listOf("kkinstagram.com", "eeinstagram.com")
-    val INSTAGRAM_ALL_KNOWN_PROXIES = INSTAGRAM_PROXY_DOMAINS + INSTAGRAM_LEGACY_PROXIES
+    val INSTAGRAM_LEGACY_PROXIES = listOf("eeinstagram.com")
     const val TWITTER_DOMAIN = "twitter.com"
     const val X_DOMAIN = "x.com"
     const val FIXUPX_DOMAIN = "fixupx.com"
     const val FXTWITTER_DOMAIN = "fxtwitter.com"
     const val VXTWITTER_DOMAIN = "vxtwitter.com"
+    val TWITTER_PROXY_DOMAINS = listOf(FIXUPX_DOMAIN, FXTWITTER_DOMAIN, VXTWITTER_DOMAIN)
     const val FACEBOOK_DOMAIN = "facebook.com"
+    const val FB_SHORT_DOMAIN = "fb.com"
     const val FACEBOOKEZ_DOMAIN = "facebookez.com"
+
+    // Other services (native-app mapping / cleaner dispatch)
+    const val YOUTUBE_DOMAIN = "youtube.com"
+    const val YOUTUBE_SHORT_DOMAIN = "youtu.be"
+    const val REDDIT_DOMAIN = "reddit.com"
+    const val REDDIT_SHORT_DOMAIN = "redd.it"
+    const val LINKEDIN_DOMAIN = "linkedin.com"
+    const val LINKEDIN_SHORT_DOMAIN = "lnkd.in"
+    const val AMAZON_DOMAIN = "amazon.com"
+    const val AMAZON_SHORT_DOMAIN = "amzn.to"
+    const val TIKTOK_DOMAIN = "tiktok.com"
+    const val SUBSTACK_DOMAIN = "substack.com"
+    const val GOOGLE_DOMAIN = "google.com"
     
     // URL path identifiers
     const val TWITTER_STATUS_PATH = "/status/"

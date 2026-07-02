@@ -20,12 +20,12 @@
 
 package com.fixupxer.cleaners
 
-import com.fixupxer.PreferencesManager
 import com.fixupxer.cleaners.cache.CleanerCache
 import com.fixupxer.cleaners.model.AppliedCleaner
 import com.fixupxer.cleaners.model.ProcessingResult
 import com.fixupxer.cleaners.model.RemovedParameter
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.InstagramProxyStore
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,8 +36,7 @@ import javax.inject.Singleton
 @Singleton
 class CleanerService @Inject constructor(
     private val registry: CleanerRegistry,
-    private val cache: CleanerCache,
-    private val preferencesManager: PreferencesManager
+    private val cache: CleanerCache
 ) {
     
     /**
@@ -261,10 +260,12 @@ class CleanerService @Inject constructor(
             originalUrl.contains("/url?") && !cleanedUrl.contains("/url?") -> "Extracted actual URL"
             
             // Domain conversion
-            originalUrl.contains("twitter.com") && cleanedUrl.contains("fixupx.com") -> "Converted to FixupX"
+            originalUrl.contains(Constants.TWITTER_DOMAIN) &&
+                cleanedUrl.contains(Constants.FIXUPX_DOMAIN) -> "Converted to FixupX"
             originalUrl.contains(Constants.INSTAGRAM_DOMAIN) &&
-                Constants.INSTAGRAM_PROXY_DOMAINS.any { cleanedUrl.contains(it) } -> "Converted to Instagram proxy"
-            originalUrl.contains("facebook.com") && cleanedUrl.contains("facebookez.com") -> "Converted to FacebookEZ"
+                InstagramProxyStore.activeProxies().any { cleanedUrl.contains(it) } -> "Converted to Instagram proxy"
+            originalUrl.contains(Constants.FACEBOOK_DOMAIN) &&
+                cleanedUrl.contains(Constants.FACEBOOKEZ_DOMAIN) -> "Converted to FacebookEZ"
             
             // Product ID extraction
             originalUrl.contains("amazon") && cleanedUrl.contains("/dp/") && 

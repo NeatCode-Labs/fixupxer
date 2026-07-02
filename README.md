@@ -5,7 +5,7 @@
 
 **Clean URLs • Get embeddable links • Use Browser Mode**
 
-[![Version](https://img.shields.io/badge/version-1.5.1-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
 [![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-green?style=for-the-badge)](LICENSE)
 
@@ -145,7 +145,7 @@ You can reorder the list under **Settings ▸ Action priority**. Drag and drop i
 
 ### Social Media
 - **Facebook** (119 trackers) - Plus converts to facebookez.com for better sharing
-- **Instagram** (67 trackers) - Plus converts to a user-selectable proxy (toinstagram.com, adamlikes.men, or instagram7.com) for embeddable links
+- **Instagram** (67 trackers) - Plus converts to a user-selectable proxy (toinstagram.com, adamlikes.men, instagram7.com, kkinstagram.com, or your own custom proxy) for embeddable links
 - **Twitter/X** (99 trackers) - Plus converts to fixupx.com for better embeds
 - **TikTok** (124 trackers) - Removes all tracking while keeping video links working
 - **LinkedIn** (117 trackers) - Cleans job posts and profile links
@@ -174,7 +174,7 @@ When you see the "Embed?" toggle:
 
 - **ON** ✅ - Converts social media links for better preview/embedding:
   - Facebook → facebookez.com (better previews)
-  - Instagram → configurable proxy (toinstagram.com / adamlikes.men / instagram7.com)
+  - Instagram → configurable proxy (toinstagram.com / adamlikes.men / instagram7.com / kkinstagram.com / custom)
   - Twitter/X → fixupx.com (better embeds)
   
 - **OFF** ❌ - Only removes tracking, keeps original domain
@@ -189,12 +189,16 @@ Instagram proxies occasionally go offline. To keep embeds working, FixupXer lets
 
 **Backup** (media only, no title/description)
 - **instagram7.com**
+- **kkinstagram.com**
+
+**Custom** (yours)
+- Tap **Add custom proxy…** at the bottom of the chooser to add any Instagram embed proxy domain you like. Custom entries get a delete icon in the list and can be removed at any time; deleting the one you had selected falls back to the default. The domain is used as-is for the link swap — the app never contacts it.
 
 When you share or paste an Instagram link and the **Embed?** toggle is visible, a small label on the right shows *Active: &lt;proxy&gt;. Change.* — tap **Change.** to pick another proxy. Your choice persists across both screens (Main and Share).
 
-Tapping **Change.** opens the proxy chooser as an inline dialog on both the Main and Share screens, so the flow is never interrupted. The dialog includes a small **(i)** info icon that explains the Primary / Backup distinction. If you already processed an Instagram link, picking a different proxy refreshes the result automatically.
+Tapping **Change.** opens the proxy chooser as an inline dialog on both the Main and Share screens, so the flow is never interrupted. The dialog includes a small **(i)** info icon that explains the Primary / Backup / Custom distinction. If you already processed an Instagram link, picking a different proxy refreshes the result automatically.
 
-Converted links are sent without a `www.` prefix — these proxies render best at the bare hostname. Pasting an old-style URL on a retired proxy (`kkinstagram.com`, `eeinstagram.com`) still works: FixupXer recognises it and converts it to your currently selected proxy.
+Converted links are sent without a `www.` prefix — these proxies render best at the bare hostname. Pasting an old-style URL on the retired proxy `eeinstagram.com` still works: FixupXer recognises it and converts it to your currently selected proxy.
 
 ## ⚙️ Settings & Options
 
@@ -283,7 +287,7 @@ A: Absolutely! FixupXer has no internet permission and can't send data anywhere.
 - Modular cleaner system with 11 specialized modules
 - O(1) domain lookup performance
 - LRU cache with 1-hour TTL
-- 271 automated tests (119 unit + 152 instrumentation)
+- 305 automated tests (140 unit + 165 instrumentation)
 - Thread-safe, stateless design
 
 ### Building from Source
@@ -311,7 +315,7 @@ A: Absolutely! FixupXer has no internet permission and can't send data anywhere.
 The following link conversion services are **not operated by NeatCode Labs**:
 - **facebookez.com** - Facebook link enhancement
 - **fixupx.com** - Twitter/X link enhancement  
-- **toinstagram.com** / **adamlikes.men** / **instagram7.com** - Instagram link enhancement (user-selectable; `kkinstagram.com` and `eeinstagram.com` from earlier versions are still recognised in pasted URLs and auto-converted to the active proxy)
+- **toinstagram.com** / **adamlikes.men** / **instagram7.com** / **kkinstagram.com** - Instagram link enhancement (user-selectable; `eeinstagram.com` from earlier versions is still recognised in pasted URLs and auto-converted to the active proxy). Any **custom proxy** you add yourself is likewise a third-party service.
 
 These services may stop working at any time. We have no control over them.
 
@@ -355,7 +359,7 @@ FixupXer builds upon ideas from these excellent projects:
 - [FxEmbed](https://github.com/FxEmbed/FxEmbed) - Twitter embed improvements
 - [InstaFix](https://github.com/Wikidepia/InstaFix) - Instagram embed enhancements
 
-Special thanks to the maintainers of facebookez.com, toinstagram.com, adamlikes.men, and instagram7.com. Contact us if you'd like attribution!
+Special thanks to the maintainers of facebookez.com, toinstagram.com, adamlikes.men, instagram7.com, and kkinstagram.com. Contact us if you'd like attribution!
 
 ## 💖 Support Development
 

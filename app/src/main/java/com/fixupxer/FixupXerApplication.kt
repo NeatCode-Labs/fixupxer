@@ -23,6 +23,7 @@ package com.fixupxer
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * Application class for FixupXer
@@ -30,7 +31,12 @@ import timber.log.Timber
  */
 @HiltAndroidApp
 class FixupXerApplication : Application() {
-    
+
+    // Injected at app start so its init block seeds InstagramProxyStore with the
+    // persisted custom proxies before any URL processing can happen.
+    @Inject
+    lateinit var preferencesManager: PreferencesManager
+
     override fun onCreate() {
         super.onCreate()
         

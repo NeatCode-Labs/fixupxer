@@ -112,8 +112,8 @@ object TwitterCleaner : UrlCleaner {
     
     override fun matches(url: String): Boolean {
         val lowerUrl = url.lowercase()
-        return lowerUrl.contains("twitter.com") || 
-               lowerUrl.contains("x.com") ||
+        return lowerUrl.contains(Constants.TWITTER_DOMAIN) ||
+               lowerUrl.contains(Constants.X_DOMAIN) ||
                lowerUrl.contains(Constants.FIXUPX_DOMAIN) ||
                lowerUrl.contains(Constants.FXTWITTER_DOMAIN) ||
                lowerUrl.contains(Constants.VXTWITTER_DOMAIN)

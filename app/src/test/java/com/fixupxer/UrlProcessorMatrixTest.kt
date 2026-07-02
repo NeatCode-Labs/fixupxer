@@ -26,8 +26,6 @@ import com.fixupxer.cleaners.CleanerRegistry
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
 
 class UrlProcessorMatrixTest {
     private lateinit var p: UrlProcessor
@@ -50,8 +48,7 @@ class UrlProcessorMatrixTest {
             ))
         }
         val cache = com.fixupxer.cleaners.cache.CleanerCache()
-        val prefs = mock<com.fixupxer.PreferencesManager>()
-        cleanerService = CleanerService(registry, cache, prefs)
+        cleanerService = CleanerService(registry, cache)
         p = UrlProcessor(cleanerService)
     }
 
@@ -113,9 +110,12 @@ class UrlProcessorMatrixTest {
             // Clean active default proxy (toinstagram.com): no-op when toggle ON, reverts to instagram when OFF
             Case("toinstagram clean, toggle OFF", "https://toinstagram.com/p/1", true, false, "https://instagram.com/p/1", false, false),
             Case("toinstagram clean, toggle ON", "https://toinstagram.com/p/1", true, true, "https://toinstagram.com/p/1", true, true),
-            // Legacy proxy auto-migration: kkinstagram converts to default (toinstagram.com) when toggle ON
-            Case("legacy kkinstagram clean, toggle OFF", "https://kkinstagram.com/p/1", true, false, "https://instagram.com/p/1", false, false),
-            Case("legacy kkinstagram clean, toggle ON", "https://kkinstagram.com/p/1", true, true, "https://toinstagram.com/p/1", false, false),
+            // Active backup proxy (kkinstagram) converts to the selected proxy (default toinstagram.com) when toggle ON
+            Case("backup kkinstagram clean, toggle OFF", "https://kkinstagram.com/p/1", true, false, "https://instagram.com/p/1", false, false),
+            Case("backup kkinstagram clean, toggle ON", "https://kkinstagram.com/p/1", true, true, "https://toinstagram.com/p/1", false, false),
+            // Legacy proxy auto-migration: eeinstagram converts to default (toinstagram.com) when toggle ON
+            Case("legacy eeinstagram clean, toggle OFF", "https://eeinstagram.com/p/1", true, false, "https://instagram.com/p/1", false, false),
+            Case("legacy eeinstagram clean, toggle ON", "https://eeinstagram.com/p/1", true, true, "https://toinstagram.com/p/1", false, false),
             // www. is stripped on conversion (proxies render best at bare hostname)
             Case("www instagram, toggle ON", "https://www.instagram.com/p/1", true, true, "https://toinstagram.com/p/1", false, false),
 
@@ -137,7 +137,20 @@ class UrlProcessorMatrixTest {
             Case("fxtwitter.com clean, toggle ON", "https://fxtwitter.com/user/status/1", true, true, "https://fixupx.com/user/status/1", false, false),
             // Dirty fxtwitter.com
             Case("fxtwitter.com dirty, toggle OFF", "https://fxtwitter.com/user/status/1?utm_source=abc", true, false, "https://x.com/user/status/1", false, false),
-            Case("fxtwitter.com dirty, toggle ON", "https://fxtwitter.com/user/status/1?utm_source=abc", true, true, "https://fixupx.com/user/status/1", false, false)
+            Case("fxtwitter.com dirty, toggle ON", "https://fxtwitter.com/user/status/1?utm_source=abc", true, true, "https://fixupx.com/user/status/1", false, false),
+            // vxtwitter.com (same treatment as fxtwitter)
+            Case("vxtwitter.com clean, toggle OFF", "https://vxtwitter.com/user/status/1", true, false, "https://x.com/user/status/1", false, false),
+            Case("vxtwitter.com clean, toggle ON", "https://vxtwitter.com/user/status/1", true, true, "https://fixupx.com/user/status/1", false, false),
+
+            // === Facebook ===
+            Case("facebook.com clean, toggle OFF", "https://facebook.com/somepage", true, false, "https://facebook.com/somepage", true, true),
+            Case("facebook.com clean, toggle ON", "https://facebook.com/somepage", true, true, "https://facebookez.com/somepage", false, false),
+            // fb.com short domain now routes through the facebookez conversion too
+            Case("fb.com clean, toggle OFF", "https://fb.com/somepage", true, false, "https://fb.com/somepage", true, true),
+            Case("fb.com clean, toggle ON", "https://fb.com/somepage", true, true, "https://facebookez.com/somepage", false, false),
+            Case("m.facebook.com clean, toggle ON", "https://m.facebook.com/somepage", true, true, "https://facebookez.com/somepage", false, false),
+            Case("facebookez.com clean, toggle OFF", "https://facebookez.com/somepage", true, false, "https://facebook.com/somepage", false, false),
+            Case("facebookez.com clean, toggle ON", "https://facebookez.com/somepage", true, true, "https://facebookez.com/somepage", true, true)
         )
 
         cases.forEach { c ->

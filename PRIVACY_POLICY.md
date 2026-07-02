@@ -15,18 +15,21 @@ FixupXer does not collect, store, or share any personal user data. The app opera
 - No user identifiers
 
 ### Local Storage
-The app only stores the following preferences locally on your device:
-- Whether to clean tracking parameters from URLs
-- Whether to convert Twitter/X URLs
-- Whether to convert Instagram URLs
+The app only stores the following data locally on your device:
+- Preferences: whether to clean tracking parameters, whether to convert Twitter/X, Instagram, and Facebook URLs, the selected Instagram embed proxy, any custom Instagram proxy domains you add yourself, browser-mode settings (enabled state, post-clean action mode and priority order, per-platform conversion defaults), and history settings (enabled state, maximum entries)
+- Conversion history (optional, on by default, can be disabled or cleared at any time): the original URL, the cleaned URL, a timestamp, and the kind of change made — stored in a local database on your device only
 
-These preferences are stored using Android's SharedPreferences system and are only accessible to the app itself.
+Preferences are stored using Android's SharedPreferences system and history in a local Room (SQLite) database. Both are only accessible to the app itself and never leave your device.
 
 ### URL Processing
 - All URL processing happens locally on your device
 - URLs are not sent to any external servers
 - No data is transmitted to third parties
 - No tracking or analytics are performed
+- Link conversions (e.g. to fixupx.com, facebookez.com, or an Instagram embed proxy — built-in or custom) are pure text replacements; the app never contacts those domains
+
+### Browser Mode (optional)
+If you enable Browser mode and set FixupXer as your default browser, links you open are cleaned locally and then forwarded to the app or browser you choose. FixupXer itself has no network permission and never loads the links.
 
 ## Third-Party Services
 FixupXer does not integrate with any third-party services that collect user data. The app only uses standard Android system services for:

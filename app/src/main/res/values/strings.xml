@@ -35,7 +35,7 @@
     
     <!-- Instagram conversion toggle -->
     <string name="convert_instagram_toggle">Embed?</string>
-    <string name="convert_instagram_toggle_desc">When enabled, Instagram, Facebook, and X/Twitter links will be converted to an Instagram proxy (adamlikes.men, toinstagram.com, or instagram7.com), facebookez.com, and fixupx.com for better embedding</string>
+    <string name="convert_instagram_toggle_desc">When enabled, Instagram, Facebook, and X/Twitter links will be converted to an Instagram proxy (adamlikes.men, toinstagram.com, instagram7.com, kkinstagram.com, or a custom proxy you add yourself), facebookez.com, and fixupx.com for better embedding</string>
     <string name="convert_twitter_toggle">Embed?</string>
     <string name="convert_twitter_toggle_desc">When enabled, X/Twitter links will be converted to fixupx.com for better embedding</string>
 
@@ -45,10 +45,19 @@
     <string name="change_proxy_link_desc">Change Instagram embed proxy</string>
     <string name="instagram_proxy_primary_label">Primary</string>
     <string name="instagram_proxy_backup_label">Backup</string>
+    <string name="instagram_proxy_custom_label">Custom</string>
     <string name="instagram_proxy_dialog_title">Choose Instagram proxy</string>
     <string name="instagram_proxy_info_title">About these proxies</string>
-    <string name="instagram_proxy_info_text"><![CDATA[<b>Primary</b> — toinstagram.com, adamlikes.men<br/>Embed media <i>and</i> the post / reel title and description.<br/><br/><b>Backup</b> — instagram7.com<br/>Embeds media only (no title or description).<br/><br/>Use a backup if both primary proxies stop responding. Converted links are sent without the <tt>www.</tt> prefix because these proxies render best that way.]]></string>
+    <string name="instagram_proxy_info_text"><![CDATA[<b>Primary</b> — toinstagram.com, adamlikes.men<br/>Embed media <i>and</i> the post / reel title and description.<br/><br/><b>Backup</b> — instagram7.com, kkinstagram.com<br/>Embed media only (no title or description).<br/><br/><b>Custom</b> — proxies you add yourself<br/>Any Instagram embed proxy domain you enter is used as-is for the domain swap; the app never contacts it. What gets embedded depends on that proxy.<br/><br/>Use a backup if both primary proxies stop responding. Converted links are sent without the <tt>www.</tt> prefix because these proxies render best that way.]]></string>
     <string name="instagram_proxy_info_content_desc">More info about Instagram proxies</string>
+    <string name="instagram_proxy_add_custom">Add custom proxy…</string>
+    <string name="instagram_proxy_add_dialog_title">Add custom proxy</string>
+    <string name="instagram_proxy_add_hint">Proxy domain (e.g. myproxy.com)</string>
+    <string name="instagram_proxy_error_invalid_domain">Enter a valid domain, e.g. myproxy.com</string>
+    <string name="instagram_proxy_error_reserved_domain">This domain is already known to the app and can\'t be used as a custom proxy</string>
+    <string name="instagram_proxy_error_duplicate">This proxy is already in the list</string>
+    <string name="instagram_proxy_delete_content_desc">Delete custom proxy %1$s</string>
+    <string name="add">Add</string>
     
 
     
@@ -66,13 +75,16 @@
     <string name="no_url_to_open">No URL to open</string>
     <string name="no_valid_url_clipboard">No valid URL found in clipboard</string>
     <string name="error_processing_url">Error processing URL</string>
-    <string name="please_enter_url">Please enter a URL</string>
     <string name="error_sharing_url">Error sharing URL</string>
     <string name="error_browser">Error opening browser</string>
+    <string name="error_copying_url">Error copying URL</string>
     <string name="error_email_app">Error launching email app</string>
     <string name="share_via">Share via</string>
     <string name="send_email">Send email</string>
     <string name="close">Close</string>
+    <string name="chooser_open_with">Open with</string>
+    <string name="chooser_open_with_browser">Open with browser</string>
+    <string name="browser_conversion_settings_saved">Browser conversion settings saved</string>
     
     <!-- About and Report Bug -->
     <string name="about">About</string>
@@ -86,7 +98,7 @@
     <string name="bug_report_email">neatcodelabs@gmail.com</string>
     <string name="bug_report_subject">FixupXer Bug Report</string>
     <string name="disclaimer_dialog_title">Disclaimer</string>
-    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not transmit any user data or URLs to external servers. If history is enabled, processed URLs are stored locally on your device only and can be cleared at any time.<br/><br/> <b>History Feature</b><br/> The optional history feature stores your URL conversions locally on your device. This data never leaves your device and can be disabled or cleared at any time through the History settings.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Proxy services such as facebookez.com, fixupx.com, adamlikes.men, toinstagram.com and instagram7.com are not owned or maintained by us and may stop working at any given time.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses usage of third-party proxy services such as facebookez.com, fixupx.com, adamlikes.men, toinstagram.com and instagram7.com. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.<br/><br/> <b>License</b><br/> FixupXer is free software licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). You have the freedom to use, modify, and distribute this software under the terms of the GPL. Source code is available at https://github.com/NeatCode-Labs/fixupxer]]></string>
+    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not transmit any user data or URLs to external servers. If history is enabled, processed URLs are stored locally on your device only and can be cleared at any time.<br/><br/> <b>History Feature</b><br/> The optional history feature stores your URL conversions locally on your device. This data never leaves your device and can be disabled or cleared at any time through the History settings.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Proxy services such as facebookez.com, fixupx.com, adamlikes.men, toinstagram.com, instagram7.com and kkinstagram.com are not owned or maintained by us and may stop working at any given time. The same applies to any custom proxy domains you add yourself.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses usage of third-party proxy services such as facebookez.com, fixupx.com, adamlikes.men, toinstagram.com, instagram7.com and kkinstagram.com, nor of any custom proxy services you configure yourself. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.<br/><br/> <b>License</b><br/> FixupXer is free software licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). You have the freedom to use, modify, and distribute this software under the terms of the GPL. Source code is available at https://github.com/NeatCode-Labs/fixupxer]]></string>
     
     <!-- Donate dialog -->
     <string name="donate_text">If you find FixupXer useful, please consider supporting its development. Your donation helps maintain and improve the app.</string>

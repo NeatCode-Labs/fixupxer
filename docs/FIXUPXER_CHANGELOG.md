@@ -1,17 +1,18 @@
 # FixupXer App - Development Summary
-## Version Progression: v1.5.1 → v1.2.1 (Latest to Oldest)
+## Version Progression: v1.6.0 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 22 (v1.5.1, v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
-**Current Version:** v1.5.1 (versionCode: 29)  
-**Development Period:** v1.2.1 (Initial) → v1.5.1 (Current)
+**Total Versions Released:** 24 (v1.6.0, v1.5.1, v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
+**Current Version:** v1.6.0 (versionCode: 30)  
+**Development Period:** v1.2.1 (Initial) → v1.6.0 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in the complete engine overhaul in v1.4.0, the browser mode feature added in v1.4.6, the selectable Instagram embed proxy introduced in v1.4.7 (refreshed in v1.4.8), browser-mode stability fixes in v1.4.9, Xiaomi/HyperOS default-browser compatibility shipped in v1.5.0, and the unified Instagram proxy chooser in v1.5.1 (Settings entry removed; Main/Share use the same dialog).
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in the complete engine overhaul in v1.4.0, the browser mode feature added in v1.4.6, the selectable Instagram embed proxy introduced in v1.4.7 (refreshed in v1.4.8), browser-mode stability fixes in v1.4.9, Xiaomi/HyperOS default-browser compatibility shipped in v1.5.0, the unified Instagram proxy chooser in v1.5.1 (Settings entry removed; Main/Share use the same dialog), and user-defined custom Instagram proxies plus the return of kkinstagram.com in v1.6.0.
 
 ### Key Achievements:
+- ✅ **Custom Instagram Proxies** - Users can add/select/delete their own embed proxy domains, validated and persisted locally
 - ✅ **Browser Mode Integration** - Optional system-wide URL filtering as default browser with configurable action priorities
 - ✅ **Selectable Instagram Embed Proxy** - User-chosen, persistent proxy for Instagram embeds with cross-proxy swap, legacy auto-migration, and bare-hostname conversion
 - ✅ **Cross-OEM Default-Browser Support** - `MAIN + APP_BROWSER` filter so Xiaomi/Redmi/HyperOS (and other non-AOSP pickers) list FixupXer as a browser candidate
@@ -28,6 +29,36 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v1.5.1 → v1.6.0
+- **Focus:** User-defined custom Instagram proxies, kkinstagram.com reinstated as an active Backup proxy, and a broad bug-fix / code-hygiene pass.
+- **Key Changes — custom proxies (new feature):**
+  - **New `utils/InstagramProxyStore`** — process-wide `object` holding the custom proxy list behind a `@Volatile` immutable snapshot. `activeProxies()` = fixed roster + custom; `allKnownProxies()` = active + legacy. Stateless consumers (`UrlProcessor`, `InstagramCleaner`, `PostCleanRunner`, `UrlRepositoryImpl`, `CleanerService.describeAction`, ViewModels) read from the store instead of static `Constants` lists.
+  - **`PreferencesManager`** — new `custom_instagram_proxies` CSV pref with `getCustomInstagramProxies()` / `addCustomInstagramProxy()` / `removeCustomInstagramProxy()`; the `init` block and every mutation mirror the list into the store. `getInstagramProxy()` validates against active proxies, so deleting the selected custom proxy transparently falls back to `toinstagram.com`. `FixupXerApplication` injects `PreferencesManager` so the store is seeded before any URL processing.
+  - **Chooser dialog rebuilt** (`InstagramProxyDialogHelper`) — dynamic `BaseAdapter` list built from Constants + store: radio + domain + badge (Primary/Backup/Custom), delete icon on custom rows, trailing **Add custom proxy…** row that opens a Material `TextInputLayout` input dialog with inline validation errors. New layouts `item_instagram_proxy_option.xml`, `dialog_add_custom_proxy.xml`, drawable `ic_delete.xml`.
+  - **Validation** — input normalized (lowercase, strip protocol/`www.`/path/query/fragment), hostname regex (subdomains allowed), duplicate rejection, and rejection of every domain the app already routes (Instagram + Twitter/X + Facebook families, both containment directions) so a custom proxy can never corrupt substring-based platform detection.
+- **Key Changes — kkinstagram.com returns:**
+  - `Constants`: `KKINSTAGRAM_DOMAIN` joins `INSTAGRAM_BACKUP_PROXIES`; `INSTAGRAM_PROXY_DOMAINS = PRIMARY + BACKUP` (4 fixed proxies); `INSTAGRAM_LEGACY_PROXIES = [eeinstagram.com]` only.
+  - Stored kk selections from ≤ v1.4.7 are valid again (no longer migrated to default); `eeinstagram.com` still migrates.
+  - Dialog roster, `instagram_proxy_info_text`, toggle description and `disclaimer_text` updated (Backup = instagram7.com, kkinstagram.com; new Custom section).
+- **Key Changes — bug fixes:**
+  - `fb.com` now routes through `isFacebookUrl()` / `convertToFacebookez()` (previously only `FacebookCleaner` knew it); `FB_SHORT_DOMAIN` added to Constants.
+  - `vxtwitter.com` conversion branch added (→ `fixupx.com` toggle ON, → `x.com` toggle OFF), parity with fxtwitter.
+  - `InstagramCleaner.matches()` now uses `allKnownProxies()` so legacy/custom proxy links get `igsh`/`igshid` cleaning.
+  - "Nothing to do!" display text separated from the actionable URL (`processedUrl` vs new `actionUrl` in both UiStates) — Share/Open/Copy no longer act on the literal message.
+  - `MainViewModel.clearInput()` / `ShareViewModel.clearState()` reset `isTwitterUrl`/`isLoading` (Twitter toggle no longer lingers).
+  - History classification unified into `UrlRepositoryImpl.classifyConversion()` + `saveHistoryEntry()` helpers; legacy/custom proxy conversions now record "Domain converted"; substring pitfalls (toinstagram⊃instagram.com, fixupx⊃x.com) handled explicitly.
+  - Browser VIEW intent: `InputValidator` used only as a gate; original URI string passed to `processUrlForBrowser` (fixes double URL-decoding of %-encoded parameters).
+  - Lifecycle: `OnGlobalLayoutListener`s removed in `onDestroy` (Main + Share), TextWatcher validation job cancelled before relaunch, `HistoryDialogHelper` cancels the previous history collector before starting a new one, `ShareViewModel.processUrlInternal` no longer nests a second `viewModelScope.launch`.
+  - ShareActivity copy-error toast now uses its own string instead of `error_browser`.
+- **Key Changes — rules/hygiene:**
+  - All hardcoded UI strings moved to `strings.xml` (PostCleanRunner chooser titles/toasts, Settings toast, MainActivity toast, ClipData labels); duplicate `please_enter_url` consolidated.
+  - All domain literals centralized in `Constants.kt` (cleaners, registry, ViewModels, repository, PostCleanRunner).
+  - Dead code removed: `PostCleanRunner.showSystemChooser/runFollow/runPriority(list)` + orphaned `AfterCleanAction.kt`, unused `CleanerService.preferencesManager` inject (AppModule + 7 test call sites updated), `MainUiState.showErrorToast`, empty `SettingsActivity.updateBrowserModeDescription()`. `HistoryDialogHelper.showDeleteConfirmation()` renamed `deleteHistoryEntry()` (it never confirmed).
+  - Full GPL headers added to 4 test files that only carried the SPDX line.
+- **Tests updated/added:** `InstagramProxySelectionTest` (kk active, ee legacy, store reset in `@Before`/`@After`), `UrlProcessorMatrixTest` (kk/ee cases + new vxtwitter and Facebook/fb.com matrix rows), new `CustomInstagramProxyTest` (store state, normalization, format/reserved/duplicate validation, custom-proxy conversions, detection, cleaner matching), `InstagramProxyPreferenceTest` (kk-selection persists, custom proxy add/remove/select/fallback/restart persistence), new `CustomProxyDialogTest` instrumentation suite (roster + add/select/delete flow, inline validation errors, kk selection).
+- **Tests pass rate:** 140/140 unit (100%) + 165/165 instrumentation (100%) on `Pixel_API_35_Play`, first-pass green.
+- **Impact:** Users are no longer stranded when the fixed proxy roster goes stale — any embed proxy can be added on the spot, with kkinstagram.com back in the box as a known-good backup.
 
 ### v1.5.0 → v1.5.1
 - **Focus:** Unified Instagram proxy selector (Main + Share use the same dialog; Settings entry removed) plus auto-reprocess parity on Main when a Processed URL already exists.
@@ -578,9 +609,10 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.4.8 | 26 | Instagram proxy refresh | ✅ Released |
 | v1.4.9 | 27 | Browser mode stability & routing fixes | ✅ Released |
 | v1.5.0 | 28 | Xiaomi/Redmi/HyperOS default-browser compatibility | ✅ Released |
-| v1.5.1 | 29 | Unified Instagram proxy chooser (Settings entry removed) | ✅ Current |
+| v1.5.1 | 29 | Unified Instagram proxy chooser (Settings entry removed) | ✅ Released |
+| v1.6.0 | 30 | Custom Instagram proxies + kkinstagram.com returns | ✅ Current |
 
-### Build Artifacts (v1.5.1):
+### Build Artifacts (v1.6.0):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk`
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
 - **GITHUB / F-Droid APK:** `GITHUB/fixupxer/app/build/outputs/apk/release/app-release.apk` (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)

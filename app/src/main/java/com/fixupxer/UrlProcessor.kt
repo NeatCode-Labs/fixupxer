@@ -24,6 +24,7 @@ import android.net.Uri
 import androidx.core.net.toUri
 import com.fixupxer.cleaners.CleanerService
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.InstagramProxyStore
 import timber.log.Timber
 import java.net.IDN
 import java.net.URI
@@ -142,22 +143,28 @@ class UrlProcessor @Inject constructor(
         instagramProxy: String = Constants.INSTAGRAM_DEFAULT_PROXY
     ): String {
         val isInstagram = isInstagramUrl(url)
-        val isInstagramProxy = Constants.INSTAGRAM_ALL_KNOWN_PROXIES.any {
+        val isInstagramProxy = InstagramProxyStore.allKnownProxies().any {
             url.contains(it, ignoreCase = true)
         }
 
         return when {
-            // Instagram conversions — covers instagram.com + any of the 3 proxies
+            // Instagram conversions — covers instagram.com + any known proxy (fixed/custom/legacy)
             isInstagram && convertToAlternative -> convertToInstagramProxy(url, instagramProxy)
             isInstagramProxy && !convertToAlternative -> convertFromInstagramProxy(url)
             
             // Twitter/X conversions
-            // 1) fxtwitter domain rewrite needs to happen BEFORE generic Twitter conversion
+            // 1) fxtwitter/vxtwitter domain rewrites need to happen BEFORE generic Twitter conversion
             url.contains(Constants.FXTWITTER_DOMAIN, ignoreCase = true) ->
                 if (convertToAlternative) {
                     url.replace(Constants.FXTWITTER_DOMAIN, Constants.FIXUPX_DOMAIN, ignoreCase = true)
                 } else {
                     convertFromFxTwitter(url)
+                }
+            url.contains(Constants.VXTWITTER_DOMAIN, ignoreCase = true) ->
+                if (convertToAlternative) {
+                    url.replace(Constants.VXTWITTER_DOMAIN, Constants.FIXUPX_DOMAIN, ignoreCase = true)
+                } else {
+                    url.replace(Constants.VXTWITTER_DOMAIN, Constants.X_DOMAIN, ignoreCase = true)
                 }
             // 2) Standard Twitter/X → FixupX conversion for status URLs
             isTwitterUrl(url) && convertToAlternative -> convertTwitterUrl(url)
@@ -256,22 +263,23 @@ class UrlProcessor @Inject constructor(
     }
     
     /**
-     * Check if a URL is an Instagram URL (instagram.com or any of the supported / legacy proxies).
+     * Check if a URL is an Instagram URL (instagram.com or any of the supported / custom / legacy proxies).
      * Legacy proxies are detected so existing pasted links still trigger the conversion flow.
      */
     fun isInstagramUrl(url: String): Boolean {
         if (url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true)) return true
-        return Constants.INSTAGRAM_ALL_KNOWN_PROXIES.any { url.contains(it, ignoreCase = true) }
+        return InstagramProxyStore.allKnownProxies().any { url.contains(it, ignoreCase = true) }
     }
 
     /**
      * Convert instagram.com / any proxy in [url] to the [targetProxy] domain.
      * - If [url] already uses [targetProxy] AND has no `www.`/sub prefix, it is returned unchanged.
      * - Any `www.` prefix or sub-prefix on the host is stripped (active proxies prefer bare hostnames).
-     * - Legacy proxy hostnames (kkinstagram.com, eeinstagram.com) are also rewritten.
+     * - Custom and legacy proxy hostnames are also rewritten.
      */
     private fun convertToInstagramProxy(url: String, targetProxy: String): String {
-        val knownAlternation = (listOf(Constants.INSTAGRAM_DOMAIN) + Constants.INSTAGRAM_ALL_KNOWN_PROXIES)
+        val knownProxies = InstagramProxyStore.allKnownProxies()
+        val knownAlternation = (listOf(Constants.INSTAGRAM_DOMAIN) + knownProxies)
             .joinToString("|") { it.replace(".", "\\.") }
         val pattern = Pattern.compile(
             "(https?://)(?:www\\.)?(?:[a-z0-9]+\\.)?($knownAlternation)",
@@ -283,7 +291,7 @@ class UrlProcessor @Inject constructor(
             matcher.replaceAll("\$1${targetProxy}")
         } else {
             var result = url
-            for (domain in listOf(Constants.INSTAGRAM_DOMAIN) + Constants.INSTAGRAM_ALL_KNOWN_PROXIES) {
+            for (domain in listOf(Constants.INSTAGRAM_DOMAIN) + knownProxies) {
                 if (result.contains(domain, ignoreCase = true)) {
                     result = result.replace(domain, targetProxy, ignoreCase = true)
                     break
@@ -294,17 +302,18 @@ class UrlProcessor @Inject constructor(
     }
 
     /**
-     * Convert any Instagram proxy in [url] (current or legacy) back to instagram.com.
+     * Convert any Instagram proxy in [url] (fixed, custom or legacy) back to instagram.com.
      */
     private fun convertFromInstagramProxy(url: String): String {
+        val knownProxies = InstagramProxyStore.allKnownProxies()
         // Already on instagram.com and no proxy is present
         if (url.contains(Constants.INSTAGRAM_DOMAIN, ignoreCase = true) &&
-            Constants.INSTAGRAM_ALL_KNOWN_PROXIES.none { url.contains(it, ignoreCase = true) }
+            knownProxies.none { url.contains(it, ignoreCase = true) }
         ) {
             return url
         }
 
-        val proxyAlternation = Constants.INSTAGRAM_ALL_KNOWN_PROXIES.joinToString("|") {
+        val proxyAlternation = knownProxies.joinToString("|") {
             it.replace(".", "\\.")
         }
         val pattern = Pattern.compile(
@@ -316,7 +325,7 @@ class UrlProcessor @Inject constructor(
             matcher.replaceAll("\$1\$2${Constants.INSTAGRAM_DOMAIN}")
         } else {
             var result = url
-            for (proxy in Constants.INSTAGRAM_ALL_KNOWN_PROXIES) {
+            for (proxy in knownProxies) {
                 if (result.contains(proxy, ignoreCase = true)) {
                     result = result.replace(proxy, Constants.INSTAGRAM_DOMAIN, ignoreCase = true)
                     break
@@ -334,6 +343,7 @@ class UrlProcessor @Inject constructor(
         return lowerUrl.contains(Constants.TWITTER_DOMAIN) ||
                lowerUrl.contains(Constants.X_DOMAIN) ||
                lowerUrl.contains(Constants.FXTWITTER_DOMAIN) ||
+               lowerUrl.contains(Constants.VXTWITTER_DOMAIN) ||
                lowerUrl.contains(Constants.FIXUPX_DOMAIN)
     }
     
@@ -342,8 +352,9 @@ class UrlProcessor @Inject constructor(
      */
     fun isFacebookUrl(url: String): Boolean {
         val lowerUrl = url.lowercase()
-        return lowerUrl.contains(Constants.FACEBOOK_DOMAIN) || 
-               lowerUrl.contains(Constants.FACEBOOKEZ_DOMAIN)
+        return lowerUrl.contains(Constants.FACEBOOK_DOMAIN) ||
+               lowerUrl.contains(Constants.FACEBOOKEZ_DOMAIN) ||
+               lowerUrl.contains(Constants.FB_SHORT_DOMAIN)
     }
     
     /**
@@ -414,14 +425,14 @@ class UrlProcessor @Inject constructor(
     }
     
     /**
-     * Convert Facebook URLs to facebookez.com
+     * Convert Facebook URLs (facebook.com / fb.com, any subdomain prefix) to facebookez.com
      */
     private fun convertToFacebookez(url: String): String {
         if (url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true)) return url
         
         // Pattern to match Facebook URLs with any prefix (m., web., www., etc.)
         // This regex captures the protocol and removes any subdomain prefixes
-        val regex = Regex("(https?://)(?:www\\.)?(?:[a-z]+\\.)?facebook\\.com", RegexOption.IGNORE_CASE)
+        val regex = Regex("(https?://)(?:www\\.)?(?:[a-z]+\\.)?(?:facebook|fb)\\.com", RegexOption.IGNORE_CASE)
         
         return if (regex.containsMatchIn(url)) {
             // Remove all prefixes and convert to facebookez.com

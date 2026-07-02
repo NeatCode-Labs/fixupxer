@@ -23,6 +23,7 @@ package com.fixupxer.cleaners.impl
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.InstagramProxyStore
 
 /**
  * Cleaner for Instagram URLs - comprehensive tracking removal
@@ -96,8 +97,10 @@ object InstagramCleaner : UrlCleaner {
     
     override fun matches(url: String): Boolean {
         val lowerUrl = url.lowercase()
+        // All known proxies (fixed + custom + legacy) so e.g. legacy eeinstagram.com
+        // links still get Instagram-specific parameter cleaning (igsh, igshid, ...).
         return lowerUrl.contains(Constants.INSTAGRAM_DOMAIN) ||
-               Constants.INSTAGRAM_PROXY_DOMAINS.any { lowerUrl.contains(it) }
+               InstagramProxyStore.allKnownProxies().any { lowerUrl.contains(it) }
     }
     
     override fun clean(url: String): String {

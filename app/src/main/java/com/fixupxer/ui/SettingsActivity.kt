@@ -91,7 +91,6 @@ class SettingsActivity : BaseActivity() {
         binding.switchBrowserMode.setOnCheckedChangeListener { _, isChecked ->
             preferencesManager.setBrowserModeEnabled(isChecked)
             BrowserModeUtils.setBrowserAliasEnabled(this, isChecked)
-            updateBrowserModeDescription(isChecked)
             Timber.d("Browser mode enabled: $isChecked")
         }
         
@@ -125,7 +124,6 @@ class SettingsActivity : BaseActivity() {
         // Load browser mode state
         val browserModeEnabled = preferencesManager.isBrowserModeEnabled()
         binding.switchBrowserMode.isChecked = browserModeEnabled
-        updateBrowserModeDescription(browserModeEnabled)
         
         // Load action mode
         val actionMode = preferencesManager.getActionMode()
@@ -183,11 +181,6 @@ class SettingsActivity : BaseActivity() {
         
         itemTouchHelper.attachToRecyclerView(binding.recyclerViewActionPriority)
         actionPriorityAdapter.setItemTouchHelper(itemTouchHelper)
-    }
-    
-    @Suppress("UNUSED_PARAMETER")
-    private fun updateBrowserModeDescription(enabled: Boolean) {
-        // You could update a description text here if needed
     }
     
     private fun updateActionPriorityVisibility(mode: String) {
@@ -259,7 +252,7 @@ class SettingsActivity : BaseActivity() {
             preferencesManager.setBrowserConvertInstagramEnabled(dialogBinding.switchBrowserInstagram.isChecked)
             preferencesManager.setBrowserConvertFacebookEnabled(dialogBinding.switchBrowserFacebook.isChecked)
             
-            Toast.makeText(this, "Browser conversion settings saved", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.browser_conversion_settings_saved), Toast.LENGTH_SHORT).show()
             Timber.d("Browser conversion settings saved - Twitter: ${dialogBinding.switchBrowserTwitter.isChecked}, Instagram: ${dialogBinding.switchBrowserInstagram.isChecked}, Facebook: ${dialogBinding.switchBrowserFacebook.isChecked}")
             dialog.dismiss()
         }

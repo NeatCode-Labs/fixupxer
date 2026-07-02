@@ -20,6 +20,7 @@
 
 package com.fixupxer.cleaners
 
+import com.fixupxer.utils.Constants
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -86,48 +87,57 @@ class CleanerRegistry @Inject constructor() {
         // For known domain-specific cleaners, pre-populate the domain map
         // This is a simple heuristic based on common patterns
         when (cleaner.id) {
-            "amazon" -> addDomainAssociation("amazon.com", cleaner)
+            "amazon" -> {
+                addDomainAssociation(Constants.AMAZON_DOMAIN, cleaner)
+                addDomainAssociation(Constants.AMAZON_SHORT_DOMAIN, cleaner)
+            }
             "google_search" -> {
-                addDomainAssociation("google.com", cleaner)
+                addDomainAssociation(Constants.GOOGLE_DOMAIN, cleaner)
                 addDomainAssociation("google.co.uk", cleaner)
                 addDomainAssociation("google.de", cleaner)
                 // Add more Google domains as needed
             }
             "youtube" -> {
-                addDomainAssociation("youtube.com", cleaner)
-                addDomainAssociation("youtu.be", cleaner)
-                addDomainAssociation("m.youtube.com", cleaner)
+                addDomainAssociation(Constants.YOUTUBE_DOMAIN, cleaner)
+                addDomainAssociation(Constants.YOUTUBE_SHORT_DOMAIN, cleaner)
+                addDomainAssociation("m.${Constants.YOUTUBE_DOMAIN}", cleaner)
             }
             "facebook" -> {
-                addDomainAssociation("facebook.com", cleaner)
-                addDomainAssociation("m.facebook.com", cleaner)
-                addDomainAssociation("fb.com", cleaner)
+                addDomainAssociation(Constants.FACEBOOK_DOMAIN, cleaner)
+                addDomainAssociation("m.${Constants.FACEBOOK_DOMAIN}", cleaner)
+                addDomainAssociation(Constants.FB_SHORT_DOMAIN, cleaner)
+                addDomainAssociation(Constants.FACEBOOKEZ_DOMAIN, cleaner)
             }
             "reddit" -> {
-                addDomainAssociation("reddit.com", cleaner)
-                addDomainAssociation("old.reddit.com", cleaner)
-                addDomainAssociation("new.reddit.com", cleaner)
-                addDomainAssociation("redd.it", cleaner)
+                addDomainAssociation(Constants.REDDIT_DOMAIN, cleaner)
+                addDomainAssociation("old.${Constants.REDDIT_DOMAIN}", cleaner)
+                addDomainAssociation("new.${Constants.REDDIT_DOMAIN}", cleaner)
+                addDomainAssociation(Constants.REDDIT_SHORT_DOMAIN, cleaner)
             }
             "twitter" -> {
-                addDomainAssociation("twitter.com", cleaner)
-                addDomainAssociation("x.com", cleaner)
+                addDomainAssociation(Constants.TWITTER_DOMAIN, cleaner)
+                addDomainAssociation(Constants.X_DOMAIN, cleaner)
+                Constants.TWITTER_PROXY_DOMAINS.forEach { addDomainAssociation(it, cleaner) }
             }
             "instagram" -> {
-                addDomainAssociation("instagram.com", cleaner)
-                addDomainAssociation("www.instagram.com", cleaner)
+                // Fixed proxies only — custom proxies are added at runtime, and
+                // getCleanersFor() falls back to a full matches() scan for domains
+                // not present in this map, so they are still handled correctly.
+                addDomainAssociation(Constants.INSTAGRAM_DOMAIN, cleaner)
+                Constants.INSTAGRAM_PROXY_DOMAINS.forEach { addDomainAssociation(it, cleaner) }
+                Constants.INSTAGRAM_LEGACY_PROXIES.forEach { addDomainAssociation(it, cleaner) }
             }
             "tiktok" -> {
-                addDomainAssociation("tiktok.com", cleaner)
-                addDomainAssociation("vm.tiktok.com", cleaner)
-                addDomainAssociation("m.tiktok.com", cleaner)
+                addDomainAssociation(Constants.TIKTOK_DOMAIN, cleaner)
+                addDomainAssociation("vm.${Constants.TIKTOK_DOMAIN}", cleaner)
+                addDomainAssociation("m.${Constants.TIKTOK_DOMAIN}", cleaner)
             }
             "linkedin" -> {
-                addDomainAssociation("linkedin.com", cleaner)
-                addDomainAssociation("lnkd.in", cleaner)
+                addDomainAssociation(Constants.LINKEDIN_DOMAIN, cleaner)
+                addDomainAssociation(Constants.LINKEDIN_SHORT_DOMAIN, cleaner)
             }
             "substack" -> {
-                addDomainAssociation("substack.com", cleaner)
+                addDomainAssociation(Constants.SUBSTACK_DOMAIN, cleaner)
             }
         }
     }

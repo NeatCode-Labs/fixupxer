@@ -1,0 +1,8 @@
+v1.6.0 — Custom Instagram proxies + kkinstagram.com returns
+
+• Add your own Instagram embed proxy: Change. → Add custom proxy… (validated, stored locally, deletable)
+• kkinstagram.com is active again as a Backup proxy; old selections are kept
+• Fixed fb.com and vxtwitter.com conversions
+• Legacy/custom proxy links now get Instagram tracking cleanup
+• Share/Open/Copy no longer act on the "Nothing to do!" message
+• History and lifecycle bookkeeping fixes

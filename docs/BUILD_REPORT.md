@@ -81,7 +81,7 @@ FixupXer v1.7.0 has successfully passed release build, unit-test, lint, and full
 ### Performance Metrics
 - **APK Size (Google)**: 4.36 MB release APK
 - **AAB Size**: 5.28 MB Google Play bundle
-- **APK Size (F-Droid/GITHUB)**: see tag-clone build below
+- **APK Size (F-Droid/GITHUB)**: 4.21 MB release APK, no Play dependency metadata
 - **Install Size**: Optimized with ProGuard/R8
 - **Memory Usage**: Efficient resource management
 - **Startup Time**: Fast cold start performance
@@ -96,7 +96,7 @@ FixupXer v1.7.0 has successfully passed release build, unit-test, lint, and full
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` (4.36 MB, SHA-256 `D199CB3783B48F238FB959395550F7D7E54492369AEAF73ECCBE30755F08DF58`)
 - [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` (5.28 MB, SHA-256 `44A6228DB74743D91E5ACDB61572878DC37D98403ACF67AED0CDFE4F3833EB53`)
-- [ ] **GITHUB Release APK**: `FixupXer-v1.7.0-release.apk` — built from a fresh clone of the `v1.7.0` tag (hash recorded after the tag-clone build; published at https://github.com/NeatCode-Labs/fixupxer/releases/tag/v1.7.0)
+- [x] **GITHUB Release APK**: `FixupXer-v1.7.0-release.apk` built from a fresh clone of the `v1.7.0` tag (4.21 MB, SHA-256 `16D64BFC5CCAAE77F7DB17774D60FFD9EB92F8BD20E64456C8211FEB7DD44488`); APK inspected — no `BUNDLE-METADATA/.../dependencies.pb`, no `adi-registration.properties`; published at https://github.com/NeatCode-Labs/fixupxer/releases/tag/v1.7.0
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: 183/183 unit + 186/186 instrumentation, all green
@@ -106,8 +106,8 @@ FixupXer v1.7.0 has successfully passed release build, unit-test, lint, and full
 - [x] `dependenciesInfo.includeInApk = false` preserved
 - [x] Version bump applied to mirror `app/build.gradle.kts` (only the 4 version lines)
 - [x] F-Droid changelog `metadata/en-US/changelogs/31.txt` added (≤ 500 chars)
-- [ ] No `BUNDLE-METADATA/com.android.tools.build.libraries/dependencies.pb` in APK (verified on the tag-clone build)
-- [ ] No `adi-registration.properties` Google marketing asset in APK (verified on the tag-clone build)
+- [x] No `BUNDLE-METADATA/com.android.tools.build.libraries/dependencies.pb` in APK (verified on the tag-clone build)
+- [x] No `adi-registration.properties` Google marketing asset in APK (verified on the tag-clone build)
 - [x] Full sync root → GITHUB for all source files touched by v1.7.0 (code, tests, docs mapping to `docs/`)
 - [x] Only intentional differences from root: `app/build.gradle.kts` (`dependenciesInfo = false/false`), `gradle.properties` (Linux `java.home` for F-Droid CI), missing `adi-registration.properties`, mirror-only `metadata/en-US/`
 - [x] GITHUB unit tests: root parity (identical source)

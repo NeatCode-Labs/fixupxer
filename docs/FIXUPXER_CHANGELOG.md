@@ -637,8 +637,8 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.7.0 | 31 | TikTok conversion support + TikTok proxy picker | ✅ Current |
 
 ### Build Artifacts (v1.7.0):
-- **Google APK:** `app/build/outputs/apk/release/app-release.apk`
-- **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
-- **GITHUB / F-Droid APK:** `GITHUB/fixupxer/app/build/outputs/apk/release/app-release.apk` (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+- **Google APK:** `app/build/outputs/apk/release/app-release.apk` (4.36 MB)
+- **Google AAB:** `app/build/outputs/bundle/release/app-release.aab` (5.28 MB)
+- **GITHUB / F-Droid APK:** `FixupXer-v1.7.0-release.apk` built from a fresh clone of the `v1.7.0` tag (4.21 MB, verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

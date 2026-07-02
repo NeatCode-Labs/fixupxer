@@ -238,6 +238,7 @@ class SettingsActivity : BaseActivity() {
         dialogBinding.switchBrowserTwitter.isChecked = preferencesManager.isBrowserConvertTwitterEnabled()
         dialogBinding.switchBrowserInstagram.isChecked = preferencesManager.isBrowserConvertInstagramEnabled()
         dialogBinding.switchBrowserFacebook.isChecked = preferencesManager.isBrowserConvertFacebookEnabled()
+        dialogBinding.switchBrowserTikTok.isChecked = preferencesManager.isBrowserConvertTikTokEnabled()
         
         val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.conversion_defaults_title)
@@ -251,9 +252,10 @@ class SettingsActivity : BaseActivity() {
             preferencesManager.setBrowserConvertTwitterEnabled(dialogBinding.switchBrowserTwitter.isChecked)
             preferencesManager.setBrowserConvertInstagramEnabled(dialogBinding.switchBrowserInstagram.isChecked)
             preferencesManager.setBrowserConvertFacebookEnabled(dialogBinding.switchBrowserFacebook.isChecked)
+            preferencesManager.setBrowserConvertTikTokEnabled(dialogBinding.switchBrowserTikTok.isChecked)
             
             Toast.makeText(this, getString(R.string.browser_conversion_settings_saved), Toast.LENGTH_SHORT).show()
-            Timber.d("Browser conversion settings saved - Twitter: ${dialogBinding.switchBrowserTwitter.isChecked}, Instagram: ${dialogBinding.switchBrowserInstagram.isChecked}, Facebook: ${dialogBinding.switchBrowserFacebook.isChecked}")
+            Timber.d("Browser conversion settings saved - Twitter: ${dialogBinding.switchBrowserTwitter.isChecked}, Instagram: ${dialogBinding.switchBrowserInstagram.isChecked}, Facebook: ${dialogBinding.switchBrowserFacebook.isChecked}, TikTok: ${dialogBinding.switchBrowserTikTok.isChecked}")
             dialog.dismiss()
         }
         

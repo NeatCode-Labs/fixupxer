@@ -332,6 +332,98 @@ class BidirectionalConversionTest {
         }
     }
     
+    // ============ TIKTOK BIDIRECTIONAL TESTS (v1.7.0) ============
+    
+    @Test
+    fun testCleanTikTokToProxyConversionKeepsWww() {
+        runBlocking {
+            // v1.7.0: Clean tiktok.com → tnktok.com (default proxy), host prefix is PRESERVED
+            preferencesManager.setConvertTikTokEnabled(true)
+            delay(100)
+
+            launchShareActivityWithText("https://www.tiktok.com/@user/video/123456789")
+            onView(isRoot()).perform(waitFor(2000))
+
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText("https://www.tnktok.com/@user/video/123456789")))
+        }
+    }
+
+    @Test
+    fun testCleanProxyToTikTokConversion() {
+        runBlocking {
+            // Clean tnktok.com → tiktok.com (toggle OFF)
+            preferencesManager.setConvertTikTokEnabled(false)
+            delay(100)
+
+            launchShareActivityWithText("https://tnktok.com/@user/video/123456789")
+            onView(isRoot()).perform(waitFor(2000))
+
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText("https://tiktok.com/@user/video/123456789")))
+        }
+    }
+
+    @Test
+    fun testVmTikTokShortLinkKeepsPrefix() {
+        runBlocking {
+            // vm. short links keep their subdomain on conversion
+            preferencesManager.setConvertTikTokEnabled(true)
+            delay(100)
+
+            launchShareActivityWithText("https://vm.tiktok.com/ZMabcdef/")
+            onView(isRoot()).perform(waitFor(2000))
+
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText("https://vm.tnktok.com/ZMabcdef/")))
+        }
+    }
+
+    @Test
+    fun testLegacyVxtiktokMigratesToActiveProxy() {
+        runBlocking {
+            // Legacy vxtiktok.com (dead service) auto-migrates to the selected active proxy
+            preferencesManager.setConvertTikTokEnabled(true)
+            delay(100)
+
+            launchShareActivityWithText("https://vxtiktok.com/@user/video/123456789")
+            onView(isRoot()).perform(waitFor(2000))
+
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText("https://tnktok.com/@user/video/123456789")))
+        }
+    }
+
+    @Test
+    fun testDirtyTikTokToCleanProxy() {
+        runBlocking {
+            // Dirty tiktok.com → Clean tnktok.com (toggle ON)
+            preferencesManager.setConvertTikTokEnabled(true)
+            delay(100)
+
+            launchShareActivityWithText("https://www.tiktok.com/@user/video/123?is_from_webapp=1&_r=1&_t=abc")
+            onView(isRoot()).perform(waitFor(2000))
+
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText("https://www.tnktok.com/@user/video/123")))
+        }
+    }
+
+    @Test
+    fun testCleanTikTokNothingToDoWithToggleOff() {
+        runBlocking {
+            // Clean tiktok.com with toggle OFF should show "Nothing to do"
+            preferencesManager.setConvertTikTokEnabled(false)
+            delay(100)
+
+            launchShareActivityWithText("https://www.tiktok.com/@user/video/123456789")
+            onView(isRoot()).perform(waitFor(2000))
+
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText(containsString("Nothing to do"))))
+        }
+    }
+
     // ============ EDGE CASES ============
     
     @Test

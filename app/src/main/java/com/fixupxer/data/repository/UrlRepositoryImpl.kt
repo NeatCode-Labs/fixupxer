@@ -27,6 +27,7 @@ import com.fixupxer.domain.repository.UrlRepository
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InstagramProxyStore
+import com.fixupxer.utils.TikTokProxyStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -53,6 +54,7 @@ class UrlRepositoryImpl @Inject constructor(
         private const val PLATFORM_INSTAGRAM = "Instagram"
         private const val PLATFORM_TWITTER = "Twitter/X"
         private const val PLATFORM_FACEBOOK = "Facebook"
+        private const val PLATFORM_TIKTOK = "TikTok"
         private const val PLATFORM_OTHER = "Other"
     }
 
@@ -60,6 +62,7 @@ class UrlRepositoryImpl @Inject constructor(
         urlProcessor.isInstagramUrl(url) -> PLATFORM_INSTAGRAM
         urlProcessor.isTwitterUrl(url) -> PLATFORM_TWITTER
         urlProcessor.isFacebookUrl(url) -> PLATFORM_FACEBOOK
+        urlProcessor.isTikTokUrl(url) -> PLATFORM_TIKTOK
         else -> PLATFORM_OTHER
     }
 
@@ -101,8 +104,20 @@ class UrlRepositoryImpl @Inject constructor(
                 (url.contains(Constants.VXTWITTER_DOMAIN, ignoreCase = true) &&
                     (toFixupx || processedUrl.contains(Constants.X_DOMAIN, ignoreCase = true)))
 
+        // TikTok mirrors the Instagram logic: contains(TIKTOK_DOMAIN) is also true for
+        // proxy hosts like kktiktok.com (substring), so proxy checks come first / combined.
+        val tiktokProxies = TikTokProxyStore.allKnownProxies()
+        val urlHasTikTokProxy = tiktokProxies.any { url.contains(it, ignoreCase = true) }
+        val resultHasTikTokProxy = tiktokProxies.any { processedUrl.contains(it, ignoreCase = true) }
+        val isTikTokConversion =
+            (url.contains(Constants.TIKTOK_DOMAIN, ignoreCase = true) && !urlHasTikTokProxy && resultHasTikTokProxy) ||
+                (urlHasTikTokProxy && processedUrl.contains(Constants.TIKTOK_DOMAIN, ignoreCase = true) && !resultHasTikTokProxy) ||
+                (urlHasTikTokProxy && resultHasTikTokProxy && tiktokProxies.none { p ->
+                    url.contains(p, ignoreCase = true) && processedUrl.contains(p, ignoreCase = true)
+                })
+
         return when {
-            isInstagramConversion || isFacebookConversion || isTwitterConversion -> CONVERSION_DOMAIN_CONVERTED
+            isInstagramConversion || isFacebookConversion || isTwitterConversion || isTikTokConversion -> CONVERSION_DOMAIN_CONVERTED
             trackingRemoved -> CONVERSION_TRACKING_REMOVED
             else -> CONVERSION_URL_CLEANED
         }
@@ -134,10 +149,12 @@ class UrlRepositoryImpl @Inject constructor(
         
         val isInstagram = urlProcessor.isInstagramUrl(url)
         val isFacebook = urlProcessor.isFacebookUrl(url)
+        val isTikTok = urlProcessor.isTikTokUrl(url)
         
         val platform = detectPlatform(url)
         
         val instagramProxy = preferencesManager.getInstagramProxy()
+        val tiktokProxy = preferencesManager.getTikTokProxy()
 
         val (processedUrl, wasAlreadyClean) = if (isInstagram) {
             // For Instagram URLs, use the Instagram conversion preference
@@ -154,6 +171,14 @@ class UrlRepositoryImpl @Inject constructor(
                 cleanTracking = forceCleanTracking || preferencesManager.isCleanTrackingEnabled(),
                 convertTwitter = preferencesManager.isConvertInstagramEnabled(),
                 instagramProxy = instagramProxy
+            )
+        } else if (isTikTok) {
+            // For TikTok URLs, use the TikTok conversion preference
+            urlProcessor.processUrl(
+                url,
+                cleanTracking = forceCleanTracking || preferencesManager.isCleanTrackingEnabled(),
+                convertTwitter = preferencesManager.isConvertTikTokEnabled(),
+                tiktokProxy = tiktokProxy
             )
         } else {
             // For other URLs, use the standard preferences
@@ -187,7 +212,9 @@ class UrlRepositoryImpl @Inject constructor(
         
         val isInstagram = urlProcessor.isInstagramUrl(url)
         val isFacebook = urlProcessor.isFacebookUrl(url)
+        val isTikTok = urlProcessor.isTikTokUrl(url)
         val instagramProxy = preferencesManager.getInstagramProxy()
+        val tiktokProxy = preferencesManager.getTikTokProxy()
         
         val (processedUrl, wasAlreadyClean) = if (isInstagram) {
             // For Instagram URLs, use the Instagram conversion preference
@@ -205,6 +232,14 @@ class UrlRepositoryImpl @Inject constructor(
                 convertTwitter = preferencesManager.isConvertInstagramEnabled(),
                 instagramProxy = instagramProxy
             )
+        } else if (isTikTok) {
+            // For TikTok URLs, use the TikTok conversion preference
+            urlProcessor.processUrl(
+                url,
+                cleanTracking = preferencesManager.isCleanTrackingEnabled(),
+                convertTwitter = preferencesManager.isConvertTikTokEnabled(),
+                tiktokProxy = tiktokProxy
+            )
         } else {
             // For other URLs, use the standard preferences
             urlProcessor.processUrl(
@@ -219,7 +254,11 @@ class UrlRepositoryImpl @Inject constructor(
     }
     
     override suspend fun processUrlForSharing(url: String): String = withContext(Dispatchers.IO) {
-        urlProcessor.processUrlForSharing(url, preferencesManager.getInstagramProxy())
+        urlProcessor.processUrlForSharing(
+            url,
+            preferencesManager.getInstagramProxy(),
+            preferencesManager.getTikTokProxy()
+        )
     }
     
     override suspend fun cleanUrl(url: String): String = withContext(Dispatchers.IO) {
@@ -231,6 +270,8 @@ class UrlRepositoryImpl @Inject constructor(
     override fun isInstagramUrl(url: String): Boolean = urlProcessor.isInstagramUrl(url)
     
     override fun isTwitterUrl(url: String): Boolean = urlProcessor.isTwitterUrl(url)
+    
+    override fun isTikTokUrl(url: String): Boolean = urlProcessor.isTikTokUrl(url)
     
     override fun hasTrackingParameters(url: String): Boolean = urlProcessor.hasTrackingParameters(url)
     
@@ -258,17 +299,27 @@ class UrlRepositoryImpl @Inject constructor(
         }
     }
     
+    override fun isTikTokConversionEnabled(): Flow<Boolean> = flowOf(preferencesManager.isConvertTikTokEnabled())
+    
+    override suspend fun setTikTokConversionEnabled(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            preferencesManager.setConvertTikTokEnabled(enabled)
+        }
+    }
+    
     override suspend fun processUrlForBrowser(url: String): ProcessedUrlResult = withContext(Dispatchers.IO) {
         if (url.isEmpty()) return@withContext ProcessedUrlResult(url, true)
         
         val isInstagram = urlProcessor.isInstagramUrl(url)
         val isTwitter = urlProcessor.isTwitterUrl(url)
         val isFacebook = urlProcessor.isFacebookUrl(url)
+        val isTikTok = urlProcessor.isTikTokUrl(url)
         
         val platform = detectPlatform(url)
         
-        // Use browser-specific conversion preferences; Instagram proxy is shared with main app
+        // Use browser-specific conversion preferences; Instagram/TikTok proxies are shared with main app
         val instagramProxy = preferencesManager.getInstagramProxy()
+        val tiktokProxy = preferencesManager.getTikTokProxy()
         val (processedUrl, wasAlreadyClean) = when {
             isInstagram -> {
                 urlProcessor.processUrl(
@@ -292,6 +343,14 @@ class UrlRepositoryImpl @Inject constructor(
                     cleanTracking = preferencesManager.isCleanTrackingEnabled(),
                     convertTwitter = preferencesManager.isBrowserConvertTwitterEnabled(),
                     instagramProxy = instagramProxy
+                )
+            }
+            isTikTok -> {
+                urlProcessor.processUrl(
+                    url,
+                    cleanTracking = preferencesManager.isCleanTrackingEnabled(),
+                    convertTwitter = preferencesManager.isBrowserConvertTikTokEnabled(),
+                    tiktokProxy = tiktokProxy
                 )
             }
             else -> {

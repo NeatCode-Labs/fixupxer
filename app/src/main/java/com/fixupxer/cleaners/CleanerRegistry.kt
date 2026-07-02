@@ -128,9 +128,14 @@ class CleanerRegistry @Inject constructor() {
                 Constants.INSTAGRAM_LEGACY_PROXIES.forEach { addDomainAssociation(it, cleaner) }
             }
             "tiktok" -> {
+                // Fixed proxies only — custom proxies are added at runtime, and
+                // getCleanersFor() falls back to a full matches() scan for domains
+                // not present in this map, so they are still handled correctly.
                 addDomainAssociation(Constants.TIKTOK_DOMAIN, cleaner)
                 addDomainAssociation("vm.${Constants.TIKTOK_DOMAIN}", cleaner)
                 addDomainAssociation("m.${Constants.TIKTOK_DOMAIN}", cleaner)
+                Constants.TIKTOK_PROXY_DOMAINS.forEach { addDomainAssociation(it, cleaner) }
+                Constants.TIKTOK_LEGACY_PROXIES.forEach { addDomainAssociation(it, cleaner) }
             }
             "linkedin" -> {
                 addDomainAssociation(Constants.LINKEDIN_DOMAIN, cleaner)

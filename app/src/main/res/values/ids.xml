@@ -6,4 +6,5 @@
         regardless of which layouts include them at runtime.
     -->
     <item name="instagramProxyInfoIcon" type="id" />
+    <item name="tiktokProxyInfoIcon" type="id" />
 </resources>

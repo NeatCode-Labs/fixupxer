@@ -58,6 +58,7 @@ import com.fixupxer.utils.InputValidator
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.ui.dialogs.HistoryDialogHelper
 import com.fixupxer.ui.dialogs.InstagramProxyDialogHelper
+import com.fixupxer.ui.dialogs.TikTokProxyDialogHelper
 import com.fixupxer.utils.PostCleanRunner
 import com.fixupxer.domain.repository.UrlRepository
 import com.google.android.material.button.MaterialButton
@@ -400,9 +401,18 @@ class MainActivity : BaseActivity() {
         binding.switchTwitter.setOnCheckedChangeListener { _, isChecked ->
             viewModel.onTwitterConversionToggled(isChecked)
         }
+        
+        // TikTok toggle switch
+        binding.switchTikTok.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onTikTokConversionToggled(isChecked)
+        }
 
         binding.textViewChangeProxy.setOnClickListener {
             onChangeProxyClick()
+        }
+
+        binding.textViewChangeTikTokProxy.setOnClickListener {
+            onChangeTikTokProxyClick()
         }
     }
     
@@ -421,6 +431,12 @@ class MainActivity : BaseActivity() {
                     
                     binding.twitterToggleContainer.isVisible = state.isTwitterUrl
                     binding.switchTwitter.isChecked = state.isTwitterConversionEnabled
+                    
+                    binding.tiktokToggleContainer.isVisible = state.isTikTokUrl
+                    if (state.isTikTokUrl) {
+                        refreshTikTokProxyLabel()
+                    }
+                    binding.switchTikTok.isChecked = state.isTikTokConversionEnabled
                     
                     binding.progressIndicator.isVisible = state.isLoading
                     binding.buttonProcess.isEnabled = !state.isLoading
@@ -452,9 +468,22 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    private fun onChangeTikTokProxyClick() {
+        // Same contract as onChangeProxyClick(), but for the TikTok proxy roster.
+        TikTokProxyDialogHelper.show(this, preferencesManager) {
+            refreshTikTokProxyLabel()
+            viewModel.reprocessAfterProxyChange()
+        }
+    }
+
     private fun refreshProxyLabel() {
         binding.textViewInstagramProxyStatus.text =
             getString(R.string.currently_using_proxy, preferencesManager.getInstagramProxy())
+    }
+
+    private fun refreshTikTokProxyLabel() {
+        binding.textViewTikTokProxyStatus.text =
+            getString(R.string.currently_using_proxy, preferencesManager.getTikTokProxy())
     }
     
     private fun shareProcessedUrl() {

@@ -142,6 +142,25 @@ class UrlProcessorMatrixTest {
             Case("vxtwitter.com clean, toggle OFF", "https://vxtwitter.com/user/status/1", true, false, "https://x.com/user/status/1", false, false),
             Case("vxtwitter.com clean, toggle ON", "https://vxtwitter.com/user/status/1", true, true, "https://fixupx.com/user/status/1", false, false),
 
+            // === TikTok ===
+            // Default proxy is tnktok.com (Constants.TIKTOK_DEFAULT_PROXY).
+            // Host prefix (www., vm., …) is preserved on conversion.
+            Case("tiktok clean, toggle OFF", "https://www.tiktok.com/@user/video/1", true, false, "https://www.tiktok.com/@user/video/1", true, true),
+            Case("tiktok clean, toggle ON", "https://www.tiktok.com/@user/video/1", true, true, "https://www.tnktok.com/@user/video/1", false, false),
+            Case("tiktok dirty, toggle OFF", "https://www.tiktok.com/@user/video/1?is_from_webapp=1&_r=1", true, false, "https://www.tiktok.com/@user/video/1", false, false),
+            Case("tiktok dirty, toggle ON", "https://www.tiktok.com/@user/video/1?is_from_webapp=1&_r=1", true, true, "https://www.tnktok.com/@user/video/1", false, false),
+            // vm. short link keeps its prefix
+            Case("vm.tiktok clean, toggle ON", "https://vm.tiktok.com/ZMabcdef/", true, true, "https://vm.tnktok.com/ZMabcdef/", false, false),
+            // Clean active default proxy (tnktok.com): no-op when toggle ON, reverts to tiktok when OFF
+            Case("tnktok clean, toggle OFF", "https://tnktok.com/@user/video/1", true, false, "https://tiktok.com/@user/video/1", false, false),
+            Case("tnktok clean, toggle ON", "https://tnktok.com/@user/video/1", true, true, "https://tnktok.com/@user/video/1", true, true),
+            // Active backup proxy (kktiktok) converts to the selected proxy (default tnktok.com) when toggle ON
+            Case("backup kktiktok clean, toggle OFF", "https://kktiktok.com/@user/video/1", true, false, "https://tiktok.com/@user/video/1", false, false),
+            Case("backup kktiktok clean, toggle ON", "https://kktiktok.com/@user/video/1", true, true, "https://tnktok.com/@user/video/1", false, false),
+            // Legacy proxy auto-migration: vxtiktok converts to default (tnktok.com) when toggle ON
+            Case("legacy vxtiktok clean, toggle OFF", "https://vxtiktok.com/@user/video/1", true, false, "https://tiktok.com/@user/video/1", false, false),
+            Case("legacy vxtiktok clean, toggle ON", "https://vxtiktok.com/@user/video/1", true, true, "https://tnktok.com/@user/video/1", false, false),
+
             // === Facebook ===
             Case("facebook.com clean, toggle OFF", "https://facebook.com/somepage", true, false, "https://facebook.com/somepage", true, true),
             Case("facebook.com clean, toggle ON", "https://facebook.com/somepage", true, true, "https://facebookez.com/somepage", false, false),

@@ -25,6 +25,7 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InstagramProxyStore
+import com.fixupxer.utils.TikTokProxyStore
 
 /**
  * Manages user preferences for the app
@@ -37,8 +38,11 @@ class PreferencesManager(context: Context) {
         private const val KEY_CLEAN_TRACKING = "clean_tracking"
         private const val KEY_CONVERT_TWITTER = "convert_twitter"
         private const val KEY_CONVERT_INSTAGRAM = "convert_instagram"
+        private const val KEY_CONVERT_TIKTOK = "convert_tiktok"
         private const val KEY_INSTAGRAM_PROXY = "instagram_proxy_domain"
         private const val KEY_CUSTOM_INSTAGRAM_PROXIES = "custom_instagram_proxies"
+        private const val KEY_TIKTOK_PROXY = "tiktok_proxy_domain"
+        private const val KEY_CUSTOM_TIKTOK_PROXIES = "custom_tiktok_proxies"
         private const val KEY_HISTORY_ENABLED = "history_enabled"
         private const val KEY_MAX_HISTORY_ENTRIES = "max_history_entries"
         private const val DEFAULT_MAX_HISTORY_ENTRIES = 100
@@ -52,6 +56,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_BROWSER_CONVERT_TWITTER = "browser_convert_twitter"
         private const val KEY_BROWSER_CONVERT_INSTAGRAM = "browser_convert_instagram"
         private const val KEY_BROWSER_CONVERT_FACEBOOK = "browser_convert_facebook"
+        private const val KEY_BROWSER_CONVERT_TIKTOK = "browser_convert_tiktok"
         
         // Action mode constants
         const val ACTION_MODE_ASK = "ask"
@@ -67,9 +72,10 @@ class PreferencesManager(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     init {
-        // Mirror persisted custom proxies into the process-wide store so stateless
-        // consumers (UrlProcessor, InstagramCleaner) see them immediately.
+        // Mirror persisted custom proxies into the process-wide stores so stateless
+        // consumers (UrlProcessor, InstagramCleaner, TikTokCleaner) see them immediately.
         InstagramProxyStore.setCustomProxies(getCustomInstagramProxies())
+        TikTokProxyStore.setCustomProxies(getCustomTikTokProxies())
     }
 
     /**
@@ -112,6 +118,20 @@ class PreferencesManager(context: Context) {
      */
     fun setConvertInstagramEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_CONVERT_INSTAGRAM, enabled) }
+    }
+
+    /**
+     * Check if TikTok URL conversion is enabled
+     */
+    fun isConvertTikTokEnabled(): Boolean {
+        return prefs.getBoolean(KEY_CONVERT_TIKTOK, true)
+    }
+
+    /**
+     * Set whether TikTok URL conversion is enabled
+     */
+    fun setConvertTikTokEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_CONVERT_TIKTOK, enabled) }
     }
 
     /**
@@ -168,6 +188,62 @@ class PreferencesManager(context: Context) {
     private fun persistCustomProxies(proxies: List<String>) {
         prefs.edit { putString(KEY_CUSTOM_INSTAGRAM_PROXIES, proxies.joinToString(",")) }
         InstagramProxyStore.setCustomProxies(proxies)
+    }
+
+    /**
+     * Get the currently selected TikTok embed proxy domain.
+     * Defaults to [Constants.TIKTOK_DEFAULT_PROXY]. If the stored value is no longer
+     * an active proxy (e.g. a custom proxy the user has since deleted), we silently
+     * migrate to the default.
+     */
+    fun getTikTokProxy(): String {
+        val value = prefs.getString(KEY_TIKTOK_PROXY, Constants.TIKTOK_DEFAULT_PROXY)
+            ?: Constants.TIKTOK_DEFAULT_PROXY
+        return if (TikTokProxyStore.activeProxies().contains(value)) {
+            value
+        } else {
+            Constants.TIKTOK_DEFAULT_PROXY
+        }
+    }
+
+    /**
+     * Set the selected TikTok embed proxy domain. Must be one of the active
+     * proxies (fixed roster or a saved custom proxy); anything else is ignored.
+     */
+    fun setTikTokProxy(domain: String) {
+        if (!TikTokProxyStore.activeProxies().contains(domain)) return
+        prefs.edit { putString(KEY_TIKTOK_PROXY, domain) }
+    }
+
+    /**
+     * User-defined custom TikTok proxies (persisted comma-separated).
+     */
+    fun getCustomTikTokProxies(): List<String> {
+        val stored = prefs.getString(KEY_CUSTOM_TIKTOK_PROXIES, null)
+        return if (stored.isNullOrEmpty()) emptyList() else stored.split(",").filter { it.isNotBlank() }
+    }
+
+    /**
+     * Add a custom TikTok proxy. The caller is expected to pass a domain that
+     * already passed [TikTokProxyStore] normalization + validation.
+     */
+    fun addCustomTikTokProxy(domain: String) {
+        val current = getCustomTikTokProxies()
+        if (domain in current) return
+        persistCustomTikTokProxies(current + domain)
+    }
+
+    /**
+     * Remove a custom TikTok proxy. If it was the selected proxy,
+     * [getTikTokProxy] transparently falls back to the default.
+     */
+    fun removeCustomTikTokProxy(domain: String) {
+        persistCustomTikTokProxies(getCustomTikTokProxies() - domain)
+    }
+
+    private fun persistCustomTikTokProxies(proxies: List<String>) {
+        prefs.edit { putString(KEY_CUSTOM_TIKTOK_PROXIES, proxies.joinToString(",")) }
+        TikTokProxyStore.setCustomProxies(proxies)
     }
 
     /**
@@ -286,5 +362,19 @@ class PreferencesManager(context: Context) {
      */
     fun setBrowserConvertFacebookEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_BROWSER_CONVERT_FACEBOOK, enabled) }
+    }
+    
+    /**
+     * Check if TikTok URL conversion is enabled for browser mode
+     */
+    fun isBrowserConvertTikTokEnabled(): Boolean {
+        return prefs.getBoolean(KEY_BROWSER_CONVERT_TIKTOK, false)
+    }
+    
+    /**
+     * Set whether TikTok URL conversion is enabled for browser mode
+     */
+    fun setBrowserConvertTikTokEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_BROWSER_CONVERT_TIKTOK, enabled) }
     }
 } 

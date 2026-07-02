@@ -1,17 +1,18 @@
 # FixupXer App - Development Summary
-## Version Progression: v1.6.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v1.7.0 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 24 (v1.6.0, v1.5.1, v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
-**Current Version:** v1.6.0 (versionCode: 30)  
-**Development Period:** v1.2.1 (Initial) → v1.6.0 (Current)
+**Total Versions Released:** 25 (v1.7.0, v1.6.0, v1.5.1, v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
+**Current Version:** v1.7.0 (versionCode: 31)  
+**Development Period:** v1.2.1 (Initial) → v1.7.0 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in the complete engine overhaul in v1.4.0, the browser mode feature added in v1.4.6, the selectable Instagram embed proxy introduced in v1.4.7 (refreshed in v1.4.8), browser-mode stability fixes in v1.4.9, Xiaomi/HyperOS default-browser compatibility shipped in v1.5.0, the unified Instagram proxy chooser in v1.5.1 (Settings entry removed; Main/Share use the same dialog), and user-defined custom Instagram proxies plus the return of kkinstagram.com in v1.6.0.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in the complete engine overhaul in v1.4.0, the browser mode feature added in v1.4.6, the selectable Instagram embed proxy introduced in v1.4.7 (refreshed in v1.4.8), browser-mode stability fixes in v1.4.9, Xiaomi/HyperOS default-browser compatibility shipped in v1.5.0, the unified Instagram proxy chooser in v1.5.1 (Settings entry removed; Main/Share use the same dialog), user-defined custom Instagram proxies plus the return of kkinstagram.com in v1.6.0, and full TikTok conversion support with its own Primary/Backup/Custom proxy picker in v1.7.0.
 
 ### Key Achievements:
+- ✅ **TikTok Conversion Support** - Dedicated Embed? toggle + full proxy picker (tnktok.com, tfxktok.com, tiktokez.com, kktiktok.com + custom), subdomain-preserving conversion
 - ✅ **Custom Instagram Proxies** - Users can add/select/delete their own embed proxy domains, validated and persisted locally
 - ✅ **Browser Mode Integration** - Optional system-wide URL filtering as default browser with configurable action priorities
 - ✅ **Selectable Instagram Embed Proxy** - User-chosen, persistent proxy for Instagram embeds with cross-proxy swap, legacy auto-migration, and bare-hostname conversion
@@ -29,6 +30,28 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v1.6.0 → v1.7.0
+- **Focus:** TikTok conversion support — dedicated Embed? toggle plus a full Primary/Backup/Custom proxy picker mirroring the Instagram system. Idea from community PR #5 (@gautamnabin5), re-implemented on the v1.6.0 architecture and expanded from a single hardcoded proxy (kktiktok.com) to a four-proxy roster with custom entries and legacy migration.
+- **Key Changes — proxy roster (`Constants.kt`):**
+  - `TIKTOK_DOMAIN` moved from "Other services" into a new TikTok block. New: `TNKTOK_DOMAIN`, `TFXKTOK_DOMAIN` (`TIKTOK_PRIMARY_PROXIES` — embed videos + slideshows + stats), `TIKTOKEZ_DOMAIN`, `KKTIKTOK_DOMAIN` (`TIKTOK_BACKUP_PROXIES`), `TIKTOK_PROXY_DOMAINS = PRIMARY + BACKUP`, `TIKTOK_DEFAULT_PROXY = tnktok.com`, `TIKTOK_LEGACY_PROXIES = [vxtiktok.com, tiktxk.com]` (dead services, detected for auto-migration only).
+  - **New `utils/TikTokProxyStore`** — twin of `InstagramProxyStore` (`@Volatile` custom snapshot, `activeProxies()`/`allKnownProxies()`, normalization/format/reserved/duplicate validation delegating to the Instagram store where identical). Both stores now treat each other's domains as reserved so the two custom rosters cannot hijack each other's substring-based detection.
+- **Key Changes — conversion engine (`UrlProcessor.kt`):**
+  - New `isTikTokUrl()` (tiktok.com + all known proxies), `convertToTikTokProxy()` and `convertFromTikTokProxy()`; new `tiktokProxy` parameter on `processUrl()` / `processUrlForSharing()`; TikTok branch appended to `applyDomainConversions()`.
+  - **Subdomain preservation** — unlike Instagram (www. stripped), TikTok conversions keep the host prefix (`vm.tiktok.com` → `vm.tnktok.com`) because TikTok short links live on subdomains (vm./vt.) and the proxies mirror them. Regex is anchored to the protocol with an explicit label-prefix group; kktiktok.com/vxtiktok.com containing "tiktok.com" as a substring is handled by combined proxy-first checks.
+- **Key Changes — plumbing:**
+  - `PreferencesManager`: new `convert_tiktok`, `tiktok_proxy_domain`, `custom_tiktok_proxies` (CSV), `browser_convert_tiktok` prefs + accessors; init mirrors custom list into `TikTokProxyStore`; `getTikTokProxy()` validates against active proxies with silent fallback to default.
+  - `UrlRepository`/`UrlRepositoryImpl`: `isTikTokUrl()`, `isTikTokConversionEnabled()`/`setTikTokConversionEnabled()`; TikTok branches in `processUrl`, `processUrlWithoutHistory`, `processUrlForBrowser` (browser pref, default off); platform detection + history `classifyConversion()` extended (proxy-first substring handling as for Instagram).
+  - `TikTokCleaner.matches()` extended with `TikTokProxyStore.allKnownProxies()` so proxy links get TikTok tracking cleanup (`_r`, `_t`, `tt_from`, …); `CleanerRegistry` associates fixed + legacy TikTok proxies for O(1) dispatch; `PostCleanRunner` recognizes proxy links as TikTok content for native-app forwarding.
+- **Key Changes — UI:**
+  - New `tiktokToggleContainer` row in `activity_main.xml` / `activity_share.xml` (icon + Embed? + switch + "Active: <proxy>. Change." row), identical structure to the Instagram row.
+  - **New `ui/dialogs/TikTokProxyDialogHelper`** — twin of the Instagram dialog helper; reuses the generic picker layouts/strings (`item_instagram_proxy_option`, `dialog_add_custom_proxy`, badge/validation strings); TikTok-specific title/info strings. `tiktokProxyInfoIcon` added to `ids.xml`.
+  - ViewModels: `isTikTokUrl`/`isTikTokConversionEnabled` UiState fields, `onTikTokConversionToggled()`; `MainViewModel.reprocessAfterProxyChange()` now also fires for TikTok URLs.
+  - Settings → Conversion Defaults dialog: new **Convert TikTok links** switch (browser mode).
+  - Strings: `convert_tiktok_toggle(_desc)`, `tiktok_proxy_dialog_title`, `tiktok_proxy_info_text`, `change_tiktok_proxy_link_desc`, `convert_tiktok_browser`; disclaimer/trademark lists updated with the four TikTok proxies.
+- **Tests added:** `TikTokProxySelectionTest` (28 unit cases — forward/backward/cross-proxy/legacy/no-op/prefix preservation/detection), `CustomTikTokProxyTest` (15 unit cases — store state, reserved domains incl. cross-platform, custom conversions, cleaner matching), TikTok rows in `UrlProcessorMatrixTest` + 4 `UrlProcessorTest` cases, `TikTokProxyPreferenceTest` (15 instrumentation cases — persistence, validation fallback, custom roster independence from Instagram), 6 TikTok scenarios in `BidirectionalConversionTest`.
+- **Tests pass rate:** 183/183 unit (100%) + 186/186 instrumentation (100%) on `Pixel_API_35_Play`, first-pass green.
+- **Impact:** TikTok links finally embed properly when shared to Discord/Telegram, with the same resilience story as Instagram — four independent proxy services, user-supplied custom proxies, and automatic migration off dead services (vxtiktok.com shut down 11/2025).
 
 ### v1.5.1 → v1.6.0
 - **Focus:** User-defined custom Instagram proxies, kkinstagram.com reinstated as an active Backup proxy, and a broad bug-fix / code-hygiene pass.
@@ -610,9 +633,10 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.4.9 | 27 | Browser mode stability & routing fixes | ✅ Released |
 | v1.5.0 | 28 | Xiaomi/Redmi/HyperOS default-browser compatibility | ✅ Released |
 | v1.5.1 | 29 | Unified Instagram proxy chooser (Settings entry removed) | ✅ Released |
-| v1.6.0 | 30 | Custom Instagram proxies + kkinstagram.com returns | ✅ Current |
+| v1.6.0 | 30 | Custom Instagram proxies + kkinstagram.com returns | ✅ Released |
+| v1.7.0 | 31 | TikTok conversion support + TikTok proxy picker | ✅ Current |
 
-### Build Artifacts (v1.6.0):
+### Build Artifacts (v1.7.0):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk`
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
 - **GITHUB / F-Droid APK:** `GITHUB/fixupxer/app/build/outputs/apk/release/app-release.apk` (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)

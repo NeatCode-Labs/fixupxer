@@ -25,6 +25,7 @@ import androidx.core.net.toUri
 import com.fixupxer.cleaners.CleanerService
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InstagramProxyStore
+import com.fixupxer.utils.TikTokProxyStore
 import timber.log.Timber
 import java.net.IDN
 import java.net.URI
@@ -38,6 +39,7 @@ import java.util.regex.Pattern
  * 1. Remove tracking parameters (like ClearURLs)
  * 2. Convert Twitter/X URLs to FixupX format for better embedding
  * 3. Convert Instagram URLs to a user-selected proxy for better embedding
+ * 4. Convert TikTok URLs to a user-selected proxy for better embedding
  */
 @Singleton
 class UrlProcessor @Inject constructor(
@@ -46,15 +48,17 @@ class UrlProcessor @Inject constructor(
     
     /**
      * Process a URL by cleaning tracking parameters and optionally converting 
-     * Twitter/X URLs to fixupx.com format and Instagram URLs to a selected proxy
+     * Twitter/X URLs to fixupx.com format and Instagram/TikTok URLs to a selected proxy
      * @param instagramProxy which Instagram proxy to convert to (default [Constants.INSTAGRAM_DEFAULT_PROXY])
+     * @param tiktokProxy which TikTok proxy to convert to (default [Constants.TIKTOK_DEFAULT_PROXY])
      * @return Pair of (processedUrl, wasAlreadyClean)
      */
     fun processUrl(
         url: String,
         cleanTracking: Boolean,
         convertTwitter: Boolean,
-        instagramProxy: String = Constants.INSTAGRAM_DEFAULT_PROXY
+        instagramProxy: String = Constants.INSTAGRAM_DEFAULT_PROXY,
+        tiktokProxy: String = Constants.TIKTOK_DEFAULT_PROXY
     ): Pair<String, Boolean> {
         if (url.isEmpty()) {
             throw IllegalArgumentException("Please enter a URL")
@@ -97,7 +101,8 @@ class UrlProcessor @Inject constructor(
             val convertedUrl = applyDomainConversions(
                 finalUrl,
                 convertToAlternative = convertTwitter,
-                instagramProxy = instagramProxy
+                instagramProxy = instagramProxy,
+                tiktokProxy = tiktokProxy
             )
             
             // Check if any changes were made
@@ -140,10 +145,15 @@ class UrlProcessor @Inject constructor(
     private fun applyDomainConversions(
         url: String,
         convertToAlternative: Boolean,
-        instagramProxy: String = Constants.INSTAGRAM_DEFAULT_PROXY
+        instagramProxy: String = Constants.INSTAGRAM_DEFAULT_PROXY,
+        tiktokProxy: String = Constants.TIKTOK_DEFAULT_PROXY
     ): String {
         val isInstagram = isInstagramUrl(url)
         val isInstagramProxy = InstagramProxyStore.allKnownProxies().any {
+            url.contains(it, ignoreCase = true)
+        }
+        val isTikTok = isTikTokUrl(url)
+        val isTikTokProxy = TikTokProxyStore.allKnownProxies().any {
             url.contains(it, ignoreCase = true)
         }
 
@@ -176,6 +186,10 @@ class UrlProcessor @Inject constructor(
             url.contains(Constants.FACEBOOKEZ_DOMAIN, ignoreCase = true) && !convertToAlternative ->
                 convertFromFacebookez(url)
             
+            // TikTok conversions — covers tiktok.com + any known proxy (fixed/custom/legacy)
+            isTikTok && convertToAlternative -> convertToTikTokProxy(url, tiktokProxy)
+            isTikTokProxy && !convertToAlternative -> convertFromTikTokProxy(url)
+            
             else -> url
         }
     }
@@ -186,7 +200,8 @@ class UrlProcessor @Inject constructor(
      */
     fun processUrlForSharing(
         url: String,
-        instagramProxy: String = Constants.INSTAGRAM_DEFAULT_PROXY
+        instagramProxy: String = Constants.INSTAGRAM_DEFAULT_PROXY,
+        tiktokProxy: String = Constants.TIKTOK_DEFAULT_PROXY
     ): String {
         if (url.isEmpty()) {
             return url
@@ -206,7 +221,8 @@ class UrlProcessor @Inject constructor(
             applyDomainConversions(
                 cleanedUrl,
                 convertToAlternative = true,
-                instagramProxy = instagramProxy
+                instagramProxy = instagramProxy,
+                tiktokProxy = tiktokProxy
             )
         } catch (e: Exception) {
             Timber.e(e, "Error processing URL for sharing")
@@ -454,6 +470,80 @@ class UrlProcessor @Inject constructor(
             url.replace(regex, "$1${Constants.FACEBOOK_DOMAIN}")
         } else {
             url.replace(Constants.FACEBOOKEZ_DOMAIN, Constants.FACEBOOK_DOMAIN, ignoreCase = true)
+        }
+    }
+    
+    /**
+     * Check if a URL is a TikTok URL (tiktok.com or any of the supported / custom / legacy proxies).
+     * Legacy proxies are detected so existing pasted links still trigger the conversion flow.
+     * Note: kktiktok.com and vxtiktok.com contain "tiktok.com", so the first check
+     * already covers them — the proxy scan is for the non-substring proxies (tnktok.com, …).
+     */
+    fun isTikTokUrl(url: String): Boolean {
+        if (url.contains(Constants.TIKTOK_DOMAIN, ignoreCase = true)) return true
+        return TikTokProxyStore.allKnownProxies().any { url.contains(it, ignoreCase = true) }
+    }
+
+    /**
+     * Convert tiktok.com / any proxy in [url] to the [targetProxy] domain.
+     *
+     * Unlike Instagram conversions, any host prefix (`www.`, `vm.`, `vt.`, `m.`, …) is
+     * PRESERVED: TikTok share links live on subdomains and the proxies mirror them
+     * (vm.tiktok.com → vm.tnktok.com), so stripping the prefix would break short links.
+     */
+    private fun convertToTikTokProxy(url: String, targetProxy: String): String {
+        val knownDomains = listOf(Constants.TIKTOK_DOMAIN) + TikTokProxyStore.allKnownProxies()
+        val alternation = knownDomains.joinToString("|") { it.replace(".", "\\.") }
+        val pattern = Pattern.compile(
+            "(https?://)((?:[a-z0-9-]+\\.)*)($alternation)",
+            Pattern.CASE_INSENSITIVE
+        )
+        val matcher = pattern.matcher(url)
+        return if (matcher.find()) {
+            matcher.replaceAll("\$1\$2${targetProxy}")
+        } else {
+            var result = url
+            for (domain in knownDomains) {
+                if (result.contains(domain, ignoreCase = true)) {
+                    result = result.replace(domain, targetProxy, ignoreCase = true)
+                    break
+                }
+            }
+            result
+        }
+    }
+
+    /**
+     * Convert any TikTok proxy in [url] (fixed, custom or legacy) back to tiktok.com,
+     * preserving any host prefix (vm.tnktok.com → vm.tiktok.com).
+     */
+    private fun convertFromTikTokProxy(url: String): String {
+        val knownProxies = TikTokProxyStore.allKnownProxies()
+        // Already on tiktok.com and no proxy is present (kktiktok.com/vxtiktok.com
+        // contain "tiktok.com" as substring, hence the combined check)
+        if (url.contains(Constants.TIKTOK_DOMAIN, ignoreCase = true) &&
+            knownProxies.none { url.contains(it, ignoreCase = true) }
+        ) {
+            return url
+        }
+
+        val proxyAlternation = knownProxies.joinToString("|") { it.replace(".", "\\.") }
+        val pattern = Pattern.compile(
+            "(https?://)((?:[a-z0-9-]+\\.)*)($proxyAlternation)",
+            Pattern.CASE_INSENSITIVE
+        )
+        val matcher = pattern.matcher(url)
+        return if (matcher.find()) {
+            matcher.replaceAll("\$1\$2${Constants.TIKTOK_DOMAIN}")
+        } else {
+            var result = url
+            for (proxy in knownProxies) {
+                if (result.contains(proxy, ignoreCase = true)) {
+                    result = result.replace(proxy, Constants.TIKTOK_DOMAIN, ignoreCase = true)
+                    break
+                }
+            }
+            result
         }
     }
     

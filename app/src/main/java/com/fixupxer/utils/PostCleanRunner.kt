@@ -210,7 +210,8 @@ class PostCleanRunner(
             url.contains(Constants.LINKEDIN_DOMAIN) -> "com.linkedin.android"
             url.contains(Constants.AMAZON_DOMAIN) || url.contains(Constants.AMAZON_SHORT_DOMAIN) -> "com.amazon.mShop.android.shopping"
             url.contains("${Constants.GOOGLE_DOMAIN}/search") || url.contains("${Constants.GOOGLE_DOMAIN}/url") -> "com.google.android.googlequicksearchbox"
-            url.contains(Constants.TIKTOK_DOMAIN) -> "com.zhiliaoapp.musically"  // Most common TikTok package
+            url.contains(Constants.TIKTOK_DOMAIN) ||
+                TikTokProxyStore.allKnownProxies().any { url.contains(it) } -> "com.zhiliaoapp.musically"  // Most common TikTok package
             url.contains(Constants.SUBSTACK_DOMAIN) -> "com.substack.app"
             else -> null
         }
@@ -320,8 +321,9 @@ class PostCleanRunner(
                     Timber.d("URL contains substack.com, trying to add Substack app")
                     tryAddManualApp("com.substack.app", uri, targetIntents, manuallyAddedApps)
                 }
-                url.contains(Constants.TIKTOK_DOMAIN) -> {
-                    Timber.d("URL contains tiktok.com, trying to add TikTok app")
+                url.contains(Constants.TIKTOK_DOMAIN) ||
+                    TikTokProxyStore.allKnownProxies().any { url.contains(it) } -> {
+                    Timber.d("URL contains TikTok or one of its proxies, trying to add TikTok app")
                     tryAddManualApp("com.zhiliaoapp.musically", uri, targetIntents, manuallyAddedApps)
                 }
                 url.contains(Constants.AMAZON_DOMAIN) || url.contains(Constants.AMAZON_SHORT_DOMAIN) -> {

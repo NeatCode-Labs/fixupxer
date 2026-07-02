@@ -94,6 +94,31 @@
 
     </LinearLayout>
 
+    <!-- TikTok conversion toggle -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="@dimen/padding_medium"
+        android:paddingBottom="@dimen/padding_medium">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/convert_tiktok_browser"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchBrowserTikTok"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:thumbTint="@color/switch_thumb_selector"
+            app:trackTint="@color/switch_track_selector" />
+
+    </LinearLayout>
+
     <!-- Divider -->
     <View
         android:layout_width="match_parent"

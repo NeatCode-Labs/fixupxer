@@ -240,6 +240,38 @@ class UrlProcessorTest {
     }
     
     @Test
+    fun `test convert TikTok URL to default proxy keeps subdomain`() {
+        // v1.7.0: default proxy = tnktok.com; host prefix is preserved
+        val tiktokUrl = "https://www.tiktok.com/@username/video/1234567890123456789"
+        val expected = "https://www.tnktok.com/@username/video/1234567890123456789"
+        val result = urlProcessor.processUrl(tiktokUrl, cleanTracking = false, convertTwitter = true).first
+        assertEquals(expected, result)
+    }
+    
+    @Test
+    fun `test TikTok URL with tracking parameters`() {
+        val tiktokUrl = "https://www.tiktok.com/@username/video/123?is_from_webapp=1&sender_device=pc&_r=1"
+        val expected = "https://www.tnktok.com/@username/video/123"
+        val result = urlProcessor.processUrl(tiktokUrl, cleanTracking = true, convertTwitter = true).first
+        assertEquals(expected, result)
+    }
+    
+    @Test
+    fun `test bare tnktok URL remains unchanged when converting`() {
+        val proxyUrl = "https://tnktok.com/@username/video/123"
+        val result = urlProcessor.processUrl(proxyUrl, cleanTracking = false, convertTwitter = true).first
+        assertEquals(proxyUrl, result)
+    }
+    
+    @Test
+    fun `test tnktok URL reverts to TikTok when conversion off`() {
+        val proxyUrl = "https://vm.tnktok.com/ZMabcdef/"
+        val expected = "https://vm.tiktok.com/ZMabcdef/"
+        val result = urlProcessor.processUrl(proxyUrl, cleanTracking = false, convertTwitter = false).first
+        assertEquals(expected, result)
+    }
+    
+    @Test
     fun `test extract URLs from text`() {
         val text = "Check out https://example.com and http://test.org/page"
         val urls = UrlProcessor.extractUrls(text)

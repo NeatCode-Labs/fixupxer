@@ -22,6 +22,7 @@ package com.fixupxer.cleaners.impl
 
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
+import com.fixupxer.utils.TikTokProxyStore
 
 /**
  * Cleaner for TikTok URLs - comprehensive tracking removal
@@ -115,9 +116,12 @@ object TikTokCleaner : UrlCleaner {
     
     override fun matches(url: String): Boolean {
         val lowerUrl = url.lowercase()
+        // All known proxies (fixed + custom + legacy) so proxy links get the same
+        // TikTok-specific parameter cleaning (_r, _t, tt_from, ...).
         return lowerUrl.contains("tiktok.com") ||
                lowerUrl.contains("tiktokcdn.com") ||
-               lowerUrl.contains("tiktokv.com")
+               lowerUrl.contains("tiktokv.com") ||
+               TikTokProxyStore.allKnownProxies().any { lowerUrl.contains(it) }
     }
     
     override fun clean(url: String): String {

@@ -66,6 +66,11 @@ class ShareViewModel @Inject constructor(
                 _uiState.update { it.copy(isTwitterConversionEnabled = enabled) }
             }
         }
+        viewModelScope.launch {
+            urlRepository.isTikTokConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isTikTokConversionEnabled = enabled) }
+            }
+        }
     }
     
     fun processSharedText(sharedText: String) {
@@ -109,12 +114,14 @@ class ShareViewModel @Inject constructor(
                     val isTwitter = urlProcessor.isTwitterUrl(url)
                     // Facebook URLs use the Instagram toggle
                     val isFacebook = urlProcessor.isFacebookUrl(url)
+                    val isTikTok = urlProcessor.isTikTokUrl(url)
                     
                     _uiState.update { 
                         it.copy(
                             isInstagramUrl = isInstagram,
                             isFacebookUrl = isFacebook,
-                            isTwitterUrl = isTwitter
+                            isTwitterUrl = isTwitter,
+                            isTikTokUrl = isTikTok
                         ) 
                     }
                     
@@ -217,6 +224,19 @@ class ShareViewModel @Inject constructor(
         }
     }
     
+    fun onTikTokConversionToggled(enabled: Boolean) {
+        viewModelScope.launch {
+            urlRepository.setTikTokConversionEnabled(enabled)
+            _uiState.update { it.copy(isTikTokConversionEnabled = enabled) }
+            
+            // Re-process the URL with new setting WITHOUT going through the full flow
+            val sharedText = _uiState.value.sharedText
+            if (sharedText.isNotEmpty()) {
+                reprocessUrlLocally()
+            }
+        }
+    }
+    
     private suspend fun reprocessUrlLocally() {
         try {
             val sharedText = _uiState.value.sharedText
@@ -265,6 +285,7 @@ class ShareViewModel @Inject constructor(
                 isInstagramUrl = false,
                 isFacebookUrl = false,
                 isTwitterUrl = false,
+                isTikTokUrl = false,
                 error = null
             )
         }
@@ -288,5 +309,7 @@ data class ShareUiState(
     val isInstagramConversionEnabled: Boolean = true,
     val isTwitterUrl: Boolean = false,
     val isTwitterConversionEnabled: Boolean = true,
+    val isTikTokUrl: Boolean = false,
+    val isTikTokConversionEnabled: Boolean = true,
     val error: String? = null
 ) 

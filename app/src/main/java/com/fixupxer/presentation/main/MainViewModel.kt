@@ -64,6 +64,11 @@ class MainViewModel @Inject constructor(
                 _uiState.update { it.copy(isTwitterConversionEnabled = enabled) }
             }
         }
+        viewModelScope.launch {
+            urlRepository.isTikTokConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isTikTokConversionEnabled = enabled) }
+            }
+        }
     }
     
     fun onUrlChanged(url: String) {
@@ -78,6 +83,7 @@ class MainViewModel @Inject constructor(
         }
 
         val showTwitterToggle = url.isNotEmpty() && urlRepository.isTwitterUrl(url)
+        val isTikTok = url.isNotEmpty() && urlRepository.isTikTokUrl(url)
 
         _uiState.update { 
             it.copy(
@@ -85,6 +91,7 @@ class MainViewModel @Inject constructor(
                 isInstagramUrl = isInstagram,
                 isFacebookUrl = isFacebook,
                 isTwitterUrl = showTwitterToggle,
+                isTikTokUrl = isTikTok,
                 error = null
             )
         }
@@ -101,6 +108,13 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             urlRepository.setTwitterConversionEnabled(enabled)
             _uiState.update { it.copy(isTwitterConversionEnabled = enabled) }
+        }
+    }
+    
+    fun onTikTokConversionToggled(enabled: Boolean) {
+        viewModelScope.launch {
+            urlRepository.setTikTokConversionEnabled(enabled)
+            _uiState.update { it.copy(isTikTokConversionEnabled = enabled) }
         }
     }
     
@@ -165,18 +179,18 @@ class MainViewModel @Inject constructor(
     }
     
     /**
-     * Re-process the current input after the user picks a different Instagram proxy.
-     * Only acts when (a) the input is an Instagram URL (the only platform with multiple
-     * proxies), and (b) the user has already pressed Process at least once (so an
-     * actionable URL exists). Otherwise no-op — the regular Process button still owns
-     * the first-time processing flow.
+     * Re-process the current input after the user picks a different Instagram or
+     * TikTok proxy. Only acts when (a) the input is an Instagram/TikTok URL (the
+     * platforms with multiple proxies), and (b) the user has already pressed Process
+     * at least once (so an actionable URL exists). Otherwise no-op — the regular
+     * Process button still owns the first-time processing flow.
      *
      * Mirrors `ShareViewModel.reprocessUrlLocally()` semantics: passes the previous
      * processed URL to the repository so history snapshots are not duplicated.
      */
     fun reprocessAfterProxyChange() {
         val state = _uiState.value
-        if (!state.isInstagramUrl) return
+        if (!state.isInstagramUrl && !state.isTikTokUrl) return
         if (state.actionUrl.isEmpty()) return
         if (state.inputUrl.isBlank()) return
 
@@ -201,7 +215,7 @@ class MainViewModel @Inject constructor(
                     _uiState.update { it.copy(processedUrl = processedUrl, actionUrl = processedUrl) }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Error reprocessing URL after Instagram proxy change")
+                Timber.e(e, "Error reprocessing URL after proxy change")
             }
         }
     }
@@ -216,6 +230,7 @@ class MainViewModel @Inject constructor(
                 isInstagramUrl = false,
                 isFacebookUrl = false,
                 isTwitterUrl = false,
+                isTikTokUrl = false,
                 error = null
             )
         }
@@ -230,6 +245,7 @@ class MainViewModel @Inject constructor(
                 isInstagramUrl = false,
                 isFacebookUrl = false,
                 isTwitterUrl = false,
+                isTikTokUrl = false,
                 error = getApplication<Application>().getString(R.string.error_multiple_urls)
             )
         }
@@ -253,5 +269,7 @@ data class MainUiState(
     val isInstagramConversionEnabled: Boolean = true,
     val isTwitterUrl: Boolean = false,
     val isTwitterConversionEnabled: Boolean = true,
+    val isTikTokUrl: Boolean = false,
+    val isTikTokConversionEnabled: Boolean = true,
     val error: String? = null
 ) 

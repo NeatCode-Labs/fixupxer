@@ -1,0 +1,7 @@
+v1.7.0 — TikTok support with full proxy picker
+
+• TikTok links get their own Embed? toggle — converts to an embed-friendly proxy (pure local string swap)
+• Proxy picker like Instagram's: tnktok.com (default) + tfxktok.com Primary, tiktokez.com + kktiktok.com Backup, plus your own custom proxies
+• Subdomains preserved: vm.tiktok.com → vm.tnktok.com (short links keep working)
+• Dead vxtiktok.com/tiktxk.com links auto-migrate to your proxy
+• New browser-mode switch: Convert TikTok links

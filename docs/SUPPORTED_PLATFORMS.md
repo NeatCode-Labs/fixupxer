@@ -16,15 +16,15 @@ These platforms support both tracking parameter removal AND URL conversion to al
 
 ### Social Media & Communication
 - **Facebook** - Removes 119 tracking parameters (fbclid, mibextid, __cft__, __tn__, _branch_match_id, epa, _gl, fb_action_ids, fb_action_types, fb_source, fb_ref, fb_comment_id, etc.) and converts to facebookez.com for better embedding
-- **Instagram** - Removes 67 tracking parameters (igshid, ig_cache_key, ig_mid, ig_share_sheet, utm_*, fbclid, etc.) and converts to a user-selectable proxy for better embedding: `toinstagram.com` (default, Primary), `adamlikes.men` (Primary), or `instagram7.com` (Backup). Converted links are sent without the `www.` prefix because these proxies render best at the bare hostname. Legacy proxies (`kkinstagram.com`, `eeinstagram.com`) are still recognised in pasted URLs and auto-converted to the active default.
+- **Instagram** - Removes 67 tracking parameters (igshid, ig_cache_key, ig_mid, ig_share_sheet, utm_*, fbclid, etc.) and converts to a user-selectable proxy for better embedding: `toinstagram.com` (default, Primary), `adamlikes.men` (Primary), `instagram7.com` / `kkinstagram.com` (Backup), or any user-added custom proxy. Converted links are sent without the `www.` prefix because these proxies render best at the bare hostname. The legacy proxy `eeinstagram.com` is still recognised in pasted URLs and auto-converted to the active proxy.
 - **Twitter/X** - Removes 99 tracking parameters (s, t, ref_src, ref_url, via, twclid, utm_*, etc.) and converts to fixupx.com for better embedding
+- **TikTok** - Removes 124 tracking parameters (_t, _r, checksum, sec_uid, share_app_id, share_link_id, tt_from, u_code, etc.) and converts to a user-selectable proxy for better embedding: `tnktok.com` (default, Primary), `tfxktok.com` (Primary), `tiktokez.com` / `kktiktok.com` (Backup), or any user-added custom proxy. Subdomains are preserved (`vm.tiktok.com` → `vm.tnktok.com`) so short links keep working. The dead services `vxtiktok.com` and `tiktxk.com` are still recognised in pasted URLs and auto-converted to the active proxy.
 
 ## Tracking Parameter Removal Platforms
 
 These platforms support comprehensive tracking parameter removal:
 
 ### Social Media & Communication
-- **TikTok** - 124 parameters removed (_t, _r, checksum, sec_uid, share_app_id, share_link_id, tt_from, u_code, user_id, preview_pb, language, timestamp, aid, iid, device_id, region, app_name, version_code, version_name, device_brand, device_platform, os_version, etc.)
 - **LinkedIn** - 117 parameters removed (trackingId, lipi, licu, trk, trkEmail, trkInfo, midToken, midSig, eBP, tscp, refId, veh, _l, _e, originalReferer, sessionRedirect, etc.)
 - **Reddit** - 91 parameters removed (context, correlator, feature, rdt_cid, ref, ref_campaign, ref_source, $deep_link, $original_url, _branch_match_id, etc.)
 - **Pinterest** - Removes e_t, e_t_s, e_t_cs, ouuid, cid, sfo, sfo_s, nic, nic_v, pin_unauth, dpi, i, w, m, n and pin tracking
@@ -93,8 +93,9 @@ The GeneralTrackingCleaner handles 106 universal tracking parameters for any web
 
 ### URL Conversion Behavior
 - **Facebook URLs** are converted to facebookez.com for better embedding and privacy by user decision (with automatic prefix removal)
-- **Instagram URLs** are converted to a user-selected proxy (toinstagram.com / adamlikes.men / instagram7.com) for better embedding and privacy by user decision
+- **Instagram URLs** are converted to a user-selected proxy (toinstagram.com / adamlikes.men / instagram7.com / kkinstagram.com / custom) for better embedding and privacy by user decision
 - **Twitter/X URLs** are converted to fixupx.com for better embedding and privacy by user decision
+- **TikTok URLs** are converted to a user-selected proxy (tnktok.com / tfxktok.com / tiktokez.com / kktiktok.com / custom) for better embedding and privacy by user decision
 - All other platforms only have tracking parameters removed
 
 ### Parameter Preservation

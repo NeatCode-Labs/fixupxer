@@ -1,3 +1,41 @@
+# FixupXer v1.7.0 - TikTok Support with Full Proxy Picker
+
+## What's New
+
+### TikTok Joins the Embed Family
+TikTok links now get the same first-class treatment as Instagram and Twitter/X. Paste or share any TikTok link and a dedicated **Embed?** toggle appears, converting the link to an embed-friendly proxy domain for platforms like Discord and Telegram. Like every FixupXer conversion, this is a pure local string swap — the app never contacts any proxy.
+
+The idea came from community [PR #5](https://github.com/NeatCode-Labs/fixupxer/pull/5) by @gautamnabin5 — thank you! The feature was re-implemented on the current architecture and expanded from a single hardcoded proxy into the full proxy-picker system below.
+
+### Full TikTok Proxy Picker (Primary + Backup + Custom)
+The same chooser UI known from Instagram (**Active: \<proxy\>. Change.**) is available for TikTok on both Main and Share screens:
+
+- **Primary** — `tnktok.com` (fxTikTok, default) and `tfxktok.com` (FxTikTok): embed videos *and* multi-image slideshows, with like/comment/share counts.
+- **Backup** — `tiktokez.com` (EmbedEZ): embeds media like the primaries; `kktiktok.com` (kkScript): embeds the video only.
+- **Custom** — add your own TikTok embed proxy via the **Add custom proxy…** row, with the same validation as Instagram custom proxies (hostname format, duplicates, reserved domains).
+- **Legacy detection** — links on the dead `vxtiktok.com` (shut down by legal request 11/2025) and `tiktxk.com` services are still recognized and auto-migrate to your selected active proxy.
+
+### Subdomains Are Preserved
+Unlike Instagram (where `www.` is stripped), TikTok conversions keep the host prefix: `vm.tiktok.com/…` → `vm.tnktok.com/…`, `www.tiktok.com/…` → `www.tnktok.com/…`. TikTok short links live on subdomains (`vm.`, `vt.`) and the proxies mirror them, so stripping would break short links.
+
+### Everything Else TikTok
+- Own preference (`convert_tiktok`) — independent from the Twitter and Instagram toggles.
+- Browser mode: new **Convert TikTok links** switch in Settings → Conversion Defaults (off by default, like the others).
+- Tracking cleanup: proxy links get the same TikTok-specific parameter cleaning (`_r`, `_t`, `tt_from`, …) as tiktok.com links.
+- History classification records TikTok domain conversions; native-app forwarding recognizes proxy links as TikTok content.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 31
+- versionName: 1.7.0
+- Unit tests: 183 / 183 passing. Instrumentation: 186 / 186 passing on `Pixel_API_35_Play`.
+
+## Download
+- [FixupXer-v1.7.0-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.7.0/FixupXer-v1.7.0-release.apk)
+
+---
+
 # FixupXer v1.6.0 - Custom Instagram Proxies + kkinstagram.com Returns
 
 ## What's New

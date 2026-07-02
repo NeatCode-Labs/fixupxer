@@ -73,6 +73,13 @@ interface UrlRepository {
     fun isTwitterUrl(url: String): Boolean
     
     /**
+     * Check if a URL is a TikTok URL (tiktok.com or any known proxy)
+     * @param url The URL to check
+     * @return True if it's a TikTok URL
+     */
+    fun isTikTokUrl(url: String): Boolean
+    
+    /**
      * Check if a URL contains tracking parameters
      */
     fun hasTrackingParameters(url: String): Boolean
@@ -106,6 +113,16 @@ interface UrlRepository {
      * Set Twitter conversion preference
      */
     suspend fun setTwitterConversionEnabled(enabled: Boolean)
+    
+    /**
+     * Get the current state of TikTok conversion preference
+     */
+    fun isTikTokConversionEnabled(): Flow<Boolean>
+    
+    /**
+     * Set TikTok conversion preference
+     */
+    suspend fun setTikTokConversionEnabled(enabled: Boolean)
     
     /**
      * Process URL for browser mode with browser-specific conversion settings

@@ -60,6 +60,26 @@ object Constants {
     const val FB_SHORT_DOMAIN = "fb.com"
     const val FACEBOOKEZ_DOMAIN = "facebookez.com"
 
+    // TikTok + embed proxies (v1.7.0)
+    // NOTE: kktiktok.com and vxtiktok.com contain "tiktok.com" as a substring —
+    // proxy checks must run before (or be combined with) plain tiktok.com checks.
+    const val TIKTOK_DOMAIN = "tiktok.com"
+    // Primary proxies — embed videos AND multi-image slideshows, with post stats
+    const val TNKTOK_DOMAIN = "tnktok.com"
+    const val TFXKTOK_DOMAIN = "tfxktok.com"
+    // Backup proxies — tiktokez.com embeds media like the primaries;
+    // kktiktok.com embeds the video only (no slideshows, no stats)
+    const val TIKTOKEZ_DOMAIN = "tiktokez.com"
+    const val KKTIKTOK_DOMAIN = "kktiktok.com"
+    val TIKTOK_PRIMARY_PROXIES = listOf(TNKTOK_DOMAIN, TFXKTOK_DOMAIN)
+    val TIKTOK_BACKUP_PROXIES = listOf(TIKTOKEZ_DOMAIN, KKTIKTOK_DOMAIN)
+    // Built-in (fixed) proxies offered in the chooser, in UI order.
+    // User-defined custom proxies live in TikTokProxyStore, NOT here.
+    val TIKTOK_PROXY_DOMAINS = TIKTOK_PRIMARY_PROXIES + TIKTOK_BACKUP_PROXIES
+    const val TIKTOK_DEFAULT_PROXY = TNKTOK_DOMAIN
+    // Legacy proxies (dead services, but still detected so old pasted links auto-convert)
+    val TIKTOK_LEGACY_PROXIES = listOf("vxtiktok.com", "tiktxk.com")
+
     // Other services (native-app mapping / cleaner dispatch)
     const val YOUTUBE_DOMAIN = "youtube.com"
     const val YOUTUBE_SHORT_DOMAIN = "youtu.be"
@@ -69,7 +89,6 @@ object Constants {
     const val LINKEDIN_SHORT_DOMAIN = "lnkd.in"
     const val AMAZON_DOMAIN = "amazon.com"
     const val AMAZON_SHORT_DOMAIN = "amzn.to"
-    const val TIKTOK_DOMAIN = "tiktok.com"
     const val SUBSTACK_DOMAIN = "substack.com"
     const val GOOGLE_DOMAIN = "google.com"
     

@@ -91,6 +91,18 @@ class UrlProcessorTest {
     }
     
     @Test
+    fun `google url wrapper cannot smuggle extra urls`() {
+        // The InputValidator multiple-URL exemption for google.*/url? wrappers
+        // relies on this: only the q=/url= destination is ever extracted, any
+        // additional URL in other params is dropped with the wrapper.
+        val crafted = "https://www.google.com/url?q=https://example.com/a&extra=https://attacker.com/b"
+        
+        val result = urlProcessor.processUrl(crafted, cleanTracking = true, convertTwitter = false).first
+        
+        assertEquals("https://example.com/a", result)
+    }
+    
+    @Test
     fun `test convert Twitter URL to FixupX`() {
         val twitterUrl = "https://twitter.com/user/status/1234567890"
         val resultPair = urlProcessor.processUrl(twitterUrl, cleanTracking = false, convertTwitter = true)

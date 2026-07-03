@@ -30,6 +30,17 @@ object InputValidator {
     
     private const val MAX_INPUT_LENGTH = 2048
     
+    // Google redirect wrapper (Gmail links, Google Search results):
+    // https://www.google.com/url?q=<destination>&source=gmail&...
+    // The destination URL lives in the query string, so a second "https://"
+    // in the SAME string is expected there — it is NOT a multi-URL paste.
+    // Full-string match ("\S+$") so anything with whitespace (a real multi-URL
+    // paste) falls through to the normal multiple-URL rejection.
+    private val GOOGLE_REDIRECT_WRAPPER = Regex(
+        "^https?://(www\\.)?google(\\.[a-z]{2,3}){1,2}/url\\?\\S+$",
+        RegexOption.IGNORE_CASE
+    )
+    
     /**
      * Comprehensive input validation and sanitization
      * @param input Raw input string
@@ -48,10 +59,25 @@ object InputValidator {
                 val sanitized = sanitizeInput(input)
                 val decoded = decodeUrlSafely(sanitized)
                 
+                // Google redirect wrappers legitimately contain a nested URL,
+                // so the multiple-URL check must not apply to them (regression
+                // fix: Gmail links in browser mode). Checked on both the raw and
+                // the decoded form — the destination may or may not be %-encoded.
+                // Security note: ONLY the multiple-URL check is skipped (control
+                // chars, combining accents, %2E and length checks still apply),
+                // and downstream GoogleSearchCleaner deterministically extracts a
+                // single URL from the url=/q= parameter — extra URLs smuggled
+                // into the wrapper are never extracted (see UrlProcessorTest).
+                val isGoogleRedirect = GOOGLE_REDIRECT_WRAPPER.matches(sanitized) ||
+                        GOOGLE_REDIRECT_WRAPPER.matches(decoded)
+                
                 // Check for multiple URLs
-                if (hasMultipleUrls(decoded)) {
+                if (!isGoogleRedirect && hasMultipleUrls(decoded)) {
                     Timber.w("Multiple URLs detected in input")
                     return@withTimeout null
+                }
+                if (isGoogleRedirect) {
+                    Timber.d("Google redirect wrapper detected — nested URL allowed")
                 }
                 
                 // Additional safety checks

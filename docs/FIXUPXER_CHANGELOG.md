@@ -1,9 +1,9 @@
 # FixupXer App - Development Summary
-## Version Progression: v1.7.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v1.7.1 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 25 (v1.7.0, v1.6.0, v1.5.1, v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
-**Current Version:** v1.7.0 (versionCode: 31)  
-**Development Period:** v1.2.1 (Initial) → v1.7.0 (Current)
+**Total Versions Released:** 26 (v1.7.1, v1.7.0, v1.6.0, v1.5.1, v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
+**Current Version:** v1.7.1 (versionCode: 32)  
+**Development Period:** v1.2.1 (Initial) → v1.7.1 (Current)
 
 ---
 
@@ -30,6 +30,16 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v1.7.0 → v1.7.1
+- **Focus:** Regression fix — Gmail links in browser mode. Every link clicked in Gmail (Google redirect wrapper `google.com/url?q=<destination>`) failed with "Error processing URL" since v1.6.0.
+- **Root cause:** v1.6.0 added `InputValidator.validateAndSanitizeInput()` as a gate in `MainActivity.handleViewIntentIfPresent()` (part of the double-decode fix). The validator's `hasMultipleUrls()` counts `https?://` occurrences after URL-decoding; a Google redirect legitimately contains a second protocol in the `q=` parameter, so `protocolCount=2` → rejected before `UrlProcessor` (whose own v1.4.9 Gmail fix was intact but never reached). Diagnosis: `docs/reports/GMAIL_BROWSER_MODE_DIAGNOSIS.md`.
+- **Fix (`InputValidator.kt`):** new `GOOGLE_REDIRECT_WRAPPER` regex (`^https?://(www.)?google(.tld){1,2}/url?\S+$`, full-string match). When the sanitized *or* decoded input matches, the multiple-URL check is skipped; all other checks (length, control chars, combining accents, `%2E`) still apply. Whitespace anywhere breaks the match, so genuine multi-URL pastes — even ones starting with a Google redirect — are still rejected. The same exemption automatically heals pasting a Google redirect into Main (previously "Please paste one URL at a time").
+- **Security review of the exemption:** `GoogleSearchCleaner.extractRedirectUrl()` deterministically extracts only the single `url=`/`q=` destination, so URLs smuggled into other wrapper parameters are dropped with the wrapper — covered by the new `UrlProcessorTest.google url wrapper cannot smuggle extra urls` test.
+- **Audit:** all other v1.6.0/v1.7.0 changes re-checked against the v1.4.9 browser-mode fix list — `PostCleanRunner` routing (loop guard, ask dialog, priority chain, native-app fallback, browser discovery) untouched and verified live on the emulator (Gmail redirect → clean → post-clean action flow).
+- **Tests added:** new `InputValidatorTest` (18 cases — first dedicated suite for the validator: Gmail/regional/encoded redirect acceptance, whitespace/glued/non-Google-host rejections, control-char/encoded-dot/length/zero-width behaviour) + 1 new `UrlProcessorTest` smuggling case. Emulator verification: Gmail-style VIEW intents (plain + %-encoded), direct URLs, and multi-URL attack input.
+- **Tests pass rate:** 202/202 unit (100%) + 186/186 instrumentation (100%) on `Pixel_API_35_Play`.
+- **Impact:** Gmail (and Google Search result) links work again in browser mode; no security posture change.
 
 ### v1.6.0 → v1.7.0
 - **Focus:** TikTok conversion support — dedicated Embed? toggle plus a full Primary/Backup/Custom proxy picker mirroring the Instagram system. Idea from community PR #5 (@gautamnabin5), re-implemented on the v1.6.0 architecture and expanded from a single hardcoded proxy (kktiktok.com) to a four-proxy roster with custom entries and legacy migration.
@@ -634,9 +644,10 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.5.0 | 28 | Xiaomi/Redmi/HyperOS default-browser compatibility | ✅ Released |
 | v1.5.1 | 29 | Unified Instagram proxy chooser (Settings entry removed) | ✅ Released |
 | v1.6.0 | 30 | Custom Instagram proxies + kkinstagram.com returns | ✅ Released |
-| v1.7.0 | 31 | TikTok conversion support + TikTok proxy picker | ✅ Current |
+| v1.7.0 | 31 | TikTok conversion support + TikTok proxy picker | ✅ Released |
+| v1.7.1 | 32 | Gmail browser-mode regression fix (Google redirect validator exemption) | ✅ Current |
 
-### Build Artifacts (v1.7.0):
+### Build Artifacts (v1.7.1):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk` (4.36 MB)
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab` (5.28 MB)
 - **GITHUB / F-Droid APK:** `FixupXer-v1.7.0-release.apk` built from a fresh clone of the `v1.7.0` tag (4.21 MB, verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)

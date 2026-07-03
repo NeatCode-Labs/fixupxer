@@ -1,0 +1,5 @@
+Bug-fix release:
+
+* Fixed a v1.6.0 regression that broke every link clicked in Gmail when FixupXer is the default browser ("Error processing URL"). Gmail wraps links in a Google redirect (google.com/url?q=...) whose nested URL the input validator mistook for a multi-URL attack. Legitimate Google redirects are now recognized; all other security checks stay intact.
+* Pasting a Google redirect link into the app works again too.
+* 19 new regression tests for the input validator.

@@ -1,9 +1,20 @@
-# Android Test Coverage for FixupXer v1.6.0
+# Android Test Coverage for FixupXer v1.7.1
 
 ## Overview
-This document is the canonical test inventory (instrumentation + URL conversion matrix) covering all major features through v1.6.0. v1.6.0 reinstates `kkinstagram.com` as an active Backup proxy and adds user-defined custom Instagram proxies (add/select/delete from the chooser dialog, backed by `InstagramProxyStore` + a `custom_instagram_proxies` pref).
+This document is the canonical test inventory (instrumentation + URL conversion matrix) covering all major features through v1.7.1. v1.7.1 fixes the Gmail browser-mode regression (v1.6.0's `InputValidator` gate rejected Google redirect wrappers as multi-URL input).
 
-Test-suite delta vs v1.5.1:
+Test-suite delta vs v1.7.0 (202 unit / 186 instrumentation, both 100%):
+- **Added**: `InputValidatorTest.kt` (unit, 18 cases) — first dedicated suite for `InputValidator`. Google-redirect acceptance (plain nested URL, %-encoded destination, no-www, regional `google.co.uk`, nested `www.` destination, encoded-space destination), exemption integrity (whitespace-separated URL pairs still rejected — even when the first URL is a Google redirect; glued URLs still rejected; nested URL on a non-Google host still rejected), and baseline behaviour (plain/tracking/Google-Search URLs accepted, encoded control chars rejected, raw control chars + zero-width chars stripped, encoded-dot attack rejected, overlong input rejected).
+- **Updated**: `UrlProcessorTest.kt` — new `google url wrapper cannot smuggle extra urls` case: `GoogleSearchCleaner` extracts only the single `url=`/`q=` destination, so URLs smuggled into other wrapper params are dropped (this property is what makes the validator exemption safe).
+
+Test-suite delta vs v1.6.0 (v1.7.0, 183 unit / 186 instrumentation, both 100%):
+- **Added**: `TikTokProxySelectionTest.kt` (unit, 28 cases) — forward conversion tiktok.com → each of the four fixed proxies with host-prefix preservation (`www.`/`vm.`/`vt.`/`m.` kept in both directions), cross-proxy swaps, legacy `vxtiktok.com`/`tiktxk.com` auto-migration (toggle ON → active proxy, OFF → tiktok.com), no-op when already on target, backward conversion for all known proxies, dirty-URL cleaning + conversion, `isTikTokUrl` detection incl. the kktiktok/vxtiktok "contains tiktok.com" substring edge.
+- **Added**: `CustomTikTokProxyTest.kt` (unit, 15 cases) — `TikTokProxyStore` state (set/reset/active/allKnown), normalization/format validation (delegated to the shared logic), reserved-domain rejection in both containment directions incl. **cross-platform** reservations (TikTok store rejects Instagram/Twitter/Facebook families; `InstagramProxyStore` now rejects TikTok domains), duplicate detection, conversions with a custom proxy (forward, reverse, cross-swap with fixed proxies, detection only while registered), `TikTokCleaner` matching + tracking-param stripping on custom proxy links.
+- **Added**: `TikTokProxyPreferenceTest.kt` (instrumentation, 15 cases) — default is `tnktok.com`; all four fixed proxies persist; invalid stored value falls back to default; legacy `vxtiktok.com`/`tiktxk.com` stored values migrate to default; custom proxy add/duplicate/select/remove with store sync and fallback-on-delete; custom list survives PreferencesManager recreation; TikTok and Instagram custom rosters are independent.
+- **Updated**: `BidirectionalConversionTest.kt` — new TikTok section (6 scenarios): tiktok.com → tnktok.com with `www.` kept, tnktok.com → tiktok.com reversion (toggle OFF), `vm.` short-link conversion, legacy vxtiktok migration, dirty URL cleanup + conversion, "Nothing to do!" when toggle OFF on a clean tiktok.com link.
+- **Updated**: `UrlProcessorMatrixTest.kt` — 12 TikTok rows (toggle ON/OFF × clean/dirty × tiktok.com/proxy/legacy, vm. prefix row); `UrlProcessorTest.kt` — 4 TikTok cases adapted from community PR #5.
+
+Test-suite delta vs v1.5.1 (v1.6.0):
 - **Added**: `CustomInstagramProxyTest.kt` (unit, 18 cases) — `InstagramProxyStore` state (set/reset/active/allKnown), input normalization (protocol/`www.`/path/query/fragment stripping), hostname-format validation, reserved-domain rejection (both containment directions), duplicate detection, and `UrlProcessor` conversions with a custom proxy (forward, reverse, cross-swap with fixed proxies, no-op, detection, `InstagramCleaner` matching + `igshid` stripping).
 - **Added**: `CustomProxyDialogTest.kt` (instrumentation, 5 cases) — fixed roster + "Add custom proxy…" row present in the chooser; selecting `kkinstagram.com` updates the label; invalid input shows the inline error and keeps the input dialog open; reserved domains rejected; full add → select → delete flow including fallback to the default proxy after deleting the selected custom proxy.
 - **Updated**: `InstagramProxyPreferenceTest.kt` — `kkinstagram.com` stored value now *stays valid* (test inverted vs v1.4.8; `eeinstagram.com` still migrates); new custom-proxy cases (add persists + syncs store, duplicate add is a no-op, custom selectable, unknown domain not selectable, remove syncs store, removing the selected proxy falls back to default, custom list survives PreferencesManager recreation).
@@ -110,6 +121,7 @@ Comprehensive tests for bidirectional URL conversions:
 - [x] **Instagram**: clean/dirty × instagram.com / active proxy / legacy proxy × toggle ON/OFF (v1.4.8)
 - [x] **Twitter/X**: clean/dirty × x.com/fixupx.com × toggle ON/OFF
 - [x] **Facebook**: clean/dirty × facebook.com/facebookez.com × toggle ON/OFF
+- [x] **TikTok** (v1.7.0): clean/dirty × tiktok.com / tnktok.com / legacy vxtiktok.com × toggle ON/OFF, `www.`/`vm.` prefix preservation
 - [x] **"Nothing to do"** scenarios for all platforms
 - [x] **Edge cases**: mixed case, fragments, fxtwitter.com
 - [x] **All prefix removals**: m., web., www. for Facebook
@@ -295,8 +307,8 @@ All possible combinations tested:
 ```
 
 ## Current Test Status
-- **Unit Tests**: 140/140 passing
-- **Instrumentation Tests**: 165/165 passing (v1.6.0 run on `Pixel_API_35_Play`, ~7m 17s)
+- **Unit Tests**: 202/202 passing
+- **Instrumentation Tests**: 186/186 passing (v1.7.1 run on `Pixel_API_35_Play`, ~7m 15s)
 - **Test Success Rate**: 100%
 
 ## URL Conversion Test Matrix
@@ -357,6 +369,25 @@ All possible combinations tested:
 | facebook.com + tracking | ON | facebookez.com (clean) | [x] Tested |
 | facebookez.com | OFF | facebook.com | [x] Tested |
 | facebookez.com + tracking | OFF | facebook.com (clean) | [x] Tested |
+
+### TikTok Conversions (v1.7.0 — active + custom + legacy proxy set)
+| Original URL | Toggle / Proxy | Expected Result | Test Status |
+|-------------|----------------|-----------------|-------------|
+| tiktok.com | ON + tnktok | tnktok.com (default) | [x] Tested |
+| tiktok.com | ON + tfxktok | tfxktok.com | [x] Tested |
+| tiktok.com | ON + tiktokez | tiktokez.com | [x] Tested |
+| tiktok.com | ON + kktiktok | kktiktok.com | [x] Tested |
+| tiktok.com | ON + custom proxy | custom proxy domain | [x] Tested |
+| tiktok.com + tracking | ON + any proxy | selected proxy (clean) | [x] Tested |
+| www.tiktok.com | ON + any proxy | www.<proxy> (prefix KEPT) | [x] Tested |
+| vm.tiktok.com / vt.tiktok.com / m.tiktok.com | ON + any proxy | same prefix + <proxy> | [x] Tested |
+| tnktok.com / tfxktok.com / tiktokez.com / kktiktok.com | OFF | tiktok.com (prefix kept) | [x] Tested |
+| custom proxy | OFF | tiktok.com | [x] Tested |
+| active proxy | ON + other proxy | selected proxy (cross-swap) | [x] Tested |
+| vxtiktok.com / tiktxk.com | ON + active proxy | selected active proxy (legacy migration) | [x] Tested |
+| vxtiktok.com / tiktxk.com | OFF | tiktok.com (legacy revert) | [x] Tested |
+| target proxy | ON + same proxy | unchanged (no-op) | [x] Tested |
+| kktiktok.com (contains "tiktok.com") | any | detected as proxy, not plain tiktok.com | [x] Tested |
 
 ### URL Validation Edge Cases
 1. **Facebook Story URLs** — no false positive "Multiple URLs detected" (`https://m.facebook.com/story.php?story_fbid=123`) [x]

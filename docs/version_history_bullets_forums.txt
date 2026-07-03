@@ -1,5 +1,7 @@
 [B][SIZE=4]🔧 FixupXer Version History (Latest → Oldest)[/SIZE][/B]
 
+[B]• v1.7.1[/B] - Fixed a v1.6.0 regression that broke every link clicked in Gmail when FixupXer is the default browser ("Error processing URL"): the input validator counted the nested destination inside Google's redirect wrapper (google.com/url?q=...) as a multi-URL attack; the validator now recognizes legitimate Google redirects while all other security checks stay intact, and pasting such links into the app works again too
+
 [B]• v1.7.0[/B] - Added full TikTok conversion support (idea from community PR #5): a dedicated Embed? toggle converts TikTok links to an embed-friendly proxy, with the same Primary/Backup/Custom proxy picker as Instagram — tnktok.com (default) + tfxktok.com Primary, tiktokez.com + kktiktok.com Backup, plus user-added custom proxies; subdomains are preserved (vm.tiktok.com → vm.tnktok.com) so short links keep working, dead services vxtiktok.com/tiktxk.com auto-migrate to your selected proxy, and browser mode gets its own TikTok switch
 
 [B]• v1.6.0[/B] - Added user-defined custom Instagram embed proxies (add/select/delete straight from the proxy chooser, validated and stored locally) and brought kkinstagram.com back as an active Backup proxy; fixed fb.com and vxtwitter.com conversions, Instagram tracking cleanup on legacy/custom proxy links, the "Nothing to do!" message being shareable as a URL, and several lifecycle/history bookkeeping bugs

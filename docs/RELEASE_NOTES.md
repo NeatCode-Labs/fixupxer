@@ -1,3 +1,34 @@
+# FixupXer v1.7.1 - Gmail Links Fixed in Browser Mode
+
+## What's New
+
+### Bug Fix: Gmail Links Work in Browser Mode Again
+A v1.6.0 regression broke **every link clicked in Gmail** when FixupXer was set as the default browser — the app showed "Error processing URL" instead of cleaning the link. Gmail wraps every link in a Google redirect (`google.com/url?q=<destination>`), and the security validator added in v1.6.0 counted the nested destination URL as a "multiple URLs" attack and rejected the input before URL processing ever started.
+
+The validator now recognizes legitimate Google redirect wrappers (`google.com/url?…`, including regional domains like `google.co.uk`) and lets them through — the existing v1.4.9 redirect extraction then unwraps the real destination as before. Verified end-to-end on the emulator: Gmail-style redirects (plain and %-encoded) clean correctly and continue into the post-clean action flow.
+
+**Security is not weakened by this exemption:**
+- Only the multiple-URL check is skipped for these wrappers — length limits, control-character, Unicode-normalization, and encoded-dot checks still apply.
+- The exemption requires the *entire input* to be a single Google redirect URL; two URLs separated by whitespace are still rejected, even if the first one is a Google redirect.
+- The downstream extractor only ever takes the single `url=`/`q=` destination, so extra URLs smuggled into other wrapper parameters are dropped (covered by a new regression test).
+- The same fix also applies to pasting a Google redirect link into the Main screen, which used to be rejected with "Please paste one URL at a time".
+
+### Internal
+- New `InputValidatorTest` unit suite (18 cases) — the validator previously had no dedicated tests; covers the Gmail regression, smuggling attempts, and all the pre-existing attack-vector rejections.
+- New `UrlProcessorTest` case proving the redirect extractor cannot be abused to smuggle a second URL.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 32
+- versionName: 1.7.1
+- Unit tests: 202 / 202 passing. Instrumentation: 186 / 186 passing on `Pixel_API_35_Play`.
+
+## Download
+- [FixupXer-v1.7.1-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.7.1/FixupXer-v1.7.1-release.apk)
+
+---
+
 # FixupXer v1.7.0 - TikTok Support with Full Proxy Picker
 
 ## What's New

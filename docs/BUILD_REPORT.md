@@ -95,7 +95,7 @@ FixupXer v1.7.1 has successfully passed release build, unit-test, lint, and full
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` (4.36 MB, SHA-256 `D203BA51688B616B8AB543FC827F3C4E9EFEFA73D1D5E728ABD31C223E4FBB13`)
 - [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` (5.28 MB, SHA-256 `36A0F89908813D3BCCEA60C5EB92ED7CB08727F1C5F1B85BEE0EE1FCAE74F9CD`)
-- [ ] **GITHUB Release APK**: pending — built from a fresh clone of the `v1.7.1` tag after mirror push (hash added on publish)
+- [x] **GITHUB Release APK**: `FixupXer-v1.7.1-release.apk` built from a fresh clone of the `v1.7.1` tag (4.21 MB, SHA-256 `7AF79F246EC07032F52AB702D3A6B281B717B8862E586E8879CDF24046DA746B`); APK inspected — no `BUNDLE-METADATA/.../dependencies.pb`, no `adi-registration.properties`; published at https://github.com/NeatCode-Labs/fixupxer/releases/tag/v1.7.1
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: 202/202 unit + 186/186 instrumentation, all green

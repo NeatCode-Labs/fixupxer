@@ -1,0 +1,6 @@
+Bug-fix release:
+
+* Links opened from the Reddit app no longer land on a "reddit.com/invalid_token" error page: the out.reddit.com destination is now extracted instead of having its functional parameters stripped.
+* Redirect-wrapper handling is now host-agnostic (Reddit, Facebook, LinkedIn, newsletters, ...), not just Google/Gmail.
+* Fixed valid single URLs being wrongly rejected on slower devices (validator regexes are now precompiled).
+* 9 new regression tests.

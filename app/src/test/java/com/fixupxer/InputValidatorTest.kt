@@ -31,10 +31,13 @@ import org.junit.Test
  * Unit tests for [InputValidator] — the security gate in front of every user
  * input path (Main text watcher, paste, Share intent, browser VIEW intent).
  *
- * The Google-redirect cases guard the v1.7.1 regression fix: Gmail wraps every
- * link in https://www.google.com/url?q=<destination>, whose nested protocol
- * used to trip the multiple-URL rejection and break ALL Gmail links in
- * browser mode ("Error processing URL" before UrlProcessor ever ran).
+ * The redirect-wrapper cases guard the root-cause fix: any app that wraps an
+ * outbound link in a redirect (Gmail's google.com/url?q=, Reddit's
+ * out.reddit.com/…?url=, Facebook's l.facebook.com/l.php?u=, …) carries a nested
+ * "https://" in the query. That used to trip the multiple-URL rejection and
+ * break the link in browser/share mode ("Error processing URL" before
+ * UrlProcessor ever ran). A single URL with a nested target is now accepted on
+ * ANY host; genuine multi-URL pastes and glued host names stay rejected.
  */
 class InputValidatorTest {
 
@@ -105,10 +108,40 @@ class InputValidatorTest {
         assertNull(validate("https://www.instagram.comwww.x.com"))
     }
 
+    // --- Root-cause generalization: nested redirect target on ANY host ---
+    // A single navigable URL that merely carries another URL in its query is not
+    // a multi-URL paste, whatever the host. Maintaining a per-service allow-list
+    // (google.*/url? only) broke every other wrapper: Reddit's out.reddit.com,
+    // Facebook's l.facebook.com, LinkedIn/YouTube redirects, newsletters, …
+
     @Test
-    fun `nested url on non-google host is still rejected`() {
-        // The exemption is scoped to google.*/url? only
-        assertNull(validate("https://evil.com/url?q=https://example.com/a"))
+    fun `reddit outbound redirect with nested url is accepted`() {
+        val reddit = "https://out.reddit.com/t3_abc123?url=https%3A%2F%2Fexample.com%2Farticle&token=xyz"
+        assertNotNull(validate(reddit))
+    }
+
+    @Test
+    fun `facebook outbound redirect with nested url is accepted`() {
+        val fb = "https://l.facebook.com/l.php?u=https%3A%2F%2Fexample.com%2Fpost&h=AT1"
+        assertNotNull(validate(fb))
+    }
+
+    @Test
+    fun `generic single url with nested query url is accepted regardless of host`() {
+        assertNotNull(validate("https://example.org/redir?to=https://target.com/x"))
+    }
+
+    @Test
+    fun `plain nested query url on any host is accepted`() {
+        // Same shape as the old google.*/url? case, now host-agnostic.
+        assertNotNull(validate("https://any.host/url?q=https://example.com/a"))
+    }
+
+    @Test
+    fun `second protocol glued into the path is still rejected`() {
+        // The nested URL must live in the query/fragment; a second protocol in
+        // the PATH is treated as suspicious and falls through to rejection.
+        assertNull(validate("https://example.com/redir/https://attacker.com/x"))
     }
 
     // --- Baseline behaviour unchanged ---

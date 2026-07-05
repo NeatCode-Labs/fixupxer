@@ -1,3 +1,40 @@
+# FixupXer v1.7.2 - Reddit (and every redirect-wrapper) Links Fixed
+
+## What's New
+
+### Bug Fix: Links Opened From the Reddit App Now Work
+Opening a link from a Reddit post while FixupXer was the default browser landed on a `reddit.com/invalid_token…` error page instead of the real destination. The Reddit app wraps every outbound link in a redirect (`out.reddit.com/…?url=<destination>&token=…`), and FixupXer's aggressive parameter cleaning stripped the functional `url=` and `token=` parameters, handing the browser a redirect with no destination.
+
+This release fixes the **root cause**, not just Reddit:
+
+- **`RedditCleaner`** now recognizes the `out.reddit.com` wrapper and extracts the real destination from the `url=` parameter (then cleans that destination with its own cleaner), exactly like the existing Gmail/Google redirect handling. Wrappers without an extractable destination are left untouched so their server-side redirect keeps working.
+- **`InputValidator` is now host-agnostic.** v1.7.1 fixed Gmail links with a Google-only allow-list (`google.com/url?`), which meant every other service that wraps outbound links — Reddit, Facebook (`l.facebook.com/l.php?u=`), LinkedIn, YouTube, newsletters — still failed the "multiple URLs" check. The validator now treats **any** single whitespace-free URL as one navigable URL and only runs the multiple-URL heuristic on its authority+path, so a nested destination in the query string is never mistaken for a multi-URL paste.
+
+### Bug Fix: Valid Single URLs Rejected on Slower Devices
+The multiple-URL detector rebuilt several large regular expressions (≈250 TLD alternatives) on **every** call. On slower devices and emulators that alone could exceed the 50 ms anti-DoS timeout, which is treated as "multiple URLs" — silently rejecting perfectly valid single links. All patterns are now compiled once, eliminating the timeout.
+
+**Security is unchanged:**
+- Only the multiple-URL check is relaxed — length limits, control-character, Unicode-normalization, and encoded-dot checks still apply.
+- Genuine multi-URL pastes (two URLs separated by whitespace) and glued host names (`instagram.comwww.x.com`) are still rejected.
+- Downstream, only the single `url=`/`q=` destination is ever extracted and opened, so a second URL smuggled into another wrapper parameter is dropped (covered by regression tests).
+
+### Internal
+- `InputValidatorTest`: added host-agnostic redirect cases (Reddit `out.reddit.com`, Facebook `l.facebook.com`, generic hosts) and a path-glued rejection case; removed the now-obsolete "non-Google host rejected" case.
+- `UpdatedCleanersTest`: 4 new `RedditCleaner` cases (outbound extraction, plain + encoded destination, wrapper-without-url kept intact, ordinary reddit.com post still cleaned).
+- `UrlProcessorTest`: new end-to-end case unwrapping a real-shaped `out.reddit.com` link and cleaning its destination.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 33
+- versionName: 1.7.2
+- Unit tests: 211 / 211 passing. Instrumentation: 186 / 186 passing on `Pixel_API_35_Play`.
+
+## Download
+- [FixupXer-v1.7.2-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v1.7.2/FixupXer-v1.7.2-release.apk)
+
+---
+
 # FixupXer v1.7.1 - Gmail Links Fixed in Browser Mode
 
 ## What's New

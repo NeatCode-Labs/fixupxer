@@ -118,6 +118,39 @@ class UpdatedCleanersTest {
     }
     
     @Test
+    fun testRedditOutboundWrapperExtractsDestination() {
+        // The Reddit app wraps external links in out.reddit.com; url= and token=
+        // are functional, not tracking. Stripping them used to leave a redirect
+        // without a destination → reddit.com/invalid_token in the browser.
+        val url = "https://out.reddit.com/t3_abc123?url=https%3A%2F%2Fexample.com%2Farticle&token=AQAAtoken&app_name=android"
+        val expected = "https://example.com/article"
+        assertEquals(expected, RedditCleaner.clean(url))
+    }
+    
+    @Test
+    fun testRedditOutboundWrapperWithPlainDestination() {
+        val url = "https://out.reddit.com/t3_abc123?url=https://example.com/article&token=AQAAtoken"
+        val expected = "https://example.com/article"
+        assertEquals(expected, RedditCleaner.clean(url))
+    }
+    
+    @Test
+    fun testRedditOutboundWrapperWithoutUrlParamKeptIntact() {
+        // No extractable destination — the wrapper (incl. token) must survive so
+        // the server-side redirect still works.
+        val url = "https://out.reddit.com/t3_abc123?token=AQAAtoken"
+        assertEquals(url, RedditCleaner.clean(url))
+    }
+    
+    @Test
+    fun testRedditPostUrlStillCleaned() {
+        // Regular reddit.com URLs keep the aggressive param cleaning.
+        val url = "https://www.reddit.com/r/androiddev/comments/abc123/title/?utm_source=share&ref=share"
+        val expected = "https://www.reddit.com/r/androiddev/comments/abc123/title/"
+        assertEquals(expected, RedditCleaner.clean(url))
+    }
+    
+    @Test
     fun testAggressiveCleaningRemovesUnknownParams() {
         // Test that our cleaners remove unknown parameters (aggressive cleaning)
         val instagramUrl = "https://www.instagram.com/p/ABC/?unknown_param=123"

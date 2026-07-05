@@ -1,9 +1,9 @@
 # FixupXer App - Development Summary
-## Version Progression: v1.7.1 → v1.2.1 (Latest to Oldest)
+## Version Progression: v1.7.2 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 26 (v1.7.1, v1.7.0, v1.6.0, v1.5.1, v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
-**Current Version:** v1.7.1 (versionCode: 32)  
-**Development Period:** v1.2.1 (Initial) → v1.7.1 (Current)
+**Total Versions Released:** 27 (v1.7.2, v1.7.1, v1.7.0, v1.6.0, v1.5.1, v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
+**Current Version:** v1.7.2 (versionCode: 33)  
+**Development Period:** v1.2.1 (Initial) → v1.7.2 (Current)
 
 ---
 
@@ -30,6 +30,20 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v1.7.1 → v1.7.2
+- **Focus:** Root-cause fix for redirect-wrapper links breaking in browser mode. Reported symptom: opening a link from the Reddit app (FixupXer as default browser) landed on `reddit.com/invalid_token…` instead of the destination.
+- **Root cause (two layers):**
+  1. `RedditCleaner` applied its aggressive "remove unknown params" cleaning to Reddit's outbound wrapper `out.reddit.com/…?url=<dest>&token=…`, stripping the functional `url=` and `token=` params → the browser received a redirect with no destination, which Reddit rejects with `/invalid_token`.
+  2. `InputValidator` (v1.7.1) only exempted Google's `google.com/url?` wrapper from the multiple-URL check via a per-service allow-list, so every other wrapper (Reddit `out.reddit.com`, Facebook `l.facebook.com/l.php?u=`, LinkedIn, YouTube, newsletters) was still rejected before processing — the same class of bug the Gmail fix addressed for one host only.
+- **Fix (`RedditCleaner.kt`):** detect the `out.reddit.com` wrapper and extract the destination from the `url=` parameter (URL-decoded, http(s)-validated); `CleanerService.deepClean` then cleans the destination with its own cleaner (same contract as `GoogleSearchCleaner`). Wrappers with no extractable `url=` are returned untouched so the server-side redirect (and its token) still works.
+- **Fix (`InputValidator.kt`) — host-agnostic generalization:** replaced the `GOOGLE_REDIRECT_WRAPPER` allow-list with a general rule — a single whitespace-free `http(s)://` URL (`SINGLE_URL_TOKEN`) has the multiple-URL heuristic run on its **authority+path only** (`substringBefore('?').substringBefore('#')`), so a nested `https://` in the query string is not counted as a second pasted URL, on any host. Whitespace-separated pastes and glued host names still fall through to rejection.
+- **Fix (`InputValidator.kt`) — performance/timeout:** all detection regexes (protocol/www/domain/TLD-glue/glued-URL patterns with ~250 TLD alternatives, plus control-char and combining-mark patterns) are now compiled once as fields instead of being rebuilt on every `hasMultipleUrls()`/`detectGluedUrls()` call. On the emulator the per-call recompile was exceeding the 50 ms anti-DoS timeout, which is treated as "multiple URLs" and silently rejected valid single URLs ("URL detection timed out, assuming multiple URLs"). This was a latent bug affecting ordinary URLs on slower hardware.
+- **Security review:** only the multiple-URL check is relaxed; length, control-character, combining-accent and encoded-dot checks unchanged. Multi-URL pastes and glued hosts still rejected. Only the single `url=`/`q=` destination is ever extracted downstream, so smuggled extra URLs are dropped (regression-tested).
+- **Verification:** end-to-end on `Pixel_API_35_Play` via simulated VIEW intents with logcat — `out.reddit.com/…?url=…&token=…` → `URL cleaned … -> https://example.com/article` → `PostCleanRunner` browser handoff; Gmail redirect still unwraps; multi-URL attack input still rejected. User confirmed real Reddit-app links open correctly on device.
+- **Tests added:** `UpdatedCleanersTest` +4 (`RedditCleaner` outbound extraction, plain + %-encoded destination, wrapper-without-`url=` kept intact, ordinary reddit.com post still cleaned); `InputValidatorTest` host-agnostic redirect cases (Reddit, Facebook, generic host, plain nested) + path-glued rejection, obsolete "non-Google host rejected" case removed; `UrlProcessorTest` +1 end-to-end `out.reddit.com` unwrap-and-clean case.
+- **Tests pass rate:** 211/211 unit (100%, +9 vs v1.7.1) + 186/186 instrumentation (100%) on `Pixel_API_35_Play`.
+- **Impact:** links opened/shared from the Reddit app (and any other redirect-wrapper app) now clean to their real destination instead of failing; valid single URLs no longer spuriously rejected on slower devices. No new permissions, no security-posture change.
 
 ### v1.7.0 → v1.7.1
 - **Focus:** Regression fix — Gmail links in browser mode. Every link clicked in Gmail (Google redirect wrapper `google.com/url?q=<destination>`) failed with "Error processing URL" since v1.6.0.

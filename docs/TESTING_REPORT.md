@@ -1,10 +1,10 @@
 # FixupXer Testing Report
 
 ## Test Execution Date
-July 3, 2026
+July 5, 2026
 
 ## Executive Summary
-202/202 unit tests and 186/186 instrumentation tests pass for v1.7.1 on the `Pixel_API_35_Play` emulator. v1.7.1 is a regression-fix release: since v1.6.0, every link clicked in Gmail with FixupXer as default browser failed with "Error processing URL" because `InputValidator` counted the nested destination inside Google's redirect wrapper (`google.com/url?q=…`) as a multi-URL attack. The validator now exempts legitimate Google redirect wrappers from the multiple-URL check (all other security checks unchanged); the fix was verified end-to-end on the emulator with simulated Gmail VIEW intents. FixupXer v1.7.1 is **READY FOR PRODUCTION RELEASE**.
+211/211 unit tests and 186/186 instrumentation tests pass for v1.7.2 on the `Pixel_API_35_Play` emulator. v1.7.2 is a root-cause bug-fix release: opening links from the Reddit app (FixupXer as default browser) landed on `reddit.com/invalid_token…` because (1) `RedditCleaner` stripped the functional `url=`/`token=` params from Reddit's outbound wrapper `out.reddit.com`, and (2) the v1.7.1 Gmail fix was a Google-only allow-list, so all other redirect wrappers still failed the validator's multiple-URL check. The validator is now host-agnostic (multiple-URL heuristic runs on authority+path of a single whitespace-free URL), `RedditCleaner` extracts the outbound destination, and the validator's regexes are precompiled (per-call recompilation was exceeding the 50 ms anti-DoS timeout on slower hardware and wrongly rejecting valid single URLs). Verified end-to-end on the emulator and user-confirmed with the real Reddit app on a physical device. FixupXer v1.7.2 is **READY FOR PRODUCTION RELEASE**.
 
 ## Test Environment
 - **Device**: Android Emulator - Pixel API 35 Play (Android 15)
@@ -17,37 +17,41 @@ July 3, 2026
 
 ### Unit Tests (`./gradlew test`)
 **Status**: [x] PASSED  
-**Total Tests**: 202 unit tests (+19 vs v1.7.0)  
+**Total Tests**: 211 unit tests (+9 vs v1.7.1)  
 **Pass Rate**: 100%  
 **Test Classes (highlights)**:
-- `InputValidatorTest` (NEW — 18 cases; first dedicated suite for the validator): Gmail redirect acceptance (plain, %-encoded, no-www, regional google.co.uk, nested www, encoded-space destination), multi-URL rejection still intact (whitespace-separated pairs, Google-redirect-plus-second-URL, glued URLs, nested URL on non-Google host), baseline behaviour (single URLs, Google Search URLs, encoded control chars, encoded-dot attack, overlong input, zero-width stripping, raw control-char stripping)
-- `UrlProcessorTest` (updated — 1 new case: `google url wrapper cannot smuggle extra urls` proves the redirect extractor only ever takes the single url=/q= destination)
+- `UpdatedCleanersTest` (updated — 4 new `RedditCleaner` cases): `out.reddit.com` destination extraction (%-encoded and plain `url=`), wrapper without `url=` kept intact (server-side redirect and its token preserved), ordinary reddit.com post cleaning unaffected
+- `InputValidatorTest` (updated — host-agnostic redirect handling): Reddit `out.reddit.com` and Facebook `l.facebook.com/l.php?u=` wrappers accepted, generic single URLs with nested query URLs accepted on any host, second protocol glued into the *path* still rejected; obsolete "non-Google host rejected" case removed
+- `UrlProcessorTest` (updated — 1 new end-to-end case: `reddit outbound wrapper is unwrapped and destination cleaned`)
 - `TikTokProxySelectionTest`, `CustomTikTokProxyTest`, `InstagramProxySelectionTest`, `CustomInstagramProxyTest`, `UrlProcessorMatrixTest`, cleaner implementation tests — all unchanged and passing
 
 ### Android Instrumentation Tests (`./gradlew connectedAndroidTest`)
 **Status**: [x] PASSED  
-**Total Tests**: 186 tests (unchanged vs v1.7.0)  
+**Total Tests**: 186 tests (unchanged vs v1.7.1)  
 **Pass Rate**: 100%  
 **Passed**: 186 (100%)  
 **Failed**: 0  
-**Execution Time**: ~7 min 15s on `Pixel_API_35_Play`
+**Execution Time**: ~7 min 30s on `Pixel_API_35_Play`
 
 ### Manual Emulator Verification (browser-mode VIEW intents)
 Simulated VIEW intents fired at `MainActivity` on `Pixel_API_35_Play` with logcat inspection:
-- [x] Gmail-style Google redirect (plain `q=https://…`) → validator logs "Google redirect wrapper detected", URL unwrapped to the destination, `PostCleanRunner` runs (pre-fix: "VIEW intent URL rejected by validator" + error toast)
-- [x] Gmail-style Google redirect (%-encoded `q=https%3A%2F%2F…`) → unwrapped and cleaned correctly
+- [x] Reddit outbound wrapper (`out.reddit.com/…?url=https%3A%2F%2F…&token=…`) → validator accepts, `RedditCleaner` extracts the destination, destination cleaned, `PostCleanRunner` runs (pre-fix: stripped wrapper → `reddit.com/invalid_token`)
+- [x] Gmail-style Google redirect (plain and %-encoded `q=`) → still unwrapped and cleaned correctly
 - [x] Direct URL with tracking params → cleaned as before (no behaviour change)
 - [x] Multi-URL attack input (`…/a%20https://attacker.com/b`) → still rejected by the validator
+- [x] Physical-device confirmation by the maintainer: links from the real Reddit app open correctly through the browser picker
 
 ## Detailed Test Results by Feature
 
-### 0. Gmail / Google Redirect in Browser Mode (FIXED in v1.7.1) [x]
-**Test Files**: `InputValidatorTest.kt` (unit, NEW), `UrlProcessorTest.kt` (unit)
-- [x] Google redirect wrappers (google.com/url?, regional TLDs, with/without www) pass validation with a nested URL in the query
-- [x] Exemption requires the whole input to be one Google redirect URL — any whitespace voids it
+### 0. Redirect Wrappers in Browser Mode (generalized in v1.7.2; Gmail-only in v1.7.1) [x]
+**Test Files**: `InputValidatorTest.kt` (unit), `UpdatedCleanersTest.kt` (unit), `UrlProcessorTest.kt` (unit)
+- [x] Any single whitespace-free URL with a nested destination in its query passes validation — Reddit `out.reddit.com`, Facebook `l.facebook.com/l.php`, Google `google.com/url`, generic hosts
+- [x] `RedditCleaner` extracts the `url=` destination from `out.reddit.com`; wrappers without `url=` are left intact
+- [x] Exemption requires the whole input to be one URL — any whitespace voids it; a second protocol glued into the path is still rejected
 - [x] All other validator checks (length, control chars, combining accents, %2E) still apply to redirects
-- [x] Smuggled URLs in non-q=/url= wrapper params are dropped by `GoogleSearchCleaner` extraction
-- [x] End-to-end emulator verification (see Manual Emulator Verification above)
+- [x] Smuggled URLs in non-`q=`/`url=` wrapper params are dropped by single-destination extraction
+- [x] Validator regexes precompiled — no spurious 50 ms timeout rejections (verified in emulator logcat)
+- [x] End-to-end emulator + physical-device verification (see Manual Emulator Verification above)
 
 ### 1. TikTok Conversion + Proxy Picker (NEW in v1.7.0) [x]
 **Test Files**: `TikTokProxySelectionTest.kt` (unit), `CustomTikTokProxyTest.kt` (unit), `TikTokProxyPreferenceTest.kt` (instrumentation), `BidirectionalConversionTest.kt` (instrumentation)
@@ -111,16 +115,16 @@ Simulated VIEW intents fired at `MainActivity` on `Pixel_API_35_Play` with logca
 - **TikTok + active proxies (tnktok.com / tfxktok.com / tiktokez.com / kktiktok.com) + custom proxies + legacy (vxtiktok.com / tiktxk.com)**: [x] Complete
 
 ## GITHUB (F-Droid) Variant
-- Source parity: all v1.7.0 source changes are fully synced into the GITHUB tree; only the standing intentional differences remain (`dependenciesInfo = false`, Linux JDK paths, F-Droid metadata).
+- Source parity: all v1.7.2 source changes are fully synced into the GITHUB tree; only the standing intentional differences remain (`dependenciesInfo = false`, Linux JDK paths, F-Droid metadata).
 - Instrumentation tests: run from the root tree on Windows (see above); F-Droid CI builds from the tag on Linux.
 
 ## Known Issues
-- None blocking for v1.7.0 release.
-- Pre-existing occasional Espresso flakes (`SettingsTest.testAboutDialog`, `KeyboardNavigationTest.testKeyboardInputAndDismissal`) did **not** reproduce in the v1.7.0 run (186/186 first-pass green).
+- None blocking for v1.7.2 release.
+- Pre-existing occasional Espresso flakes (`SettingsTest.testAboutDialog`, `KeyboardNavigationTest.testKeyboardInputAndDismissal`) did **not** reproduce in the v1.7.2 run (186/186 first-pass green).
 
 ## Performance Observations
 - Unit suite: ~25s
-- Instrumentation suite: ~7m 24s on the Pixel API 35 emulator
+- Instrumentation suite: ~7m 32s on the Pixel API 35 emulator
 - No memory leaks or ANRs detected
 
 ## Security Testing
@@ -128,13 +132,13 @@ Simulated VIEW intents fired at `MainActivity` on `Pixel_API_35_Play` with logca
 - [x] Zero-width character attacks blocked
 - [x] Control character attacks handled
 - [x] Unicode normalization working correctly
-- [x] Multiple URL detection preventing bypass attempts (Google redirect wrappers exempted in v1.7.1 — exemption scope regression-tested)
+- [x] Multiple URL detection preventing bypass attempts (v1.7.2: heuristic runs on authority+path of a single whitespace-free URL — whitespace pastes and glued hosts still rejected, scope regression-tested)
 - [x] Custom proxy input validated (format, reserved-domain, duplicates) for BOTH rosters — a custom TikTok entry cannot hijack Instagram/Twitter/Facebook detection and vice versa
 - [x] Stored proxy preferences validated against unknown values (fall back to default)
 
 ## Conclusion
 **Production Readiness: YES** [x]
 
-FixupXer v1.7.1 passes 202/202 unit tests and 186/186 instrumentation tests on `Pixel_API_35_Play`. The Gmail browser-mode regression fix is covered by the new `InputValidatorTest` suite, a smuggling-proof case in `UrlProcessorTest`, and live emulator VIEW-intent verification.
+FixupXer v1.7.2 passes 211/211 unit tests and 186/186 instrumentation tests on `Pixel_API_35_Play`. The Reddit outbound-wrapper fix, the host-agnostic validator generalization, and the regex precompilation fix are covered by new unit cases in `UpdatedCleanersTest`, `InputValidatorTest`, and `UrlProcessorTest`, plus live emulator VIEW-intent verification and the maintainer's physical-device confirmation with the real Reddit app.
 
 **The app is ready for production deployment.**

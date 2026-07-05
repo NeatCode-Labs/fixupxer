@@ -30,14 +30,66 @@ object InputValidator {
     
     private const val MAX_INPUT_LENGTH = 2048
     
-    // Google redirect wrapper (Gmail links, Google Search results):
-    // https://www.google.com/url?q=<destination>&source=gmail&...
-    // The destination URL lives in the query string, so a second "https://"
-    // in the SAME string is expected there — it is NOT a multi-URL paste.
-    // Full-string match ("\S+$") so anything with whitespace (a real multi-URL
-    // paste) falls through to the normal multiple-URL rejection.
-    private val GOOGLE_REDIRECT_WRAPPER = Regex(
-        "^https?://(www\\.)?google(\\.[a-z]{2,3}){1,2}/url\\?\\S+$",
+    // A single, whitespace-free http(s) URL. Redirect wrappers legitimately
+    // carry a nested destination URL in their query string — Gmail/Google
+    // (google.com/url?q=), Reddit (out.reddit.com/…?url=), Facebook
+    // (l.facebook.com/l.php?u=), LinkedIn, YouTube, newsletters, … — so a second
+    // "https://" inside the query is expected and does NOT mean the user pasted
+    // multiple URLs. A per-service allow-list was the root cause of Gmail-only
+    // coverage; this pattern is host-agnostic. Genuine multi-URL pastes are
+    // whitespace-separated (this fails on them); glued host names still live in
+    // the authority+path, which the multiple-URL check keeps probing.
+    private val SINGLE_URL_TOKEN = Regex("^https?://\\S+$", RegexOption.IGNORE_CASE)
+    
+    // All patterns below are constant — compiled once here. They used to be
+    // (re)built on every hasMultipleUrls()/detectGluedUrls() call, and with
+    // ~250 TLD alternatives that alone could blow the 50ms DoS timeout on slow
+    // devices/emulators, rejecting perfectly valid single URLs ("URL detection
+    // timed out, assuming multiple URLs").
+    private val PROTOCOL_PATTERN = Regex("https?://|ftp://|file://|mailto:", RegexOption.IGNORE_CASE)
+    private val WWW_PATTERN = Regex("www\\.", RegexOption.IGNORE_CASE)
+    private val DOMAIN_PATTERN = Regex("([a-z0-9]([a-z0-9\\-]*[a-z0-9])?\\.)+[a-z]{2,}", RegexOption.IGNORE_CASE)
+    private val TLD_GLUE_PATTERN = Regex("\\.(com|net|org|gov|edu|co|io|info)([a-z0-9-]+)\\.(com|net|org|gov|edu|co|io|info)", RegexOption.IGNORE_CASE)
+    private val CONTROL_CHARS_PATTERN = Regex("[\\u0000-\\u001F]")
+    private val COMBINING_MARKS_PATTERN = Regex("\\p{M}")
+    
+    // Common TLDs - comprehensive list (used by the glued-URL patterns below)
+    private val COMMON_TLDS = listOf(
+        "com", "org", "net", "edu", "gov", "mil", "int", "io", "co", "uk", "de", "fr", "jp", "cn",
+        "ru", "br", "au", "ca", "in", "it", "nl", "es", "se", "no", "dk", "fi", "pl", "ch", "at",
+        "be", "pt", "gr", "cz", "hu", "ro", "bg", "hr", "si", "sk", "lt", "lv", "ee", "lu", "mt",
+        "cy", "ie", "is", "li", "mc", "sm", "va", "ad", "al", "am", "az", "ba", "by", "ge", "kg",
+        "kz", "md", "me", "mk", "rs", "tj", "tm", "ua", "uz", "tv", "ws", "info", "biz", "name",
+        "pro", "aero", "coop", "museum", "mobi", "travel", "xxx", "asia", "cat", "jobs", "tel",
+        "post", "geo", "nato", "mil", "gov", "edu", "ac", "ad", "ae", "af", "ag", "ai", "al", "am",
+        "ao", "aq", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb", "bd", "be", "bf", "bg",
+        "bh", "bi", "bj", "bm", "bn", "bo", "br", "bs", "bt", "bw", "by", "bz", "ca", "cc", "cd",
+        "cf", "cg", "ch", "ci", "ck", "cl", "cm", "cn", "co", "cr", "cu", "cv", "cw", "cx", "cy",
+        "cz", "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "er", "es", "et", "eu", "fi",
+        "fj", "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg", "gh", "gi", "gl", "gm",
+        "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy", "hk", "hm", "hn", "hr", "ht", "hu",
+        "id", "ie", "il", "im", "in", "io", "iq", "ir", "is", "it", "je", "jm", "jo", "jp", "ke",
+        "kg", "kh", "ki", "km", "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk",
+        "lr", "ls", "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm",
+        "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz", "na", "nc",
+        "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om", "pa", "pe", "pf", "pg",
+        "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw", "py", "qa", "re", "ro", "rs", "ru",
+        "rw", "sa", "sb", "sc", "sd", "se", "sg", "sh", "si", "sk", "sl", "sm", "sn", "so", "sr",
+        "ss", "st", "su", "sv", "sx", "sy", "sz", "tc", "td", "tf", "tg", "th", "tj", "tk", "tl",
+        "tm", "tn", "to", "tr", "tt", "tv", "tw", "tz", "ua", "ug", "uk", "us", "uy", "uz", "va",
+        "vc", "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "za", "zm", "zw"
+    )
+    private val TLDS_ALTERNATION = COMMON_TLDS.joinToString("|")
+    private val DOMAIN_BOUNDARY_PATTERN = Regex(
+        "(?:^|[^a-z0-9.-])([a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*\\.(?:$TLDS_ALTERNATION))(?=[a-z0-9])",
+        RegexOption.IGNORE_CASE
+    )
+    private val NEXT_DOMAIN_PATTERN = Regex(
+        "^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.(?:$TLDS_ALTERNATION)(?:[^a-z0-9.-]|$)",
+        RegexOption.IGNORE_CASE
+    )
+    private val TLD_BOUNDARY_PATTERN = Regex(
+        "([a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\\.($TLDS_ALTERNATION)([a-z0-9])",
         RegexOption.IGNORE_CASE
     )
     
@@ -59,34 +111,35 @@ object InputValidator {
                 val sanitized = sanitizeInput(input)
                 val decoded = decodeUrlSafely(sanitized)
                 
-                // Google redirect wrappers legitimately contain a nested URL,
-                // so the multiple-URL check must not apply to them (regression
-                // fix: Gmail links in browser mode). Checked on both the raw and
-                // the decoded form — the destination may or may not be %-encoded.
-                // Security note: ONLY the multiple-URL check is skipped (control
-                // chars, combining accents, %2E and length checks still apply),
-                // and downstream GoogleSearchCleaner deterministically extracts a
-                // single URL from the url=/q= parameter — extra URLs smuggled
-                // into the wrapper are never extracted (see UrlProcessorTest).
-                val isGoogleRedirect = GOOGLE_REDIRECT_WRAPPER.matches(sanitized) ||
-                        GOOGLE_REDIRECT_WRAPPER.matches(decoded)
-                
-                // Check for multiple URLs
-                if (!isGoogleRedirect && hasMultipleUrls(decoded)) {
+                // A single URL legitimately carries a nested destination in its
+                // query/fragment (redirect wrappers: Gmail's google.com/url?q=,
+                // Reddit's out.reddit.com/…?url=, Facebook's l.facebook.com/l.php?u=,
+                // …). Run the multiple-URL heuristic on the authority+path only, so
+                // a second "https://" in the query is not mistaken for a paste of
+                // two URLs. Whitespace-separated pastes fail SINGLE_URL_TOKEN and
+                // are probed whole; glued host names are still caught because the
+                // probe keeps the authority+path (where such an attack lives).
+                // Every other check below still applies, and downstream only ever a
+                // single URL is extracted/opened, so a second URL smuggled into the
+                // wrapper is never navigated (see UrlProcessorTest
+                // `google url wrapper cannot smuggle extra urls`).
+                val multiUrlProbe = if (SINGLE_URL_TOKEN.matches(sanitized)) {
+                    decoded.substringBefore('?').substringBefore('#')
+                } else {
+                    decoded
+                }
+                if (hasMultipleUrls(multiUrlProbe)) {
                     Timber.w("Multiple URLs detected in input")
                     return@withTimeout null
                 }
-                if (isGoogleRedirect) {
-                    Timber.d("Google redirect wrapper detected — nested URL allowed")
-                }
                 
                 // Additional safety checks
-                if (decoded.contains(Regex("[\\u0000-\\u001F]"))) { // Control characters
+                if (decoded.contains(CONTROL_CHARS_PATTERN)) { // Control characters
                     Timber.w("Control characters detected in input")
                     return@withTimeout null
                 }
                 // Reject Unicode normalization attacks (combining accents)
-                if (decoded.contains(Regex("\\p{M}"))) {
+                if (decoded.contains(COMBINING_MARKS_PATTERN)) {
                     Timber.w("Unicode normalization (combining accent) detected in input")
                     return@withTimeout null
                 }
@@ -142,14 +195,10 @@ object InputValidator {
      */
     private suspend fun hasMultipleUrls(input: String): Boolean {
         return try {
-            withTimeout(50) { // 50ms timeout for URL detection
-                val protocolCount = Regex("https?://|ftp://|file://|mailto:", RegexOption.IGNORE_CASE)
-                    .findAll(input).count()
-                val wwwCount = Regex("www\\.", RegexOption.IGNORE_CASE)
-                    .findAll(input).count()
+                withTimeout(50) { // 50ms timeout for URL detection
+                val protocolCount = PROTOCOL_PATTERN.findAll(input).count()
+                val wwwCount = WWW_PATTERN.findAll(input).count()
                 
-                // More intelligent domain detection - look for domain patterns
-                val domainPattern = Regex("([a-z0-9]([a-z0-9\\-]*[a-z0-9])?\\.)+[a-z]{2,}", RegexOption.IGNORE_CASE)
                 val mainUrl = input.split("?", "#")[0]
                 
                 // Extract only the domain part (protocol + domain, without path)
@@ -170,7 +219,7 @@ object InputValidator {
                     mainUrl
                 }
                 
-                val domainsMatches = domainPattern.findAll(domainPart).toList()
+                val domainsMatches = DOMAIN_PATTERN.findAll(domainPart).toList()
                 val distinctDomains = domainsMatches.map { it.value.lowercase() }.distinct()
                 
                 // Count dots only in the actual domain part (not in the path)
@@ -192,8 +241,7 @@ object InputValidator {
                 //   3. Followed by a dot and another TLD (second domain)
                 // This avoids flagging regular domains like "x.com" or
                 // "instagram.com" which end after the first TLD.
-                val tldGluePattern = Regex("\\.(com|net|org|gov|edu|co|io|info)([a-z0-9-]+)\\.(com|net|org|gov|edu|co|io|info)", RegexOption.IGNORE_CASE)
-                val hasTldGlue = tldGluePattern.containsMatchIn(mainUrl)
+                val hasTldGlue = TLD_GLUE_PATTERN.containsMatchIn(mainUrl)
                 
                 // Enhanced glued URL detection
                 val hasGluedUrls = detectGluedUrls(input)
@@ -238,41 +286,12 @@ object InputValidator {
     private fun detectGluedUrls(input: String): Boolean {
         val lower = input.lowercase()
         
-        // Common TLDs - comprehensive list
-        val commonTlds = listOf(
-            "com", "org", "net", "edu", "gov", "mil", "int", "io", "co", "uk", "de", "fr", "jp", "cn",
-            "ru", "br", "au", "ca", "in", "it", "nl", "es", "se", "no", "dk", "fi", "pl", "ch", "at",
-            "be", "pt", "gr", "cz", "hu", "ro", "bg", "hr", "si", "sk", "lt", "lv", "ee", "lu", "mt",
-            "cy", "ie", "is", "li", "mc", "sm", "va", "ad", "al", "am", "az", "ba", "by", "ge", "kg",
-            "kz", "md", "me", "mk", "rs", "tj", "tm", "ua", "uz", "tv", "ws", "info", "biz", "name",
-            "pro", "aero", "coop", "museum", "mobi", "travel", "xxx", "asia", "cat", "jobs", "tel",
-            "post", "geo", "nato", "mil", "gov", "edu", "ac", "ad", "ae", "af", "ag", "ai", "al", "am",
-            "ao", "aq", "ar", "as", "at", "au", "aw", "ax", "az", "ba", "bb", "bd", "be", "bf", "bg",
-            "bh", "bi", "bj", "bm", "bn", "bo", "br", "bs", "bt", "bw", "by", "bz", "ca", "cc", "cd",
-            "cf", "cg", "ch", "ci", "ck", "cl", "cm", "cn", "co", "cr", "cu", "cv", "cw", "cx", "cy",
-            "cz", "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "er", "es", "et", "eu", "fi",
-            "fj", "fk", "fm", "fo", "fr", "ga", "gb", "gd", "ge", "gf", "gg", "gh", "gi", "gl", "gm",
-            "gn", "gp", "gq", "gr", "gs", "gt", "gu", "gw", "gy", "hk", "hm", "hn", "hr", "ht", "hu",
-            "id", "ie", "il", "im", "in", "io", "iq", "ir", "is", "it", "je", "jm", "jo", "jp", "ke",
-            "kg", "kh", "ki", "km", "kn", "kp", "kr", "kw", "ky", "kz", "la", "lb", "lc", "li", "lk",
-            "lr", "ls", "lt", "lu", "lv", "ly", "ma", "mc", "md", "me", "mg", "mh", "mk", "ml", "mm",
-            "mn", "mo", "mp", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz", "na", "nc",
-            "ne", "nf", "ng", "ni", "nl", "no", "np", "nr", "nu", "nz", "om", "pa", "pe", "pf", "pg",
-            "ph", "pk", "pl", "pm", "pn", "pr", "ps", "pt", "pw", "py", "qa", "re", "ro", "rs", "ru",
-            "rw", "sa", "sb", "sc", "sd", "se", "sg", "sh", "si", "sk", "sl", "sm", "sn", "so", "sr",
-            "ss", "st", "su", "sv", "sx", "sy", "sz", "tc", "td", "tf", "tg", "th", "tj", "tk", "tl",
-            "tm", "tn", "to", "tr", "tt", "tv", "tw", "tz", "ua", "ug", "uk", "us", "uy", "uz", "va",
-            "vc", "ve", "vg", "vi", "vn", "vu", "wf", "ws", "ye", "yt", "za", "zm", "zw"
-        )
-        
         // Look for the pattern: complete_domain.tld + another_domain.tld
         // The key is to ensure we're matching complete domains, not partial ones
         
         // First, let's find all valid domain boundaries in the input
         // A domain boundary is: start of string, space, /, :, or other non-domain character
-        val domainBoundaryPattern = Regex("(?:^|[^a-z0-9.-])([a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*\\.(?:" + commonTlds.joinToString("|") + "))(?=[a-z0-9])", RegexOption.IGNORE_CASE)
-        
-        domainBoundaryPattern.findAll(" $lower ").forEach { match ->
+        DOMAIN_BOUNDARY_PATTERN.findAll(" $lower ").forEach { match ->
             val domain = match.groups[1]?.value ?: ""
             val afterDomainPos = match.range.last
             
@@ -283,8 +302,7 @@ object InputValidator {
                 // If the next character is a letter/number and forms another domain, it's glued
                 if (remaining.isNotEmpty() && remaining[0].isLetterOrDigit()) {
                     // Check if what follows is another domain
-                    val nextDomainPattern = Regex("^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.(?:" + commonTlds.joinToString("|") + ")(?:[^a-z0-9.-]|$)", RegexOption.IGNORE_CASE)
-                    if (nextDomainPattern.containsMatchIn(remaining)) {
+                    if (NEXT_DOMAIN_PATTERN.containsMatchIn(remaining)) {
                         Timber.d("InputValidator: Detected glued domains: '$domain' followed immediately by another domain in '$input'")
                         return true
                     }
@@ -294,9 +312,7 @@ object InputValidator {
         
         // Additional check: Look for pattern like "domain.tld[letter]" where letter starts another domain
         // But exclude cases where it's a subdomain (e.g., www.instagram.com should not match www.in + stagram.com)
-        val tldBoundaryPattern = Regex("([a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\\.(${commonTlds.joinToString("|")})([a-z0-9])", RegexOption.IGNORE_CASE)
-        
-        tldBoundaryPattern.findAll(lower).forEach { match ->
+        TLD_BOUNDARY_PATTERN.findAll(lower).forEach { match ->
             val domainPart = match.groups[1]?.value ?: ""
             val tld = match.groups[2]?.value ?: ""
             val charAfterTld = match.groups[3]?.value ?: ""
@@ -314,8 +330,7 @@ object InputValidator {
                 val afterMatch = lower.substring(position - charAfterTld.length)
                 
                 // If what follows forms a complete domain, it's glued
-                val completeDomainPattern = Regex("^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.(?:" + commonTlds.joinToString("|") + ")(?:[^a-z0-9.-]|$)", RegexOption.IGNORE_CASE)
-                if (completeDomainPattern.containsMatchIn(afterMatch)) {
+                if (NEXT_DOMAIN_PATTERN.containsMatchIn(afterMatch)) {
                     Timber.d("InputValidator: Detected glued pattern: domain '$domainPart.$tld' followed by another domain")
                     return true
                 }

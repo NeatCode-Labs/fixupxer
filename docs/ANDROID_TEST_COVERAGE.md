@@ -1,9 +1,14 @@
-# Android Test Coverage for FixupXer v1.7.1
+# Android Test Coverage for FixupXer v1.7.2
 
 ## Overview
-This document is the canonical test inventory (instrumentation + URL conversion matrix) covering all major features through v1.7.1. v1.7.1 fixes the Gmail browser-mode regression (v1.6.0's `InputValidator` gate rejected Google redirect wrappers as multi-URL input).
+This document is the canonical test inventory (instrumentation + URL conversion matrix) covering all major features through v1.7.2. v1.7.2 generalizes the redirect-wrapper handling to all hosts (Reddit `out.reddit.com` outbound links now open correctly) and precompiles the validator's regexes.
 
-Test-suite delta vs v1.7.0 (202 unit / 186 instrumentation, both 100%):
+Test-suite delta vs v1.7.1 (211 unit / 186 instrumentation, both 100%):
+- **Updated**: `UpdatedCleanersTest.kt` (+4 `RedditCleaner` cases) — `out.reddit.com` destination extraction from `url=` (%-encoded and plain), wrapper without `url=` returned intact (server-side redirect token preserved), ordinary reddit.com post cleaning unaffected.
+- **Updated**: `InputValidatorTest.kt` (now 22 cases) — host-agnostic redirect acceptance: Reddit `out.reddit.com` and Facebook `l.facebook.com/l.php?u=` wrappers, generic single URLs with nested query URLs on any host; second protocol glued into the *path* still rejected; obsolete "nested URL on non-Google host rejected" case removed (behaviour intentionally generalized).
+- **Updated**: `UrlProcessorTest.kt` — new end-to-end `reddit outbound wrapper is unwrapped and destination cleaned` case.
+
+Test-suite delta vs v1.7.0 (v1.7.1, 202 unit / 186 instrumentation, both 100%):
 - **Added**: `InputValidatorTest.kt` (unit, 18 cases) — first dedicated suite for `InputValidator`. Google-redirect acceptance (plain nested URL, %-encoded destination, no-www, regional `google.co.uk`, nested `www.` destination, encoded-space destination), exemption integrity (whitespace-separated URL pairs still rejected — even when the first URL is a Google redirect; glued URLs still rejected; nested URL on a non-Google host still rejected), and baseline behaviour (plain/tracking/Google-Search URLs accepted, encoded control chars rejected, raw control chars + zero-width chars stripped, encoded-dot attack rejected, overlong input rejected).
 - **Updated**: `UrlProcessorTest.kt` — new `google url wrapper cannot smuggle extra urls` case: `GoogleSearchCleaner` extracts only the single `url=`/`q=` destination, so URLs smuggled into other wrapper params are dropped (this property is what makes the validator exemption safe).
 
@@ -307,8 +312,8 @@ All possible combinations tested:
 ```
 
 ## Current Test Status
-- **Unit Tests**: 202/202 passing
-- **Instrumentation Tests**: 186/186 passing (v1.7.1 run on `Pixel_API_35_Play`, ~7m 15s)
+- **Unit Tests**: 211/211 passing
+- **Instrumentation Tests**: 186/186 passing (v1.7.2 run on `Pixel_API_35_Play`, ~7m 32s)
 - **Test Success Rate**: 100%
 
 ## URL Conversion Test Matrix

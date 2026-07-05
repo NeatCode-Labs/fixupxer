@@ -22,6 +22,7 @@ package com.fixupxer.cleaners.impl
 
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
+import java.net.URLDecoder
 
 /**
  * Cleaner for Reddit URLs - comprehensive tracking removal
@@ -115,6 +116,19 @@ object RedditCleaner : UrlCleaner {
     }
     
     override fun clean(url: String): String {
+        // Outbound redirect wrapper (out.reddit.com/…?url=<dest>&token=…): the
+        // Reddit app wraps every external link in it. Its token/url params are
+        // NOT tracking — stripping them hands the browser a redirect without a
+        // destination, which Reddit rejects with /invalid_token. Extract the
+        // destination instead (CleanerService.deepClean then cleans it with the
+        // destination's own cleaner, same contract as GoogleSearchCleaner).
+        if (url.contains("out.reddit.com")) {
+            extractOutboundUrl(url)?.let { return it }
+            // No extractable destination — leave the wrapper untouched so the
+            // redirect (with its token) still works server-side.
+            return url
+        }
+        
         // Reddit short links need to be preserved as-is (can't expand client-side)
         if (url.contains("redd.it")) {
             val idx = url.indexOf('?')
@@ -170,5 +184,19 @@ object RedditCleaner : UrlCleaner {
             // On error, return original URL
             return url
         }
+    }
+    
+    private fun extractOutboundUrl(url: String): String? {
+        Regex("[?&]url=([^&]+)").find(url)?.let { match ->
+            try {
+                val decoded = URLDecoder.decode(match.groupValues[1], "UTF-8")
+                if (decoded.startsWith("http://") || decoded.startsWith("https://")) {
+                    return decoded
+                }
+            } catch (_: Exception) {
+                // Fall through — caller keeps the wrapper untouched
+            }
+        }
+        return null
     }
 } 

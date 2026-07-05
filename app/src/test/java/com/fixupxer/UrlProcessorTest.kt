@@ -91,6 +91,18 @@ class UrlProcessorTest {
     }
     
     @Test
+    fun `reddit outbound wrapper is unwrapped and destination cleaned`() {
+        // Real Reddit-app shape: percent-encoded destination that itself carries
+        // tracking params. Must (1) pass validation, (2) unwrap to the
+        // destination, (3) deep-clean the destination with its own cleaner.
+        val redditOutbound = "https://out.reddit.com/t3_1abcde?url=https%3A%2F%2Fexample.com%2Farticle%3Futm_source%3Dreddit%26utm_medium%3Dsocial&token=AQAAxyz&app_name=android"
+        
+        val result = urlProcessor.processUrl(redditOutbound, cleanTracking = true, convertTwitter = false).first
+        
+        assertEquals("https://example.com/article", result)
+    }
+    
+    @Test
     fun `google url wrapper cannot smuggle extra urls`() {
         // The InputValidator multiple-URL exemption for google.*/url? wrappers
         // relies on this: only the q=/url= destination is ever extracted, any

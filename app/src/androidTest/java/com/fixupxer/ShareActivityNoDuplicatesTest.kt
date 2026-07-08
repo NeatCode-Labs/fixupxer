@@ -132,8 +132,8 @@ class ShareActivityNoDuplicatesTest {
         // Wait for processing
         Thread.sleep(3000)
         
-        // Verify Instagram toggle is shown (Facebook uses Instagram toggle)
-        onView(withId(R.id.switchInstagram))
+        // Verify the Facebook toggle is shown (shares the convert_instagram pref)
+        onView(withId(R.id.switchFacebook))
             .check(matches(isDisplayed()))
         
         // Verify the processed URL is displayed

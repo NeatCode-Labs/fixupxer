@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Explicit colorSurface background: keeps the whole screen on one tone even when
+     the OEM dynamic palette makes colorBackground differ from colorSurface. -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
     android:fitsSystemWindows="false"
+    tools:ignore="Overdraw"
     tools:context=".ui.SettingsActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -12,6 +16,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
+        android:stateListAnimator="@null"
+        android:outlineProvider="none"
+        app:liftOnScroll="false"
+        app:liftOnScrollColor="@android:color/transparent"
         app:elevation="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -23,7 +31,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="@android:color/transparent"
-                android:theme="@style/ThemeOverlay.MaterialComponents.ActionBar"
+                android:theme="@style/ThemeOverlay.Material3.ActionBar"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -38,7 +46,7 @@
                 android:text="@string/settings_title"
                 android:textAlignment="center"
                 android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-                android:textColor="@color/primary"
+                android:textColor="?attr/colorPrimary"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@id/toolbar"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -62,12 +70,69 @@
             android:orientation="vertical"
             android:padding="@dimen/padding_large">
 
+            <!-- Appearance Section -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/padding_medium"
+                app:cardCornerRadius="@dimen/card_corner_radius">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/padding_large">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/appearance"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textColor="?attr/colorPrimary"
+                        android:layout_marginBottom="@dimen/padding_small" />
+
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/themeToggleGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonThemeSystem"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/theme_system" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonThemeLight"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/theme_light" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonThemeDark"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/theme_dark" />
+
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- Browser Integration Section -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/padding_medium"
-                app:cardElevation="2dp"
                 app:cardCornerRadius="@dimen/card_corner_radius">
 
                 <LinearLayout
@@ -81,10 +146,10 @@
                         android:layout_height="wrap_content"
                         android:text="@string/browser_integration"
                         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="@color/primary"
+                        android:textColor="?attr/colorPrimary"
                         android:layout_marginBottom="@dimen/padding_small" />
 
-                    <com.google.android.material.switchmaterial.SwitchMaterial
+                    <com.google.android.material.materialswitch.MaterialSwitch
                         android:id="@+id/switchBrowserMode"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -108,7 +173,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/padding_medium"
-                app:cardElevation="2dp"
                 app:cardCornerRadius="@dimen/card_corner_radius">
 
                 <LinearLayout
@@ -122,7 +186,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/after_clean_behavior"
                         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="@color/primary"
+                        android:textColor="?attr/colorPrimary"
                         android:layout_marginBottom="@dimen/padding_small" />
 
                     <RadioGroup
@@ -169,7 +233,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="gone"
-                app:cardElevation="2dp"
                 app:cardCornerRadius="@dimen/card_corner_radius">
 
                 <LinearLayout
@@ -183,7 +246,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/action_priority"
                         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="@color/primary"
+                        android:textColor="?attr/colorPrimary"
                         android:layout_marginBottom="@dimen/padding_small" />
 
                     <com.google.android.material.divider.MaterialDivider

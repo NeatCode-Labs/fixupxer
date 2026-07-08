@@ -19,7 +19,9 @@
 
 package com.fixupxer.ui.dialogs
 
-import android.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.radiobutton.MaterialRadioButton
 import android.content.Context
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -33,7 +35,6 @@ import android.widget.BaseAdapter
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.RadioButton
 import android.widget.TextView
 import androidx.core.text.HtmlCompat
 import androidx.core.widget.TextViewCompat
@@ -93,7 +94,7 @@ object TikTokProxyDialogHelper {
             }
         )
 
-        dialog = AlertDialog.Builder(context)
+        dialog = MaterialAlertDialogBuilder(context)
             .setCustomTitle(customTitle)
             .setAdapter(adapter) { _, _ -> /* handled via list click listener below */ }
             .setNegativeButton(R.string.cancel, null)
@@ -153,7 +154,7 @@ object TikTokProxyDialogHelper {
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             val view = LayoutInflater.from(context)
                 .inflate(R.layout.item_instagram_proxy_option, parent, false)
-            val radio = view.findViewById<RadioButton>(R.id.proxyRadio)
+            val radio = view.findViewById<MaterialRadioButton>(R.id.proxyRadio)
             val text = view.findViewById<TextView>(R.id.proxyDomainText)
             val delete = view.findViewById<ImageButton>(R.id.proxyDeleteButton)
 
@@ -195,7 +196,7 @@ object TikTokProxyDialogHelper {
         val inputLayout = view.findViewById<TextInputLayout>(R.id.customProxyInputLayout)
         val input = view.findViewById<TextInputEditText>(R.id.customProxyInput)
 
-        val dialog = AlertDialog.Builder(context)
+        val dialog = MaterialAlertDialogBuilder(context)
             .setTitle(R.string.instagram_proxy_add_dialog_title)
             .setView(view)
             .setPositiveButton(R.string.add, null) // listener set below to control dismissal
@@ -273,7 +274,7 @@ object TikTokProxyDialogHelper {
             context.getString(R.string.tiktok_proxy_info_text),
             HtmlCompat.FROM_HTML_MODE_LEGACY
         )
-        AlertDialog.Builder(context)
+        MaterialAlertDialogBuilder(context)
             .setTitle(R.string.instagram_proxy_info_title)
             .setMessage(message)
             .setPositiveButton(android.R.string.ok, null)

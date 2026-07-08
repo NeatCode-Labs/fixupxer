@@ -37,7 +37,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class ApiCompatibilityTest {
-    
     @Test
     fun testMinSdkCompatibility() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext

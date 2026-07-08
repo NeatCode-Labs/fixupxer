@@ -27,7 +27,6 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.fixupxer.MainActivity
 import org.hamcrest.Description
 import org.hamcrest.Matcher
@@ -41,7 +40,6 @@ import kotlin.math.roundToInt
  */
 @RunWith(AndroidJUnit4::class)
 class TouchTargetTest {
-    
     companion object {
         const val MIN_TOUCH_TARGET_DP = 48
     }
@@ -101,7 +99,9 @@ class TouchTargetTest {
                 
                 // For text views and smaller views, check if they have sufficient padding
                 // or if they're part of a larger clickable area
-                if (view is android.widget.TextView || view is androidx.appcompat.widget.SwitchCompat) {
+                if (view is android.widget.TextView ||
+                    view is com.google.android.material.materialswitch.MaterialSwitch
+                ) {
                     // These views are acceptable if they have reasonable size
                     return touchableWidth >= minPixels * 0.8 || touchableHeight >= minPixels * 0.8
                 }

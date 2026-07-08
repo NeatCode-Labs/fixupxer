@@ -1,42 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base application theme for Android 15 (API 35+) -->
-    <style name="Theme.FixupXer" parent="Theme.Material3.Light.NoActionBar">
-        <!-- Set window background to white to match the app screens -->
-        <item name="android:windowBackground">@color/white</item>
-        
-        <!-- Edge-to-edge support - let system handle transparency -->
+    <style name="Theme.FixupXer" parent="Base.Theme.FixupXer">
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
-        <!-- Disable navigation bar contrast enforcement for true transparency -->
         <item name="android:enforceNavigationBarContrast">false</item>
-        
-        <!-- Light theme indicators without setting colors -->
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
-        
-        <!-- Primary brand color -->
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryVariant">@color/primary_dark</item>
-        <item name="colorOnPrimary">@color/white</item>
-        
-        <!-- Secondary brand color -->
-        <item name="colorSecondary">@color/accent</item>
-        <item name="colorSecondaryVariant">@color/accent_dark</item>
-        <item name="colorOnSecondary">@color/white</item>
-        
-        <!-- Background colors -->
-        <item name="android:colorBackground">@color/background</item>
-        <item name="colorSurface">@color/white</item>
-        <item name="colorOnBackground">@color/black</item>
-        <item name="colorOnSurface">@color/black</item>
-        
-        <!-- Default text color -->
-        <item name="android:textColorPrimary">@color/black</item>
-        <item name="android:textColorSecondary">@color/dark_gray</item>
-        
-        <!-- Component styles -->
-        <item name="materialCardViewStyle">@style/CardStyle</item>
-        <item name="switchStyle">@style/SwitchStyle</item>
-        <item name="materialButtonStyle">@style/ButtonStyle</item>
     </style>
-</resources> 
+</resources>

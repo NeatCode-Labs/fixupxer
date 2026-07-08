@@ -296,8 +296,8 @@ class MainActivityHistoryTest {
         onView(withId(R.id.editTextUrl))
             .check(matches(withText("")))
         
-        // Verify error message
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(withText(containsString("Please paste one URL at a time"))))
+        // Verify error message (shown in the TextInputLayout error slot)
+        onView(withText(containsString("Please paste one URL at a time")))
+            .check(matches(isDisplayed()))
     }
 } 

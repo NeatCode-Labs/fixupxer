@@ -35,7 +35,6 @@ import org.hamcrest.CoreMatchers.containsString
  */
 @RunWith(AndroidJUnit4::class)
 class SmartFooterTest {
-    
     @Test
     fun testFooterIsVisible() {
         ActivityScenario.launch(MainActivity::class.java)

@@ -26,10 +26,8 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.core.text.HtmlCompat
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -38,13 +36,12 @@ import com.fixupxer.R
 import com.fixupxer.databinding.ActivitySettingsBinding
 import com.fixupxer.databinding.DialogConversionDefaultsBinding
 import com.fixupxer.ui.adapters.ActionPriorityAdapter
+import com.fixupxer.ui.helpers.ThemeHelper
 import com.fixupxer.utils.BrowserModeUtils
-import com.google.android.material.switchmaterial.SwitchMaterial
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import timber.log.Timber
-import java.util.Collections
-import android.widget.Toast
+import com.fixupxer.ui.helpers.SnackbarHelper
 
 /**
  * Settings activity for configuring browser mode and other app preferences
@@ -87,6 +84,20 @@ class SettingsActivity : BaseActivity() {
     }
     
     private fun setupViews() {
+        // Theme picker
+        binding.themeToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val mode = when (checkedId) {
+                R.id.buttonThemeLight -> PreferencesManager.THEME_MODE_LIGHT
+                R.id.buttonThemeDark -> PreferencesManager.THEME_MODE_DARK
+                else -> PreferencesManager.THEME_MODE_SYSTEM
+            }
+            if (mode == preferencesManager.getThemeMode()) return@addOnButtonCheckedListener
+            preferencesManager.setThemeMode(mode)
+            ThemeHelper.apply(mode)
+            Timber.d("Theme mode changed to: $mode")
+        }
+
         // Browser mode switch
         binding.switchBrowserMode.setOnCheckedChangeListener { _, isChecked ->
             preferencesManager.setBrowserModeEnabled(isChecked)
@@ -121,6 +132,14 @@ class SettingsActivity : BaseActivity() {
     }
     
     private fun loadSettings() {
+        // Load theme mode
+        val themeButtonId = when (preferencesManager.getThemeMode()) {
+            PreferencesManager.THEME_MODE_LIGHT -> R.id.buttonThemeLight
+            PreferencesManager.THEME_MODE_DARK -> R.id.buttonThemeDark
+            else -> R.id.buttonThemeSystem
+        }
+        binding.themeToggleGroup.check(themeButtonId)
+
         // Load browser mode state
         val browserModeEnabled = preferencesManager.isBrowserModeEnabled()
         binding.switchBrowserMode.isChecked = browserModeEnabled
@@ -224,7 +243,7 @@ class SettingsActivity : BaseActivity() {
             }
         }
         
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.instructions_title)
             .setView(dialogView)
             .setPositiveButton(android.R.string.ok, null)
@@ -240,7 +259,7 @@ class SettingsActivity : BaseActivity() {
         dialogBinding.switchBrowserFacebook.isChecked = preferencesManager.isBrowserConvertFacebookEnabled()
         dialogBinding.switchBrowserTikTok.isChecked = preferencesManager.isBrowserConvertTikTokEnabled()
         
-        val dialog = AlertDialog.Builder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.conversion_defaults_title)
             .setView(dialogBinding.root)
             .setCancelable(true)
@@ -254,7 +273,7 @@ class SettingsActivity : BaseActivity() {
             preferencesManager.setBrowserConvertFacebookEnabled(dialogBinding.switchBrowserFacebook.isChecked)
             preferencesManager.setBrowserConvertTikTokEnabled(dialogBinding.switchBrowserTikTok.isChecked)
             
-            Toast.makeText(this, getString(R.string.browser_conversion_settings_saved), Toast.LENGTH_SHORT).show()
+            SnackbarHelper.showShort(binding.root, getString(R.string.browser_conversion_settings_saved))
             Timber.d("Browser conversion settings saved - Twitter: ${dialogBinding.switchBrowserTwitter.isChecked}, Instagram: ${dialogBinding.switchBrowserInstagram.isChecked}, Facebook: ${dialogBinding.switchBrowserFacebook.isChecked}, TikTok: ${dialogBinding.switchBrowserTikTok.isChecked}")
             dialog.dismiss()
         }

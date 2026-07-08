@@ -36,7 +36,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class KeyboardNavigationTest {
-    
     @Test
     fun testKeyboardInputAndDismissal() {
         ActivityScenario.launch(MainActivity::class.java)
@@ -73,8 +72,8 @@ class KeyboardNavigationTest {
         onView(withId(R.id.editTextUrl))
             .perform(clearText())
         
-        // The paste button should be visible
-        onView(withId(R.id.buttonPaste))
+        // The paste end icon on the TextInputLayout should be visible
+        onView(withContentDescription(R.string.paste_content_desc))
             .check(matches(isDisplayed()))
             .check(matches(isClickable()))
     }

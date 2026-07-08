@@ -30,8 +30,6 @@ import com.fixupxer.utils.InstagramProxyStore
 import com.fixupxer.utils.TikTokProxyStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -268,6 +266,8 @@ class UrlRepositoryImpl @Inject constructor(
     }
     
     override fun isInstagramUrl(url: String): Boolean = urlProcessor.isInstagramUrl(url)
+
+    override fun isFacebookUrl(url: String): Boolean = urlProcessor.isFacebookUrl(url)
     
     override fun isTwitterUrl(url: String): Boolean = urlProcessor.isTwitterUrl(url)
     
@@ -275,35 +275,47 @@ class UrlRepositoryImpl @Inject constructor(
     
     override fun hasTrackingParameters(url: String): Boolean = urlProcessor.hasTrackingParameters(url)
     
-    override fun isInstagramConversionEnabled(): Flow<Boolean> = flowOf(preferencesManager.isConvertInstagramEnabled())
+    override fun isInstagramConversionEnabled(): Flow<Boolean> =
+        preferencesManager.booleanFlow(PreferencesManager.KEY_CONVERT_INSTAGRAM, default = true)
     
     override suspend fun setInstagramConversionEnabled(enabled: Boolean) {
         withContext(Dispatchers.IO) {
-            preferencesManager.setConvertInstagramEnabled(enabled)
+            if (preferencesManager.isConvertInstagramEnabled() != enabled) {
+                preferencesManager.setConvertInstagramEnabled(enabled)
+            }
         }
     }
     
-    override fun isTrackingRemovalEnabled(): Flow<Boolean> = flowOf(preferencesManager.isCleanTrackingEnabled())
+    override fun isTrackingRemovalEnabled(): Flow<Boolean> =
+        preferencesManager.booleanFlow(PreferencesManager.KEY_CLEAN_TRACKING, default = true)
     
     override suspend fun setTrackingRemovalEnabled(enabled: Boolean) {
         withContext(Dispatchers.IO) {
-            preferencesManager.setCleanTrackingEnabled(enabled)
+            if (preferencesManager.isCleanTrackingEnabled() != enabled) {
+                preferencesManager.setCleanTrackingEnabled(enabled)
+            }
         }
     }
     
-    override fun isTwitterConversionEnabled(): Flow<Boolean> = flowOf(preferencesManager.isConvertTwitterEnabled())
+    override fun isTwitterConversionEnabled(): Flow<Boolean> =
+        preferencesManager.booleanFlow(PreferencesManager.KEY_CONVERT_TWITTER, default = true)
     
     override suspend fun setTwitterConversionEnabled(enabled: Boolean) {
         withContext(Dispatchers.IO) {
-            preferencesManager.setConvertTwitterEnabled(enabled)
+            if (preferencesManager.isConvertTwitterEnabled() != enabled) {
+                preferencesManager.setConvertTwitterEnabled(enabled)
+            }
         }
     }
     
-    override fun isTikTokConversionEnabled(): Flow<Boolean> = flowOf(preferencesManager.isConvertTikTokEnabled())
+    override fun isTikTokConversionEnabled(): Flow<Boolean> =
+        preferencesManager.booleanFlow(PreferencesManager.KEY_CONVERT_TIKTOK, default = true)
     
     override suspend fun setTikTokConversionEnabled(enabled: Boolean) {
         withContext(Dispatchers.IO) {
-            preferencesManager.setConvertTikTokEnabled(enabled)
+            if (preferencesManager.isConvertTikTokEnabled() != enabled) {
+                preferencesManager.setConvertTikTokEnabled(enabled)
+            }
         }
     }
     

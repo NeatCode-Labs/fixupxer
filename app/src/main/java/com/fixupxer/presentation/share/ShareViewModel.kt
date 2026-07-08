@@ -25,18 +25,21 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fixupxer.R
 import com.fixupxer.UrlProcessor
+import com.fixupxer.domain.model.ProcessedUrlResult
+import com.fixupxer.domain.model.ResultStatus
+import com.fixupxer.domain.model.resolveResultStatus
 import com.fixupxer.domain.repository.UrlRepository
+import com.fixupxer.utils.InputValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
-import javax.inject.Inject
-import com.fixupxer.utils.InputValidator
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
+import javax.inject.Inject
+import timber.log.Timber
 
 /**
  * ViewModel for ShareActivity
@@ -50,6 +53,11 @@ class ShareViewModel @Inject constructor(
     
     private val _uiState = MutableStateFlow(ShareUiState())
     val uiState: StateFlow<ShareUiState> = _uiState.asStateFlow()
+    
+    // Both flags are only touched from viewModelScope (main dispatcher), so no
+    // extra synchronization is needed.
+    private var isProcessing = false
+    private var pendingReprocess = false
     
     init {
         loadPreferences()
@@ -74,25 +82,47 @@ class ShareViewModel @Inject constructor(
     }
     
     fun processSharedText(sharedText: String) {
+        // Guard against re-delivery of the same intent (e.g. the activity being
+        // recreated on a configuration change): the existing result — or the
+        // still-running first pass — is valid, and reprocessing would write a
+        // duplicate history entry.
+        val current = _uiState.value
+        if (sharedText == current.sharedText &&
+            (current.isLoading || current.actionUrl.isNotEmpty() || current.error != null)
+        ) {
+            return
+        }
+        
         _uiState.update { it.copy(sharedText = sharedText, isLoading = true, error = null) }
         
+        isProcessing = true
         viewModelScope.launch {
             try {
                 withTimeout(1000) { // 1 second timeout
-                    val validated = InputValidator.validateAndSanitizeInput(sharedText)
+                    val validation = InputValidator.validate(sharedText)
                     
-                    if (validated == null) {
+                    if (validation is InputValidator.ValidationResult.Invalid) {
+                        val messageRes = when (validation.reason) {
+                            InputValidator.InvalidReason.MULTIPLE_URLS -> R.string.error_multiple_urls
+                            InputValidator.InvalidReason.OTHER -> R.string.error_invalid_input
+                        }
                         _uiState.update {
                             it.copy(
                                 processedUrl = "",
+                                actionUrl = "",
+                                resultStatus = null,
                                 isLoading = false,
                                 isInstagramUrl = false,
+                                isFacebookUrl = false,
                                 isTwitterUrl = false,
-                                error = getApplication<Application>().getString(R.string.error_multiple_urls)
+                                isTikTokUrl = false,
+                                error = getApplication<Application>().getString(messageRes)
                             )
                         }
                         return@withTimeout
                     }
+                    
+                    val validated = (validation as InputValidator.ValidationResult.Valid).value
                     
                     // Continue with existing logic using validated input
                     val url = UrlProcessor.findFirstValidUrl(validated)
@@ -102,7 +132,12 @@ class ShareViewModel @Inject constructor(
                             it.copy(
                                 processedUrl = "",
                                 actionUrl = "",
+                                resultStatus = null,
                                 isLoading = false,
+                                isInstagramUrl = false,
+                                isFacebookUrl = false,
+                                isTwitterUrl = false,
+                                isTikTokUrl = false,
                                 error = getApplication<Application>().getString(R.string.error_no_url_found_in_shared_text)
                             )
                         }
@@ -134,6 +169,7 @@ class ShareViewModel @Inject constructor(
                     it.copy(
                         processedUrl = "",
                         actionUrl = "",
+                        resultStatus = null,
                         isLoading = false,
                         error = getApplication<Application>().getString(R.string.error_processing_url)
                     )
@@ -144,10 +180,14 @@ class ShareViewModel @Inject constructor(
                     it.copy(
                         processedUrl = "",
                         actionUrl = "",
+                        resultStatus = null,
                         isLoading = false,
                         error = getApplication<Application>().getString(R.string.error_processing_url_with_message, e.message)
                     )
                 }
+            } finally {
+                isProcessing = false
+                runPendingReprocess()
             }
         }
     }
@@ -160,37 +200,14 @@ class ShareViewModel @Inject constructor(
         try {
             // Use processUrl which handles history saving and all conversion logic
             val result = urlRepository.processUrl(url, false)
-            val processedUrl = result.url
-            
-            Timber.d("ShareViewModel processUrl result: $url -> $processedUrl")
-            
-            // When nothing changed, show "Nothing to do!" but keep the input URL as
-            // the actionable URL so Copy/Share/Open still operate on a real URL.
-            if (processedUrl == url) {
-                _uiState.update {
-                    it.copy(
-                        processedUrl = getApplication<Application>().getString(R.string.nothing_to_do),
-                        actionUrl = url,
-                        isLoading = false,
-                        error = null
-                    )
-                }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        processedUrl = processedUrl,
-                        actionUrl = processedUrl,
-                        isLoading = false,
-                        error = null
-                    )
-                }
-            }
+            applyProcessResult(url, result)
         } catch (e: Exception) {
             Timber.e(e, "Error processing URL")
             _uiState.update { 
                 it.copy(
                     processedUrl = "",
                     actionUrl = "",
+                    resultStatus = null,
                     isLoading = false,
                     error = getApplication<Application>().getString(R.string.error_processing_url_with_message, e.message)
                 )
@@ -200,41 +217,69 @@ class ShareViewModel @Inject constructor(
     
     fun onInstagramConversionToggled(enabled: Boolean) {
         viewModelScope.launch {
-            urlRepository.setInstagramConversionEnabled(enabled)
-            _uiState.update { it.copy(isInstagramConversionEnabled = enabled) }
-            
-            // Re-process the URL with new setting WITHOUT going through the full flow
-            val sharedText = _uiState.value.sharedText
-            if (sharedText.isNotEmpty()) {
-                reprocessUrlLocally()
+            if (_uiState.value.isInstagramConversionEnabled != enabled) {
+                urlRepository.setInstagramConversionEnabled(enabled)
+                _uiState.update { it.copy(isInstagramConversionEnabled = enabled) }
+                requestReprocess()
             }
         }
     }
     
     fun onTwitterConversionToggled(enabled: Boolean) {
         viewModelScope.launch {
-            urlRepository.setTwitterConversionEnabled(enabled)
-            _uiState.update { it.copy(isTwitterConversionEnabled = enabled) }
-            
-            // Re-process the URL with new setting WITHOUT going through the full flow
-            val sharedText = _uiState.value.sharedText
-            if (sharedText.isNotEmpty()) {
-                reprocessUrlLocally()
+            if (_uiState.value.isTwitterConversionEnabled != enabled) {
+                urlRepository.setTwitterConversionEnabled(enabled)
+                _uiState.update { it.copy(isTwitterConversionEnabled = enabled) }
+                requestReprocess()
             }
         }
     }
     
     fun onTikTokConversionToggled(enabled: Boolean) {
         viewModelScope.launch {
-            urlRepository.setTikTokConversionEnabled(enabled)
-            _uiState.update { it.copy(isTikTokConversionEnabled = enabled) }
-            
-            // Re-process the URL with new setting WITHOUT going through the full flow
-            val sharedText = _uiState.value.sharedText
-            if (sharedText.isNotEmpty()) {
-                reprocessUrlLocally()
+            if (_uiState.value.isTikTokConversionEnabled != enabled) {
+                urlRepository.setTikTokConversionEnabled(enabled)
+                _uiState.update { it.copy(isTikTokConversionEnabled = enabled) }
+                requestReprocess()
             }
         }
+    }
+    
+    /**
+     * Re-process the shared URL after the user picks a different Instagram or
+     * TikTok proxy in the picker dialog (the toggle value itself is unchanged,
+     * so the toggle handlers above won't fire). Mirrors
+     * `MainViewModel.reprocessAfterProxyChange()`.
+     */
+    fun reprocessAfterProxyChange() {
+        val state = _uiState.value
+        if (!state.isInstagramUrl && !state.isTikTokUrl) return
+        requestReprocess()
+    }
+    
+    private fun requestReprocess() {
+        if (_uiState.value.sharedText.isEmpty()) return
+        if (isProcessing) {
+            // Initial processing (or another reprocess) is still in flight —
+            // re-run once it finishes so this change is never lost.
+            pendingReprocess = true
+            return
+        }
+        isProcessing = true
+        viewModelScope.launch {
+            try {
+                reprocessUrlLocally()
+            } finally {
+                isProcessing = false
+                runPendingReprocess()
+            }
+        }
+    }
+    
+    private fun runPendingReprocess() {
+        if (!pendingReprocess) return
+        pendingReprocess = false
+        requestReprocess()
     }
     
     private suspend fun reprocessUrlLocally() {
@@ -249,29 +294,39 @@ class ShareViewModel @Inject constructor(
             
             // Re-process through repository with the previous result for proper history comparison
             val result = urlRepository.processUrl(url, false, previousUrl)
-            val processedUrl = result.url
-            
-            if (processedUrl == url) {
-                _uiState.update {
-                    it.copy(
-                        processedUrl = getApplication<Application>().getString(R.string.nothing_to_do),
-                        actionUrl = url,
-                        isLoading = false,
-                        error = null
-                    )
-                }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        processedUrl = processedUrl,
-                        actionUrl = processedUrl,
-                        isLoading = false,
-                        error = null
-                    )
-                }
-            }
+            applyProcessResult(url, result)
         } catch (e: Exception) {
             Timber.e(e, "Error reprocessing URL locally")
+            _uiState.update {
+                it.copy(
+                    processedUrl = "",
+                    actionUrl = "",
+                    resultStatus = null,
+                    isLoading = false,
+                    error = getApplication<Application>().getString(R.string.error_processing_url)
+                )
+            }
+        }
+    }
+    
+    /**
+     * Nothing usable arrived in the share intent (no EXTRA_TEXT and no clip
+     * data) — show an explicit error instead of an endless "Processing…".
+     */
+    fun setNoSharedText() {
+        _uiState.update {
+            it.copy(
+                sharedText = "",
+                processedUrl = "",
+                actionUrl = "",
+                resultStatus = null,
+                isLoading = false,
+                isInstagramUrl = false,
+                isFacebookUrl = false,
+                isTwitterUrl = false,
+                isTikTokUrl = false,
+                error = getApplication<Application>().getString(R.string.error_no_url_found_in_shared_text)
+            )
         }
     }
     
@@ -281,6 +336,7 @@ class ShareViewModel @Inject constructor(
                 sharedText = "",
                 processedUrl = "",
                 actionUrl = "",
+                resultStatus = null,
                 isLoading = false,
                 isInstagramUrl = false,
                 isFacebookUrl = false,
@@ -290,19 +346,38 @@ class ShareViewModel @Inject constructor(
             )
         }
     }
+
+    private fun applyProcessResult(
+        inputUrl: String,
+        result: ProcessedUrlResult,
+        isLoading: Boolean = false
+    ) {
+        val processedUrl = result.url
+        Timber.d("ShareViewModel processUrl result: $inputUrl -> $processedUrl")
+        _uiState.update {
+            it.copy(
+                processedUrl = processedUrl,
+                actionUrl = processedUrl,
+                resultStatus = resolveResultStatus(inputUrl, processedUrl),
+                isLoading = isLoading,
+                error = null
+            )
+        }
+    }
 }
 
 /**
  * UI state for ShareActivity
  *
- * [processedUrl] is the *display* text for the "Processed URL" field (may be the
- * localized "Nothing to do!" message); [actionUrl] is the URL the Copy/Share/Open
- * buttons act on — always a real URL or empty.
+ * [processedUrl] always shows the actual processed URL; [resultStatus] describes
+ * whether it was already clean, cleaned, or converted. [actionUrl] is the URL the
+ * Copy/Share/Open buttons act on — always a real URL or empty.
  */
 data class ShareUiState(
     val sharedText: String = "",
     val processedUrl: String = "",
     val actionUrl: String = "",
+    val resultStatus: ResultStatus? = null,
     val isLoading: Boolean = false,
     val isInstagramUrl: Boolean = false,
     val isFacebookUrl: Boolean = false,

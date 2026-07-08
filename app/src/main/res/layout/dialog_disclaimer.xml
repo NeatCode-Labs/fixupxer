@@ -33,6 +33,7 @@
         android:layout_marginEnd="@dimen/margin_large"
         android:text="@string/agree_and_close"
         android:visibility="gone"
+        android:accessibilityLiveRegion="polite"
         style="@style/Widget.Material3.Button" />
 
 </LinearLayout> 

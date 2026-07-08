@@ -26,6 +26,9 @@ import androidx.core.content.edit
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InstagramProxyStore
 import com.fixupxer.utils.TikTokProxyStore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 /**
  * Manages user preferences for the app
@@ -34,11 +37,11 @@ class PreferencesManager(context: Context) {
     companion object {
         private const val PREFS_NAME = "FixupXerPrefs"
 
-        // Preference keys
-        private const val KEY_CLEAN_TRACKING = "clean_tracking"
-        private const val KEY_CONVERT_TWITTER = "convert_twitter"
-        private const val KEY_CONVERT_INSTAGRAM = "convert_instagram"
-        private const val KEY_CONVERT_TIKTOK = "convert_tiktok"
+        // Preference keys (internal for reactive Flow consumers in the data layer)
+        internal const val KEY_CLEAN_TRACKING = "clean_tracking"
+        internal const val KEY_CONVERT_TWITTER = "convert_twitter"
+        internal const val KEY_CONVERT_INSTAGRAM = "convert_instagram"
+        internal const val KEY_CONVERT_TIKTOK = "convert_tiktok"
         private const val KEY_INSTAGRAM_PROXY = "instagram_proxy_domain"
         private const val KEY_CUSTOM_INSTAGRAM_PROXIES = "custom_instagram_proxies"
         private const val KEY_TIKTOK_PROXY = "tiktok_proxy_domain"
@@ -46,6 +49,12 @@ class PreferencesManager(context: Context) {
         private const val KEY_HISTORY_ENABLED = "history_enabled"
         private const val KEY_MAX_HISTORY_ENTRIES = "max_history_entries"
         private const val DEFAULT_MAX_HISTORY_ENTRIES = 100
+        private const val KEY_THEME_MODE = "theme_mode"
+
+        // Theme mode values
+        const val THEME_MODE_SYSTEM = "system"
+        const val THEME_MODE_LIGHT = "light"
+        const val THEME_MODE_DARK = "dark"
         
         // Browser mode keys
         private const val KEY_BROWSER_ENABLED = "browser_enabled"
@@ -70,6 +79,21 @@ class PreferencesManager(context: Context) {
     }
 
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    /**
+     * Reactive stream for a boolean preference. Emits the current value immediately,
+     * then on every subsequent change to [key].
+     */
+    fun booleanFlow(key: String, default: Boolean): Flow<Boolean> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, changedKey ->
+            if (changedKey == key) {
+                trySend(prefs.getBoolean(key, default))
+            }
+        }
+        trySend(prefs.getBoolean(key, default))
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
 
     init {
         // Mirror persisted custom proxies into the process-wide stores so stateless
@@ -244,6 +268,26 @@ class PreferencesManager(context: Context) {
     private fun persistCustomTikTokProxies(proxies: List<String>) {
         prefs.edit { putString(KEY_CUSTOM_TIKTOK_PROXIES, proxies.joinToString(",")) }
         TikTokProxyStore.setCustomProxies(proxies)
+    }
+
+    /**
+     * Get the selected theme mode: [THEME_MODE_SYSTEM] (default), [THEME_MODE_LIGHT]
+     * or [THEME_MODE_DARK].
+     */
+    fun getThemeMode(): String {
+        return when (val stored = prefs.getString(KEY_THEME_MODE, THEME_MODE_SYSTEM)) {
+            THEME_MODE_LIGHT, THEME_MODE_DARK, THEME_MODE_SYSTEM -> stored
+            // Unknown value (corrupted prefs / backup restore from a newer
+            // version) — fall back to following the system.
+            else -> THEME_MODE_SYSTEM
+        }
+    }
+
+    /**
+     * Persist the selected theme mode.
+     */
+    fun setThemeMode(mode: String) {
+        prefs.edit { putString(KEY_THEME_MODE, mode) }
     }
 
     /**

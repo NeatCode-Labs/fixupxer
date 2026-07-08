@@ -140,7 +140,7 @@ class MainActivityProxyLabelTest {
                 .perform(replaceText("https://facebook.com/user/posts/1"), closeSoftKeyboard())
             onView(isRoot()).perform(waitFor(1500))
 
-            onView(withId(R.id.instagramToggleContainer))
+            onView(withId(R.id.facebookToggleContainer))
                 .check(matches(isDisplayed()))
             onView(withId(R.id.instagramProxyRow))
                 .check(matches(allOf(not(isDisplayed()))))
@@ -166,9 +166,9 @@ class MainActivityProxyLabelTest {
             onView(withId(R.id.textViewInstagramProxyStatus))
                 .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
 
-            // Processed URL field is empty (user hasn't pressed Process yet)
+            // Processed URL field shows the placeholder (user hasn't pressed Process yet)
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("")))
+                .check(matches(withText(R.string.result_placeholder)))
 
             // Click Change. -> dialog appears
             onView(withId(R.id.textViewChangeProxy)).perform(click())
@@ -186,10 +186,10 @@ class MainActivityProxyLabelTest {
             onView(withId(R.id.editTextUrl))
                 .check(matches(isDisplayed()))
 
-            // No auto-reprocess: Processed URL field stays empty until the user
-            // taps Process (preserves the explicit Process-button flow for fresh inputs).
+            // No auto-reprocess: Processed URL field keeps the placeholder until the
+            // user taps Process (preserves the explicit Process-button flow for fresh inputs).
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("")))
+                .check(matches(withText(R.string.result_placeholder)))
         }
     }
 
@@ -231,6 +231,27 @@ class MainActivityProxyLabelTest {
                 .check(matches(withText(containsString(Constants.INSTAGRAM7_DOMAIN))))
             onView(withId(R.id.textViewProcessedUrl))
                 .check(matches(not(withText(containsString(Constants.TOINSTAGRAM_DOMAIN)))))
+        }
+    }
+
+    @Test
+    fun processedInstagramUrlReprocessesAfterToggleChange() {
+        ActivityScenario.launch(MainActivity::class.java).use {
+            onView(withId(R.id.editTextUrl))
+                .perform(replaceText("https://instagram.com/p/abc"), closeSoftKeyboard())
+            onView(isRoot()).perform(waitFor(1500))
+
+            onView(withId(R.id.buttonProcess)).perform(click())
+            onView(isRoot()).perform(waitFor(1500))
+
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText(containsString(Constants.TOINSTAGRAM_DOMAIN))))
+
+            onView(withId(R.id.switchInstagram)).perform(click())
+            onView(isRoot()).perform(waitFor(1500))
+
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText("https://instagram.com/p/abc")))
         }
     }
 }

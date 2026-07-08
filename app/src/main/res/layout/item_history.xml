@@ -31,7 +31,7 @@
         android:layout_marginTop="@dimen/margin_small"
         app:drawableStartCompat="@drawable/arrow_downward"
         android:drawablePadding="@dimen/margin_medium"
-        app:drawableTint="@color/primary"
+        app:drawableTint="?attr/colorPrimary"
         tools:text="https://example.com/page"
         android:textColor="?android:attr/textColorPrimary"
         android:textSize="@dimen/text_size_small"
@@ -82,7 +82,7 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/copy_content_desc"
             android:padding="@dimen/padding_small"
-            app:tint="@color/primary" />
+            app:tint="?attr/colorPrimary" />
 
         <ImageButton
             android:id="@+id/buttonShare"
@@ -93,7 +93,7 @@
             android:contentDescription="@string/share_content_desc"
             android:padding="@dimen/padding_small"
             android:layout_marginStart="@dimen/margin_small"
-            app:tint="@color/primary" />
+            app:tint="?attr/colorPrimary" />
 
     </LinearLayout>
 

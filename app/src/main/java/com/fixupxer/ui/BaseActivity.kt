@@ -20,22 +20,18 @@
 
 package com.fixupxer.ui
 
-import android.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.view.WindowInsetsController
-import android.view.WindowManager
-import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.fixupxer.R
 import com.fixupxer.utils.Constants
@@ -62,48 +58,34 @@ abstract class BaseActivity : AppCompatActivity() {
     private fun setupEdgeToEdge() {
         // For Android 15 (SDK 35+) edge-to-edge is enforced by default
         // For earlier versions, we need to enable it manually
-        
-        // Use the modern enableEdgeToEdge approach with proper configuration
-        // This automatically handles the deprecated statusBarColor and navigationBarColor
+
+        // Below API 26 the navigation bar buttons are always white and can't be
+        // tinted, so a fully transparent bar leaves them invisible on light
+        // backgrounds — keep the translucent scrim there (same values as the
+        // enableEdgeToEdge() defaults). From API 26 on, icons adapt to the
+        // theme, so full transparency is safe. Status bar icons adapt from
+        // API 23; on 21-22 enableEdgeToEdge falls back to the system's own
+        // translucent scrim, so TRANSPARENT is safe to request unconditionally.
+        val navigationBarStyle = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT)
+        } else {
+            SystemBarStyle.auto(
+                Color.argb(0xe6, 0xFF, 0xFF, 0xFF),
+                Color.argb(0x80, 0x1b, 0x1b, 0x1b)
+            )
+        }
         enableEdgeToEdge(
-            // Configure status bar to show dark icons on light background
-            statusBarStyle = SystemBarStyle.light(
+            statusBarStyle = SystemBarStyle.auto(
                 Color.TRANSPARENT,
                 Color.TRANSPARENT
             ),
-            // Configure navigation bar based on API level
-            navigationBarStyle = when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 -> {
-                    // Android 8.1+ supports light navigation bar icons
-                    SystemBarStyle.light(
-                        Color.TRANSPARENT,
-                        Color.TRANSPARENT
-                    )
-                }
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
-                    // Android 6-7: Add slight scrim for visibility
-                    SystemBarStyle.light(
-                        Color.argb(0x33, 0, 0, 0), // 20% black scrim
-                        Color.argb(0x33, 0, 0, 0)
-                    )
-                }
-                else -> {
-                    // Android 5: Add darker scrim for white-only icons
-                    SystemBarStyle.light(
-                        Color.argb(0x4D, 0, 0, 0), // 30% black scrim
-                        Color.argb(0x4D, 0, 0, 0)
-                    )
-                }
-            }
+            navigationBarStyle = navigationBarStyle
         )
-        
+
         // Additional configuration for API 29+ to disable contrast enforcement
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }
-        
-        // Ensure the window background is set for proper edge-to-edge rendering
-        window.decorView.setBackgroundColor(Color.WHITE)
     }
     
     private fun setupWindowInsets() {
@@ -118,14 +100,22 @@ abstract class BaseActivity : AppCompatActivity() {
                 appBarLayout.setPadding(0, insets.top, 0, 0)
             }
             
-            // Apply bottom padding to the main content if needed
+            // Apply bottom padding to the main content if needed. Screens with the
+            // pinned History FAB get extra clearance so content can scroll above it.
             val scrollView = view.findViewById<androidx.core.widget.NestedScrollView>(R.id.mainScrollView)
-            scrollView?.setPadding(
-                scrollView.paddingLeft,
-                scrollView.paddingTop,
-                scrollView.paddingRight,
-                insets.bottom
-            )
+            if (scrollView != null) {
+                val fabClearance = if (view.findViewById<View>(R.id.buttonHistory) != null) {
+                    resources.getDimensionPixelSize(R.dimen.scroll_bottom_padding)
+                } else {
+                    0
+                }
+                scrollView.setPadding(
+                    scrollView.paddingLeft,
+                    scrollView.paddingTop,
+                    scrollView.paddingRight,
+                    insets.bottom + fabClearance
+                )
+            }
             
             // Apply symmetrical padding to footer to match title spacing
             val footer = view.findViewById<TextView>(R.id.footerTextView)
@@ -172,7 +162,7 @@ abstract class BaseActivity : AppCompatActivity() {
             )
         }
         
-        val alertDialog = AlertDialog.Builder(this)
+        val alertDialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.about_dialog_title)
             .setPositiveButton(R.string.about_dialog_positive, null)
             .create()
@@ -191,12 +181,12 @@ abstract class BaseActivity : AppCompatActivity() {
     }
     
     /**
-     * Show disclaimer dialog
+     * Show disclaimer dialog (reachable from the overflow menu).
      */
     protected fun showDisclaimerDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_disclaimer, null)
         
-        val alertDialog = AlertDialog.Builder(this)
+        val alertDialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.disclaimer_dialog_title)
             .setView(dialogView)
             .setCancelable(false) // User must scroll and click button
@@ -261,7 +251,7 @@ abstract class BaseActivity : AppCompatActivity() {
     protected fun showDonateDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_donate, null)
         
-        val alertDialog = AlertDialog.Builder(this)
+        val alertDialog = MaterialAlertDialogBuilder(this)
             .setView(dialogView)
             .create()
         

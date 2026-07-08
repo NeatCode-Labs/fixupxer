@@ -64,6 +64,13 @@ interface UrlRepository {
      * @return True if it's an Instagram URL
      */
     fun isInstagramUrl(url: String): Boolean
+
+    /**
+     * Check if a URL is a Facebook URL (including proxy/short domains)
+     * @param url URL to check
+     * @return True if it's a Facebook URL
+     */
+    fun isFacebookUrl(url: String): Boolean
     
     /**
      * Check if a URL is a Twitter/X URL

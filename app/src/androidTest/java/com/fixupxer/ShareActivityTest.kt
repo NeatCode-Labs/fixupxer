@@ -158,9 +158,11 @@ class ShareActivityTest {
             // Wait for processing
             onView(isRoot()).perform(waitFor(2000))
             
-            // Verify "Nothing to do" message
+            // Verify URL is shown with "Already clean" status
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText(containsString("Nothing to do"))))
+                .check(matches(withText("https://facebookez.com/zuck/posts/10115959821974691")))
+            onView(withId(R.id.textViewResultStatus))
+                .check(matches(withText(containsString("Already clean"))))
         }
     }
     
@@ -196,8 +198,8 @@ class ShareActivityTest {
             // Wait for initial processing
             onView(isRoot()).perform(waitFor(2000))
             
-            // Toggle Instagram/Facebook conversion off
-            onView(withId(R.id.switchInstagram)).perform(click())
+            // Toggle Facebook conversion off (shares the convert_instagram pref)
+            onView(withId(R.id.switchFacebook)).perform(click())
             
             // Wait for reprocessing
             onView(isRoot()).perform(waitFor(1500))
@@ -256,10 +258,10 @@ class ShareActivityTest {
             onView(isRoot()).perform(waitFor(1500))
             onView(withId(R.id.switchTwitter)).check(matches(isDisplayed()))
             
-            // Test Facebook URL - should show Instagram toggle (Facebook uses Instagram toggle)
+            // Test Facebook URL - should show Facebook toggle (uses convert_instagram pref)
             launchShareActivityWithText("https://www.facebook.com/test")
             onView(isRoot()).perform(waitFor(1500))
-            onView(withId(R.id.switchInstagram)).check(matches(isDisplayed()))
+            onView(withId(R.id.switchFacebook)).check(matches(isDisplayed()))
         }
     }
     

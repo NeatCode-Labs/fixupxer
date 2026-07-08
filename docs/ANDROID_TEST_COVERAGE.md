@@ -1,7 +1,16 @@
-# Android Test Coverage for FixupXer v1.7.2
+# Android Test Coverage for FixupXer v2.0.0
 
 ## Overview
-This document is the canonical test inventory (instrumentation + URL conversion matrix) covering all major features through v1.7.2. v1.7.2 generalizes the redirect-wrapper handling to all hosts (Reddit `out.reddit.com` outbound links now open correctly) and precompiles the validator's regexes.
+This document is the canonical test inventory (instrumentation + URL conversion matrix) covering all major features through v2.0.0. v2.0.0 is the complete UI redesign (before/after flow layout, Material 3 DayNight + dark mode, theme picker) plus a production-hardening pass; the conversion engine and validation surface are unchanged from v1.7.2.
+
+Test-suite delta vs v1.7.2 (252 unit / 190 instrumentation, both 100%):
+- **Added**: `MainViewModelTest.kt` (unit) — result statuses incl. `CLEANED_AND_CONVERTED`, `onUrlChanged` stale-result invalidation vs. retention, validation-error reason mapping (`MULTIPLE_URLS` vs `OTHER`), loading/action-URL state.
+- **Added**: `ShareViewModelTest.kt` (unit) — platform flag detection, duplicate identical share-text guard, `reprocessAfterProxyChange()`, `setNoSharedText()` error surfacing, error-branch state reset.
+- **Added**: `ResultStatusTest.kt` (unit) — status resolution: `ALREADY_CLEAN` vs `CLEANED` under subdomain normalization, `CONVERTED` with lookalike proxy domains, `CLEANED_AND_CONVERTED`, malformed URL fallback.
+- **Added**: `UrlDiffHelperTest.kt` (unit) — exact parameter-set strikethrough comparison, fragment handling, `applyStrikesInPlace` scenarios.
+- **Added**: `ThemePreferenceTest.kt` (unit, Robolectric) — theme default/round-trip, corrupted-value fallback to System, `ThemeHelper` → `AppCompatDelegate` mapping.
+- **Added**: `ThemePickerTest.kt` (instrumentation) — default selection, persisting a selection, picker state restored from a pre-seeded preference.
+- **Updated**: `MainActivityProxyLabelTest.kt` (result-card placeholder assertions), `UrlInputValidationTest.kt` (reason-aware error messages), `ReleaseTestSuite.kt` (async timing), plus layout-driven assertion updates across the UI suites for the new flow design.
 
 Test-suite delta vs v1.7.1 (211 unit / 186 instrumentation, both 100%):
 - **Updated**: `UpdatedCleanersTest.kt` (+4 `RedditCleaner` cases) — `out.reddit.com` destination extraction from `url=` (%-encoded and plain), wrapper without `url=` returned intact (server-side redirect token preserved), ordinary reddit.com post cleaning unaffected.

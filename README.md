@@ -5,7 +5,7 @@
 
 **Clean URLs • Get embeddable links • Use Browser Mode**
 
-[![Version](https://img.shields.io/badge/version-1.7.2-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
 [![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-green?style=for-the-badge)](LICENSE)
 
@@ -28,6 +28,7 @@ FixupXer is a free Android app that makes your shared links cleaner, safer, and 
 - **📱 Works Everywhere** - Supports 25+ popular websites including Facebook, Amazon, YouTube, and more
 - **🎯 100% Offline** - No internet needed, your links never leave your phone
 - **📊 History Tracking** - Keep track of all the links you've cleaned (optional)
+- **🌗 Modern Design** - Material 3 before/after flow interface with full dark mode and a System/Light/Dark theme picker (new in v2.0.0)
 
 ## 📸 Screenshots
 
@@ -35,6 +36,7 @@ FixupXer is a free Android app that makes your shared links cleaner, safer, and 
   <img src="./screenshots/main_empty.png" width="200" alt="Main Screen">
   <img src="./screenshots/main_filled.png" width="200" alt="Processing URL">
   <img src="./screenshots/share_filled.png" width="200" alt="Share Screen">
+  <img src="./screenshots/main_dark.png" width="200" alt="Dark Mode">
   <img src="./screenshots/history.png" width="200" alt="History">
   <img src="./screenshots/about.png" width="200" alt="About Dialog">
   <img src="./screenshots/infographics.png" width="200" alt="Features Infographic">
@@ -305,7 +307,7 @@ A: Absolutely! FixupXer has no internet permission and can't send data anywhere.
 - Modular cleaner system with 11 specialized modules
 - O(1) domain lookup performance
 - LRU cache with 1-hour TTL
-- 397 automated tests (211 unit + 186 instrumentation)
+- 442 automated tests (252 unit + 190 instrumentation)
 - Thread-safe, stateless design
 
 ### Building from Source

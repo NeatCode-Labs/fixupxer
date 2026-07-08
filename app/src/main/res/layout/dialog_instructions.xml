@@ -3,185 +3,196 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="@dimen/dialog_text_padding_horizontal"
+    android:paddingStart="@dimen/padding_large"
+    android:paddingEnd="@dimen/padding_large"
+    android:paddingTop="@dimen/padding_small"
     android:scrollbars="vertical">
-    
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingBottom="@dimen/padding_medium">
-        
+        android:paddingBottom="@dimen/padding_small">
+
         <!-- Section 1 Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/padding_medium"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="0dp"
             app:strokeWidth="0dp">
-            
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_large">
-                
+                android:padding="@dimen/padding_medium">
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/instructions_section1_title"
                     android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:textColor="@color/primary"
+                    android:textColor="?attr/colorPrimary"
                     android:layout_marginBottom="@dimen/padding_small" />
-                
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/instructions_section1_content"
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    android:textColor="?attr/colorOnSurface"
                     android:lineSpacingMultiplier="1.3" />
-                
+
             </LinearLayout>
-            
+
         </com.google.android.material.card.MaterialCardView>
-        
+
         <!-- Section 2 Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/padding_medium"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="0dp"
             app:strokeWidth="0dp">
-            
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_large">
-                
+                android:padding="@dimen/padding_medium">
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/instructions_section2_title"
                     android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:textColor="@color/primary"
+                    android:textColor="?attr/colorPrimary"
                     android:layout_marginBottom="@dimen/padding_small" />
-                
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/instructions_section2_content"
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    android:textColor="?attr/colorOnSurface"
                     android:lineSpacingMultiplier="1.3" />
-                
+
             </LinearLayout>
-            
+
         </com.google.android.material.card.MaterialCardView>
-        
+
         <!-- Section 3 Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/padding_medium"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="0dp"
             app:strokeWidth="0dp">
-            
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_large">
-                
+                android:padding="@dimen/padding_medium">
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/instructions_section3_title"
                     android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:textColor="@color/primary"
+                    android:textColor="?attr/colorPrimary"
                     android:layout_marginBottom="@dimen/padding_small" />
-                
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/instructions_section3_content"
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    android:textColor="?attr/colorOnSurface"
                     android:lineSpacingMultiplier="1.3" />
-                
+
             </LinearLayout>
-            
+
         </com.google.android.material.card.MaterialCardView>
-        
+
         <!-- Section 4 Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/padding_medium"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="0dp"
             app:strokeWidth="0dp">
-            
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_large">
-                
+                android:padding="@dimen/padding_medium">
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/instructions_section4_title"
                     android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:textColor="@color/primary"
+                    android:textColor="?attr/colorPrimary"
                     android:layout_marginBottom="@dimen/padding_small" />
-                
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/instructions_section4_content"
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    android:textColor="?attr/colorOnSurface"
                     android:lineSpacingMultiplier="1.3" />
-                
+
             </LinearLayout>
-            
+
         </com.google.android.material.card.MaterialCardView>
-        
+
         <!-- Section 5 Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/padding_medium"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="0dp"
             app:strokeWidth="0dp">
-            
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_large">
-                
+                android:padding="@dimen/padding_medium">
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/instructions_section5_title"
                     android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:textColor="@color/primary"
+                    android:textColor="?attr/colorPrimary"
                     android:layout_marginBottom="@dimen/padding_small" />
-                
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/instructions_section5_content"
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    android:textColor="?attr/colorOnSurface"
                     android:lineSpacingMultiplier="1.3" />
-                
+
             </LinearLayout>
-            
+
         </com.google.android.material.card.MaterialCardView>
-        
+
     </LinearLayout>
-    
-</ScrollView> 
+
+</ScrollView>

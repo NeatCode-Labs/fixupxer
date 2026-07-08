@@ -21,6 +21,7 @@
 package com.fixupxer
 
 import android.app.Application
+import com.fixupxer.ui.helpers.ThemeHelper
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 import javax.inject.Inject
@@ -39,7 +40,12 @@ class FixupXerApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        
+
+        ThemeHelper.apply(preferencesManager.getThemeMode())
+        // Deliberately NOT applying DynamicColors: on Android 12+ wallpaper-based
+        // dynamic colors would override the hand-tuned M3 brand palette
+        // (colors.xml + values-night) that the redesign is built around.
+
         // Initialize Timber for logging
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())

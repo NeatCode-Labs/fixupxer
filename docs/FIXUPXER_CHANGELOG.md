@@ -1,9 +1,9 @@
 # FixupXer App - Development Summary
-## Version Progression: v1.7.2 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.0.0 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 27 (v1.7.2, v1.7.1, v1.7.0, v1.6.0, v1.5.1, v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
-**Current Version:** v1.7.2 (versionCode: 33)  
-**Development Period:** v1.2.1 (Initial) → v1.7.2 (Current)
+**Total Versions Released:** 28 (v2.0.0, v1.7.2, v1.7.1, v1.7.0, v1.6.0, v1.5.1, v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
+**Current Version:** v2.0.0 (versionCode: 34)  
+**Development Period:** v1.2.1 (Initial) → v2.0.0 (Current)
 
 ---
 
@@ -30,6 +30,30 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v1.7.2 → v2.0.0
+- **Focus:** Complete UI redesign — the largest visual change in the app's history. Main and Share screens rebuilt as a **before/after flow layout** on a hand-tuned Material 3 DayNight theme with full dark mode. All URL-processing logic, proxy systems, browser mode, and privacy guarantees unchanged.
+- **Key Changes — layout (`activity_main.xml`, `activity_share.xml`, new includes):**
+  - Both screens restructured into a vertical flow: input node (link icon) → original-URL card → `Process URL` CTA (Main only) → result node (check icon) → result card → platform toggle card → action row. Shared markup extracted into `include_processed_url_card.xml` and `include_platform_toggles.xml` (IG/FB/X/TT rows with monogram, Embed toggle, `Active: <proxy>. Change.` sub-row).
+  - **New `domain/model/ResultStatus`** + `ui/helpers/ResultStatusHelper` — result card shows a status chip: `Already clean` / `Tracking removed` / `Converted for embedding` / `Tracking removed and converted`; subdomain-normalization and lookalike-proxy edge cases covered by unit tests (`ResultStatusTest`).
+  - **New `ui/helpers/UrlDiffHelper`** — tracking params removed by cleaning are struck through in the original URL (Main input + Share card); exact parameter-set comparison, fragment-aware (no substring false positives).
+  - **History is a bottom sheet** (`dialog_history.xml` via `BottomSheetDialog`), launched from a pinned `History` extended FAB; entry tap reloads it into the screen, per-entry delete with Snackbar undo; collector cancelled while history is disabled.
+  - **New `ui/helpers/SmartFooterHelper`** — footer + FAB re-anchor into the scroll content on small screens so nothing overlaps; `ui/helpers/UrlActionHelper`/`SnackbarHelper` centralize Open/Copy/Share actions and feedback (Toasts → Snackbars).
+  - Action row `Open / Copy / Share` (M3 tonal buttons) disabled until a result exists; paste is an end-icon inside the input field; result card shows a placeholder before first processing.
+- **Key Changes — theming:**
+  - Full **M3 DayNight** theme: `values-night/colors.xml` palette, per-API `themes.xml` overlays (v23/v27/v35 + night variants), theme-attr drawables (`?attr/colorSurfaceContainer` etc.) so every surface adapts; `DynamicColors` intentionally NOT applied (hand-tuned palette preserved on OEM skins).
+  - **Theme picker in Settings** (System/Light/Dark, `ThemeHelper` → `AppCompatDelegate`); preference validated with fallback to System on corrupt values.
+  - Edge-to-edge on API 21–35 with correct scrim handling for old nav-bar button versions (API 21–25).
+  - **New launcher icon** — wizard-wand glyph fitted to the 72dp adaptive safe zone, with monochrome (themed icon) variant; all densities regenerated.
+- **Key Changes — behaviour/hardening:**
+  - `InputValidator.validate()` returns a **reason-aware `ValidationResult`** (`MULTIPLE_URLS` vs `OTHER`) → distinct user-facing error messages (`error_multiple_urls` / `error_invalid_input`); multi-URL heuristic hardened for glued URLs vs nested query URLs.
+  - Main/Share ViewModels: `isProcessing` + `pendingReprocess` concurrency guards (toggle changes during processing queue exactly one reprocess); `onUrlChanged` invalidates stale results; UiState split into `processedUrl` (display) vs `actionUrl` (actions); Share VM ignores duplicate identical share texts, exposes `reprocessAfterProxyChange()` and `setNoSharedText()`.
+  - `ShareActivity`: `onNewIntent` sets the intent, `onPause` no longer finishes on config change, `ClipData` fallback when `EXTRA_TEXT` is missing, empty share intents surface an error state.
+  - Auto-reprocess on toggle/proxy change on both screens; input preserved across pause; predictive back; accessibility pass (content descriptions, live regions, keyboard navigation).
+- **Cleanup:** dead resources removed (wave backgrounds, legacy button/edit-text drawables, `dialog_about.xml`, `dialog_action_priority.xml`, `styles.xml`, unused switch selectors, `ic_menu`/`ic_search`), unused `androidx-core-testing` dependency dropped, orphan `drawable-v24/ic_launcher_foreground.xml` deleted.
+- **Tests added:** `MainViewModelTest` + `ShareViewModelTest` (new suites — statuses, invalidation, validation-error mapping, duplicate-share guard, proxy-change reprocess), `ResultStatusTest`, `UrlDiffHelperTest`, `ThemePreferenceTest` (Robolectric), `ThemePickerTest` (instrumentation); existing suites updated for the new layout/flow.
+- **Tests pass rate:** 252/252 unit (100%, +41 vs v1.7.2) + 190/190 instrumentation (100%, +4) on `Pixel_API_35_Play`.
+- **Impact:** the app looks completely different — clearer before/after mental model, full dark mode, modern M3 components — while the cleaning engine, proxy rosters, browser mode, and zero-permission privacy posture are byte-for-byte the same as v1.7.2.
 
 ### v1.7.1 → v1.7.2
 - **Focus:** Root-cause fix for redirect-wrapper links breaking in browser mode. Reported symptom: opening a link from the Reddit app (FixupXer as default browser) landed on `reddit.com/invalid_token…` instead of the destination.
@@ -659,11 +683,13 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.5.1 | 29 | Unified Instagram proxy chooser (Settings entry removed) | ✅ Released |
 | v1.6.0 | 30 | Custom Instagram proxies + kkinstagram.com returns | ✅ Released |
 | v1.7.0 | 31 | TikTok conversion support + TikTok proxy picker | ✅ Released |
-| v1.7.1 | 32 | Gmail browser-mode regression fix (Google redirect validator exemption) | ✅ Current |
+| v1.7.1 | 32 | Gmail browser-mode regression fix (Google redirect validator exemption) | ✅ Released |
+| v1.7.2 | 33 | Reddit/redirect-wrapper fix; host-agnostic validator | ✅ Released |
+| v2.0.0 | 34 | Complete UI redesign: before/after flow, M3 DayNight + dark mode, theme picker | ✅ Current |
 
-### Build Artifacts (v1.7.1):
-- **Google APK:** `app/build/outputs/apk/release/app-release.apk` (4.36 MB)
-- **Google AAB:** `app/build/outputs/bundle/release/app-release.aab` (5.28 MB)
-- **GITHUB / F-Droid APK:** `FixupXer-v1.7.0-release.apk` built from a fresh clone of the `v1.7.0` tag (4.21 MB, verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+### Build Artifacts (v2.0.0):
+- **Google APK:** `app/build/outputs/apk/release/app-release.apk`
+- **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
+- **GITHUB / F-Droid APK:** `FixupXer-v2.0.0-release.apk` built from a fresh clone of the `v2.0.0` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

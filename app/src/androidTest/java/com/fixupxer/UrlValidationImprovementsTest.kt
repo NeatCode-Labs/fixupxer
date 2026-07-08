@@ -37,7 +37,6 @@ import android.view.View
 
 @RunWith(AndroidJUnit4::class)
 class UrlValidationImprovementsTest {
-    
     private fun waitFor(delay: Long): ViewAction {
         return object : ViewAction {
             override fun getConstraints() = isRoot()
@@ -130,9 +129,9 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .check(matches(withText("")))
         
-        // Verify error message
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(withText(containsString("Please paste one URL at a time"))))
+        // Verify error message (shown in the TextInputLayout error slot)
+        onView(withText(containsString("Please paste one URL at a time")))
+            .check(matches(isDisplayed()))
     }
     
     @Test
@@ -206,7 +205,7 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.buttonProcess)).perform(click())
         onView(isRoot()).perform(waitFor(2000))
         
-        // Should show "Nothing to do" if toggles are in default state
+        // Should show processed URL (and status chip) if toggles are in default state
         onView(withId(R.id.textViewProcessedUrl))
             .check(matches(not(withText(""))))
     }

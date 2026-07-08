@@ -14,7 +14,7 @@
         android:src="@drawable/ic_drag_handle"
         android:contentDescription="@string/drag_handle_description"
         android:layout_marginEnd="@dimen/padding_medium"
-        app:tint="@color/text_secondary" />
+        app:tint="?attr/colorOnSurfaceVariant" />
     
     <TextView
         android:id="@+id/textViewActionName"
@@ -22,6 +22,6 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-        android:textColor="@color/text_primary" />
+        android:textColor="?attr/colorOnSurface" />
     
 </LinearLayout> 

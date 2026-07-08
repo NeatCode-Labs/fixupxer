@@ -1,59 +1,32 @@
-[B][SIZE=4]🔧 FixupXer Version History (Latest → Oldest)[/SIZE][/B]
-
-[B]• v1.7.2[/B] - Fixed links opened from the Reddit app landing on a "reddit.com/invalid_token" error page instead of the real destination: Reddit wraps outbound links in out.reddit.com/...?url=...&token=... and FixupXer's cleaning was stripping those functional parameters. This is a root-cause fix — v1.7.1 had only whitelisted Google/Gmail redirects, so the input validator now recognizes ANY single link that carries a nested destination in its query (Reddit, Facebook, LinkedIn, newsletters, ...), RedditCleaner extracts the real out.reddit.com destination, and a separate fix stops valid single URLs from being wrongly rejected on slower devices; all other security checks stay intact
-
-[B]• v1.7.1[/B] - Fixed a v1.6.0 regression that broke every link clicked in Gmail when FixupXer is the default browser ("Error processing URL"): the input validator counted the nested destination inside Google's redirect wrapper (google.com/url?q=...) as a multi-URL attack; the validator now recognizes legitimate Google redirects while all other security checks stay intact, and pasting such links into the app works again too
-
-[B]• v1.7.0[/B] - Added full TikTok conversion support (idea from community PR #5): a dedicated Embed? toggle converts TikTok links to an embed-friendly proxy, with the same Primary/Backup/Custom proxy picker as Instagram — tnktok.com (default) + tfxktok.com Primary, tiktokez.com + kktiktok.com Backup, plus user-added custom proxies; subdomains are preserved (vm.tiktok.com → vm.tnktok.com) so short links keep working, dead services vxtiktok.com/tiktxk.com auto-migrate to your selected proxy, and browser mode gets its own TikTok switch
-
-[B]• v1.6.0[/B] - Added user-defined custom Instagram embed proxies (add/select/delete straight from the proxy chooser, validated and stored locally) and brought kkinstagram.com back as an active Backup proxy; fixed fb.com and vxtwitter.com conversions, Instagram tracking cleanup on legacy/custom proxy links, the "Nothing to do!" message being shareable as a URL, and several lifecycle/history bookkeeping bugs
-
-[B]• v1.5.1[/B] - Unified the Instagram proxy chooser: Main and Share now both open the same dialog when you tap "Change.", and the redundant Instagram embed proxy section is removed from Settings; on Main, picking a different proxy after you've already pressed "Process URL" automatically refreshes the Processed URL field (fresh inputs still go through the Process button); selection is still persistent and existing users keep their pick (default toinstagram.com)
-
-[B]• v1.5.0[/B] - Fixed FixupXer not appearing in the default-browser list on Xiaomi Redmi / MIUI / HyperOS devices by adding the MAIN + APP_BROWSER intent-filter to the BrowserAlias (same approach Mozilla shipped for Firefox); privacy-by-default preserved (alias still disabled until Browser mode is toggled on)
-
-[B]• v1.4.9[/B] - Fixed browser-mode default-browser loops, made "Ask every time" use a reliable FixupXer action dialog, added safer native-app fallback to browser, improved Google/Gmail redirect handling, and kept browser launching browser-agnostic
-
-[B]• v1.4.8[/B] - Refreshed Instagram proxy roster (toinstagram.com Primary/default + adamlikes.men Primary + instagram7.com Backup), bare-hostname conversion (drops www.), inline "i" info tooltip in Settings and chooser dialog, automatic migration of legacy proxy URLs (kkinstagram, eeinstagram)
-
-[B]• v1.4.7[/B] - Added selectable Instagram embed proxy (kkinstagram.com, eeinstagram.com, instagram7.com) with persistent user choice across Main, Share, and Settings screens, plus dialog fallback on F-Droid build
-
-[B]• v1.4.6[/B] - Added optional browser mode with system-wide URL cleaning, comprehensive Settings screen with Material Design 3, configurable post-clean actions, and enhanced ReVanced YouTube support
-
-[B]• v1.4.5[/B] - Fixed MailChimp false positive detection and enhanced enterprise URL support for multi-subdomain services like AWS, Azure, and Google Cloud
-
-[B]• v1.4.4[/B] - Achieved full Android 15 edge-to-edge compliance by removing deprecated APIs and implementing modern enableEdgeToEdge() with proper navigation bar icon visibility fixes
-
-[B]• v1.4.3[/B] - Expanded test coverage to 112 comprehensive test cases with bidirectional conversion testing and enhanced quality assurance for all major platforms
-
-[B]• v1.4.2[/B] - Implemented LRU cache system with smart caching and O(1) lookup performance, achieving 5x performance improvement for repeated URL cleaning operations
-
-[B]• v1.4.1[/B] - Added comprehensive test suite with 86 unit tests and 38 instrumentation tests, ensuring production-ready stability with enterprise-grade error handling
-
-[B]• v1.4.0[/B] - Complete engine overhaul with revolutionary modular architecture featuring 11 specialized cleaners, 964 unique tracking parameters, and professional thread-safe design
-
-[B]• v1.3.5[/B] - Enhanced UI/UX with Material Design 3 interface improvements, better accessibility, responsive design, and polished user experience across all device sizes
-
-[B]• v1.3.4[/B] - Expanded URL processing capabilities with advanced algorithms, improved domain coverage, enhanced conversion logic, and significant performance optimizations
-
-[B]• v1.3.3[/B] - Fixed critical Instagram URL false positive detection, resolved case sensitivity issues, and improved glued URL detection to avoid false positives
-
-[B]• v1.3.2[/B] - Updated build configurations for F-Droid compliance, enhanced open-source distribution compatibility, and prepared for broader user accessibility
-
-[B]• v1.3.1[/B] - Implemented comprehensive security hardening with InputValidator utility class, multi-layer validation, and protection against 8 major attack vector categories
-
-[B]• v1.3.0[/B] - Major URL logic overhaul with extensive detection improvements, toggle functionality fixes, UI updates, and enhanced ShareActivity lifecycle management
-
-[B]• v1.2.5[/B] - Comprehensive lint fixes, code quality improvements, dependency updates, and enhanced static analysis compliance for professional maintainability standards
-
-[B]• v1.2.4[/B] - Implemented comprehensive behavioral matrix testing with automated test case generation and enhanced quality assurance for regression prevention
-
-[B]• v1.2.3[/B] - Refined URL processing logic with improved tracking parameter removal, enhanced domain conversion accuracy, and better error handling for edge cases
-
-[B]• v1.2.2[/B] - Established initial behavioral matrix framework with basic URL processing updates and foundation for systematic feature development
-
-[B]• v1.2.1[/B] - Foundation version where detailed changelog documentation began
-
-[B]• v1.0.2 → v1.2.0[/B] - Early development versions (detailed changes available via GitHub tag selector)
-
-[I]Note: Complete development history from initial release v1.0.2 through v1.2.0 can be viewed using the GitHub repository's tag selector for commit-by-commit changes.[/I] 
+[LIST]
+[*][B]v2.0.0[/B] – Kompletan redizajn sučelja: novi "before/after flow" izgled Main i Share ekrana s precrtanim tracking parametrima i statusom obrade, puni dark mode s izbornikom teme (System/Light/Dark), Material 3 dizajn, nova ikona aplikacije
+[*][B]v1.7.2[/B] – Popravljeno otvaranje linkova iz Reddit appa (out.reddit.com završavao na "invalid_token"); obrada redirect wrappera sada je host-agnostična (Reddit, Facebook, LinkedIn, newsletteri...), ne samo Google/Gmail; valjani URL-ovi više se ne odbijaju greškom na sporijim uređajima
+[*][B]v1.7.1[/B] – Popravljena v1.6.0 regresija: linkovi kliknuti u Gmailu opet rade kad je FixupXer default browser (Google redirect wrapper više se ne tretira kao multi-URL napad)
+[*][B]v1.7.0[/B] – TikTok embed konverzija s proxy izbornikom, subdomene i browser mode
+[*][B]v1.6.0[/B] – Custom Instagram proxyji + kkinstagram Backup; više bug-fixeva (fb, vxtwitter, share)
+[*][B]v1.5.1[/B] – Izbor Instagram proxyja premješten na Main i Share (Settings izbornik uklonjen); promjena proxyja automatski osvježava već obrađeni URL.
+[*][B]v1.5.0[/B] – FixupXer se sada pojavljuje u listi default browsera na Xiaomi/Redmi (MIUI/HyperOS) telefonima
+[*][B]v1.4.9[/B] – Stabilnost Browser modea: popravljena petlja kad je app default browser, pouzdaniji "Ask every time" dijalog i bolja Gmail/Google redirect obrada.
+[*][B]v1.4.8[/B] – Osvježena lista Instagram proxyja (toinstagram.com / adamlikes.men / instagram7.com) i konverzija bez www. prefiksa.
+[*][B]v1.4.7[/B] – Dodan izbor Instagram embed proxyja u Settingsima i F‑Droid build dobiva isti Settings meni kao Google Play.
+[*][B]v1.4.6[/B] – Dodan "Browser mode" i app je od sada pod GPL-3.0+ licencom
+[*][B]v1.4.5[/B] – Dodana podrška za više poddomena i smanjene lažne detekcije.
+[*][B]v1.4.4[/B] – Dodatne prilagodbe Androidu 15 i poboljšanja dizajna.
+[*][B]v1.4.3[/B] – Završna poliranja UI‑a i priprema za produkciju.
+[*][B]v1.4.2[/B] – Uvedena povijest konverzija i brojni bug‑fixevi.
+[*][B]v1.4.1[/B] – Sučelje prilagođeno Androidu 15 i responzivni dizajn.
+[*][B]v1.4.0[/B] – Potpuna rekonstrukcija aplikacije s modularnim sustavom čišćenja.
+[*][B]v1.3.5[/B] – Manja poboljšanja točnosti i korisničkog sučelja.
+[*][B]v1.3.4[/B] – Dodana podrška za konverziju Facebook URL‑ova.
+[*][B]v1.3.3[/B] – Popravljena detekcija zalijepljenih URL‑ova i Instagram greške.
+[*][B]v1.3.2[/B] – Priprema za F‑Droid objavu i manji bug‑fixevi.
+[*][B]v1.3.1[/B] – Uvedena sveobuhvatna sigurnosna zaštita aplikacije.
+[*][B]v1.3.0[/B] – Velika nadogradnja logike URL‑ova, sučelja i funkcionalnosti.
+[*][B]v1.2.5[/B] – Popravljena kvaliteta koda i optimizacija builda.
+[*][B]v1.2.4[/B] – Implementiran testni sustav za ponašanje aplikacije.
+[*][B]v1.2.3[/B] – Poboljšana obrada URL‑ova i uklanjanje parametara praćenja.
+[*][B]v1.2.2[/B] – Dodana osnovna logika za analizu i obradu URL‑ova.
+[*][B]v1.2.1[/B] – Dodan klikabilni footer i dijalog odgovornosti te poboljšana UI‑dosljednost i obrada grešaka.
+[*][B]v1.1.1[/B] – Uvedena Monero donacija s klik‑za‑kopirati adresom i unaprijeđenim korisničkim iskustvom.
+[*][B]v1.1.0[/B] – Prelazak na MVVM + Dependency Injection + čist arhitektonski dizajn i značajna poboljšanja performansi i testiranja.
+[/LIST]

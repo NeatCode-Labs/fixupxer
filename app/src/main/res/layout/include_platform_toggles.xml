@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Platform toggle rows in the before/after flow design. Each row:
+     [monogram] [title + "Active: <proxy>. Change." sub-row] [switch].
+     Only the row matching the current URL's platform is visible. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Instagram toggle -->
+    <LinearLayout
+        android:id="@+id/instagramToggleContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:background="@drawable/toggle_background"
+        android:padding="@dimen/toggle_padding"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="@dimen/platform_monogram_size"
+            android:layout_height="@dimen/platform_monogram_size"
+            android:background="@drawable/bg_platform_monogram"
+            android:gravity="center"
+            android:text="@string/platform_monogram_instagram"
+            android:textSize="@dimen/text_size_small"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/margin_medium"
+            android:layout_marginEnd="@dimen/margin_medium"
+            android:orientation="vertical"
+            tools:ignore="NestedWeights">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/embed_friendly_link"
+                android:textSize="@dimen/text_size_small"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface" />
+
+            <LinearLayout
+                android:id="@+id/instagramProxyRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/textViewInstagramProxyStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_tiny"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:singleLine="true"
+                    android:ellipsize="middle"
+                    tools:text="Active: adamlikes.men." />
+
+                <TextView
+                    android:id="@+id/textViewChangeProxy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="@dimen/min_touch_target_size"
+                    android:gravity="center_vertical"
+                    android:paddingTop="@dimen/padding_small"
+                    android:paddingBottom="@dimen/padding_small"
+                    android:paddingEnd="@dimen/padding_small"
+                    android:maxLines="1"
+                    android:text="@string/change_proxy_link"
+                    android:textSize="@dimen/text_size_tiny"
+                    android:textColor="?attr/colorPrimary"
+                    android:textStyle="bold"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="@string/change_proxy_link_desc"
+                    tools:ignore="RtlSymmetry" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchInstagram"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:contentDescription="@string/convert_instagram_toggle_desc" />
+    </LinearLayout>
+
+    <!-- Facebook toggle (uses convert_instagram pref) -->
+    <LinearLayout
+        android:id="@+id/facebookToggleContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:background="@drawable/toggle_background"
+        android:padding="@dimen/toggle_padding"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="@dimen/platform_monogram_size"
+            android:layout_height="@dimen/platform_monogram_size"
+            android:background="@drawable/bg_platform_monogram"
+            android:gravity="center"
+            android:text="@string/platform_monogram_facebook"
+            android:textSize="@dimen/text_size_small"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/margin_medium"
+            android:layout_marginEnd="@dimen/margin_medium"
+            android:orientation="vertical"
+            tools:ignore="NestedWeights">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/embed_friendly_link"
+                android:textSize="@dimen/text_size_small"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:text="@string/via_facebookez"
+                android:textSize="@dimen/text_size_tiny"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchFacebook"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:contentDescription="@string/convert_facebook_toggle_desc" />
+    </LinearLayout>
+
+    <!-- Twitter/X toggle -->
+    <LinearLayout
+        android:id="@+id/twitterToggleContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:background="@drawable/toggle_background"
+        android:padding="@dimen/toggle_padding"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="@dimen/platform_monogram_size"
+            android:layout_height="@dimen/platform_monogram_size"
+            android:background="@drawable/bg_platform_monogram"
+            android:gravity="center"
+            android:text="@string/platform_monogram_twitter"
+            android:textSize="@dimen/text_size_small"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/margin_medium"
+            android:layout_marginEnd="@dimen/margin_medium"
+            android:orientation="vertical"
+            tools:ignore="NestedWeights">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/embed_friendly_link"
+                android:textSize="@dimen/text_size_small"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:text="@string/via_fixupx"
+                android:textSize="@dimen/text_size_tiny"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchTwitter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:contentDescription="@string/convert_twitter_toggle_desc" />
+    </LinearLayout>
+
+    <!-- TikTok toggle -->
+    <LinearLayout
+        android:id="@+id/tiktokToggleContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:background="@drawable/toggle_background"
+        android:padding="@dimen/toggle_padding"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="@dimen/platform_monogram_size"
+            android:layout_height="@dimen/platform_monogram_size"
+            android:background="@drawable/bg_platform_monogram"
+            android:gravity="center"
+            android:text="@string/platform_monogram_tiktok"
+            android:textSize="@dimen/text_size_small"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/margin_medium"
+            android:layout_marginEnd="@dimen/margin_medium"
+            android:orientation="vertical"
+            tools:ignore="NestedWeights">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/embed_friendly_link"
+                android:textSize="@dimen/text_size_small"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface" />
+
+            <LinearLayout
+                android:id="@+id/tiktokProxyRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/textViewTikTokProxyStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_tiny"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:singleLine="true"
+                    android:ellipsize="middle"
+                    tools:text="Active: tnktok.com." />
+
+                <TextView
+                    android:id="@+id/textViewChangeTikTokProxy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="@dimen/min_touch_target_size"
+                    android:gravity="center_vertical"
+                    android:paddingTop="@dimen/padding_small"
+                    android:paddingBottom="@dimen/padding_small"
+                    android:paddingEnd="@dimen/padding_small"
+                    android:maxLines="1"
+                    android:text="@string/change_proxy_link"
+                    android:textSize="@dimen/text_size_tiny"
+                    android:textColor="?attr/colorPrimary"
+                    android:textStyle="bold"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="@string/change_tiktok_proxy_link_desc"
+                    tools:ignore="RtlSymmetry" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchTikTok"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:contentDescription="@string/convert_tiktok_toggle_desc" />
+    </LinearLayout>
+</LinearLayout>

@@ -90,7 +90,7 @@ class SettingsTest {
         
         // Open history dialog first to access settings
         onView(withId(R.id.buttonHistory))
-            .perform(scrollTo(), click())
+            .perform(click())
         
         // Wait for dialog
         onView(isRoot()).perform(waitFor(1000))
@@ -120,7 +120,7 @@ class SettingsTest {
         
         // First open history dialog
         onView(withId(R.id.buttonHistory))
-            .perform(scrollTo(), click())
+            .perform(click())
         
         // Wait for history dialog
         onView(isRoot()).perform(waitFor(1000))
@@ -150,7 +150,7 @@ class SettingsTest {
         
         // Open history dialog
         onView(withId(R.id.buttonHistory))
-            .perform(scrollTo(), click())
+            .perform(click())
         
         // Wait for dialog
         onView(isRoot()).perform(waitFor(1000))
@@ -171,7 +171,7 @@ class SettingsTest {
         
         // Open history dialog
         onView(withId(R.id.buttonHistory))
-            .perform(scrollTo(), click())
+            .perform(click())
         
         // Wait for dialog
         onView(isRoot()).perform(waitFor(1000))
@@ -243,7 +243,7 @@ class SettingsTest {
             
             // Open history dialog
             onView(withId(R.id.buttonHistory))
-                .perform(scrollTo(), click())
+                .perform(click())
             
             // Verify empty state message when history is disabled
             onView(withText(containsString("Enable history")))

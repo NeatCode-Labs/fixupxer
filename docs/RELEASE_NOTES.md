@@ -1,3 +1,41 @@
+# FixupXer v2.0.0 - Complete UI Redesign
+
+## What's New
+
+### A Brand-New Look — the Before/After Flow
+FixupXer 2.0 is a complete visual overhaul. Both the Main and Share screens now present your link as a **before → after flow**: the original URL sits in the top card (with its tracking parameters ~~struck through~~ once processed), a vertical flow line leads to the result card below, and a status chip tells you exactly what happened — **Already clean**, **Tracking removed**, **Converted for embedding**, or **Tracking removed and converted**. The functionality you know is unchanged; it's just far clearer what FixupXer did to your link.
+
+- **Strikethrough diff** — removed tracking parameters are shown struck through in the original URL, so you can see at a glance what was cleaned away.
+- **Platform toggle cards** — the Embed toggle now lives in a per-platform card (IG / FB / X / TT monogram) with the active proxy and a **Change.** link right there.
+- **Action row** — Open / Copy / Share as Material 3 tonal buttons, disabled until there's a result to act on.
+- **History** — now a Material bottom sheet, pinned to a floating **History** button; tap an entry to reload it, delete with undo.
+- **Modern dialogs** — Instructions, About, proxy pickers, and all other dialogs restyled to the app's design language; Snackbars replace Toasts.
+
+### Full Dark Mode + Theme Picker
+The app now ships a hand-tuned Material 3 **DayNight** palette. Choose **System / Light / Dark** in Settings — the default follows your system setting. Every screen, dialog, card, and status chip is theme-aware, including proper status/navigation bar treatment from Android 5 all the way to Android 15 edge-to-edge.
+
+### New App Icon
+A new wizard-wand launcher icon (with a proper monochrome/themed-icon variant for Android 13+), fitted to the adaptive-icon safe zone.
+
+### Under the Hood (production hardening)
+- Validation errors are now reason-aware: pasting multiple URLs and pasting invalid input give distinct error messages.
+- Processing state is properly guarded against races: toggling switches mid-processing queues a single reprocess instead of overlapping work; changing the input invalidates a stale result immediately.
+- Share screen: empty share intents surface a proper error, `ClipData` fallback for apps that share without `EXTRA_TEXT`, config changes no longer kill the share context.
+- URL diff comparison is now exact (parameter-set based, fragment-aware) — no more false strikethrough matches.
+- Numerous small fixes: theme-aware drawables in dark mode, corrupted theme preference fallback, tablet dimension polish, dead resource cleanup.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 34
+- versionName: 2.0.0
+- Unit tests: 252 / 252 passing. Instrumentation: 190 / 190 passing on `Pixel_API_35_Play`.
+
+## Download
+- [FixupXer-v2.0.0-release.apk](https://github.com/NeatCode-Labs/fixupxer/releases/download/v2.0.0/FixupXer-v2.0.0-release.apk)
+
+---
+
 # FixupXer v1.7.2 - Reddit (and every redirect-wrapper) Links Fixed
 
 ## What's New

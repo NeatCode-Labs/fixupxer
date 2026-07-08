@@ -7,7 +7,7 @@
     <dimen name="icon_small_size">24dp</dimen>
     
     <!-- Card dimensions for tablets -->
-    <dimen name="shared_text_card_height">72dp</dimen>
+    <dimen name="shared_text_card_height">48dp</dimen>
     <dimen name="card_corner_radius">16dp</dimen>
     
     <!-- Text sizes for tablets -->
@@ -35,7 +35,7 @@
     <dimen name="toggle_margin_top">16dp</dimen>
     <dimen name="toggle_margin_bottom">20dp</dimen>
     <dimen name="toggle_padding">16dp</dimen>
-    <dimen name="toggle_corner_radius">10dp</dimen>
+    <dimen name="toggle_corner_radius">20dp</dimen>
     
     <!-- Button dimensions for tablets -->
     <dimen name="button_corner_radius">28dp</dimen>
@@ -45,4 +45,13 @@
     
     <!-- Edit text dimensions for tablets -->
     <dimen name="edit_text_corner_radius">5dp</dimen>
+
+    <!-- Before/after flow layout for tablets -->
+    <dimen name="flow_node_size">60dp</dimen>
+    <dimen name="flow_node_radius">20dp</dimen>
+    <dimen name="flow_node_padding">16dp</dimen>
+    <dimen name="flow_gap">18dp</dimen>
+    <dimen name="flow_card_radius">24dp</dimen>
+    <dimen name="cta_height">64dp</dimen>
+    <dimen name="platform_monogram_size">48dp</dimen>
 </resources> 

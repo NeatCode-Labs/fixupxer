@@ -20,32 +20,19 @@
 
 package com.fixupxer
 
-import android.annotation.SuppressLint
-import android.app.AlertDialog
-import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import android.widget.Button
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SwitchCompat
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -53,6 +40,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.fixupxer.databinding.ActivityMainBinding
 import com.fixupxer.presentation.main.MainViewModel
 import com.fixupxer.ui.BaseActivity
+import com.fixupxer.ui.helpers.ResultStatusHelper
+import com.fixupxer.ui.helpers.SmartFooterHelper
+import com.fixupxer.ui.helpers.SnackbarHelper
+import com.fixupxer.ui.helpers.UrlActionHelper
+import com.fixupxer.ui.helpers.UrlDiffHelper
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InputValidator
 import com.fixupxer.domain.repository.HistoryRepository
@@ -61,8 +53,6 @@ import com.fixupxer.ui.dialogs.InstagramProxyDialogHelper
 import com.fixupxer.ui.dialogs.TikTokProxyDialogHelper
 import com.fixupxer.utils.PostCleanRunner
 import com.fixupxer.domain.repository.UrlRepository
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.progressindicator.CircularProgressIndicator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -71,8 +61,6 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 import javax.inject.Inject
-import androidx.core.text.HtmlCompat
-import android.widget.ScrollView
 import com.fixupxer.ui.SettingsActivity
 
 @AndroidEntryPoint
@@ -109,9 +97,9 @@ class MainActivity : BaseActivity() {
         observeViewModel()
         setupSmartFooter()
         
-        // Handle VIEW intent if present
+        // Handle VIEW intent if present (browser mode)
         handleViewIntentIfPresent(intent)
-        
+
         Timber.d("MainActivity onCreate completed")
     }
     
@@ -141,7 +129,13 @@ class MainActivity : BaseActivity() {
                         }
                         if (validated == null) {
                             Timber.w("VIEW intent URL rejected by validator")
-                            Toast.makeText(this@MainActivity, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
+                            // Toast, not Snackbar: the activity finishes immediately,
+                            // taking any Snackbar down with it.
+                            Toast.makeText(
+                                this@MainActivity,
+                                getString(R.string.error_processing_url),
+                                Toast.LENGTH_SHORT
+                            ).show()
                             finish()
                             return@launch
                         }
@@ -160,7 +154,11 @@ class MainActivity : BaseActivity() {
                         }
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to handle VIEW intent")
-                        Toast.makeText(this@MainActivity, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.error_processing_url),
+                            Toast.LENGTH_SHORT
+                        ).show()
                         finish()
                     }
                 }
@@ -199,123 +197,34 @@ class MainActivity : BaseActivity() {
         }
     }
     
-    override fun onResume() {
-        super.onResume()
-        viewModel.clearInput()
-    }
-    
-    override fun onPause() {
-        super.onPause()
-        // Clear input when app loses focus
-        viewModel.clearInput()
-        binding.editTextUrl.setText("")
-    }
-    
     private fun initializeViews() {
-        // Add content descriptions for accessibility
-        binding.buttonPaste.contentDescription = getString(R.string.paste_content_desc)
+        // Add content descriptions for accessibility (end icon description is set
+        // in the layout via app:endIconContentDescription)
         binding.buttonProcess.contentDescription = getString(R.string.process_url_content_desc)
         binding.buttonShare.contentDescription = getString(R.string.share_content_desc)
         binding.buttonOpen.contentDescription = getString(R.string.open_content_desc)
         binding.buttonCopy.contentDescription = getString(R.string.copy_content_desc)
         binding.buttonHistory.contentDescription = getString(R.string.history_title)
-        
+
+        // Let the original URL wrap like the Share screen (up to 3 lines) instead
+        // of horizontally scrolling. inputType="textUri" keeps it a single logical
+        // line (no Enter key), so this only affects display wrapping.
+        binding.editTextUrl.apply {
+            setHorizontallyScrolling(false)
+            maxLines = 3
+        }
+
         // Set title in the TextView if it exists
         setAppTitle(binding.titleTextView)
     }
     
     private fun setupSmartFooter() {
-        // Get the parent constraint layout properly
-        val scrollView = binding.mainScrollView
-        val parentLayout = scrollView.parent as? ConstraintLayout ?: return
-        val footer = binding.footerTextView
-        
-        // Check if we're running tests
-        val isRunningTest = try {
-            packageManager.getPackageInfo("com.fixupxer.debug.test", 0)
-            true
-        } catch (e: Exception) {
-            false
-        }
-        
-        if (isRunningTest) {
-            Timber.d("Running in test mode, using simplified footer setup")
-            // For tests, just position the footer at the bottom without monitoring
-            val scrollViewParams = scrollView.layoutParams as ConstraintLayout.LayoutParams
-            scrollViewParams.bottomToTop = footer.id
-            scrollViewParams.bottomToBottom = ConstraintLayout.LayoutParams.UNSET
-            scrollViewParams.bottomMargin = 0
-            scrollView.layoutParams = scrollViewParams
-            return
-        }
-        
-        // Set up a global layout listener to check available space
-        // (reference kept so it can be removed in onDestroy)
-        footerLayoutListener = object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                // Get the actual height of the parent layout (excluding system bars)
-                val parentHeight = parentLayout.height
-                val appBarHeight = binding.root.findViewById<View>(R.id.appBarLayout)?.height ?: 0
-                val availableHeight = parentHeight - appBarHeight
-                
-                // Check if we have very limited space (small screen)
-                val isSmallScreen = availableHeight < resources.getDimensionPixelSize(R.dimen.min_content_height)
-                
-                val scrollViewParams = scrollView.layoutParams as ConstraintLayout.LayoutParams
-                
-                if (isSmallScreen || availableHeight < 600) {
-                    // Small screen: Make footer part of scrollable content
-                    
-                    // Update ScrollView to fill entire parent
-                    scrollViewParams.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                    scrollViewParams.bottomToTop = ConstraintLayout.LayoutParams.UNSET
-                    scrollViewParams.bottomMargin = 0
-                    
-                    // Move footer inside the scrollable content by removing it from ConstraintLayout
-                    if (footer.parent == parentLayout) {
-                        parentLayout.removeView(footer)
-                        val scrollContent = scrollView.getChildAt(0) as? LinearLayout
-                        
-                        // Create new LinearLayout.LayoutParams for the footer
-                        val linearParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        )
-                        linearParams.topMargin = resources.getDimensionPixelSize(R.dimen.margin_medium)
-                        footer.layoutParams = linearParams
-                        
-                        scrollContent?.addView(footer)
-                    }
-                } else {
-                    // Large screen: Keep footer anchored at bottom
-                    
-                    // Move footer back to ConstraintLayout if it was in scroll content
-                    if (footer.parent != parentLayout) {
-                        (footer.parent as? ViewGroup)?.removeView(footer)
-                        
-                        // Create new ConstraintLayout.LayoutParams for the footer
-                        val constraintParams = ConstraintLayout.LayoutParams(
-                            ConstraintLayout.LayoutParams.MATCH_PARENT,
-                            ConstraintLayout.LayoutParams.WRAP_CONTENT
-                        )
-                        constraintParams.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                        constraintParams.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        constraintParams.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        footer.layoutParams = constraintParams
-                        
-                        parentLayout.addView(footer)
-                    }
-                    
-                    // Update ScrollView to stop above footer
-                    scrollViewParams.bottomToTop = footer.id
-                    scrollViewParams.bottomToBottom = ConstraintLayout.LayoutParams.UNSET
-                    scrollViewParams.bottomMargin = 0
-                }
-                
-                scrollView.layoutParams = scrollViewParams
-            }
-        }
-        parentLayout.viewTreeObserver.addOnGlobalLayoutListener(footerLayoutListener)
+        footerLayoutListener = SmartFooterHelper.setup(
+            context = this,
+            rootView = binding.root,
+            scrollView = binding.mainScrollView,
+            footer = binding.footerTextView
+        )
     }
     
     override fun onDestroy() {
@@ -342,26 +251,27 @@ class MainActivity : BaseActivity() {
                 textValidationJob?.cancel()
                 textValidationJob = lifecycleScope.launch {
                     try {
-                        val validated = withTimeout(200) {
+                        val result = withTimeout(200) {
                             withContext(Dispatchers.Default) {
-                                InputValidator.validateAndSanitizeInput(raw)
+                                InputValidator.validate(raw)
                             }
                         }
-                        if (validated == null) {
+                        if (result is InputValidator.ValidationResult.Invalid) {
                             withContext(Dispatchers.Main) {
                                 binding.editTextUrl.removeTextChangedListener(urlTextWatcher)
                                 binding.editTextUrl.setText("")
                                 binding.editTextUrl.addTextChangedListener(urlTextWatcher)
-                                viewModel.setMultipleUrlsError()
+                                viewModel.setValidationError(result.reason)
                             }
                             return@launch
                         }
+                        val validated = (result as InputValidator.ValidationResult.Valid).value
                         withContext(Dispatchers.Main) {
                             viewModel.onUrlChanged(validated)
                         }
                     } catch (e: TimeoutCancellationException) {
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(this@MainActivity, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
+                            SnackbarHelper.showShort(binding.root, getString(R.string.error_processing_url))
                         }
                     } catch (e: kotlinx.coroutines.CancellationException) {
                         throw e // superseded by a newer text change — don't log as error
@@ -374,11 +284,17 @@ class MainActivity : BaseActivity() {
         binding.editTextUrl.addTextChangedListener(urlTextWatcher)
         
         // Button listeners
-        binding.buttonPaste.setOnClickListener { pasteFromClipboard() }
+        binding.textInputLayoutUrl.setEndIconOnClickListener { pasteFromClipboard() }
         binding.buttonProcess.setOnClickListener { viewModel.processUrl() }
-        binding.buttonShare.setOnClickListener { shareProcessedUrl() }
-        binding.buttonOpen.setOnClickListener { openProcessedUrl() }
-        binding.buttonCopy.setOnClickListener { copyToClipboard() }
+        binding.buttonShare.setOnClickListener {
+            UrlActionHelper.shareUrl(binding.root, this, viewModel.uiState.value.actionUrl)
+        }
+        binding.buttonOpen.setOnClickListener {
+            UrlActionHelper.openUrl(binding.root, this, viewModel.uiState.value.actionUrl)
+        }
+        binding.buttonCopy.setOnClickListener {
+            UrlActionHelper.copyToClipboard(binding.root, this, viewModel.uiState.value.actionUrl)
+        }
         binding.buttonHistory.setOnClickListener { showHistoryDialog() }
         
         // Footer click listener
@@ -388,30 +304,15 @@ class MainActivity : BaseActivity() {
                 startActivity(intent)
             } catch (e: Exception) {
                 Timber.e(e, "Error opening website")
-                Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
+                SnackbarHelper.showShort(binding.root, getString(R.string.error_browser))
             }
         }
-        
-        // Instagram toggle listener
-        binding.switchInstagram.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.onInstagramConversionToggled(isChecked)
-        }
-        
-        // Twitter toggle switch
-        binding.switchTwitter.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.onTwitterConversionToggled(isChecked)
-        }
-        
-        // TikTok toggle switch
-        binding.switchTikTok.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.onTikTokConversionToggled(isChecked)
-        }
 
-        binding.textViewChangeProxy.setOnClickListener {
+        binding.togglesInclude.textViewChangeProxy.setOnClickListener {
             onChangeProxyClick()
         }
 
-        binding.textViewChangeTikTokProxy.setOnClickListener {
+        binding.togglesInclude.textViewChangeTikTokProxy.setOnClickListener {
             onChangeTikTokProxyClick()
         }
     }
@@ -420,33 +321,105 @@ class MainActivity : BaseActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    // Update UI based on state
-                    binding.instagramToggleContainer.isVisible = state.isInstagramUrl || state.isFacebookUrl
-                    // The 'Currently using: <proxy>. Change.' row applies only to Instagram
-                    binding.instagramProxyRow.isVisible = state.isInstagramUrl
+                    binding.togglesInclude.instagramToggleContainer.isVisible = state.isInstagramUrl
+                    binding.togglesInclude.facebookToggleContainer.isVisible = state.isFacebookUrl
+                    binding.togglesInclude.instagramProxyRow.isVisible = state.isInstagramUrl
                     if (state.isInstagramUrl) {
                         refreshProxyLabel()
                     }
-                    binding.switchInstagram.isChecked = state.isInstagramConversionEnabled
-                    
-                    binding.twitterToggleContainer.isVisible = state.isTwitterUrl
-                    binding.switchTwitter.isChecked = state.isTwitterConversionEnabled
-                    
-                    binding.tiktokToggleContainer.isVisible = state.isTikTokUrl
+
+                    binding.togglesInclude.switchInstagram.setOnCheckedChangeListener(null)
+                    binding.togglesInclude.switchInstagram.isChecked = state.isInstagramConversionEnabled
+                    binding.togglesInclude.switchInstagram.setOnCheckedChangeListener { _, isChecked ->
+                        viewModel.onInstagramConversionToggled(isChecked)
+                    }
+
+                    binding.togglesInclude.switchFacebook.setOnCheckedChangeListener(null)
+                    binding.togglesInclude.switchFacebook.isChecked = state.isInstagramConversionEnabled
+                    binding.togglesInclude.switchFacebook.setOnCheckedChangeListener { _, isChecked ->
+                        viewModel.onInstagramConversionToggled(isChecked)
+                    }
+
+                    binding.togglesInclude.twitterToggleContainer.isVisible = state.isTwitterUrl
+                    binding.togglesInclude.switchTwitter.setOnCheckedChangeListener(null)
+                    binding.togglesInclude.switchTwitter.isChecked = state.isTwitterConversionEnabled
+                    binding.togglesInclude.switchTwitter.setOnCheckedChangeListener { _, isChecked ->
+                        viewModel.onTwitterConversionToggled(isChecked)
+                    }
+
+                    binding.togglesInclude.tiktokToggleContainer.isVisible = state.isTikTokUrl
                     if (state.isTikTokUrl) {
                         refreshTikTokProxyLabel()
                     }
-                    binding.switchTikTok.isChecked = state.isTikTokConversionEnabled
-                    
-                    binding.progressIndicator.isVisible = state.isLoading
+                    binding.togglesInclude.switchTikTok.setOnCheckedChangeListener(null)
+                    binding.togglesInclude.switchTikTok.isChecked = state.isTikTokConversionEnabled
+                    binding.togglesInclude.switchTikTok.setOnCheckedChangeListener { _, isChecked ->
+                        viewModel.onTikTokConversionToggled(isChecked)
+                    }
+
+                    binding.progressIndicator.visibility =
+                        if (state.isLoading) View.VISIBLE else View.INVISIBLE
                     binding.buttonProcess.isEnabled = !state.isLoading
-                    
+
+                    // Share/Open/Copy only make sense once a result exists —
+                    // same pattern as the Share screen.
+                    val hasActionUrl = !state.isLoading && state.actionUrl.isNotEmpty()
+                    binding.buttonShare.isEnabled = hasActionUrl
+                    binding.buttonOpen.isEnabled = hasActionUrl
+                    binding.buttonCopy.isEnabled = hasActionUrl
+
+                    // Input-related errors (empty input, multiple URLs) belong on the
+                    // text field; processing errors render in the result card below.
+                    binding.textInputLayoutUrl.error = state.error?.takeIf {
+                        state.inputUrl.isEmpty()
+                    }
+
                     if (state.processedUrl.isNotEmpty()) {
-                        binding.textViewProcessedUrl.text = state.processedUrl
-                    } else if (state.error != null) {
-                        binding.textViewProcessedUrl.text = state.error
+                        binding.processedUrlInclude.textViewProcessedUrl.alpha = 1f
+                        binding.processedUrlInclude.textViewProcessedUrl.text = state.processedUrl
+                        ResultStatusHelper.bind(
+                            this@MainActivity,
+                            binding.processedUrlInclude.textViewResultStatus,
+                            state.resultStatus
+                        )
+                    } else if (state.error != null && state.inputUrl.isNotEmpty()) {
+                        binding.processedUrlInclude.textViewProcessedUrl.alpha = 1f
+                        binding.processedUrlInclude.textViewProcessedUrl.text = state.error
+                        ResultStatusHelper.bind(
+                            this@MainActivity,
+                            binding.processedUrlInclude.textViewResultStatus,
+                            null
+                        )
                     } else {
-                        binding.textViewProcessedUrl.text = ""
+                        // No result yet — dimmed placeholder instead of a bare
+                        // empty card so "step 2" of the flow reads as pending.
+                        binding.processedUrlInclude.textViewProcessedUrl.alpha = 0.55f
+                        binding.processedUrlInclude.textViewProcessedUrl.text =
+                            getString(R.string.result_placeholder)
+                        ResultStatusHelper.bind(
+                            this@MainActivity,
+                            binding.processedUrlInclude.textViewResultStatus,
+                            null
+                        )
+                    }
+
+                    // Strike through the removed tracking params in the input
+                    // field (same visual as the Share screen). Only while the
+                    // field still shows exactly the text that was processed —
+                    // any edit clears the stale diff on the next state emission.
+                    binding.editTextUrl.text?.let { editable ->
+                        val showDiff = state.actionUrl.isNotEmpty() &&
+                            state.processedInputUrl.isNotEmpty() &&
+                            editable.toString().trim() == state.processedInputUrl
+                        UrlDiffHelper.applyStrikesInPlace(
+                            editable,
+                            if (showDiff) state.actionUrl else ""
+                        )
+                        // Reveal the start of the URL so the struck tracking params
+                        // are visible in the first lines (matches the Share screen).
+                        if (showDiff && !binding.editTextUrl.hasFocus()) {
+                            binding.editTextUrl.setSelection(0)
+                        }
                     }
                 }
             }
@@ -477,74 +450,13 @@ class MainActivity : BaseActivity() {
     }
 
     private fun refreshProxyLabel() {
-        binding.textViewInstagramProxyStatus.text =
+        binding.togglesInclude.textViewInstagramProxyStatus.text =
             getString(R.string.currently_using_proxy, preferencesManager.getInstagramProxy())
     }
 
     private fun refreshTikTokProxyLabel() {
-        binding.textViewTikTokProxyStatus.text =
+        binding.togglesInclude.textViewTikTokProxyStatus.text =
             getString(R.string.currently_using_proxy, preferencesManager.getTikTokProxy())
-    }
-    
-    private fun shareProcessedUrl() {
-        // Action buttons operate on actionUrl (always a real URL), not the display
-        // text — which may be the "Nothing to do!" message.
-        val actionUrl = viewModel.uiState.value.actionUrl
-        if (actionUrl.isNotEmpty()) {
-            try {
-                val shareIntent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, actionUrl)
-                    type = "text/plain"
-                }
-                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_via)))
-            } catch (e: Exception) {
-                Timber.e(e, "Error sharing URL")
-                Toast.makeText(this, getString(R.string.error_sharing_url), Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(this, getString(R.string.no_url_to_share), Toast.LENGTH_SHORT).show()
-        }
-    }
-    
-    private fun openProcessedUrl() {
-        val actionUrl = viewModel.uiState.value.actionUrl
-        if (actionUrl.isNotEmpty()) {
-            try {
-                val intent = Intent(Intent.ACTION_VIEW, actionUrl.toUri())
-                startActivity(intent)
-            } catch (e: Exception) {
-                Timber.e(e, "Error opening URL")
-                Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(this, getString(R.string.no_url_to_open), Toast.LENGTH_SHORT).show()
-        }
-    }
-    
-    @SuppressLint("NewApi")
-    private fun copyToClipboard() {
-        val actionUrl = viewModel.uiState.value.actionUrl
-        if (actionUrl.isNotEmpty()) {
-            val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-            if (clipboardManager == null) {
-                Timber.e("ClipboardManager not available")
-                Toast.makeText(this, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
-                return
-            }
-            val clipData = ClipData.newPlainText(getString(R.string.clipboard_label_url), actionUrl)
-            clipboardManager.setPrimaryClip(clipData)
-            
-            // On Android < 10, show a toast notification
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                Toast.makeText(this, getString(R.string.url_copied), Toast.LENGTH_SHORT).show()
-            } else {
-                // Android 10+ shows its own notification
-                Timber.d("URL copied to clipboard (Android 10+)")
-            }
-        } else {
-            Toast.makeText(this, getString(R.string.no_url_to_copy), Toast.LENGTH_SHORT).show()
-        }
     }
     
     private fun pasteFromClipboard() {
@@ -559,48 +471,59 @@ class MainActivity : BaseActivity() {
             if (clipData != null && clipData.itemCount > 0) {
                 val text = clipData.getItemAt(0).text?.toString()
                 if (!text.isNullOrEmpty()) {
+                    // A validation run from earlier typing could otherwise land
+                    // after the paste and overwrite the state set below.
+                    textValidationJob?.cancel()
                     lifecycleScope.launch {
                         try {
                             withTimeout(500) {
-                                withContext(Dispatchers.Default) {
-                                    val validated = InputValidator.validateAndSanitizeInput(text)
-                                    
-                                    if (validated == null) {
-                                        withContext(Dispatchers.Main) {
-                                            binding.editTextUrl.setText("")
-                                            binding.textViewProcessedUrl.text = getString(R.string.error_multiple_urls)
-                                        }
-                                        return@withContext
-                                    }
-                                    
-                                    // Try to extract a single valid URL
-                                    val url = UrlProcessor.findFirstValidUrl(validated)
-                                    
-                                    withContext(Dispatchers.Main) {
-                                        if (url != null) {
-                                            binding.editTextUrl.setText(url)
-                                        } else {
-                                            Toast.makeText(this@MainActivity, getString(R.string.no_url_found_in_clipboard), Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
+                                val result = withContext(Dispatchers.Default) {
+                                    InputValidator.validate(text)
+                                }
+
+                                if (result is InputValidator.ValidationResult.Invalid) {
+                                    // Same flow as the TextWatcher rejection: clear
+                                    // the field (watcher detached so this can't
+                                    // race) and let the ViewModel own the error.
+                                    binding.editTextUrl.removeTextChangedListener(urlTextWatcher)
+                                    binding.editTextUrl.setText("")
+                                    binding.editTextUrl.addTextChangedListener(urlTextWatcher)
+                                    viewModel.setValidationError(result.reason)
+                                    return@withTimeout
+                                }
+
+                                val validated =
+                                    (result as InputValidator.ValidationResult.Valid).value
+                                // Try to extract a single valid URL
+                                val url = withContext(Dispatchers.Default) {
+                                    UrlProcessor.findFirstValidUrl(validated)
+                                }
+
+                                if (url != null) {
+                                    binding.editTextUrl.setText(url)
+                                } else {
+                                    SnackbarHelper.showShort(
+                                        binding.root,
+                                        getString(R.string.no_url_found_in_clipboard)
+                                    )
                                 }
                             }
                         } catch (e: TimeoutCancellationException) {
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(this@MainActivity, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
+                                SnackbarHelper.showShort(binding.root, getString(R.string.error_processing_url))
                             }
                         } catch (e: Exception) {
                             Timber.e(e, "Error during paste validation")
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(this@MainActivity, getString(R.string.error_processing_url), Toast.LENGTH_SHORT).show()
+                                SnackbarHelper.showShort(binding.root, getString(R.string.error_processing_url))
                             }
                         }
                     }
                 } else {
-                    Toast.makeText(this, getString(R.string.no_url_found_in_clipboard), Toast.LENGTH_SHORT).show()
+                    SnackbarHelper.showShort(binding.root, getString(R.string.no_url_found_in_clipboard))
                 }
             } else {
-                Toast.makeText(this, getString(R.string.no_url_found_in_clipboard), Toast.LENGTH_SHORT).show()
+                SnackbarHelper.showShort(binding.root, getString(R.string.no_url_found_in_clipboard))
             }
         } catch (e: Exception) {
             Timber.e(e, "Error pasting from clipboard")
@@ -613,7 +536,13 @@ class MainActivity : BaseActivity() {
             context = this,
             lifecycleOwner = this,
             historyRepository = historyRepository,
-            preferencesManager = preferencesManager
+            preferencesManager = preferencesManager,
+            onEntrySelected = { entry ->
+                binding.editTextUrl.removeTextChangedListener(urlTextWatcher)
+                binding.editTextUrl.setText(entry.originalUrl)
+                binding.editTextUrl.addTextChangedListener(urlTextWatcher)
+                viewModel.onUrlChanged(entry.originalUrl)
+            }
         )
         historyDialogHelper.showHistoryDialog()
     }

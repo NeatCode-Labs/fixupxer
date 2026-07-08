@@ -28,7 +28,6 @@ import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.fixupxer.MainActivity
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
@@ -70,8 +69,8 @@ class UrlInputValidationTest {
         // Verify the input field is cleared (indicating rejection)
         onView(withId(R.id.editTextUrl)).check(matches(withText("")))
         
-        // Verify error message is shown in processed URL field
-        onView(withId(R.id.textViewProcessedUrl)).check(matches(withText(containsString("Please paste one URL at a time"))))
+        // Verify error message is shown in the input field's error slot
+        onView(withText(containsString("Please paste one URL at a time"))).check(matches(isDisplayed()))
     }
 
     @Test
@@ -85,7 +84,7 @@ class UrlInputValidationTest {
         // Verify input is cleared
         onView(withId(R.id.editTextUrl)).check(matches(withText("")))
         // Verify error message is shown
-        onView(withId(R.id.textViewProcessedUrl)).check(matches(withText(containsString("Please paste one URL at a time"))))
+        onView(withText(containsString("Please paste one URL at a time"))).check(matches(isDisplayed()))
     }
 
     @Test
@@ -98,8 +97,8 @@ class UrlInputValidationTest {
         
         // Verify input is cleared
         onView(withId(R.id.editTextUrl)).check(matches(withText("")))
-        // Verify error message is shown
-        onView(withId(R.id.textViewProcessedUrl)).check(matches(withText(containsString("Please paste one URL at a time"))))
+        // Not a multi-URL paste — the generic invalid-input message is shown
+        onView(withText(containsString("This input can't be processed"))).check(matches(isDisplayed()))
     }
 
     @Test
@@ -113,7 +112,7 @@ class UrlInputValidationTest {
         // Verify input is cleared
         onView(withId(R.id.editTextUrl)).check(matches(withText("")))
         // Verify error message is shown
-        onView(withId(R.id.textViewProcessedUrl)).check(matches(withText(containsString("Please paste one URL at a time"))))
+        onView(withText(containsString("Please paste one URL at a time"))).check(matches(isDisplayed()))
     }
 
     @Test
@@ -160,7 +159,7 @@ class UrlInputValidationTest {
         // Verify input is cleared
         onView(withId(R.id.editTextUrl)).check(matches(withText("")))
         // Verify error message is shown
-        onView(withId(R.id.textViewProcessedUrl)).check(matches(withText(containsString("Please paste one URL at a time"))))
+        onView(withText(containsString("Please paste one URL at a time"))).check(matches(isDisplayed()))
     }
 
     @Test
@@ -173,8 +172,8 @@ class UrlInputValidationTest {
         
         // Verify input is cleared
         onView(withId(R.id.editTextUrl)).check(matches(withText("")))
-        // Verify error message is shown
-        onView(withId(R.id.textViewProcessedUrl)).check(matches(withText(containsString("Please paste one URL at a time"))))
+        // Not a multi-URL paste — the generic invalid-input message is shown
+        onView(withText(containsString("This input can't be processed"))).check(matches(isDisplayed()))
     }
 
     @Test
@@ -203,7 +202,7 @@ class UrlInputValidationTest {
         onView(withId(R.id.buttonProcess)).perform(click())
         onView(isRoot()).perform(waitFor(1000))
         
-        // Verify error state - use the correct string resource
-        onView(withId(R.id.textViewProcessedUrl)).check(matches(withText(containsString("Please enter a URL"))))
+        // Verify error state - input errors render in the TextInputLayout error slot
+        onView(withText(containsString("Please enter a URL"))).check(matches(isDisplayed()))
     }
 } 

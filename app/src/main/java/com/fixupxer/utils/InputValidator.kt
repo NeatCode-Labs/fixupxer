@@ -93,18 +93,34 @@ object InputValidator {
         RegexOption.IGNORE_CASE
     )
     
+    /** Why [validate] rejected the input — lets the UI show an accurate message. */
+    enum class InvalidReason { MULTIPLE_URLS, OTHER }
+
+    sealed class ValidationResult {
+        data class Valid(val value: String) : ValidationResult()
+        data class Invalid(val reason: InvalidReason) : ValidationResult()
+    }
+
     /**
      * Comprehensive input validation and sanitization
      * @param input Raw input string
      * @return Sanitized and validated input, or null if invalid
      */
-    suspend fun validateAndSanitizeInput(input: String): String? {
+    suspend fun validateAndSanitizeInput(input: String): String? =
+        (validate(input) as? ValidationResult.Valid)?.value
+
+    /**
+     * Same checks as [validateAndSanitizeInput], but reports WHY the input was
+     * rejected so callers can distinguish a genuine multi-URL paste from other
+     * failures (too long, encoded-dot/control-char attacks, timeout).
+     */
+    suspend fun validate(input: String): ValidationResult {
         return try {
             withTimeout(100) { // 100ms timeout to prevent DoS
                 // Check length first
                 if (!validateInputLength(input)) {
                     Timber.w("Input too long: ${input.length} characters")
-                    return@withTimeout null
+                    return@withTimeout ValidationResult.Invalid(InvalidReason.OTHER)
                 }
                 
                 // Sanitize and decode
@@ -130,33 +146,33 @@ object InputValidator {
                 }
                 if (hasMultipleUrls(multiUrlProbe)) {
                     Timber.w("Multiple URLs detected in input")
-                    return@withTimeout null
+                    return@withTimeout ValidationResult.Invalid(InvalidReason.MULTIPLE_URLS)
                 }
                 
                 // Additional safety checks
                 if (decoded.contains(CONTROL_CHARS_PATTERN)) { // Control characters
                     Timber.w("Control characters detected in input")
-                    return@withTimeout null
+                    return@withTimeout ValidationResult.Invalid(InvalidReason.OTHER)
                 }
                 // Reject Unicode normalization attacks (combining accents)
                 if (decoded.contains(COMBINING_MARKS_PATTERN)) {
                     Timber.w("Unicode normalization (combining accent) detected in input")
-                    return@withTimeout null
+                    return@withTimeout ValidationResult.Invalid(InvalidReason.OTHER)
                 }
                 // Reject encoded dot attacks (e.g., %2E)
                 if (sanitized.contains("%2E", ignoreCase = true)) {
                     Timber.w("Encoded dot attack detected in input")
-                    return@withTimeout null
+                    return@withTimeout ValidationResult.Invalid(InvalidReason.OTHER)
                 }
                 
-                decoded
+                ValidationResult.Valid(decoded)
             }
         } catch (e: TimeoutCancellationException) {
             Timber.w("Input validation timed out")
-            null
+            ValidationResult.Invalid(InvalidReason.OTHER)
         } catch (e: Exception) {
             Timber.e(e, "Error during input validation")
-            null
+            ValidationResult.Invalid(InvalidReason.OTHER)
         }
     }
     

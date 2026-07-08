@@ -1,0 +1,7 @@
+Complete UI redesign:
+
+* Main and Share screens rebuilt as a before/after flow: original URL with struck-through tracking parameters, result card with a status chip (Already clean / Tracking removed / Converted).
+* Full dark mode with a System/Light/Dark theme picker in Settings (Material 3).
+* History is now a bottom sheet; tap an entry to reload it, delete with undo.
+* New app icon.
+* Cleaning engine, proxies, and zero-permission privacy unchanged. 45 new tests.

@@ -15,11 +15,11 @@
         android:paddingStart="@dimen/padding_large"
         android:paddingEnd="@dimen/padding_large"
         android:text="@string/history_title"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+        android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
         android:textColor="?android:attr/textColorPrimary" />
 
     <!-- History Enable Toggle -->
-    <androidx.appcompat.widget.SwitchCompat
+    <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/switchHistoryEnabled"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,9 +30,7 @@
         android:paddingBottom="@dimen/padding_small"
         android:text="@string/enable_history"
         android:textColor="?android:attr/textColorPrimary"
-        android:textSize="@dimen/text_size_body"
-        app:thumbTint="@color/switch_thumb_selector"
-        app:trackTint="@color/switch_track_selector" />
+        android:textSize="@dimen/text_size_body" />
 
     <!-- Max Entries Setting -->
     <LinearLayout
@@ -61,8 +59,8 @@
             android:layout_height="wrap_content"
             android:minWidth="@dimen/min_touch_target_size"
             android:text="@string/default_max_entries"
-            android:textColor="@color/primary"
-            app:strokeColor="@color/primary" />
+            android:textColor="?attr/colorPrimary"
+            app:strokeColor="?attr/colorPrimary" />
 
     </LinearLayout>
 
@@ -118,7 +116,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/clear_all"
-            android:textColor="@color/error"
+            android:textColor="?attr/colorError"
             android:layout_marginEnd="@dimen/margin_medium" />
 
         <com.google.android.material.button.MaterialButton

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "Step out" card of the before/after flow: status badge + cleaned URL on a
+     primary-container surface. The flow node sits in the host layout. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardBackgroundColor="?attr/colorPrimaryContainer"
+    app:cardCornerRadius="@dimen/flow_card_radius"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_medium">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_extra_small"
+            android:text="@string/processed_url"
+            android:textSize="@dimen/text_size_tiny"
+            android:textStyle="bold"
+            android:letterSpacing="0.08"
+            android:textAllCaps="true"
+            android:textColor="?attr/colorOnPrimaryContainer"
+            android:alpha="0.75" />
+
+        <TextView
+            android:id="@+id/textViewResultStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:accessibilityLiveRegion="polite"
+            android:background="@drawable/bg_result_status"
+            android:paddingStart="@dimen/result_status_padding_horizontal"
+            android:paddingEnd="@dimen/result_status_padding_horizontal"
+            android:paddingTop="@dimen/result_status_padding_vertical"
+            android:paddingBottom="@dimen/result_status_padding_vertical"
+            android:textSize="@dimen/text_size_tiny"
+            android:textStyle="bold"
+            android:letterSpacing="0.06"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/textViewProcessedUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:textColor="?attr/colorOnPrimaryContainer"
+            android:textIsSelectable="true"
+            android:textSize="@dimen/text_size_result"
+            android:textStyle="bold"
+            android:lineSpacingMultiplier="1.2"
+            android:minHeight="@dimen/processed_url_min_height" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

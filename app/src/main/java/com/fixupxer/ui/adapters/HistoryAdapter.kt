@@ -24,30 +24,35 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.fixupxer.R
 import com.fixupxer.databinding.ItemHistoryBinding
 import com.fixupxer.domain.model.UrlHistory
-import android.view.View
+import com.fixupxer.ui.helpers.SnackbarHelper
+import timber.log.Timber
 
 /**
  * Adapter for displaying URL history items
  */
 class HistoryAdapter(
     private val onItemClick: (UrlHistory) -> Unit,
-    private val onItemDelete: (UrlHistory) -> Unit
+    private val onItemDelete: (UrlHistory) -> Unit,
+    private val snackbarAnchor: View
 ) : ListAdapter<UrlHistory, HistoryAdapter.HistoryViewHolder>(HistoryDiffCallback()) {
     
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
         val binding = ItemHistoryBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
-        return HistoryViewHolder(binding, onItemClick, onItemDelete)
+        return HistoryViewHolder(binding, onItemClick, onItemDelete, snackbarAnchor)
     }
     
     override fun onBindViewHolder(holder: HistoryViewHolder, position: Int) {
@@ -60,7 +65,8 @@ class HistoryAdapter(
     class HistoryViewHolder(
         private val binding: ItemHistoryBinding,
         private val onItemClick: (UrlHistory) -> Unit,
-        private val onItemDelete: (UrlHistory) -> Unit
+        private val onItemDelete: (UrlHistory) -> Unit,
+        private val snackbarAnchor: View
     ) : RecyclerView.ViewHolder(binding.root) {
         
         fun bind(item: UrlHistory) {
@@ -90,7 +96,11 @@ class HistoryAdapter(
                         item.cleanedUrl
                     )
                     clipboard.setPrimaryClip(clip)
-                    Toast.makeText(binding.root.context, R.string.url_copied, Toast.LENGTH_SHORT).show()
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                        SnackbarHelper.showShort(snackbarAnchor, binding.root.context.getString(R.string.url_copied))
+                    } else {
+                        Timber.d("History item URL copied (Android 10+)")
+                    }
                 }
                 
                 // Share button
@@ -113,6 +123,22 @@ class HistoryAdapter(
                 root.setOnClickListener {
                     onItemClick(item)
                 }
+
+                val openLabel = itemView.context.getString(R.string.history_open_action_label)
+                ViewCompat.replaceAccessibilityAction(
+                    root,
+                    AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CLICK,
+                    openLabel,
+                    null
+                )
+
+                val deleteLabel = itemView.context.getString(R.string.history_delete_action_label)
+                ViewCompat.replaceAccessibilityAction(
+                    root,
+                    AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_LONG_CLICK,
+                    deleteLabel,
+                    null
+                )
             }
         }
     }
@@ -129,4 +155,4 @@ class HistoryAdapter(
             return oldItem == newItem
         }
     }
-} 
+}

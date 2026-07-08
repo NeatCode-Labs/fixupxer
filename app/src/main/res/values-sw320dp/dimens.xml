@@ -7,10 +7,11 @@
     <dimen name="icon_small_size">18dp</dimen>
     
     <!-- Card dimensions for small screens -->
-    <dimen name="shared_text_card_height">48dp</dimen>
+    <dimen name="shared_text_card_height">32dp</dimen>
     
     <!-- Text sizes for small screens -->
     <dimen name="text_size_title">20sp</dimen>
+    <dimen name="text_size_result">15sp</dimen>
     <dimen name="text_size_body">14sp</dimen>
     <dimen name="text_size_small">12sp</dimen>
     <dimen name="text_size_tiny">11sp</dimen>
@@ -29,7 +30,7 @@
     <dimen name="toggle_margin_top">8dp</dimen>
     <dimen name="toggle_margin_bottom">12dp</dimen>
     <dimen name="toggle_padding">8dp</dimen>
-    <dimen name="toggle_corner_radius">6dp</dimen>
+    <dimen name="toggle_corner_radius">14dp</dimen>
     
     <!-- Button dimensions for small screens -->
     <dimen name="button_corner_radius">20dp</dimen>
@@ -42,4 +43,13 @@
     
     <!-- Card dimensions for small screens -->
     <dimen name="card_corner_radius">10dp</dimen>
+
+    <!-- Before/after flow layout for small screens -->
+    <dimen name="flow_node_size">44dp</dimen>
+    <dimen name="flow_node_radius">15dp</dimen>
+    <dimen name="flow_node_padding">11dp</dimen>
+    <dimen name="flow_gap">10dp</dimen>
+    <dimen name="cta_height">50dp</dimen>
+    <dimen name="platform_monogram_size">34dp</dimen>
+    <dimen name="scroll_bottom_padding">64dp</dimen>
 </resources> 

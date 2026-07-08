@@ -1,10 +1,10 @@
 # FixupXer Testing Report
 
 ## Test Execution Date
-July 5, 2026
+July 8, 2026
 
 ## Executive Summary
-211/211 unit tests and 186/186 instrumentation tests pass for v1.7.2 on the `Pixel_API_35_Play` emulator. v1.7.2 is a root-cause bug-fix release: opening links from the Reddit app (FixupXer as default browser) landed on `reddit.com/invalid_token…` because (1) `RedditCleaner` stripped the functional `url=`/`token=` params from Reddit's outbound wrapper `out.reddit.com`, and (2) the v1.7.1 Gmail fix was a Google-only allow-list, so all other redirect wrappers still failed the validator's multiple-URL check. The validator is now host-agnostic (multiple-URL heuristic runs on authority+path of a single whitespace-free URL), `RedditCleaner` extracts the outbound destination, and the validator's regexes are precompiled (per-call recompilation was exceeding the 50 ms anti-DoS timeout on slower hardware and wrongly rejecting valid single URLs). Verified end-to-end on the emulator and user-confirmed with the real Reddit app on a physical device. FixupXer v1.7.2 is **READY FOR PRODUCTION RELEASE**.
+252/252 unit tests and 190/190 instrumentation tests pass for v2.0.0 on the `Pixel_API_35_Play` emulator. v2.0.0 is the complete UI redesign release: Main and Share screens rebuilt as a before/after flow layout (original URL with struck-through tracking parameters → result card with a status chip), hand-tuned Material 3 DayNight theme with full dark mode, a System/Light/Dark theme picker in Settings, and a new launcher icon. The cleaning engine, proxy systems, browser mode, and validation surface are unchanged from v1.7.2; on top of the redesign a production-hardening pass added reason-aware validation errors, ViewModel concurrency guards, stale-result invalidation, and Share-intent edge-case handling — all covered by new test suites. FixupXer v2.0.0 is **READY FOR PRODUCTION RELEASE**.
 
 ## Test Environment
 - **Device**: Android Emulator - Pixel API 35 Play (Android 15)
@@ -17,43 +17,50 @@ July 5, 2026
 
 ### Unit Tests (`./gradlew test`)
 **Status**: [x] PASSED  
-**Total Tests**: 211 unit tests (+9 vs v1.7.1)  
+**Total Tests**: 252 unit tests (+41 vs v1.7.2)  
 **Pass Rate**: 100%  
 **Test Classes (highlights)**:
-- `UpdatedCleanersTest` (updated — 4 new `RedditCleaner` cases): `out.reddit.com` destination extraction (%-encoded and plain `url=`), wrapper without `url=` kept intact (server-side redirect and its token preserved), ordinary reddit.com post cleaning unaffected
-- `InputValidatorTest` (updated — host-agnostic redirect handling): Reddit `out.reddit.com` and Facebook `l.facebook.com/l.php?u=` wrappers accepted, generic single URLs with nested query URLs accepted on any host, second protocol glued into the *path* still rejected; obsolete "non-Google host rejected" case removed
-- `UrlProcessorTest` (updated — 1 new end-to-end case: `reddit outbound wrapper is unwrapped and destination cleaned`)
-- `TikTokProxySelectionTest`, `CustomTikTokProxyTest`, `InstagramProxySelectionTest`, `CustomInstagramProxyTest`, `UrlProcessorMatrixTest`, cleaner implementation tests — all unchanged and passing
+- `MainViewModelTest` (new suite) — result statuses (`CLEANED_AND_CONVERTED` etc.), `onUrlChanged` stale-result invalidation vs. result retention, validation-error reason mapping (`MULTIPLE_URLS` → "one URL at a time", `OTHER` → generic invalid-input message), concurrency guards
+- `ShareViewModelTest` (new suite) — platform flag detection, duplicate identical share-text guard, `reprocessAfterProxyChange()`, `setNoSharedText()` error surfacing, error-branch state reset
+- `ResultStatusTest` (new) — status resolution incl. subdomain normalization (`ALREADY_CLEAN` vs `CLEANED`) and lookalike proxy domains (`CONVERTED`), malformed URL fallback
+- `UrlDiffHelperTest` (new) — exact parameter-set strikethrough comparison, fragment handling, `applyStrikesInPlace`
+- `ThemePreferenceTest` (new, Robolectric) — theme mode default/round-trip, corrupted-value fallback to System, `ThemeHelper` → `AppCompatDelegate` mapping
+- `InputValidatorTest` (updated) — reason-aware `ValidationResult` (`MULTIPLE_URLS` vs `OTHER`), multi-URL heuristic robustness (glued URLs vs nested query URLs)
+- `TikTokProxySelectionTest`, `CustomTikTokProxyTest`, `InstagramProxySelectionTest`, `CustomInstagramProxyTest`, `UrlProcessorMatrixTest`, `UpdatedCleanersTest`, cleaner implementation tests — all unchanged and passing
 
 ### Android Instrumentation Tests (`./gradlew connectedAndroidTest`)
 **Status**: [x] PASSED  
-**Total Tests**: 186 tests (unchanged vs v1.7.1)  
+**Total Tests**: 190 tests (+4 vs v1.7.2)  
 **Pass Rate**: 100%  
-**Passed**: 186 (100%)  
+**Passed**: 190 (100%)  
 **Failed**: 0  
-**Execution Time**: ~7 min 30s on `Pixel_API_35_Play`
+**Execution Time**: ~7 min 25s on `Pixel_API_35_Play`
 
-### Manual Emulator Verification (browser-mode VIEW intents)
-Simulated VIEW intents fired at `MainActivity` on `Pixel_API_35_Play` with logcat inspection:
-- [x] Reddit outbound wrapper (`out.reddit.com/…?url=https%3A%2F%2F…&token=…`) → validator accepts, `RedditCleaner` extracts the destination, destination cleaned, `PostCleanRunner` runs (pre-fix: stripped wrapper → `reddit.com/invalid_token`)
-- [x] Gmail-style Google redirect (plain and %-encoded `q=`) → still unwrapped and cleaned correctly
-- [x] Direct URL with tracking params → cleaned as before (no behaviour change)
-- [x] Multi-URL attack input (`…/a%20https://attacker.com/b`) → still rejected by the validator
-- [x] Physical-device confirmation by the maintainer: links from the real Reddit app open correctly through the browser picker
+### Manual Emulator Verification (redesign walkthrough)
+Manual verification of the new UI on `Pixel_API_35_Play` (release APK):
+- [x] Main empty state — placeholder in result card, action buttons disabled
+- [x] Main with dirty X/Twitter URL — tracking parameters struck through in the input, "Tracking removed and converted" status chip, fixupx.com result, action buttons enabled
+- [x] Share with Instagram URL — same flow layout, struck-through `igsh` parameter, toinstagram.com conversion, proxy row with `Active: … Change.`
+- [x] Dark mode — full palette verified on Main (cards, chips, toggles, FAB, status bar)
+- [x] History bottom sheet — entries with platform labels, copy/share per entry, enable toggle + max entries
+- [x] About dialog — new M3 styling, version 2.0.0, GPL notice
+- [x] Theme picker in Settings — System/Light/Dark selection persisted and restored (also covered by `ThemePickerTest`)
+- [x] Screenshots for README + F-Droid metadata regenerated from this walkthrough
 
 ## Detailed Test Results by Feature
 
-### 0. Redirect Wrappers in Browser Mode (generalized in v1.7.2; Gmail-only in v1.7.1) [x]
-**Test Files**: `InputValidatorTest.kt` (unit), `UpdatedCleanersTest.kt` (unit), `UrlProcessorTest.kt` (unit)
-- [x] Any single whitespace-free URL with a nested destination in its query passes validation — Reddit `out.reddit.com`, Facebook `l.facebook.com/l.php`, Google `google.com/url`, generic hosts
-- [x] `RedditCleaner` extracts the `url=` destination from `out.reddit.com`; wrappers without `url=` are left intact
-- [x] Exemption requires the whole input to be one URL — any whitespace voids it; a second protocol glued into the path is still rejected
-- [x] All other validator checks (length, control chars, combining accents, %2E) still apply to redirects
-- [x] Smuggled URLs in non-`q=`/`url=` wrapper params are dropped by single-destination extraction
-- [x] Validator regexes precompiled — no spurious 50 ms timeout rejections (verified in emulator logcat)
-- [x] End-to-end emulator + physical-device verification (see Manual Emulator Verification above)
+### 0. Redesign: UI State & Theming (NEW in v2.0.0) [x]
+**Test Files**: `MainViewModelTest.kt`, `ShareViewModelTest.kt`, `ResultStatusTest.kt`, `UrlDiffHelperTest.kt`, `ThemePreferenceTest.kt` (unit), `ThemePickerTest.kt`, `MainActivityProxyLabelTest.kt`, `ReleaseTestSuite.kt`, `UrlInputValidationTest.kt` (instrumentation)
+- [x] Result status chip resolves correctly: already clean / cleaned / converted / cleaned+converted (incl. subdomain and lookalike-proxy edge cases)
+- [x] Strikethrough diff marks exactly the removed parameters (set-based comparison, fragment-aware, no substring false positives)
+- [x] Changing the input invalidates a stale result; identical re-input keeps it
+- [x] Toggle/proxy changes during processing queue exactly one reprocess (no overlapping work, no lost updates)
+- [x] Multiple-URL paste vs. invalid input produce distinct error messages; input field cleared, error surfaced via ViewModel
+- [x] Share edge cases: empty intent → error state; `ClipData` fallback; duplicate share text ignored; config change doesn't kill the share context
+- [x] Theme preference persists, survives restarts, falls back to System on corrupt values; picker UI restores the persisted selection
+- [x] History collector cancelled while history is disabled (no UI updates from a disabled feature)
 
-### 1. TikTok Conversion + Proxy Picker (NEW in v1.7.0) [x]
+### 1. TikTok Conversion + Proxy Picker (v1.7.0) [x]
 **Test Files**: `TikTokProxySelectionTest.kt` (unit), `CustomTikTokProxyTest.kt` (unit), `TikTokProxyPreferenceTest.kt` (instrumentation), `BidirectionalConversionTest.kt` (instrumentation)
 - [x] Forward conversion: `tiktok.com` → each of `tnktok.com`, `tfxktok.com`, `tiktokez.com`, `kktiktok.com`
 - [x] Host-prefix preservation: `www.`/`vm.`/`vt.`/`m.` kept on conversion in BOTH directions (vm.tiktok.com ↔ vm.tnktok.com)
@@ -65,42 +72,44 @@ Simulated VIEW intents fired at `MainActivity` on `Pixel_API_35_Play` with logca
 - [x] Custom proxies: store state, add/select/delete, conversions custom ↔ fixed, detection only while registered
 - [x] Reserved-domain validation both ways: TikTok store rejects Instagram/Twitter/Facebook/TikTok families; Instagram store now also rejects TikTok domains (custom rosters cannot hijack each other)
 - [x] Prefs: default = tnktok.com; all four fixed proxies persist; invalid/legacy stored values fall back to default; custom roster survives PreferencesManager recreation; TikTok and Instagram custom rosters independent
-- [x] Share-flow E2E (Espresso): tiktok→proxy with www kept, proxy→tiktok reversion, vm. short link, legacy vxtiktok migration, dirty-URL cleanup+conversion, "Nothing to do!" with toggle OFF
+- [x] Share-flow E2E (Espresso): tiktok→proxy with www kept, proxy→tiktok reversion, vm. short link, legacy vxtiktok migration, dirty-URL cleanup+conversion
 - [x] `TikTokCleaner` matches proxy links and strips TikTok params (`_r`, `_t`, `tt_from`, …)
 
 ### 2. Custom Instagram Proxies (v1.6.0) [x]
-**Test Files**: `CustomInstagramProxyTest.kt` (unit), `CustomProxyDialogTest.kt` (instrumentation), `InstagramProxyPreferenceTest.kt` (instrumentation) — all passing unchanged.
+**Test Files**: `CustomInstagramProxyTest.kt` (unit), `CustomProxyDialogTest.kt` (instrumentation), `InstagramProxyPreferenceTest.kt` (instrumentation) — all passing on the new UI.
 
 ### 3. Instagram Proxy Selection [x]
-**Test Files**: `InstagramProxySelectionTest.kt` (unit), `InstagramProxyPreferenceTest.kt`, `MainActivityProxyLabelTest.kt`, `ShareActivityProxyLabelTest.kt`, `CustomProxyDialogTest.kt` — all passing unchanged.
+**Test Files**: `InstagramProxySelectionTest.kt` (unit), `InstagramProxyPreferenceTest.kt`, `MainActivityProxyLabelTest.kt`, `ShareActivityProxyLabelTest.kt`, `CustomProxyDialogTest.kt` — all passing (label assertions updated for the new `Active: … Change.` row and result placeholder).
 
 ### 4. History Feature [x]
-**Test File**: `HistoryDatabaseTest.kt` — all cases pass; `classifyConversion` extended for TikTok covered via processor-level tests.
+**Test File**: `HistoryDatabaseTest.kt` + `MainActivityHistoryTest.kt` — all cases pass on the new bottom-sheet UI (entry tap reload, delete with undo, enable/disable collector behaviour).
 
 ### 5. Share Activity [x]
-**Test Files**: `ShareActivityTest.kt`, `ShareActivityProxyLabelTest.kt`, `ShareActivityNoDuplicatesTest.kt` — all pass with the new TikTok toggle present.
+**Test Files**: `ShareActivityTest.kt`, `ShareActivityProxyLabelTest.kt`, `ShareActivityNoDuplicatesTest.kt` — all pass on the new flow layout.
 
 ### 6. Bidirectional URL Conversions [x]
-**Test File**: `BidirectionalConversionTest.kt` — all Instagram / Twitter / Facebook / **TikTok (new)** bidirectional scenarios pass.
+**Test File**: `BidirectionalConversionTest.kt` — all Instagram / Twitter / Facebook / TikTok bidirectional scenarios pass.
 
 ### 7. Browser Mode Integration [x]
-**Test File**: `BrowserModeTest.kt` — all pass; new `browser_convert_tiktok` pref defaults to off (no behavior change for existing flows).
+**Test File**: `BrowserModeTest.kt` — all pass; browser-mode pipeline untouched by the redesign.
 
 ### 8. Main Activity History UI [x]
 **Test File**: `MainActivityHistoryTest.kt` — all pass.
 
 ### 9. URL Validation [x]
-**Test Files**: `UrlValidationImprovementsTest.kt`, `UrlInputValidationTest.kt` — all security and validation tests pass.
+**Test Files**: `UrlValidationImprovementsTest.kt`, `UrlInputValidationTest.kt` — all security and validation tests pass (error-message assertions updated for reason-aware messages).
 
 ### 10-18. UI / Platform Suites [x]
-`AccessibilityTest`, `ResponsiveDesignTest`, `TouchTargetTest`, `KeyboardNavigationTest`, `OfflinePerformanceTest`, `ApiCompatibilityTest`, `ReleaseTestSuite`, `SmartFooterTest`, `BrowserAliasIntentResolutionTest` — all pass unchanged.
+`AccessibilityTest`, `ResponsiveDesignTest`, `TouchTargetTest`, `KeyboardNavigationTest`, `OfflinePerformanceTest`, `ApiCompatibilityTest`, `ReleaseTestSuite`, `SmartFooterTest`, `BrowserAliasIntentResolutionTest`, `SettingsTest`, `ThemePickerTest` (new) — all pass on the redesigned UI.
 
 ## Coverage Analysis
 
 ### Feature Coverage
 - **URL Cleaning**: 100%
+- **Result Status + URL Diff (v2.0.0)**: 100% — status resolution, strikethrough diff, placeholder/error states
+- **Theming (v2.0.0)**: 100% — persistence, fallback, delegate mapping, picker UI
 - **Instagram Proxy Selection (active set + custom)**: 100%
-- **TikTok Proxy Selection (v1.7.0 active set + custom + legacy)**: 100% — forward, reverse, cross-proxy, custom add/select/delete, validation, subdomain preservation, legacy auto-migration all covered
+- **TikTok Proxy Selection (active set + custom + legacy)**: 100%
 - **Bidirectional Conversions**: 100%
 - **Browser Mode**: 100% (Google variant)
 - **History Management**: 100%
@@ -115,16 +124,16 @@ Simulated VIEW intents fired at `MainActivity` on `Pixel_API_35_Play` with logca
 - **TikTok + active proxies (tnktok.com / tfxktok.com / tiktokez.com / kktiktok.com) + custom proxies + legacy (vxtiktok.com / tiktxk.com)**: [x] Complete
 
 ## GITHUB (F-Droid) Variant
-- Source parity: all v1.7.2 source changes are fully synced into the GITHUB tree; only the standing intentional differences remain (`dependenciesInfo = false`, Linux JDK paths, F-Droid metadata).
+- Source parity: all v2.0.0 source changes are fully synced into the GITHUB tree; only the standing intentional differences remain (`dependenciesInfo = false`, Linux JDK paths, F-Droid metadata).
 - Instrumentation tests: run from the root tree on Windows (see above); F-Droid CI builds from the tag on Linux.
 
 ## Known Issues
-- None blocking for v1.7.2 release.
-- Pre-existing occasional Espresso flakes (`SettingsTest.testAboutDialog`, `KeyboardNavigationTest.testKeyboardInputAndDismissal`) did **not** reproduce in the v1.7.2 run (186/186 first-pass green).
+- None blocking for v2.0.0 release.
+- The `Change.` proxy text links use a deliberate compact (~31dp) touch target instead of the 48dp guideline — a design trade-off approved during review to keep the toggle cards compact.
 
 ## Performance Observations
-- Unit suite: ~25s
-- Instrumentation suite: ~7m 32s on the Pixel API 35 emulator
+- Unit suite: ~1m 45s (both variants)
+- Instrumentation suite: ~7m 25s on the Pixel API 35 emulator
 - No memory leaks or ANRs detected
 
 ## Security Testing
@@ -132,13 +141,14 @@ Simulated VIEW intents fired at `MainActivity` on `Pixel_API_35_Play` with logca
 - [x] Zero-width character attacks blocked
 - [x] Control character attacks handled
 - [x] Unicode normalization working correctly
-- [x] Multiple URL detection preventing bypass attempts (v1.7.2: heuristic runs on authority+path of a single whitespace-free URL — whitespace pastes and glued hosts still rejected, scope regression-tested)
+- [x] Multiple URL detection preventing bypass attempts (validation surface unchanged from v1.7.2; errors now reason-aware)
 - [x] Custom proxy input validated (format, reserved-domain, duplicates) for BOTH rosters — a custom TikTok entry cannot hijack Instagram/Twitter/Facebook detection and vice versa
 - [x] Stored proxy preferences validated against unknown values (fall back to default)
+- [x] Stored theme preference validated against unknown values (falls back to System)
 
 ## Conclusion
 **Production Readiness: YES** [x]
 
-FixupXer v1.7.2 passes 211/211 unit tests and 186/186 instrumentation tests on `Pixel_API_35_Play`. The Reddit outbound-wrapper fix, the host-agnostic validator generalization, and the regex precompilation fix are covered by new unit cases in `UpdatedCleanersTest`, `InputValidatorTest`, and `UrlProcessorTest`, plus live emulator VIEW-intent verification and the maintainer's physical-device confirmation with the real Reddit app.
+FixupXer v2.0.0 passes 252/252 unit tests and 190/190 instrumentation tests on `Pixel_API_35_Play`. The complete UI redesign (before/after flow, dark mode, theme picker) and the accompanying production-hardening pass are covered by five new unit suites, a new instrumentation suite, updated assertions across the existing UI suites, and a manual emulator walkthrough of every main screen in both light and dark themes.
 
 **The app is ready for production deployment.**

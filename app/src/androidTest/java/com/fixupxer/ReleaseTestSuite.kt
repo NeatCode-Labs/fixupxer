@@ -37,7 +37,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class ReleaseTestSuite {
-    
     @Test
     fun testAppLaunchesSuccessfully() {
         // Test that the app launches without crashing
@@ -117,7 +116,9 @@ class ReleaseTestSuite {
         onView(withId(R.id.buttonProcess))
             .perform(click())
         
-        Thread.sleep(500)
+        // Copy/Share stay disabled until processing produces a result,
+        // so give it enough time before asserting on the enabled state.
+        Thread.sleep(1500)
         
         // Test copy button
         onView(withId(R.id.buttonCopy))
@@ -152,7 +153,7 @@ class ReleaseTestSuite {
         
         // Open history
         onView(withId(R.id.buttonHistory))
-            .perform(scrollTo(), click())
+            .perform(click())
         
         Thread.sleep(500)
         

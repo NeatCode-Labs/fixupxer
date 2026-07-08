@@ -20,7 +20,7 @@
 package com.fixupxer.utils
 
 import android.app.Activity
-import android.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipDescription
@@ -88,7 +88,7 @@ class PostCleanRunner(
             activity.getString(R.string.action_clipboard)
         )
         
-        AlertDialog.Builder(activity)
+        MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.post_clean_action_title)
             .setItems(actionNames) { _, which ->
                 val actionName = when (which) {

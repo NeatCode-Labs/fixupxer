@@ -38,7 +38,6 @@ import kotlin.system.measureTimeMillis
  */
 @RunWith(AndroidJUnit4::class)
 class OfflinePerformanceTest {
-    
     @Test
     fun testOfflineFunctionality() {
         // FixupXer works completely offline - no internet required
@@ -148,7 +147,7 @@ class OfflinePerformanceTest {
         // Measure history dialog opening time
         val historyOpenTime = measureTimeMillis {
             onView(withId(R.id.buttonHistory))
-                .perform(scrollTo(), click())
+                .perform(click())
             
             Thread.sleep(500) // Wait for dialog to open
         }

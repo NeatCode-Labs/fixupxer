@@ -37,7 +37,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class AccessibilityTest {
-    
     @Test
     fun testMainActivityAccessibility() {
         ActivityScenario.launch(MainActivity::class.java)

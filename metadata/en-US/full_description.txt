@@ -8,7 +8,7 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 * Fast Processing: Cleans any URL in under 0.1 seconds with advanced caching
 * Offline Operation: Works completely offline - your URLs never leave your device
 * Platform Support: Works with 25+ platforms including YouTube, Facebook, Amazon, Twitter/X, Instagram, TikTok, Google Search, LinkedIn, Reddit, and more
-* Smart Conversions: Optional conversion to privacy-friendly alternatives (fixupx.com for Twitter/X, facebookez.com for Facebook, and selectable Instagram proxies)
+* Smart Conversions: Optional conversion to privacy-friendly alternatives (fixupx.com for Twitter/X, facebookez.com for Facebook, tnktok.com for TikTok, and selectable Instagram proxies)
 * History Tracking: Keep track of cleaned URLs with optional history feature
 * Configurable Actions: Choose what happens after cleaning - open in app, browser, share, or copy to clipboard
 
@@ -30,7 +30,8 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 
 * Modular architecture with 11 specialized URL cleaners
 * Thread-safe design optimized for modern Android devices
-* Material Design 3 interface with full Android 15 compliance
+* Redesigned Material Design 3 interface with full dark mode and a System/Light/Dark theme picker
+* Full Android 15 compliance with edge-to-edge display support
 * Comprehensive test suite with browser-mode and URL-processing regression coverage
 
 Perfect for privacy-conscious users who want cleaner, safer links without the tracking.

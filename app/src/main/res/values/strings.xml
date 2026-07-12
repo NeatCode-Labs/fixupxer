@@ -28,10 +28,8 @@
     <!-- History strings -->
     <string name="history_title">Conversion History</string>
     <string name="history_subtitle">Your latest cleaned and converted links</string>
-    <string name="history_settings">History settings</string>
     <string name="enable_history">Enable history</string>
     <string name="max_history_entries">Max history entries</string>
-    <string name="max_history_entries_description">Automatically keep only the newest links</string>
     <string name="no_history">No conversion history yet</string>
     <string name="no_history_description">Processed links will appear here when history is enabled.</string>
     <string name="history_disabled_title">History is off</string>
@@ -46,7 +44,6 @@
     <string name="select_max_entries">Select max entries</string>
     <string name="max_entries_hint">Enter max number of entries</string>
     <string name="invalid_max_entries">Please enter a valid number greater than 0</string>
-    <string name="default_max_entries">100</string>
     
     <!-- Instagram conversion toggle -->
     <string name="convert_instagram_toggle">Embed?</string>

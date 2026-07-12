@@ -21,9 +21,6 @@ package com.fixupxer.ui.dialogs
 
 import android.content.Context
 import android.view.View
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -96,9 +93,7 @@ class HistoryDialogHelper(
             updateHistoryVisibility(isChecked)
         }
         
-        // Max entries button
-        val currentMax = preferencesManager.getMaxHistoryEntries()
-        binding.btnMaxEntries.text = currentMax.toString()
+        // Max entries settings
         binding.btnMaxEntries.setOnClickListener {
             showMaxEntriesDialog()
         }
@@ -118,12 +113,6 @@ class HistoryDialogHelper(
     }
     
     private fun createDialog() {
-        val initialBottomPadding = binding.root.paddingBottom
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
-            val navigationBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.updatePadding(bottom = initialBottomPadding + navigationBar.bottom)
-            insets
-        }
         dialog = BottomSheetDialog(context).apply {
             setContentView(binding.root)
             setOnDismissListener {
@@ -136,7 +125,6 @@ class HistoryDialogHelper(
             behavior.skipCollapsed = true
             behavior.isDraggable = true
             show()
-            ViewCompat.requestApplyInsets(binding.root)
         }
     }
     
@@ -164,9 +152,6 @@ class HistoryDialogHelper(
     }
     
     private fun updateHistoryVisibility(enabled: Boolean) {
-        binding.maxEntriesContainer.visibility = if (enabled) View.VISIBLE else View.GONE
-        binding.maxEntriesDivider.visibility = if (enabled) View.VISIBLE else View.GONE
-        
         if (!enabled) {
             // Stop collecting: a later Room emission (delete, undo, …) must not
             // flip the RecyclerView back to VISIBLE while history is disabled.
@@ -208,7 +193,6 @@ class HistoryDialogHelper(
             
             if (maxEntries != null && maxEntries > 0) {
                 preferencesManager.setMaxHistoryEntries(maxEntries)
-                binding.btnMaxEntries.text = maxEntries.toString()
                 
                 // Trim history to new max
                 lifecycleOwner.lifecycleScope.launch {

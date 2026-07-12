@@ -215,8 +215,11 @@ class SettingsTest {
         // Wait for dialog to close
         onView(isRoot()).perform(waitFor(1000))
         
-        // Verify value was updated in history dialog
+        // Reopen the compact setting and verify the saved value
         onView(withId(R.id.btnMaxEntries))
+            .inRoot(isDialog())
+            .perform(click())
+        onView(withId(R.id.editTextMaxEntries))
             .inRoot(isDialog())
             .check(matches(withText("50")))
     }

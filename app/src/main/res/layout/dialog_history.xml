@@ -56,6 +56,16 @@
                 android:textAppearance="@style/TextAppearance.Material3.BodySmall"
                 android:textColor="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btnMaxEntries"
+            android:layout_width="@dimen/min_touch_target_size"
+            android:layout_height="@dimen/min_touch_target_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/max_history_entries"
+            android:padding="@dimen/icon_button_padding"
+            android:src="@drawable/ic_settings"
+            app:tint="?attr/colorPrimary" />
     </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
@@ -67,72 +77,17 @@
         app:cardElevation="0dp"
         app:strokeWidth="0dp">
 
-        <LinearLayout
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchHistoryEnabled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="@dimen/padding_medium">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/history_settings"
-                android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
-                android:textColor="?attr/colorPrimary" />
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/switchHistoryEnabled"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:text="@string/enable_history"
-                android:textColor="?attr/colorOnSurface" />
-
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/maxEntriesDivider"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="@dimen/margin_small" />
-
-            <LinearLayout
-                android:id="@+id/maxEntriesContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/max_history_entries"
-                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-                        android:textColor="?attr/colorOnSurface" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_tiny"
-                        android:text="@string/max_history_entries_description"
-                        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-                </LinearLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnMaxEntries"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/margin_medium"
-                    android:minWidth="@dimen/min_touch_target_size"
-                    android:text="@string/default_max_entries" />
-            </LinearLayout>
-        </LinearLayout>
+            android:minHeight="@dimen/min_touch_target_size"
+            android:paddingStart="@dimen/padding_medium"
+            android:paddingTop="@dimen/padding_small"
+            android:paddingEnd="@dimen/padding_medium"
+            android:paddingBottom="@dimen/padding_small"
+            android:text="@string/enable_history"
+            android:textColor="?attr/colorOnSurface" />
     </com.google.android.material.card.MaterialCardView>
 
     <androidx.recyclerview.widget.RecyclerView

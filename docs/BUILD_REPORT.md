@@ -27,7 +27,7 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 - **Android Tests**: SUCCESS — **194/194 instrumentation tests pass** on `Pixel_API_35_Play` (`connectedDebugAndroidTest`, 13m 19s).
 - **Visual Verification**: SUCCESS — Settings entry, both How to Use actions, rule list/editor, Test Lab and file operations verified through instrumentation.
 - **ProGuard/R8**: SUCCESS - Release build with obfuscation completed
-- **APK Size**: 3.92 MiB signed release candidate
+- **APK Size**: 3.91 MiB signed release candidate
 - **AAB Build**: pending the post-physical-test release pipeline
 
 #### Security & Privacy (4/4) [x]
@@ -77,7 +77,7 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 - **Lint Issues**: 0 errors on release variant (`lintRelease` clean)
 
 ### Performance Metrics
-- **APK Size (Google)**: 3.92 MiB signed v2.1.0 release candidate
+- **APK Size (Google)**: 3.91 MiB signed v2.1.0 release candidate
 - **AAB Size**: pending post-physical-test release pipeline
 - **Install Size**: Optimized with ProGuard/R8
 - **Memory Usage**: Efficient resource management

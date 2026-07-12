@@ -93,7 +93,7 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, full emulator instrumentation, cle
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` — SHA-256 `9B2E65974E40A50260888C67A1CC24856C2D9197A3EDC7E1FBDAC70A23D5C92D`
 - [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` — SHA-256 `D7050F0FA6AC844E12106EBD2C6D7B2D94EB3B3680D8F94CB240C4F93DAFC339`; `assets/adi-registration.properties` present
-- [ ] **GITHUB Release APK**: pending the required fresh-clone build from the v2.1.0 tag
+- [x] **GITHUB Release APK**: `FixupXer-v2.1.0-release.apk` — 3.77 MiB, SHA-256 `B7FD2A69881E49A31F495D29975AE5E1E66F6C0BC3CAA8778A8557E85C4376F0`; two clean tag builds were byte-identical
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
 - [x] **Minified Smoke**: signed APK installs and cold-launches; Main and Share launch; Settings/custom-rules/editor load; a release-mode Remove all rule changed `https://example.com/?id=1` to `https://example.com/`
 - [x] **ProGuard Mapping**: Code obfuscation applied
@@ -104,7 +104,7 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, full emulator instrumentation, cle
 - [x] `dependenciesInfo.includeInBundle = false` and `includeInApk = false` remain preserved
 - [x] Full root → mirror source/docs sync completed with intentional build differences preserved
 - [x] F-Droid changelog 35 added and validated under 500 characters
-- [ ] Tag, push, GitHub release and reproducible fresh-clone APK wait for the final release pipeline
+- [x] `main` and tag `v2.1.0` pushed; reproducible fresh-clone APK published at `https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.1.0`
 
 ## Quality Assurance Verification
 

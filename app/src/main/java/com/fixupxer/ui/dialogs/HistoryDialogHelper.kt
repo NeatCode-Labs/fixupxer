@@ -21,6 +21,9 @@ package com.fixupxer.ui.dialogs
 
 import android.content.Context
 import android.view.View
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -115,6 +118,12 @@ class HistoryDialogHelper(
     }
     
     private fun createDialog() {
+        val initialBottomPadding = binding.root.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val navigationBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            view.updatePadding(bottom = initialBottomPadding + navigationBar.bottom)
+            insets
+        }
         dialog = BottomSheetDialog(context).apply {
             setContentView(binding.root)
             setOnDismissListener {
@@ -125,7 +134,9 @@ class HistoryDialogHelper(
             // sheet and would otherwise be hidden below the collapsed peek.
             behavior.state = BottomSheetBehavior.STATE_EXPANDED
             behavior.skipCollapsed = true
+            behavior.isDraggable = true
             show()
+            ViewCompat.requestApplyInsets(binding.root)
         }
     }
     
@@ -140,10 +151,13 @@ class HistoryDialogHelper(
                 // Show/hide empty state
                 if (historyList.isEmpty()) {
                     binding.recyclerViewHistory.visibility = View.GONE
-                    binding.textViewEmpty.visibility = View.VISIBLE
+                    binding.emptyState.visibility = View.VISIBLE
+                    binding.textViewEmptyTitle.text = context.getString(R.string.no_history)
+                    binding.textViewEmptyDescription.text =
+                        context.getString(R.string.no_history_description)
                 } else {
                     binding.recyclerViewHistory.visibility = View.VISIBLE
-                    binding.textViewEmpty.visibility = View.GONE
+                    binding.emptyState.visibility = View.GONE
                 }
             }
         }
@@ -158,10 +172,14 @@ class HistoryDialogHelper(
             historyCollectJob?.cancel()
             historyCollectJob = null
             binding.recyclerViewHistory.visibility = View.GONE
-            binding.textViewEmpty.visibility = View.VISIBLE
-            binding.textViewEmpty.text = context.getString(R.string.enable_history)
+            binding.emptyState.visibility = View.VISIBLE
+            binding.textViewEmptyTitle.text = context.getString(R.string.history_disabled_title)
+            binding.textViewEmptyDescription.text =
+                context.getString(R.string.history_disabled_description)
         } else {
-            binding.textViewEmpty.text = context.getString(R.string.no_history)
+            binding.textViewEmptyTitle.text = context.getString(R.string.no_history)
+            binding.textViewEmptyDescription.text =
+                context.getString(R.string.no_history_description)
             observeHistory()
         }
     }

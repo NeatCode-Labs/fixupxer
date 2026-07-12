@@ -116,6 +116,30 @@ abstract class BaseActivity : AppCompatActivity() {
                     insets.bottom + fabClearance
                 )
             }
+
+            // Keep the Custom Rules list and its add button clear of gesture and
+            // three-button navigation bars on every supported Android version.
+            val rulesList = view.findViewById<androidx.recyclerview.widget.RecyclerView>(
+                R.id.recyclerRules
+            )
+            if (rulesList != null) {
+                rulesList.setPadding(
+                    rulesList.paddingLeft,
+                    rulesList.paddingTop,
+                    rulesList.paddingRight,
+                    insets.bottom + resources.getDimensionPixelSize(
+                        R.dimen.scroll_bottom_padding
+                    )
+                )
+            }
+            val addRuleButton = view.findViewById<View>(R.id.buttonAddRule)
+            val addRuleLayoutParams =
+                addRuleButton?.layoutParams as? android.view.ViewGroup.MarginLayoutParams
+            if (addRuleButton != null && addRuleLayoutParams != null) {
+                addRuleLayoutParams.bottomMargin = insets.bottom +
+                    resources.getDimensionPixelSize(R.dimen.padding_large)
+                addRuleButton.layoutParams = addRuleLayoutParams
+            }
             
             // Apply symmetrical padding to footer to match title spacing
             val footer = view.findViewById<TextView>(R.id.footerTextView)

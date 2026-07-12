@@ -14,7 +14,6 @@ package com.fixupxer.ui
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
-import android.view.View
 import android.widget.ArrayAdapter
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
@@ -36,6 +35,7 @@ import com.fixupxer.rules.RulePhase
 import com.fixupxer.rules.RuleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -49,6 +49,11 @@ class RuleEditorActivity : BaseActivity() {
     private val viewModel: RuleEditorViewModel by viewModels()
     private var original: CustomUrlRule? = null
     private var saved = false
+    private lateinit var phaseLabels: List<String>
+    private lateinit var scopeLabels: List<String>
+    private lateinit var actionLabels: List<String>
+    private lateinit var decodeModeLabels: List<String>
+    private lateinit var profileLabels: List<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +61,13 @@ class RuleEditorActivity : BaseActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setTitle(
+            if (intent.getStringExtra(EXTRA_RULE_ID) == null) {
+                R.string.custom_rule_create_title
+            } else {
+                R.string.custom_rule_editor_title
+            }
+        )
 
         setupSpinners()
         setupActions()
@@ -74,19 +86,19 @@ class RuleEditorActivity : BaseActivity() {
     }
 
     private fun setupSpinners() {
-        binding.spinnerPhase.adapter = labels(
+        phaseLabels = labels(
             R.string.custom_rule_phase_pre,
             R.string.custom_rule_phase_post,
             R.string.custom_rule_phase_final
         )
-        binding.spinnerScope.adapter = labels(
+        scopeLabels = labels(
             R.string.custom_rule_scope_all,
             R.string.custom_rule_scope_exact,
             R.string.custom_rule_scope_domain,
             R.string.custom_rule_scope_list,
             R.string.custom_rule_scope_regex
         )
-        binding.spinnerAction.adapter = labels(
+        actionLabels = labels(
             R.string.custom_rule_action_remove_all,
             R.string.custom_rule_action_remove_named,
             R.string.custom_rule_action_keep,
@@ -94,22 +106,14 @@ class RuleEditorActivity : BaseActivity() {
             R.string.custom_rule_action_redirect,
             R.string.custom_rule_action_template
         )
-        binding.spinnerDecodeMode.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            RedirectDecodeMode.entries.map { it.name.replace('_', ' ') }
-        )
-        binding.spinnerTestProfile.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            ProcessingProfile.entries.map { it.name }
-        )
-        binding.spinnerScope.onItemSelectedListener = simpleSelectionListener {
-            updateConditionalFields()
-        }
-        binding.spinnerAction.onItemSelectedListener = simpleSelectionListener {
-            updateConditionalFields()
-        }
+        decodeModeLabels = RedirectDecodeMode.entries.map { it.name.replace('_', ' ') }
+        profileLabels = ProcessingProfile.entries.map { it.name }
+
+        setupDropdown(binding.spinnerPhase, phaseLabels)
+        setupDropdown(binding.spinnerScope, scopeLabels, onSelected = ::updateConditionalFields)
+        setupDropdown(binding.spinnerAction, actionLabels, onSelected = ::updateConditionalFields)
+        setupDropdown(binding.spinnerDecodeMode, decodeModeLabels)
+        setupDropdown(binding.spinnerTestProfile, profileLabels)
         updateConditionalFields()
     }
 
@@ -141,7 +145,9 @@ class RuleEditorActivity : BaseActivity() {
                     viewModel.preview(
                         draft,
                         url,
-                        ProcessingProfile.entries[binding.spinnerTestProfile.selectedItemPosition]
+                        ProcessingProfile.entries[
+                            selectedIndex(binding.spinnerTestProfile, profileLabels)
+                        ]
                     )
                 }.onSuccess { result ->
                     val trace = result.trace.joinToString("\n") {
@@ -201,14 +207,14 @@ class RuleEditorActivity : BaseActivity() {
     private fun populate(rule: CustomUrlRule) {
         binding.editName.setText(rule.name)
         binding.switchEnabled.isChecked = rule.enabled
-        binding.spinnerPhase.setSelection(rule.phase.ordinal)
+        setDropdownSelection(binding.spinnerPhase, phaseLabels, rule.phase.ordinal)
         binding.checkMain.isChecked = ProcessingProfile.MAIN in rule.contexts
         binding.checkShare.isChecked = ProcessingProfile.SHARE in rule.contexts
         binding.checkBrowser.isChecked = ProcessingProfile.BROWSER in rule.contexts
-        binding.spinnerScope.setSelection(scopeIndex(rule.includeScope))
+        setDropdownSelection(binding.spinnerScope, scopeLabels, scopeIndex(rule.includeScope))
         binding.editScopeValue.setText(scopeValue(rule.includeScope))
         binding.editExcludes.setText(rule.excludeScopes.joinToString("\n", transform = ::scopeLine))
-        binding.spinnerAction.setSelection(actionIndex(rule.action))
+        setDropdownSelection(binding.spinnerAction, actionLabels, actionIndex(rule.action))
         populateAction(rule.action)
         binding.checkStop.isChecked = rule.stopAfterMatch
         updateConditionalFields()
@@ -234,7 +240,11 @@ class RuleEditorActivity : BaseActivity() {
             is RuleAction.ExtractRedirect -> {
                 binding.editActionValue.setText(action.parameterName)
                 binding.checkIgnoreCase.isChecked = action.ignoreCase
-                binding.spinnerDecodeMode.setSelection(action.decodeMode.ordinal)
+                setDropdownSelection(
+                    binding.spinnerDecodeMode,
+                    decodeModeLabels,
+                    action.decodeMode.ordinal
+                )
             }
             is RuleAction.TemplateRewrite -> binding.editActionValue.setText(action.template)
         }
@@ -248,7 +258,7 @@ class RuleEditorActivity : BaseActivity() {
             if (binding.checkBrowser.isChecked) add(ProcessingProfile.BROWSER)
         }
         val include = parseScope(
-            binding.spinnerScope.selectedItemPosition,
+            selectedIndex(binding.spinnerScope, scopeLabels),
             binding.editScopeValue.text?.toString().orEmpty()
         )
         val excludes = binding.editExcludes.text?.toString().orEmpty()
@@ -263,7 +273,7 @@ class RuleEditorActivity : BaseActivity() {
             name = binding.editName.text?.toString().orEmpty(),
             enabled = binding.switchEnabled.isChecked,
             sortOrder = previous?.sortOrder ?: Int.MAX_VALUE,
-            phase = RulePhase.entries[binding.spinnerPhase.selectedItemPosition],
+            phase = RulePhase.entries[selectedIndex(binding.spinnerPhase, phaseLabels)],
             contexts = contexts,
             includeScope = include,
             excludeScopes = excludes,
@@ -278,7 +288,7 @@ class RuleEditorActivity : BaseActivity() {
     private fun parseAction(): RuleAction {
         val value = binding.editActionValue.text?.toString().orEmpty()
         val ignoreCase = binding.checkIgnoreCase.isChecked
-        return when (binding.spinnerAction.selectedItemPosition) {
+        return when (selectedIndex(binding.spinnerAction, actionLabels)) {
             0 -> RuleAction.RemoveAllParams
             1 -> RuleAction.RemoveParams(parseLines(value), ignoreCase)
             2 -> RuleAction.KeepOnlyParams(parseLines(value), ignoreCase)
@@ -291,7 +301,9 @@ class RuleEditorActivity : BaseActivity() {
             4 -> RuleAction.ExtractRedirect(
                 parameterName = value.trim(),
                 ignoreCase = ignoreCase,
-                decodeMode = RedirectDecodeMode.entries[binding.spinnerDecodeMode.selectedItemPosition]
+                decodeMode = RedirectDecodeMode.entries[
+                    selectedIndex(binding.spinnerDecodeMode, decodeModeLabels)
+                ]
             )
             else -> RuleAction.TemplateRewrite(value)
         }
@@ -326,14 +338,15 @@ class RuleEditorActivity : BaseActivity() {
     }
 
     private fun updateConditionalFields() {
-        binding.layoutScopeValue.isVisible = binding.spinnerScope.selectedItemPosition != 0
-        val action = binding.spinnerAction.selectedItemPosition
+        val scope = selectedIndex(binding.spinnerScope, scopeLabels)
+        binding.layoutScopeValue.isVisible = scope != 0
+        val action = selectedIndex(binding.spinnerAction, actionLabels)
         binding.layoutActionValue.isVisible = action != 0
         binding.layoutReplacement.isVisible = action == 3
         binding.checkReplaceAll.isVisible = action == 3
-        binding.spinnerDecodeMode.isVisible = action == 4
+        binding.layoutDecodeMode.isVisible = action == 4
         binding.checkIgnoreCase.isVisible = action in 1..4 ||
-            binding.spinnerScope.selectedItemPosition == 4
+            scope == 4
     }
 
     private fun confirmDiscard() {
@@ -356,11 +369,33 @@ class RuleEditorActivity : BaseActivity() {
         ).show()
     }
 
-    private fun labels(vararg ids: Int) = ArrayAdapter(
-        this,
-        android.R.layout.simple_spinner_dropdown_item,
-        ids.map(::getString)
-    )
+    private fun labels(vararg ids: Int): List<String> = ids.map(::getString)
+
+    private fun setupDropdown(
+        dropdown: MaterialAutoCompleteTextView,
+        values: List<String>,
+        selectedIndex: Int = 0,
+        onSelected: (() -> Unit)? = null
+    ) {
+        dropdown.setAdapter(
+            ArrayAdapter(this, android.R.layout.simple_list_item_1, values)
+        )
+        setDropdownSelection(dropdown, values, selectedIndex)
+        dropdown.setOnItemClickListener { _, _, _, _ -> onSelected?.invoke() }
+    }
+
+    private fun selectedIndex(
+        dropdown: MaterialAutoCompleteTextView,
+        values: List<String>
+    ): Int = values.indexOf(dropdown.text.toString()).coerceAtLeast(0)
+
+    private fun setDropdownSelection(
+        dropdown: MaterialAutoCompleteTextView,
+        values: List<String>,
+        index: Int
+    ) {
+        dropdown.setText(values[index], false)
+    }
 
     private fun parseLines(value: String): List<String> =
         value.lineSequence()
@@ -404,15 +439,4 @@ class RuleEditorActivity : BaseActivity() {
         is RuleAction.TemplateRewrite -> 5
     }
 
-    private fun simpleSelectionListener(onSelected: () -> Unit) =
-        object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: android.widget.AdapterView<*>?,
-                view: View?,
-                position: Int,
-                id: Long
-            ) = onSelected()
-
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
-        }
 }

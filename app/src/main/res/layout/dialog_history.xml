@@ -3,129 +3,210 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
     android:orientation="vertical"
-    android:paddingTop="@dimen/padding_large">
+    android:paddingStart="@dimen/padding_medium"
+    android:paddingEnd="@dimen/padding_medium">
 
-    <!-- Title -->
-    <TextView
-        android:id="@+id/dialogTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingStart="@dimen/padding_large"
-        android:paddingEnd="@dimen/padding_large"
-        android:text="@string/history_title"
-        android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-        android:textColor="?android:attr/textColorPrimary" />
+    <View
+        android:layout_width="@dimen/padding_xlarge"
+        android:layout_height="@dimen/margin_extra_small"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/margin_small"
+        android:background="@drawable/bg_bottom_sheet_handle"
+        android:importantForAccessibility="no" />
 
-    <!-- History Enable Toggle -->
-    <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/switchHistoryEnabled"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_large"
-        android:paddingStart="@dimen/padding_large"
-        android:paddingEnd="@dimen/padding_large"
-        android:paddingTop="@dimen/padding_small"
-        android:paddingBottom="@dimen/padding_small"
-        android:text="@string/enable_history"
-        android:textColor="?android:attr/textColorPrimary"
-        android:textSize="@dimen/text_size_body" />
-
-    <!-- Max Entries Setting -->
     <LinearLayout
-        android:id="@+id/maxEntriesContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingStart="@dimen/padding_large"
-        android:paddingEnd="@dimen/padding_large"
-        android:paddingTop="@dimen/padding_small"
-        android:paddingBottom="@dimen/padding_small"
-        android:gravity="center_vertical">
+        android:layout_marginTop="@dimen/margin_medium"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-        <TextView
+        <ImageView
+            android:layout_width="@dimen/flow_node_size"
+            android:layout_height="@dimen/flow_node_size"
+            android:background="@drawable/bg_flow_node_in"
+            android:contentDescription="@null"
+            android:padding="@dimen/flow_node_padding"
+            android:src="@drawable/ic_history"
+            app:tint="?attr/colorPrimary" />
+
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_medium"
             android:layout_weight="1"
-            android:text="@string/max_history_entries"
-            android:textColor="?android:attr/textColorPrimary"
-            android:textSize="@dimen/text_size_body" />
+            android:orientation="vertical">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnMaxEntries"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="@dimen/min_touch_target_size"
-            android:text="@string/default_max_entries"
-            android:textColor="?attr/colorPrimary"
-            app:strokeColor="?attr/colorPrimary" />
+            <TextView
+                android:id="@+id/dialogTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/history_title"
+                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+                android:textColor="?attr/colorOnSurface" />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_extra_small"
+                android:text="@string/history_subtitle"
+                android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Divider -->
-    <View
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="@dimen/card_stroke_width"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_medium"
-        android:background="?android:attr/listDivider" />
+        app:cardBackgroundColor="?attr/colorSurfaceContainer"
+        app:cardCornerRadius="@dimen/flow_card_radius"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
 
-    <!-- History List -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/padding_medium">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/history_settings"
+                android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+                android:textColor="?attr/colorPrimary" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchHistoryEnabled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:text="@string/enable_history"
+                android:textColor="?attr/colorOnSurface" />
+
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="@dimen/margin_small" />
+
+            <LinearLayout
+                android:id="@+id/maxEntriesContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/max_history_entries"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:textColor="?attr/colorOnSurface" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:text="@string/max_history_entries_description"
+                        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnMaxEntries"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_medium"
+                    android:minWidth="@dimen/min_touch_target_size"
+                    android:text="@string/default_max_entries" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewHistory"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="@dimen/margin_medium"
         android:layout_weight="1"
-        android:minHeight="@dimen/dialog_min_height"
-        android:maxHeight="@dimen/dialog_max_height"
         android:clipToPadding="false"
-        android:paddingTop="@dimen/padding_small"
         android:paddingBottom="@dimen/padding_small"
         android:scrollbars="vertical"
         tools:listitem="@layout/item_history" />
 
-    <!-- Empty State -->
-    <TextView
-        android:id="@+id/textViewEmpty"
+    <LinearLayout
+        android:id="@+id/emptyState"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dialog_empty_state_height"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:gravity="center"
-        android:text="@string/no_history"
-        android:textColor="?android:attr/textColorSecondary"
-        android:textSize="@dimen/text_size_body"
-        android:visibility="gone" />
+        android:orientation="vertical"
+        android:padding="@dimen/padding_large"
+        android:visibility="gone">
 
-    <!-- Divider -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/card_stroke_width"
-        android:background="?android:attr/listDivider" />
+        <ImageView
+            android:layout_width="@dimen/flow_node_size"
+            android:layout_height="@dimen/flow_node_size"
+            android:background="@drawable/bg_flow_node_in"
+            android:contentDescription="@null"
+            android:padding="@dimen/flow_node_padding"
+            android:src="@drawable/ic_history"
+            app:tint="?attr/colorOnSurfaceVariant" />
 
-    <!-- Dialog Actions -->
+        <TextView
+            android:id="@+id/textViewEmptyTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_medium"
+            android:gravity="center"
+            android:text="@string/no_history"
+            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+            android:textColor="?attr/colorOnSurface" />
+
+        <TextView
+            android:id="@+id/textViewEmptyDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_extra_small"
+            android:gravity="center"
+            android:text="@string/no_history_description"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+    </LinearLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="end"
         android:orientation="horizontal"
-        android:padding="@dimen/padding_small"
-        android:gravity="end">
+        android:paddingTop="@dimen/padding_small"
+        android:paddingBottom="@dimen/padding_small">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClearAll"
-            style="@style/Widget.Material3.Button.TextButton.Dialog"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/clear_all"
-            android:textColor="?attr/colorError"
-            android:layout_marginEnd="@dimen/margin_medium" />
+            android:textColor="?attr/colorError" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClose"
-            style="@style/Widget.Material3.Button.TextButton.Dialog"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/close" />
-
+            android:layout_marginStart="@dimen/margin_small"
+            android:text="@string/done" />
     </LinearLayout>
 
-</LinearLayout> 
+</LinearLayout>

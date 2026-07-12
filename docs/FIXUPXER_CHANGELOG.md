@@ -37,10 +37,10 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 - **Pipeline:** New raw-preserving validator/extractor/normalizer/orchestrator shared by Main, Share and Browser. Custom phases run before built-ins, after built-ins and after domain conversion; immutable snapshots prevent mid-request rule changes.
 - **Rules:** all URLs, exact host, domain+subdomains, host list and RE2/J URL regex scopes; shared excludes; remove-all, remove-selected, keep-only, regex replace, redirect extraction and component-template actions; per-context filtering, stop-after-match and deterministic order.
 - **Storage/portability:** Room v2 migration preserves history; versioned JSON bundles, atomic conflict policies, last-three rollback snapshots and Storage Access Framework import/export without storage permissions.
-- **UI:** Settings master switch, rule count, list/editor, accessible reorder controls, duplicate/delete, profile-aware Test Lab trace and independent bundled templates.
+- **UI:** Custom rules are opt-in with one master switch in Settings; the rule library/editor and Conversion History now share the redesigned Material 3 cards, hierarchy and controls, with navigation-safe actions, accessible reordering, visible history actions and profile-aware Test Lab trace.
 - **Documentation:** Browser integration and Custom URL rules expose **How to Use** links to dedicated GitHub Markdown guides; the embedded Browser instructions dialog was removed.
 - **Safety/privacy:** linear-time RE2/J 1.8, strict output validation, raw query preservation, cycle/hop/resource limits, custom rules excluded from automatic backup, zero merged permissions enforced by test.
-- **Verification:** frozen master-off differential corpus, generated raw-query corpus, compiler/engine/codec/repository/migration/UI/performance/manifest tests. 270/270 unit + 194/194 instrumentation tests pass; `lintRelease` and REUSE 3.3 lint pass.
+- **Verification:** frozen master-off differential corpus, generated raw-query corpus, compiler/engine/codec/repository/migration/UI/performance/manifest tests. 273/273 unit + 194/194 instrumentation tests pass; `lintRelease` and REUSE 3.3 lint pass.
 
 ### v1.7.2 → v2.0.0
 - **Focus:** Complete UI redesign — the largest visual change in the app's history. Main and Share screens rebuilt as a **before/after flow layout** on a hand-tuned Material 3 DayNight theme with full dark mode. All URL-processing logic, proxy systems, browser mode, and privacy guarantees unchanged.

@@ -3,7 +3,7 @@
 ## Executive Summary
 **STATUS: [x] PRODUCTION READY**
 
-FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation verification and is ready as a signed release candidate for physical-device testing. This release adds the complete offline custom URL rule system, plus external GitHub How-to guides for Browser mode and custom rules.
+FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation verification and is ready as a signed release candidate for physical-device testing. This release adds the complete offline custom URL rule system, external GitHub How-to guides, and a consolidated Material 3 redesign of Rules and History.
 
 ## Build Information
 - **Version**: v2.1.0 (versionCode: 35)
@@ -23,9 +23,9 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 
 ### Build Verification [x]
 - **Clean Build**: SUCCESS - `assembleRelease` completes signed build
-- **Unit Tests**: SUCCESS - 270/270 tests passed (100%), including differential, engine, codec, repository and fuzz/idempotence coverage.
-- **Android Tests**: SUCCESS — **194/194 instrumentation tests pass** on `Pixel_API_35_Play` (`connectedDebugAndroidTest`, 13m 19s).
-- **Visual Verification**: SUCCESS — Settings entry, both How to Use actions, rule list/editor, Test Lab and file operations verified through instrumentation.
+- **Unit Tests**: SUCCESS - 273/273 tests passed (100%), including default-off preferences, differential, engine, codec, repository and fuzz/idempotence coverage.
+- **Android Tests**: SUCCESS — **194/194 instrumentation tests pass** on `Pixel_API_35_Play` (`connectedDebugAndroidTest`, 7m 34s).
+- **Visual Verification**: SUCCESS — Rules and History verified on API 35 with flat Extended FABs, navigation-safe actions, grouped M3 cards, exposed dropdowns, modern empty states and visible history actions.
 - **ProGuard/R8**: SUCCESS - Release build with obfuscation completed
 - **APK Size**: 3.91 MiB signed release candidate
 - **AAB Build**: pending the post-physical-test release pipeline
@@ -70,10 +70,10 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 ## Detailed Test Metrics
 
 ### Code Quality
-- **Total Tests**: 464 (270 unit + 194 instrumentation).
-- **Pass Rate**: 100% (270/270 unit + 194/194 instrumentation on `Pixel_API_35_Play`)
-- **New test areas in v2.1.0**: frozen differential corpus, raw query/action matrix, redirect hop protection, bundle assets/round-trip, atomic import/rollback, Room migration, no-code UI, 200-rule performance and merged-manifest privacy.
-- **Instrumentation Time**: 13m 19s for the full suite
+- **Total Tests**: 467 (273 unit + 194 instrumentation).
+- **Pass Rate**: 100% (273/273 unit + 194/194 instrumentation on `Pixel_API_35_Play`)
+- **New test areas in v2.1.0**: default-off custom-rule preferences, frozen differential corpus, raw query/action matrix, redirect hop protection, bundle assets/round-trip, atomic import/rollback, Room migration, no-code UI, 200-rule performance and merged-manifest privacy.
+- **Instrumentation Time**: 7m 34s for the full suite
 - **Lint Issues**: 0 errors on release variant (`lintRelease` clean)
 
 ### Performance Metrics
@@ -97,7 +97,7 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
 - [x] **Minified Smoke**: signed APK installs and cold-launches; Main and Share launch; Settings/custom-rules/editor load; a release-mode Remove all rule changed `https://example.com/?id=1` to `https://example.com/`
 - [x] **ProGuard Mapping**: Code obfuscation applied
-- [x] **Test Reports**: 270/270 unit + 194/194 instrumentation, all green
+- [x] **Test Reports**: 273/273 unit + 194/194 instrumentation, all green
 
 ## GITHUB (F-Droid) Variant Verification
 - [x] Version 2.1.0 applied to the mirror's four version fields
@@ -133,7 +133,7 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 FixupXer v2.1.0 meets all pre-device-test quality standards:
 
 - **Zero Critical Issues**: No blocking issues found
-- **Unit Tests**: 270/270 (100%)
+- **Unit Tests**: 273/273 (100%)
 - **Instrumentation Tests**: 194/194 (100%) on `Pixel_API_35_Play`
 - **Security Excellence**: merged APK declares no permissions; user regex is RE2/J-only; rule storage remains local
 - **Custom Rules**: all issue #6 and advanced capabilities are available without raw JSON editing

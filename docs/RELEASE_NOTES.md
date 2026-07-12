@@ -15,6 +15,8 @@ redirect targets, or rewrite URL components with templates.
 - Enable, duplicate, delete, drag-reorder, or move rules with accessible buttons.
 - Preview unsaved changes through Test Lab with before/after output and a bounded
   execution trace.
+- Custom rules are opt-in and remain off after a new installation or an update
+  from v2.0 until enabled in Settings.
 
 ### Templates and Portable Rule Bundles
 - Two independently authored offline template bundles are included.
@@ -29,6 +31,14 @@ redirect targets, or rewrite URL components with templates.
   Markdown guides on GitHub.
 - The in-app **How to Use** actions open those guides in an external browser;
   the previous embedded Browser mode instruction dialog has been removed.
+
+### Interface Polish
+- The rule library and editor now use the same grouped Material 3 cards,
+  typography, dropdowns, and surface hierarchy as the redesigned Main screen.
+- The Add rule button respects gesture and three-button navigation insets.
+- Conversion History now has a modern full-height bottom sheet, clearer empty
+  states, before/after cards, visible copy/share/delete actions, and refreshed
+  on-device history controls.
 
 ### Privacy, Safety, and Compatibility
 - User regex uses linear-time RE2/J only; unsupported backreferences/lookaround
@@ -47,7 +57,7 @@ redirect targets, or rewrite URL components with templates.
 - Target Android: 15 (API 35)
 - Version Code: 35
 - versionName: 2.1.0
-- Unit tests: 270 / 270 passing. Instrumentation: 194 / 194 passing on
+- Unit tests: 273 / 273 passing. Instrumentation: 194 / 194 passing on
   `Pixel_API_35_Play`.
 
 ---

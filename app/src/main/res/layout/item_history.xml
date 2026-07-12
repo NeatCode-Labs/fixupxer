@@ -1,100 +1,159 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingStart="@dimen/padding_large"
-    android:paddingEnd="@dimen/padding_small"
-    android:paddingTop="@dimen/padding_small"
-    android:paddingBottom="@dimen/padding_small"
-    android:background="?android:attr/selectableItemBackground"
-    tools:ignore="Overdraw">
+    android:layout_marginBottom="@dimen/margin_small"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+    app:cardCornerRadius="@dimen/flow_card_radius"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
 
-    <!-- Original URL -->
-    <TextView
-        android:id="@+id/textViewOriginalUrl"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:text="https://example.com/page?utm_source=test"
-        android:textColor="?android:attr/textColorSecondary"
-        android:textSize="@dimen/text_size_small"
-        android:ellipsize="end"
-        android:maxLines="2" />
-
-    <!-- Arrow and Processed URL -->
-    <TextView
-        android:id="@+id/textViewProcessedUrl"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin_small"
-        app:drawableStartCompat="@drawable/arrow_downward"
-        android:drawablePadding="@dimen/margin_medium"
-        app:drawableTint="?attr/colorPrimary"
-        tools:text="https://example.com/page"
-        android:textColor="?android:attr/textColorPrimary"
-        android:textSize="@dimen/text_size_small"
-        android:ellipsize="end"
-        android:maxLines="2"
-        android:gravity="center_vertical" />
-
-    <!-- Metadata -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="@dimen/margin_small">
+        android:orientation="vertical"
+        android:padding="@dimen/padding_medium">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:letterSpacing="0.08"
+                android:text="@string/original_url"
+                android:textAllCaps="true"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textViewTimestamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="2 min ago" />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/textViewTimestamp"
-            android:layout_width="wrap_content"
+            android:id="@+id/textViewOriginalUrl"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:text="2 min ago"
-            android:textColor="?android:attr/textColorTertiary"
-            android:textSize="@dimen/text_size_tiny" />
+            android:layout_marginTop="@dimen/margin_extra_small"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="https://example.com/page?utm_source=test" />
+
+        <ImageView
+            android:layout_width="@dimen/icon_small_size"
+            android:layout_height="@dimen/icon_small_size"
+            android:layout_marginVertical="@dimen/margin_small"
+            android:contentDescription="@null"
+            android:src="@drawable/arrow_downward"
+            app:tint="?attr/colorPrimary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:letterSpacing="0.08"
+                android:text="@string/processed_url"
+                android:textAllCaps="true"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textViewConversionType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_result_status"
+                android:paddingStart="@dimen/result_status_padding_horizontal"
+                android:paddingTop="@dimen/result_status_padding_vertical"
+                android:paddingEnd="@dimen/result_status_padding_horizontal"
+                android:paddingBottom="@dimen/result_status_padding_vertical"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorOnPrimaryContainer"
+                tools:text="Tracking removed" />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/textViewPlatform"
-            android:layout_width="wrap_content"
+            android:id="@+id/textViewProcessedUrl"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/margin_medium"
-            tools:text="• Twitter"
-            android:textColor="?android:attr/textColorTertiary"
-            android:textSize="@dimen/text_size_tiny"
-            android:visibility="gone" />
+            android:layout_marginTop="@dimen/margin_extra_small"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            tools:text="https://example.com/page" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textViewPlatform"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone"
+                tools:text="Twitter" />
+
+            <ImageButton
+                android:id="@+id/buttonCopy"
+                android:layout_width="@dimen/min_touch_target_size"
+                android:layout_height="@dimen/min_touch_target_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/copy_content_desc"
+                android:padding="@dimen/icon_button_padding"
+                android:src="@drawable/ic_copy"
+                app:tint="?attr/colorPrimary" />
+
+            <ImageButton
+                android:id="@+id/buttonShare"
+                android:layout_width="@dimen/min_touch_target_size"
+                android:layout_height="@dimen/min_touch_target_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/share_content_desc"
+                android:padding="@dimen/icon_button_padding"
+                android:src="@drawable/ic_share"
+                app:tint="?attr/colorPrimary" />
+
+            <ImageButton
+                android:id="@+id/buttonDelete"
+                android:layout_width="@dimen/min_touch_target_size"
+                android:layout_height="@dimen/min_touch_target_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/history_delete_content_desc"
+                android:padding="@dimen/icon_button_padding"
+                android:src="@drawable/ic_delete"
+                app:tint="?attr/colorError" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Action Buttons -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="@dimen/margin_small"
-        android:gravity="end">
-
-        <ImageButton
-            android:id="@+id/buttonCopy"
-            android:layout_width="@dimen/min_touch_target_size"
-            android:layout_height="@dimen/min_touch_target_size"
-            android:src="@drawable/ic_copy"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/copy_content_desc"
-            android:padding="@dimen/padding_small"
-            app:tint="?attr/colorPrimary" />
-
-        <ImageButton
-            android:id="@+id/buttonShare"
-            android:layout_width="@dimen/min_touch_target_size"
-            android:layout_height="@dimen/min_touch_target_size"
-            android:src="@drawable/ic_share"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/share_content_desc"
-            android:padding="@dimen/padding_small"
-            android:layout_marginStart="@dimen/margin_small"
-            app:tint="?attr/colorPrimary" />
-
-    </LinearLayout>
-
-</LinearLayout> 
+</com.google.android.material.card.MaterialCardView>

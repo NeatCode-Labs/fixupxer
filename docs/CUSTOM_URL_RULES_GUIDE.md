@@ -45,12 +45,13 @@ do not need regex for ordinary tracking parameters.
 ## Open and enable custom rules
 
 1. Open **FixupXer > Settings > Custom URL rules**.
-2. Select **Manage custom rules**.
-3. Enable **Enable custom rules**.
+2. Enable **Enable custom rules** in Settings.
+3. Select **Manage custom rules**.
 4. Select **Add rule**, or install one of the bundled **Templates**.
 
-The master switch disables or enables the entire rule engine. Each rule also
-has its own enabled switch.
+Custom rules are off by default after a new installation or an update from
+v2.0. The master switch in Settings disables or enables the entire rule engine.
+Each rule also has its own enabled switch in the rule library and editor.
 
 ## Your first rule, step by step
 

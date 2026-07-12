@@ -292,14 +292,14 @@ class PreferencesManager(context: Context) {
     }
 
     fun areCustomRulesEnabled(): Boolean =
-        prefs.getBoolean(KEY_CUSTOM_RULES_ENABLED, true)
+        prefs.getBoolean(KEY_CUSTOM_RULES_ENABLED, false)
 
     fun setCustomRulesEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_CUSTOM_RULES_ENABLED, enabled) }
     }
 
     fun customRulesEnabledFlow(): Flow<Boolean> =
-        booleanFlow(KEY_CUSTOM_RULES_ENABLED, true)
+        booleanFlow(KEY_CUSTOM_RULES_ENABLED, false)
 
     /**
      * Check if history is enabled

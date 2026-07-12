@@ -165,7 +165,7 @@ class MainActivityHistoryTest {
         onView(isRoot()).perform(waitFor(1000))
         
         // Verify empty state is shown
-        onView(withId(R.id.textViewEmpty))
+        onView(withId(R.id.textViewEmptyTitle))
             .inRoot(isDialog())
             .check(matches(isDisplayed()))
     }

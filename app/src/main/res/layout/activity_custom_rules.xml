@@ -5,108 +5,239 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface"
+    android:fitsSystemWindows="false"
+    tools:ignore="Overdraw"
     tools:context=".ui.CustomRulesActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        app:elevation="0dp">
+        android:background="?attr/colorSurface"
+        android:outlineProvider="none"
+        android:stateListAnimator="@null"
+        app:elevation="0dp"
+        app:liftOnScroll="false">
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="@string/custom_rules_title" />
+            app:title="@string/custom_rules_title"
+            app:titleCentered="true"
+            app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="@dimen/padding_medium"
+        android:paddingStart="@dimen/padding_medium"
+        android:paddingEnd="@dimen/padding_medium"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/switchCustomRules"
-            android:layout_width="match_parent"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardRuleLibrary"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/custom_rules_enabled" />
+            android:layout_marginTop="@dimen/margin_small"
+            app:cardBackgroundColor="?attr/colorSurfaceContainer"
+            app:cardCornerRadius="@dimen/flow_card_radius"
+            app:cardElevation="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="@dimen/padding_medium">
+
+                <ImageView
+                    android:layout_width="@dimen/flow_node_size"
+                    android:layout_height="@dimen/flow_node_size"
+                    android:background="@drawable/bg_flow_node_in"
+                    android:contentDescription="@null"
+                    android:padding="@dimen/flow_node_padding"
+                    android:src="@drawable/ic_process"
+                    app:tint="?attr/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_medium"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/custom_rules_library"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textColor="?attr/colorOnSurface" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_extra_small"
+                        android:text="@string/custom_rules_library_description"
+                        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:id="@+id/textRuleCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:background="@drawable/bg_result_status"
+                        android:paddingStart="@dimen/result_status_padding_horizontal"
+                        android:paddingTop="@dimen/result_status_padding_vertical"
+                        android:paddingEnd="@dimen/result_status_padding_horizontal"
+                        android:paddingBottom="@dimen/result_status_padding_vertical"
+                        android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
+                        android:textColor="?attr/colorOnPrimaryContainer"
+                        tools:text="2 active rules" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
-            android:id="@+id/textRuleCount"
+            android:id="@+id/textRuleTools"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/padding_small"
-            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-            tools:text="2 active rules" />
+            android:layout_marginTop="@dimen/margin_medium"
+            android:text="@string/custom_rules_tools"
+            android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
+            android:textColor="?attr/colorOnSurface"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardRuleLibrary" />
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/ruleToolsContainer"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/margin_extra_small"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textRuleTools">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonImport"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/custom_rules_import" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonExport"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/custom_rules_export" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonTemplates"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/custom_rules_templates" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonRollback"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/custom_rules_rollback" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonImport"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_weight="1"
+                    android:text="@string/custom_rules_import" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonClear"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="0dp"
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonExport"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_weight="1"
+                    android:text="@string/custom_rules_export" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/custom_rules_clear" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonRollback"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/custom_rules_rollback" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonClear"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_weight="1"
+                    android:text="@string/custom_rules_clear"
+                    android:textColor="?attr/colorError" />
+            </LinearLayout>
         </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonTemplates"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/custom_rules_templates" />
-
-        <TextView
-            android:id="@+id/textEmpty"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:id="@+id/emptyState"
+            android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="1"
             android:gravity="center"
-            android:text="@string/custom_rules_empty"
-            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+            android:orientation="vertical"
+            android:padding="@dimen/padding_large"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ruleToolsContainer">
+
+            <ImageView
+                android:layout_width="@dimen/flow_node_size"
+                android:layout_height="@dimen/flow_node_size"
+                android:background="@drawable/bg_flow_node_in"
+                android:contentDescription="@null"
+                android:padding="@dimen/flow_node_padding"
+                android:src="@drawable/ic_process"
+                app:tint="?attr/colorOnSurfaceVariant" />
+
+            <TextView
+                android:id="@+id/textEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:gravity="center"
+                android:text="@string/custom_rules_empty"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                android:textColor="?attr/colorOnSurface" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_extra_small"
+                android:gravity="center"
+                android:text="@string/custom_rules_empty_description"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerRules"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="1"
             android:clipToPadding="false"
-            android:paddingBottom="80dp"
+            android:paddingTop="@dimen/padding_small"
+            android:paddingBottom="@dimen/scroll_bottom_padding"
+            android:scrollbars="vertical"
             android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ruleToolsContainer"
             tools:listitem="@layout/item_custom_rule" />
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/buttonAddRule"
@@ -114,7 +245,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/padding_large"
+        android:stateListAnimator="@null"
         android:text="@string/custom_rules_add"
-        app:icon="@android:drawable/ic_input_add" />
+        app:elevation="0dp"
+        app:icon="@drawable/ic_add" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

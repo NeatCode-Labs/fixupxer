@@ -88,9 +88,6 @@ class CustomRulesActivity : BaseActivity() {
     }
 
     private fun setupActions() {
-        binding.switchCustomRules.setOnCheckedChangeListener { _, checked ->
-            viewModel.setEnabled(checked)
-        }
         binding.buttonAddRule.setOnClickListener { openEditor(null) }
         binding.buttonImport.setOnClickListener {
             MaterialAlertDialogBuilder(this)
@@ -171,13 +168,6 @@ class CustomRulesActivity : BaseActivity() {
                             R.string.custom_rules_count,
                             rules.count { it.enabled }
                         )
-                    }
-                }
-                launch {
-                    viewModel.enabled.collectLatest { enabled ->
-                        if (binding.switchCustomRules.isChecked != enabled) {
-                            binding.switchCustomRules.isChecked = enabled
-                        }
                     }
                 }
             }

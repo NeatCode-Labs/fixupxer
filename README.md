@@ -160,6 +160,7 @@ Unlike Instagram, TikTok conversions **keep the host prefix**: `vm.tiktok.com/â€
 - **[How to Use](docs/BROWSER_MODE_GUIDE.md)** - Detailed Browser mode setup and troubleshooting
 
 ### Custom URL rules
+- Opt-in by design: custom rules stay off until you enable them in Settings
 - Create ordered offline rules for all URLs, one host, a domain plus subdomains, host groups, or an RE2 URL pattern
 - Remove all parameters, remove selected parameters, keep only selected parameters, replace URL text, extract redirect targets, or apply component templates
 - Choose before-cleaning, after-cleaning, or after-conversion phases and Main, Share, or Browser contexts
@@ -247,7 +248,7 @@ A: Absolutely! FixupXer has no internet permission and can't send data anywhere.
 - Modular cleaner system with 11 specialized modules
 - O(1) domain lookup performance
 - LRU cache with 1-hour TTL
-- 464 automated tests (270 unit + 194 instrumentation)
+- 467 automated tests (273 unit + 194 instrumentation)
 - Thread-safe, stateless design
 
 ### Building from Source

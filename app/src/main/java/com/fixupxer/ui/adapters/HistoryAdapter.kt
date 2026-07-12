@@ -79,11 +79,12 @@ class HistoryAdapter(
                 
                 // Timestamp
                 textViewTimestamp.text = item.timeAgo
+                textViewConversionType.text = item.conversionType
                 
                 // Platform - show if available
                 if (item.platform != "Other") {
                     textViewPlatform.visibility = View.VISIBLE
-                    textViewPlatform.text = itemView.context.getString(R.string.platform_label, item.platform)
+                    textViewPlatform.text = item.platform
                 } else {
                     textViewPlatform.visibility = View.GONE
                 }
@@ -111,6 +112,10 @@ class HistoryAdapter(
                         type = "text/plain"
                     }
                     binding.root.context.startActivity(Intent.createChooser(shareIntent, binding.root.context.getString(R.string.share_via)))
+                }
+
+                buttonDelete.setOnClickListener {
+                    onItemDelete(item)
                 }
                 
                 // Long press to delete

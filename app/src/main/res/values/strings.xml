@@ -27,9 +27,16 @@
     
     <!-- History strings -->
     <string name="history_title">Conversion History</string>
+    <string name="history_subtitle">Your latest cleaned and converted links</string>
+    <string name="history_settings">History settings</string>
     <string name="enable_history">Enable history</string>
     <string name="max_history_entries">Max history entries</string>
+    <string name="max_history_entries_description">Automatically keep only the newest links</string>
     <string name="no_history">No conversion history yet</string>
+    <string name="no_history_description">Processed links will appear here when history is enabled.</string>
+    <string name="history_disabled_title">History is off</string>
+    <string name="history_disabled_description">Enable history above to save processed links on this device.</string>
+    <string name="history_delete_content_desc">Delete history entry</string>
     <string name="clear_all">Clear All</string>
     <string name="platform_label">• %s</string>
     <string name="clear_history_confirm">Clear all history?</string>
@@ -236,6 +243,10 @@
     <string name="custom_rules_enabled">Enable custom rules</string>
     <string name="custom_rules_count">%1$d active rules</string>
     <string name="custom_rules_empty">No custom rules yet</string>
+    <string name="custom_rules_empty_description">Create a rule from scratch or start with a ready-made template.</string>
+    <string name="custom_rules_library">Your rule library</string>
+    <string name="custom_rules_library_description">Rules run offline in the order shown below.</string>
+    <string name="custom_rules_tools">Rule tools</string>
     <string name="custom_rules_add">Add rule</string>
     <string name="custom_rules_import">Import</string>
     <string name="custom_rules_templates">Templates</string>
@@ -256,6 +267,13 @@
     <string name="custom_rules_rollback_empty">No import snapshot is available</string>
     <string name="custom_rules_private_warning">Rule files may contain private domains, patterns, and test URLs.</string>
     <string name="custom_rule_editor_title">Edit custom rule</string>
+    <string name="custom_rule_create_title">New custom rule</string>
+    <string name="custom_rule_basics">Basics</string>
+    <string name="custom_rule_basics_description">Name the rule and choose when it runs.</string>
+    <string name="custom_rule_matching">Matching</string>
+    <string name="custom_rule_matching_description">Choose where this rule is allowed to run.</string>
+    <string name="custom_rule_transformation">Transformation</string>
+    <string name="custom_rule_transformation_description">Choose how matching URLs should change.</string>
     <string name="custom_rule_name">Rule name</string>
     <string name="custom_rule_enabled">Rule enabled</string>
     <string name="custom_rule_phase">Processing phase</string>
@@ -283,6 +301,7 @@
     <string name="custom_rule_action_template">Template rewrite</string>
     <string name="custom_rule_action_value">Parameter names, pattern, redirect name, or template</string>
     <string name="custom_rule_replacement">Regex replacement</string>
+    <string name="custom_rule_redirect_decode_mode">Redirect decode mode</string>
     <string name="custom_rule_ignore_case">Ignore case</string>
     <string name="custom_rule_replace_all">Replace all matches</string>
     <string name="custom_rule_stop">Stop remaining rules in this phase after a change</string>
@@ -297,6 +316,7 @@
     <string name="custom_rule_move_down_symbol">↓</string>
     <string name="custom_rule_phase_label">Phase: %1$s</string>
     <string name="custom_rule_test_lab">Test Lab</string>
+    <string name="custom_rule_test_lab_description">Preview the full pipeline without saving history.</string>
     <string name="custom_rule_test_input">Test URL</string>
     <string name="custom_rule_test_profile">Test profile</string>
     <string name="custom_rule_test">Run test</string>

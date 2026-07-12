@@ -48,6 +48,11 @@ internal class TestUrlRepository : UrlRepository {
     override suspend fun processUrlWithoutHistory(url: String): ProcessedUrlResult =
         processUrl(url, false)
 
+    override suspend fun processSharedUrl(
+        url: String,
+        previousProcessedUrl: String?
+    ): ProcessedUrlResult = processUrl(url, false, previousProcessedUrl)
+
     override suspend fun processUrlForSharing(url: String): String = url
 
     override suspend fun cleanUrl(url: String): String = url

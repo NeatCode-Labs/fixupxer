@@ -20,28 +20,32 @@
 package com.fixupxer.ui
 
 import android.os.Bundle
-import android.view.LayoutInflater
+import android.content.Intent
 import android.view.MenuItem
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.TextView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import androidx.core.text.HtmlCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.fixupxer.PreferencesManager
 import com.fixupxer.R
 import com.fixupxer.databinding.ActivitySettingsBinding
 import com.fixupxer.databinding.DialogConversionDefaultsBinding
 import com.fixupxer.ui.adapters.ActionPriorityAdapter
 import com.fixupxer.ui.helpers.ThemeHelper
+import com.fixupxer.presentation.rules.CustomRulesViewModel
 import com.fixupxer.utils.BrowserModeUtils
+import com.fixupxer.utils.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import com.fixupxer.ui.helpers.SnackbarHelper
+import com.fixupxer.ui.helpers.UrlActionHelper
 
 /**
  * Settings activity for configuring browser mode and other app preferences
@@ -51,6 +55,7 @@ class SettingsActivity : BaseActivity() {
     
     private lateinit var binding: ActivitySettingsBinding
     private lateinit var actionPriorityAdapter: ActionPriorityAdapter
+    private val customRulesViewModel: CustomRulesViewModel by viewModels()
     
     @Inject
     lateinit var preferencesManager: PreferencesManager
@@ -71,6 +76,7 @@ class SettingsActivity : BaseActivity() {
         
         setupViews()
         loadSettings()
+        observeCustomRules()
     }
     
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -105,9 +111,9 @@ class SettingsActivity : BaseActivity() {
             Timber.d("Browser mode enabled: $isChecked")
         }
         
-        // Read this button
+        // Browser-mode guide
         binding.buttonReadThis.setOnClickListener {
-            showInstructionsDialog()
+            UrlActionHelper.openUrl(binding.root, this, Constants.BROWSER_MODE_GUIDE_URL)
         }
         
         // Action mode radio group
@@ -128,6 +134,16 @@ class SettingsActivity : BaseActivity() {
         // Conversion defaults button
         binding.buttonConversionDefaults.setOnClickListener {
             showConversionDefaultsDialog()
+        }
+
+        binding.buttonCustomRules.setOnClickListener {
+            startActivity(Intent(this, CustomRulesActivity::class.java))
+        }
+        binding.buttonCustomRulesHowTo.setOnClickListener {
+            UrlActionHelper.openUrl(binding.root, this, Constants.CUSTOM_RULES_GUIDE_URL)
+        }
+        binding.switchCustomRules.setOnCheckedChangeListener { _, checked ->
+            customRulesViewModel.setEnabled(checked)
         }
     }
     
@@ -155,6 +171,28 @@ class SettingsActivity : BaseActivity() {
         // Load action priority list
         val actionPriority = preferencesManager.getActionPriority()
         actionPriorityAdapter.updateItems(actionPriority)
+    }
+
+    private fun observeCustomRules() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    customRulesViewModel.rules.collect { rules ->
+                        binding.textCustomRulesCount.text = getString(
+                            R.string.custom_rules_count,
+                            rules.count { it.enabled }
+                        )
+                    }
+                }
+                launch {
+                    customRulesViewModel.enabled.collect { enabled ->
+                        if (binding.switchCustomRules.isChecked != enabled) {
+                            binding.switchCustomRules.isChecked = enabled
+                        }
+                    }
+                }
+            }
+        }
     }
     
     private fun setupActionPriorityList() {
@@ -205,49 +243,6 @@ class SettingsActivity : BaseActivity() {
     private fun updateActionPriorityVisibility(mode: String) {
         val isPriorityMode = mode == PreferencesManager.ACTION_MODE_PRIORITY
         binding.actionPrioritySection.visibility = if (isPriorityMode) View.VISIBLE else View.GONE
-    }
-    
-    private fun showInstructionsDialog() {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_instructions, null)
-        
-        // Set HTML content for each content TextView in the MaterialCardViews
-        val scrollView = dialogView as? ScrollView
-        val mainLinearLayout = scrollView?.getChildAt(0) as? LinearLayout
-        
-        if (mainLinearLayout != null) {
-            val contentStrings = listOf(
-                R.string.instructions_section1_content,
-                R.string.instructions_section2_content,
-                R.string.instructions_section3_content,
-                R.string.instructions_section4_content,
-                R.string.instructions_section5_content
-            )
-            
-            var contentIndex = 0
-            // Iterate through each MaterialCardView
-            for (i in 0 until mainLinearLayout.childCount) {
-                val cardView = mainLinearLayout.getChildAt(i)
-                if (cardView is com.google.android.material.card.MaterialCardView && contentIndex < contentStrings.size) {
-                    // Get the LinearLayout inside the card
-                    val cardLinearLayout = cardView.getChildAt(0) as? LinearLayout
-                    if (cardLinearLayout != null && cardLinearLayout.childCount >= 2) {
-                        // The content TextView is the second child (index 1)
-                        val contentTextView = cardLinearLayout.getChildAt(1) as? TextView
-                        if (contentTextView != null) {
-                            val htmlText = getString(contentStrings[contentIndex])
-                            contentTextView.text = HtmlCompat.fromHtml(htmlText, HtmlCompat.FROM_HTML_MODE_LEGACY)
-                            contentIndex++
-                        }
-                    }
-                }
-            }
-        }
-        
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.instructions_title)
-            .setView(dialogView)
-            .setPositiveButton(android.R.string.ok, null)
-            .show()
     }
     
     private fun showConversionDefaultsDialog() {

@@ -198,8 +198,7 @@ class ShareViewModel @Inject constructor(
         Timber.d("ShareViewModel processing URL: $url")
         
         try {
-            // Use processUrl which handles history saving and all conversion logic
-            val result = urlRepository.processUrl(url, false)
+            val result = urlRepository.processSharedUrl(url)
             applyProcessResult(url, result)
         } catch (e: Exception) {
             Timber.e(e, "Error processing URL")
@@ -293,7 +292,7 @@ class ShareViewModel @Inject constructor(
             val previousUrl = _uiState.value.actionUrl.takeIf { it.isNotEmpty() && it != url }
             
             // Re-process through repository with the previous result for proper history comparison
-            val result = urlRepository.processUrl(url, false, previousUrl)
+            val result = urlRepository.processSharedUrl(url, previousUrl)
             applyProcessResult(url, result)
         } catch (e: Exception) {
             Timber.e(e, "Error reprocessing URL locally")

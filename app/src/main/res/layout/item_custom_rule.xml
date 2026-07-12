@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/padding_small"
+    android:minHeight="@dimen/min_touch_target_size"
+    app:cardCornerRadius="@dimen/card_corner_radius">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="@dimen/padding_medium">
+
+        <ImageView
+            android:id="@+id/imageDrag"
+            android:layout_width="@dimen/min_touch_target_size"
+            android:layout_height="@dimen/min_touch_target_size"
+            android:contentDescription="@string/drag_handle_description"
+            android:padding="12dp"
+            android:src="@drawable/ic_drag_handle"
+            app:tint="?attr/colorOnSurfaceVariant" />
+
+        <LinearLayout
+            android:id="@+id/ruleContent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textRuleName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                tools:text="Remove campaign tags" />
+
+            <TextView
+                android:id="@+id/textRulePhase"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                tools:text="After built-in cleaning" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonMoveUp"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="@dimen/min_touch_target_size"
+            android:layout_height="@dimen/min_touch_target_size"
+            android:contentDescription="@string/custom_rule_move_up"
+            android:minWidth="0dp"
+            android:text="@string/custom_rule_move_up_symbol" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonMoveDown"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="@dimen/min_touch_target_size"
+            android:layout_height="@dimen/min_touch_target_size"
+            android:contentDescription="@string/custom_rule_move_down"
+            android:minWidth="0dp"
+            android:text="@string/custom_rule_move_down_symbol" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchEnabled"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:showText="false"
+            tools:checked="true" />
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

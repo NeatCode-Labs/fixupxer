@@ -28,12 +28,14 @@ import com.fixupxer.domain.model.ProcessedUrlResult
 import com.fixupxer.domain.model.ResultStatus
 import com.fixupxer.domain.model.resolveResultStatus
 import com.fixupxer.domain.repository.UrlRepository
+import com.fixupxer.rules.CustomRuleRepository
 import com.fixupxer.utils.InputValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -44,7 +46,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val urlRepository: UrlRepository,
-    application: Application
+    application: Application,
+    private val customRuleRepository: CustomRuleRepository? = null
 ) : AndroidViewModel(application) {
     
     private val _uiState = MutableStateFlow(MainUiState())
@@ -57,6 +60,21 @@ class MainViewModel @Inject constructor(
     
     init {
         loadPreferences()
+        observeCustomRuleChanges()
+    }
+
+    private fun observeCustomRuleChanges() {
+        val repository = customRuleRepository ?: return
+        viewModelScope.launch {
+            repository.revision.drop(1).collect {
+                reprocessIfResultExists()
+            }
+        }
+        viewModelScope.launch {
+            repository.enabledFlow().drop(1).collect {
+                reprocessIfResultExists()
+            }
+        }
     }
     
     private fun loadPreferences() {

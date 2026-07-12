@@ -204,7 +204,7 @@
     <string name="theme_dark">Dark</string>
     <string name="browser_integration">Browser integration</string>
     <string name="enable_browser_mode">Enable FixupXer as browser</string>
-    <string name="read_this">How to Use</string>
+    <string name="how_to_use">How to Use</string>
     <string name="after_clean_behavior">After-clean behavior</string>
     <string name="action_mode_ask">Ask every time</string>
     <string name="action_mode_priority">Follow action order</string>
@@ -215,23 +215,6 @@
     <string name="action_clipboard">Copy to clipboard</string>
     <string name="post_clean_action_title">Open cleaned link with</string>
     <string name="drag_handle_description">Drag to reorder</string>
-    
-    <!-- Instructions Dialog -->
-    <string name="instructions_title">Instructions</string>
-    <string name="instructions_section1_title">1 What is Browser mode?</string>
-    <string name="instructions_section1_content">Browser mode turns FixupXer into an optional \u201Cfilter browser\u201D. When it is enabled <b>and</b> you set FixupXer as the system-wide default browser, every web link (http or https) is routed to FixupXer first. The app removes tracking parameters, unnecessary redirects, and other clutter, then performs the next action you have configured.</string>
-    
-    <string name="instructions_section2_title">2 How do I enable it?</string>
-    <string name="instructions_section2_content"><![CDATA[• Make sure the <b>Enable FixupXer as browser</b> switch is on.<br/>• Android will not switch browsers automatically. Now go to <b>System Settings ▸ Apps ▸ Choose default apps ▸ Browser app</b> and select <b>FixupXer</b>.<br/><br/>You can undo this at any time by choosing a different browser or by turning the switch back off.]]></string>
-    
-    <string name="instructions_section3_title">3 Understanding native app behavior vs FixupXer browser mode</string>
-    <string name="instructions_section3_content"><![CDATA[In normal Android behavior, many apps (YouTube, Instagram, X, etc.) register to handle their own links directly. This is expected and allows apps to open immediately when you tap their links.<br/><br/>When you set FixupXer as your default browser, this changes the behavior:<br/>• <b>If native app handlers are enabled:</b> Android sends the link directly to the native app, bypassing FixupXer entirely.<br/>• <b>If you want FixupXer to clean the links first:</b> You need to disable the native app handlers.<br/><br/>To ensure FixupXer processes links before native apps open them:<br/>Method 1: Open <b>System Settings ▸ Apps ▸ App Name ▸ Set as default ▸ </b>Switch off <b>\u201COpen supported links\u201D</b>.<br/>Method 2: Long press on app ▸ click on <b>\u24D8</b> ▸ <b>Set as default ▸ </b>Switch off <b>\u201COpen supported links\u201D</b>.<br/><br/>Repeat the process for <b>each</b> app whose links you want FixupXer to clean and then forward to the native app.<br/><br/><b>Important:</b> If you disable native app handlers, make sure to set your action priority to <b>Follow action order</b> and put <b>Open in native app</b> first in the list if you want native apps opening your link clicks.]]></string>
-    
-    <string name="instructions_section4_title">4 Ask vs Priority list</string>
-    <string name="instructions_section4_content"><![CDATA[After a link is cleaned, FixupXer can either:<br/><br/>• <b>Ask every time</b> — FixupXer shows its own action dialog and you decide where to send the cleaned link.<br/>• <b>Follow priority list</b> — FixupXer looks at your ordered list of actions and executes the first one that works:<br/><br/>    1. Open in native app (only if such an app exists and is allowed).<br/>    2. Open in browser.<br/>    3. Share menu.<br/>    4. Copy to clipboard.<br/><br/>You can reorder the list under <b>Settings ▸ Action priority</b>. Drag and drop items to match your workflow.<br/><br/><b>Tip:</b> If the top action cannot be performed (e.g., no native app installed), FixupXer automatically moves to the next item—no error dialogs, no extra taps.]]></string>
-    
-    <string name="instructions_section5_title">5 Troubleshooting</string>
-    <string name="instructions_section5_content"><![CDATA[<b>• Native apps bypass FixupXer entirely</b><br/><i>Expected:</i> All links get cleaned by FixupXer first.<br/><i>Actual:</i> Instagram, YouTube, etc. open directly without cleaning.<br/><i>Solution:</i> Disable \u201COpen supported links\u201D for each app in System Settings ▸ Apps ▸ [App Name] ▸ Set as default.<br/><br/><b>• \u201CAsk every time\u201D appears to be skipped</b><br/><i>Expected:</i> FixupXer shows its action dialog for every cleaned link.<br/><i>Actual:</i> A native app opens directly without FixupXer first.<br/><i>Solution:</i> Android can bypass the default browser when an app has \u201COpen supported links\u201D enabled. Disable that setting for apps whose links you want FixupXer to clean first.<br/><br/><b>• Browser mode toggle doesn\'t work</b><br/><i>Expected:</i> FixupXer becomes default browser immediately.<br/><i>Actual:</i> Nothing changes after toggling.<br/><i>Solution:</i> You must manually set FixupXer as default: System Settings ▸ Apps ▸ Default apps ▸ Browser ▸ FixupXer.<br/><br/><b>• Conversion settings have no effect</b><br/><i>Expected:</i> URLs convert to FixupX / Instagram proxy.<br/><i>Actual:</i> URLs stay as x.com/instagram.com.<br/><i>Solution:</i> Browser mode has separate conversion settings. Tap \u201CConversion defaults\u201D to configure them.<br/><br/><b>• YouTube opens wrong app</b><br/><i>Expected:</i> Links open in ReVanced YouTube.<br/><i>Actual:</i> Official YouTube app opens.<br/><i>Solution:</i> Set action mode to \u201CFollow action order\u201D with \u201COpen in native app\u201D first. FixupXer tries ReVanced-compatible package names before the official YouTube app when available.<br/><br/><b>• Links fall back to browser instead of native app</b><br/><i>Expected:</i> Cleaned links open in native apps.<br/><i>Actual:</i> The browser opens instead.<br/><i>Solution:</i> This means no installed native app accepted the cleaned URL. FixupXer safely falls back to your browser action instead of opening a generic share popup.]]></string>
     
     <!-- Additional missing strings -->
     <string name="conversion_defaults">Conversion defaults</string>
@@ -245,5 +228,85 @@
     <string name="convert_tiktok_browser">Convert TikTok links</string>
     <string name="cancel">Cancel</string>
     <string name="save">Save</string>
+
+    <!-- Custom URL rules -->
+    <string name="custom_rules_title">Custom URL rules</string>
+    <string name="custom_rules_description">Create offline rules for removing parameters and rewriting URLs.</string>
+    <string name="custom_rules_manage">Manage custom rules</string>
+    <string name="custom_rules_enabled">Enable custom rules</string>
+    <string name="custom_rules_count">%1$d active rules</string>
+    <string name="custom_rules_empty">No custom rules yet</string>
+    <string name="custom_rules_add">Add rule</string>
+    <string name="custom_rules_import">Import</string>
+    <string name="custom_rules_templates">Templates</string>
+    <string name="custom_rules_template_privacy">Privacy basics</string>
+    <string name="custom_rules_template_redirects">Offline redirect wrappers</string>
+    <string name="custom_rules_export">Export</string>
+    <string name="custom_rules_rollback">Undo last import</string>
+    <string name="custom_rules_clear">Delete all rules</string>
+    <string name="custom_rules_clear_confirm">Delete every custom rule? This cannot be undone.</string>
+    <string name="custom_rules_import_mode">Import rules</string>
+    <string name="custom_rules_import_add">Add new</string>
+    <string name="custom_rules_import_update">Update matching</string>
+    <string name="custom_rules_import_replace">Replace all</string>
+    <string name="custom_rules_imported">Imported: %1$d added, %2$d updated, %3$d skipped</string>
+    <string name="custom_rules_import_preview">%1$s — %2$d added, %3$d updated, %4$d skipped</string>
+    <string name="custom_rules_exported">Rules exported</string>
+    <string name="custom_rules_rollback_done">Last import was restored</string>
+    <string name="custom_rules_rollback_empty">No import snapshot is available</string>
+    <string name="custom_rules_private_warning">Rule files may contain private domains, patterns, and test URLs.</string>
+    <string name="custom_rule_editor_title">Edit custom rule</string>
+    <string name="custom_rule_name">Rule name</string>
+    <string name="custom_rule_enabled">Rule enabled</string>
+    <string name="custom_rule_phase">Processing phase</string>
+    <string name="custom_rule_phase_pre">Before built-in cleaning</string>
+    <string name="custom_rule_phase_post">After built-in cleaning</string>
+    <string name="custom_rule_phase_final">After domain conversion</string>
+    <string name="custom_rule_contexts">Apply in</string>
+    <string name="custom_rule_context_main">Main screen</string>
+    <string name="custom_rule_context_share">Share menu</string>
+    <string name="custom_rule_context_browser">Browser mode</string>
+    <string name="custom_rule_scope">Include scope</string>
+    <string name="custom_rule_scope_all">All URLs</string>
+    <string name="custom_rule_scope_exact">Exact host</string>
+    <string name="custom_rule_scope_domain">Domain and subdomains</string>
+    <string name="custom_rule_scope_list">Host list</string>
+    <string name="custom_rule_scope_regex">URL regex</string>
+    <string name="custom_rule_scope_value">Host, host list, or regex</string>
+    <string name="custom_rule_excludes">Exclude scopes (one host or regex per line)</string>
+    <string name="custom_rule_action">Action</string>
+    <string name="custom_rule_action_remove_all">Remove all parameters</string>
+    <string name="custom_rule_action_remove_named">Remove named parameters</string>
+    <string name="custom_rule_action_keep">Keep only named parameters</string>
+    <string name="custom_rule_action_regex">Regex search and replace</string>
+    <string name="custom_rule_action_redirect">Extract redirect parameter</string>
+    <string name="custom_rule_action_template">Template rewrite</string>
+    <string name="custom_rule_action_value">Parameter names, pattern, redirect name, or template</string>
+    <string name="custom_rule_replacement">Regex replacement</string>
+    <string name="custom_rule_ignore_case">Ignore case</string>
+    <string name="custom_rule_replace_all">Replace all matches</string>
+    <string name="custom_rule_stop">Stop remaining rules in this phase after a change</string>
+    <string name="custom_rule_duplicate">Duplicate</string>
+    <string name="custom_rule_delete">Delete</string>
+    <string name="custom_rule_delete_confirm">Delete “%1$s”?</string>
+    <string name="custom_rule_saved">Rule saved</string>
+    <string name="custom_rule_validation_error">Rule is invalid: %1$s</string>
+    <string name="custom_rule_move_up">Move rule up</string>
+    <string name="custom_rule_move_down">Move rule down</string>
+    <string name="custom_rule_move_up_symbol">↑</string>
+    <string name="custom_rule_move_down_symbol">↓</string>
+    <string name="custom_rule_phase_label">Phase: %1$s</string>
+    <string name="custom_rule_test_lab">Test Lab</string>
+    <string name="custom_rule_test_input">Test URL</string>
+    <string name="custom_rule_test_profile">Test profile</string>
+    <string name="custom_rule_test">Run test</string>
+    <string name="custom_rule_test_result">Result: %1$s</string>
+    <string name="custom_rule_test_trace">Trace:\n%1$s</string>
+    <string name="custom_rule_unsaved_changes">Discard unsaved changes?</string>
+    <string name="discard">Discard</string>
+    <string name="done">Done</string>
+    <string name="error_rule_file_too_large">The selected rule file is too large</string>
+    <string name="error_rule_import">Could not import rules: %1$s</string>
+    <string name="error_rule_export">Could not export rules: %1$s</string>
     
 </resources>

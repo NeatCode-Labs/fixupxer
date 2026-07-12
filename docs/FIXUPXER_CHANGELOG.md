@@ -1,17 +1,18 @@
 # FixupXer App - Development Summary
-## Version Progression: v2.0.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.1.0 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 28 (v2.0.0, v1.7.2, v1.7.1, v1.7.0, v1.6.0, v1.5.1, v1.5.0, v1.4.9, v1.4.8, v1.4.7, v1.4.6, v1.4.5, v1.4.4, v1.4.3, v1.4.2, v1.4.1, v1.4.0, v1.3.5, v1.3.4, v1.3.3, v1.3.2, v1.3.1, v1.3.0, v1.2.5, v1.2.4, v1.2.3, v1.2.2, v1.2.1)  
-**Current Version:** v2.0.0 (versionCode: 34)  
-**Development Period:** v1.2.1 (Initial) → v2.0.0 (Current)
+**Total Versions Released:** 29 (v2.1.0 through v1.2.1)
+**Current Version:** v2.1.0 (versionCode: 35)
+**Development Period:** v1.2.1 (Initial) → v2.1.0 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in the complete engine overhaul in v1.4.0, the browser mode feature added in v1.4.6, the selectable Instagram embed proxy introduced in v1.4.7 (refreshed in v1.4.8), browser-mode stability fixes in v1.4.9, Xiaomi/HyperOS default-browser compatibility shipped in v1.5.0, the unified Instagram proxy chooser in v1.5.1 (Settings entry removed; Main/Share use the same dialog), user-defined custom Instagram proxies plus the return of kkinstagram.com in v1.6.0, and full TikTok conversion support with its own Primary/Backup/Custom proxy picker in v1.7.0.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in the complete custom URL rule system in v2.1.0: raw-preserving processing, ordered per-phase rules, safe RE2/J regexes, Test Lab, independent templates, and atomic SAF import/export with rollback while retaining the zero-permission offline model.
 
 ### Key Achievements:
+- ✅ **Custom URL Rule Engine** - Ordered scopes/actions/phases/contexts, excludes, keep-only, redirects, templates, Test Lab and portable bundles
 - ✅ **TikTok Conversion Support** - Dedicated Embed? toggle + full proxy picker (tnktok.com, tfxktok.com, tiktokez.com, kktiktok.com + custom), subdomain-preserving conversion
 - ✅ **Custom Instagram Proxies** - Users can add/select/delete their own embed proxy domains, validated and persisted locally
 - ✅ **Browser Mode Integration** - Optional system-wide URL filtering as default browser with configurable action priorities
@@ -30,6 +31,16 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.0.0 → v2.1.0
+- **Focus:** Full offline custom URL rule system requested in issue #6, plus the agreed advanced scope.
+- **Pipeline:** New raw-preserving validator/extractor/normalizer/orchestrator shared by Main, Share and Browser. Custom phases run before built-ins, after built-ins and after domain conversion; immutable snapshots prevent mid-request rule changes.
+- **Rules:** all URLs, exact host, domain+subdomains, host list and RE2/J URL regex scopes; shared excludes; remove-all, remove-selected, keep-only, regex replace, redirect extraction and component-template actions; per-context filtering, stop-after-match and deterministic order.
+- **Storage/portability:** Room v2 migration preserves history; versioned JSON bundles, atomic conflict policies, last-three rollback snapshots and Storage Access Framework import/export without storage permissions.
+- **UI:** Settings master switch, rule count, list/editor, accessible reorder controls, duplicate/delete, profile-aware Test Lab trace and independent bundled templates.
+- **Documentation:** Browser integration and Custom URL rules expose **How to Use** links to dedicated GitHub Markdown guides; the embedded Browser instructions dialog was removed.
+- **Safety/privacy:** linear-time RE2/J 1.8, strict output validation, raw query preservation, cycle/hop/resource limits, custom rules excluded from automatic backup, zero merged permissions enforced by test.
+- **Verification:** frozen master-off differential corpus, generated raw-query corpus, compiler/engine/codec/repository/migration/UI/performance/manifest tests. 270/270 unit + 194/194 instrumentation tests pass; `lintRelease` and REUSE 3.3 lint pass.
 
 ### v1.7.2 → v2.0.0
 - **Focus:** Complete UI redesign — the largest visual change in the app's history. Main and Share screens rebuilt as a **before/after flow layout** on a hand-tuned Material 3 DayNight theme with full dark mode. All URL-processing logic, proxy systems, browser mode, and privacy guarantees unchanged.

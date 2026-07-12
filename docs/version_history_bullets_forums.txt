@@ -1,4 +1,5 @@
 [LIST]
+[*][B]v2.1.0[/B] – Dodan kompletan offline sustav custom URL pravila: scopeovi, faze, sve akcije, Test Lab, predlošci, sigurni JSON import/export s rollbackom te GitHub how-to vodiči
 [*][B]v2.0.0[/B] – Kompletan redizajn sučelja: novi "before/after flow" izgled Main i Share ekrana s precrtanim tracking parametrima i statusom obrade, puni dark mode s izbornikom teme (System/Light/Dark), Material 3 dizajn, nova ikona aplikacije
 [*][B]v1.7.2[/B] – Popravljeno otvaranje linkova iz Reddit appa (out.reddit.com završavao na "invalid_token"); obrada redirect wrappera sada je host-agnostična (Reddit, Facebook, LinkedIn, newsletteri...), ne samo Google/Gmail; valjani URL-ovi više se ne odbijaju greškom na sporijim uređajima
 [*][B]v1.7.1[/B] – Popravljena v1.6.0 regresija: linkovi kliknuti u Gmailu opet rade kad je FixupXer default browser (Google redirect wrapper više se ne tretira kao multi-URL napad)

@@ -50,6 +50,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_MAX_HISTORY_ENTRIES = "max_history_entries"
         private const val DEFAULT_MAX_HISTORY_ENTRIES = 100
         private const val KEY_THEME_MODE = "theme_mode"
+        internal const val KEY_CUSTOM_RULES_ENABLED = "custom_rules_enabled"
 
         // Theme mode values
         const val THEME_MODE_SYSTEM = "system"
@@ -289,6 +290,16 @@ class PreferencesManager(context: Context) {
     fun setThemeMode(mode: String) {
         prefs.edit { putString(KEY_THEME_MODE, mode) }
     }
+
+    fun areCustomRulesEnabled(): Boolean =
+        prefs.getBoolean(KEY_CUSTOM_RULES_ENABLED, true)
+
+    fun setCustomRulesEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_CUSTOM_RULES_ENABLED, enabled) }
+    }
+
+    fun customRulesEnabledFlow(): Flow<Boolean> =
+        booleanFlow(KEY_CUSTOM_RULES_ENABLED, true)
 
     /**
      * Check if history is enabled

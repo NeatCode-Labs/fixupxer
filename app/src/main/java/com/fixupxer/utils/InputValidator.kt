@@ -28,8 +28,6 @@ import timber.log.Timber
 
 object InputValidator {
     
-    private const val MAX_INPUT_LENGTH = 2048
-    
     // A single, whitespace-free http(s) URL. Redirect wrappers legitimately
     // carry a nested destination URL in their query string — Gmail/Google
     // (google.com/url?q=), Reddit (out.reddit.com/…?url=), Facebook
@@ -123,7 +121,8 @@ object InputValidator {
                     return@withTimeout ValidationResult.Invalid(InvalidReason.OTHER)
                 }
                 
-                // Sanitize and decode
+                // Sanitize the raw value. Decoding is inspection-only: returning a
+                // decoded URL would corrupt '+' and encoded query delimiters.
                 val sanitized = sanitizeInput(input)
                 val decoded = decodeUrlSafely(sanitized)
                 
@@ -165,7 +164,7 @@ object InputValidator {
                     return@withTimeout ValidationResult.Invalid(InvalidReason.OTHER)
                 }
                 
-                ValidationResult.Valid(decoded)
+                ValidationResult.Valid(sanitized)
             }
         } catch (e: TimeoutCancellationException) {
             Timber.w("Input validation timed out")
@@ -203,7 +202,7 @@ object InputValidator {
      * Check if input length is within acceptable limits
      */
     private fun validateInputLength(input: String): Boolean {
-        return input.length <= MAX_INPUT_LENGTH
+        return input.length <= Constants.MAX_INPUT_LENGTH
     }
     
     /**

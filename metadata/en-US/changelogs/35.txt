@@ -1,0 +1,8 @@
+v2.1.0 — Custom URL rules
+
+• Add ordered offline rules with host/regex scopes and three processing phases
+• Remove/keep parameters, rewrite URLs, extract redirect targets, or use templates
+• Preview rules in Test Lab and limit them to Main, Share, or Browser mode
+• Import/export validated JSON bundles with conflict previews and rollback
+• Preserve raw URL encoding and protect processing with RE2/J and resource limits
+• Add GitHub How to Use guides for Browser mode and custom rules

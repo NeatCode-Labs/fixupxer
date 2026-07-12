@@ -1,0 +1,58 @@
+[
+  {
+    "id": "remove-tracking",
+    "input": "https://example.com/page?utm_source=test&q=one",
+    "expected": "https://example.com/page?q=one",
+    "cleanTracking": true,
+    "convertDomains": false
+  },
+  {
+    "id": "plus-preserved",
+    "input": "https://example.com/search?q=a+b&utm_medium=test",
+    "expected": "https://example.com/search?q=a+b",
+    "cleanTracking": true,
+    "convertDomains": false
+  },
+  {
+    "id": "encoded-ampersand-preserved",
+    "input": "https://example.com/search?q=a%26b&utm_source=test",
+    "expected": "https://example.com/search?q=a%26b",
+    "cleanTracking": true,
+    "convertDomains": false
+  },
+  {
+    "id": "duplicate-values-preserved",
+    "input": "https://example.com/search?q=one&q=two&utm_source=test",
+    "expected": "https://example.com/search?q=one&q=two",
+    "cleanTracking": true,
+    "convertDomains": false
+  },
+  {
+    "id": "fragment-preserved",
+    "input": "https://example.com/page?utm_source=test#section",
+    "expected": "https://example.com/page#section",
+    "cleanTracking": true,
+    "convertDomains": false
+  },
+  {
+    "id": "twitter-conversion",
+    "input": "https://x.com/user/status/123?utm_source=test",
+    "expected": "https://fixupx.com/user/status/123",
+    "cleanTracking": true,
+    "convertDomains": true
+  },
+  {
+    "id": "twitter-no-conversion",
+    "input": "https://x.com/user/status/123",
+    "expected": "https://x.com/user/status/123",
+    "cleanTracking": true,
+    "convertDomains": false
+  },
+  {
+    "id": "google-redirect",
+    "input": "https://www.google.com/url?q=https%3A%2F%2Fexample.com%2Fpage%3Fq%3Done&utm_source=test",
+    "expected": "https://example.com/page?q=one",
+    "cleanTracking": true,
+    "convertDomains": false
+  }
+]

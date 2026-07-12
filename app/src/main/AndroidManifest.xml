@@ -3,6 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- No internet permission required - privacy focused -->
+    <!-- Remove permissions contributed by transitive libraries. FixupXer is offline. -->
+    <uses-permission
+        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:node="remove" />
+    <permission
+        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:node="remove" />
     
     <!-- Package visibility for Android 11+ -->
     <queries>
@@ -91,6 +98,20 @@
             android:theme="@style/Theme.FixupXer"
             android:label="@string/settings_title"
             android:parentActivityName=".MainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.CustomRulesActivity"
+            android:theme="@style/Theme.FixupXer"
+            android:label="@string/custom_rules_title"
+            android:parentActivityName=".ui.SettingsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.RuleEditorActivity"
+            android:theme="@style/Theme.FixupXer"
+            android:label="@string/custom_rule_editor_title"
+            android:parentActivityName=".ui.CustomRulesActivity"
             android:exported="false" />
         
         <!-- Browser mode alias - disabled by default -->

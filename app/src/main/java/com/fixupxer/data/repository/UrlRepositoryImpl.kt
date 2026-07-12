@@ -25,6 +25,9 @@ import com.fixupxer.UrlProcessor
 import com.fixupxer.domain.model.ProcessedUrlResult
 import com.fixupxer.domain.repository.UrlRepository
 import com.fixupxer.domain.repository.HistoryRepository
+import com.fixupxer.processing.ProcessingOptions
+import com.fixupxer.processing.ProcessingProfile
+import com.fixupxer.processing.UrlProcessingOrchestrator
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InstagramProxyStore
 import com.fixupxer.utils.TikTokProxyStore
@@ -40,7 +43,8 @@ import javax.inject.Inject
 class UrlRepositoryImpl @Inject constructor(
     private val urlProcessor: UrlProcessor,
     private val preferencesManager: PreferencesManager,
-    private val historyRepository: HistoryRepository
+    private val historyRepository: HistoryRepository,
+    private val orchestrator: UrlProcessingOrchestrator
 ) : UrlRepository {
 
     companion object {
@@ -49,6 +53,7 @@ class UrlRepositoryImpl @Inject constructor(
         private const val CONVERSION_DOMAIN_CONVERTED = "Domain converted"
         private const val CONVERSION_TRACKING_REMOVED = "Tracking removed"
         private const val CONVERSION_URL_CLEANED = "URL cleaned"
+        private const val CONVERSION_CUSTOM_RULE_APPLIED = "Custom rule applied"
         private const val PLATFORM_INSTAGRAM = "Instagram"
         private const val PLATFORM_TWITTER = "Twitter/X"
         private const val PLATFORM_FACEBOOK = "Facebook"
@@ -68,7 +73,12 @@ class UrlRepositoryImpl @Inject constructor(
      * Classify how [url] → [processedUrl] should appear in history.
      * Shared by [processUrl] and [processUrlForBrowser].
      */
-    private fun classifyConversion(url: String, processedUrl: String, trackingRemoved: Boolean): String {
+    private fun classifyConversion(
+        url: String,
+        processedUrl: String,
+        trackingRemoved: Boolean,
+        customRuleApplied: Boolean = false
+    ): String {
         val knownProxies = InstagramProxyStore.allKnownProxies()
         val urlHasProxy = knownProxies.any { url.contains(it, ignoreCase = true) }
         val resultHasProxy = knownProxies.any { processedUrl.contains(it, ignoreCase = true) }
@@ -115,14 +125,26 @@ class UrlRepositoryImpl @Inject constructor(
                 })
 
         return when {
+            customRuleApplied -> CONVERSION_CUSTOM_RULE_APPLIED
             isInstagramConversion || isFacebookConversion || isTwitterConversion || isTikTokConversion -> CONVERSION_DOMAIN_CONVERTED
             trackingRemoved -> CONVERSION_TRACKING_REMOVED
             else -> CONVERSION_URL_CLEANED
         }
     }
 
-    private suspend fun saveHistoryEntry(url: String, processedUrl: String, platform: String, wasAlreadyClean: Boolean) {
-        val conversionType = classifyConversion(url, processedUrl, trackingRemoved = !wasAlreadyClean)
+    private suspend fun saveHistoryEntry(
+        url: String,
+        processedUrl: String,
+        platform: String,
+        wasAlreadyClean: Boolean,
+        customRuleApplied: Boolean = false
+    ) {
+        val conversionType = classifyConversion(
+            url,
+            processedUrl,
+            trackingRemoved = !wasAlreadyClean,
+            customRuleApplied = customRuleApplied
+        )
         try {
             historyRepository.insertHistory(
                 originalUrl = url,
@@ -141,121 +163,116 @@ class UrlRepositoryImpl @Inject constructor(
     override suspend fun processUrl(url: String, forceCleanTracking: Boolean): ProcessedUrlResult = 
         processUrl(url, forceCleanTracking, null)
     
-    override suspend fun processUrl(url: String, forceCleanTracking: Boolean, previousProcessedUrl: String?): ProcessedUrlResult = withContext(Dispatchers.IO) {
-        
-        if (url.isEmpty()) return@withContext ProcessedUrlResult(url, true)
-        
-        val isInstagram = urlProcessor.isInstagramUrl(url)
-        val isFacebook = urlProcessor.isFacebookUrl(url)
-        val isTikTok = urlProcessor.isTikTokUrl(url)
-        
-        val platform = detectPlatform(url)
-        
-        val instagramProxy = preferencesManager.getInstagramProxy()
-        val tiktokProxy = preferencesManager.getTikTokProxy()
+    override suspend fun processUrl(
+        url: String,
+        forceCleanTracking: Boolean,
+        previousProcessedUrl: String?
+    ): ProcessedUrlResult = withContext(Dispatchers.IO) {
+        processWithProfile(
+            url = url,
+            profile = ProcessingProfile.MAIN,
+            forceCleanTracking = forceCleanTracking,
+            previousProcessedUrl = previousProcessedUrl,
+            persistHistory = true
+        )
+    }
 
-        val (processedUrl, wasAlreadyClean) = if (isInstagram) {
-            // For Instagram URLs, use the Instagram conversion preference
-            urlProcessor.processUrl(
-                url,
-                cleanTracking = true, // Always clean tracking
-                convertTwitter = preferencesManager.isConvertInstagramEnabled(),
-                instagramProxy = instagramProxy
-            )
-        } else if (isFacebook) {
-            // For Facebook URLs, use the Instagram conversion preference (same toggle)
-            urlProcessor.processUrl(
-                url,
-                cleanTracking = forceCleanTracking || preferencesManager.isCleanTrackingEnabled(),
-                convertTwitter = preferencesManager.isConvertInstagramEnabled(),
-                instagramProxy = instagramProxy
-            )
-        } else if (isTikTok) {
-            // For TikTok URLs, use the TikTok conversion preference
-            urlProcessor.processUrl(
-                url,
-                cleanTracking = forceCleanTracking || preferencesManager.isCleanTrackingEnabled(),
-                convertTwitter = preferencesManager.isConvertTikTokEnabled(),
-                tiktokProxy = tiktokProxy
-            )
-        } else {
-            // For other URLs, use the standard preferences
-            urlProcessor.processUrl(
-                url,
-                cleanTracking = forceCleanTracking || preferencesManager.isCleanTrackingEnabled(),
-                convertTwitter = preferencesManager.isConvertTwitterEnabled(),
-                instagramProxy = instagramProxy
-            )
-        }
-        
-        // Save to history if enabled and URL was modified
-        // If previousProcessedUrl is provided, compare against that instead of the original URL
-        val shouldSaveHistory = if (previousProcessedUrl != null) {
-            // For toggle changes: only save if the new result differs from previous result
-            preferencesManager.isHistoryEnabled() && processedUrl != previousProcessedUrl
-        } else {
-            // For initial processing: save if the result differs from input
-            preferencesManager.isHistoryEnabled() && url != processedUrl
-        }
-        
-        if (shouldSaveHistory) {
-            saveHistoryEntry(url, processedUrl, platform, wasAlreadyClean)
-        }
-        
-        ProcessedUrlResult(processedUrl, wasAlreadyClean)
+    override suspend fun processSharedUrl(
+        url: String,
+        previousProcessedUrl: String?
+    ): ProcessedUrlResult = withContext(Dispatchers.IO) {
+        processWithProfile(
+            url = url,
+            profile = ProcessingProfile.SHARE,
+            forceCleanTracking = false,
+            previousProcessedUrl = previousProcessedUrl,
+            persistHistory = true
+        )
     }
-    
-    override suspend fun processUrlWithoutHistory(url: String): ProcessedUrlResult = withContext(Dispatchers.IO) {
-        if (url.isEmpty()) return@withContext ProcessedUrlResult(url, true)
-        
-        val isInstagram = urlProcessor.isInstagramUrl(url)
-        val isFacebook = urlProcessor.isFacebookUrl(url)
-        val isTikTok = urlProcessor.isTikTokUrl(url)
-        val instagramProxy = preferencesManager.getInstagramProxy()
-        val tiktokProxy = preferencesManager.getTikTokProxy()
-        
-        val (processedUrl, wasAlreadyClean) = if (isInstagram) {
-            // For Instagram URLs, use the Instagram conversion preference
-            urlProcessor.processUrl(
-                url,
-                cleanTracking = true, // Always clean tracking
-                convertTwitter = preferencesManager.isConvertInstagramEnabled(),
-                instagramProxy = instagramProxy
-            )
-        } else if (isFacebook) {
-            // For Facebook URLs, use the Instagram conversion preference (same toggle)
-            urlProcessor.processUrl(
-                url,
-                cleanTracking = preferencesManager.isCleanTrackingEnabled(),
-                convertTwitter = preferencesManager.isConvertInstagramEnabled(),
-                instagramProxy = instagramProxy
-            )
-        } else if (isTikTok) {
-            // For TikTok URLs, use the TikTok conversion preference
-            urlProcessor.processUrl(
-                url,
-                cleanTracking = preferencesManager.isCleanTrackingEnabled(),
-                convertTwitter = preferencesManager.isConvertTikTokEnabled(),
-                tiktokProxy = tiktokProxy
-            )
-        } else {
-            // For other URLs, use the standard preferences
-            urlProcessor.processUrl(
-                url,
-                cleanTracking = preferencesManager.isCleanTrackingEnabled(),
-                convertTwitter = preferencesManager.isConvertTwitterEnabled(),
-                instagramProxy = instagramProxy
+
+    override suspend fun processUrlWithoutHistory(url: String): ProcessedUrlResult =
+        withContext(Dispatchers.IO) {
+            processWithProfile(
+                url = url,
+                profile = ProcessingProfile.MAIN,
+                forceCleanTracking = false,
+                previousProcessedUrl = null,
+                persistHistory = false
             )
         }
-        
-        ProcessedUrlResult(processedUrl, wasAlreadyClean)
-    }
     
     override suspend fun processUrlForSharing(url: String): String = withContext(Dispatchers.IO) {
         urlProcessor.processUrlForSharing(
             url,
             preferencesManager.getInstagramProxy(),
             preferencesManager.getTikTokProxy()
+        )
+    }
+
+    private suspend fun processWithProfile(
+        url: String,
+        profile: ProcessingProfile,
+        forceCleanTracking: Boolean,
+        previousProcessedUrl: String?,
+        persistHistory: Boolean
+    ): ProcessedUrlResult {
+        if (url.isEmpty()) return ProcessedUrlResult(url, true)
+
+        val isInstagram = urlProcessor.isInstagramUrl(url)
+        val isFacebook = urlProcessor.isFacebookUrl(url)
+        val isTwitter = urlProcessor.isTwitterUrl(url)
+        val isTikTok = urlProcessor.isTikTokUrl(url)
+        val cleanTracking = isInstagram ||
+            forceCleanTracking ||
+            preferencesManager.isCleanTrackingEnabled()
+        val convertDomains = when (profile) {
+            ProcessingProfile.MAIN, ProcessingProfile.SHARE -> when {
+                isInstagram || isFacebook -> preferencesManager.isConvertInstagramEnabled()
+                isTikTok -> preferencesManager.isConvertTikTokEnabled()
+                else -> preferencesManager.isConvertTwitterEnabled()
+            }
+            ProcessingProfile.BROWSER -> when {
+                isInstagram -> preferencesManager.isBrowserConvertInstagramEnabled()
+                isFacebook -> preferencesManager.isBrowserConvertFacebookEnabled()
+                isTwitter -> preferencesManager.isBrowserConvertTwitterEnabled()
+                isTikTok -> preferencesManager.isBrowserConvertTikTokEnabled()
+                else -> false
+            }
+        }
+        val result = orchestrator.process(
+            rawInput = url,
+            options = ProcessingOptions(
+                profile = profile,
+                cleanTracking = cleanTracking,
+                convertDomains = convertDomains,
+                instagramProxy = preferencesManager.getInstagramProxy(),
+                tiktokProxy = preferencesManager.getTikTokProxy(),
+                customRulesEnabled = preferencesManager.areCustomRulesEnabled(),
+                persistHistory = persistHistory
+            )
+        )
+
+        val shouldSaveHistory = persistHistory &&
+            preferencesManager.isHistoryEnabled() &&
+            if (previousProcessedUrl != null) {
+                result.url != previousProcessedUrl
+            } else {
+                result.url != result.originalUrl
+            }
+        if (shouldSaveHistory) {
+            saveHistoryEntry(
+                result.originalUrl,
+                result.url,
+                detectPlatform(result.originalUrl),
+                result.wasAlreadyClean,
+                result.customRuleChanged
+            )
+        }
+        return ProcessedUrlResult(
+            url = result.url,
+            wasAlreadyClean = result.wasAlreadyClean,
+            customRuleApplied = result.customRuleChanged,
+            rulesRevision = result.rulesRevision
         )
     }
     
@@ -319,69 +336,15 @@ class UrlRepositoryImpl @Inject constructor(
         }
     }
     
-    override suspend fun processUrlForBrowser(url: String): ProcessedUrlResult = withContext(Dispatchers.IO) {
-        if (url.isEmpty()) return@withContext ProcessedUrlResult(url, true)
-        
-        val isInstagram = urlProcessor.isInstagramUrl(url)
-        val isTwitter = urlProcessor.isTwitterUrl(url)
-        val isFacebook = urlProcessor.isFacebookUrl(url)
-        val isTikTok = urlProcessor.isTikTokUrl(url)
-        
-        val platform = detectPlatform(url)
-        
-        // Use browser-specific conversion preferences; Instagram/TikTok proxies are shared with main app
-        val instagramProxy = preferencesManager.getInstagramProxy()
-        val tiktokProxy = preferencesManager.getTikTokProxy()
-        val (processedUrl, wasAlreadyClean) = when {
-            isInstagram -> {
-                urlProcessor.processUrl(
-                    url,
-                    cleanTracking = true, // Always clean tracking
-                    convertTwitter = preferencesManager.isBrowserConvertInstagramEnabled(),
-                    instagramProxy = instagramProxy
-                )
-            }
-            isFacebook -> {
-                urlProcessor.processUrl(
-                    url,
-                    cleanTracking = preferencesManager.isCleanTrackingEnabled(),
-                    convertTwitter = preferencesManager.isBrowserConvertFacebookEnabled(),
-                    instagramProxy = instagramProxy
-                )
-            }
-            isTwitter -> {
-                urlProcessor.processUrl(
-                    url,
-                    cleanTracking = preferencesManager.isCleanTrackingEnabled(),
-                    convertTwitter = preferencesManager.isBrowserConvertTwitterEnabled(),
-                    instagramProxy = instagramProxy
-                )
-            }
-            isTikTok -> {
-                urlProcessor.processUrl(
-                    url,
-                    cleanTracking = preferencesManager.isCleanTrackingEnabled(),
-                    convertTwitter = preferencesManager.isBrowserConvertTikTokEnabled(),
-                    tiktokProxy = tiktokProxy
-                )
-            }
-            else -> {
-                // For other URLs, use the standard preferences
-                urlProcessor.processUrl(
-                    url,
-                    cleanTracking = preferencesManager.isCleanTrackingEnabled(),
-                    convertTwitter = false, // Don't convert non-social media URLs
-                    instagramProxy = instagramProxy
-                )
-            }
+    override suspend fun processUrlForBrowser(url: String): ProcessedUrlResult =
+        withContext(Dispatchers.IO) {
+            processWithProfile(
+                url = url,
+                profile = ProcessingProfile.BROWSER,
+                forceCleanTracking = false,
+                previousProcessedUrl = null,
+                persistHistory = true
+            )
         }
-        
-        // Save to history if enabled and URL was modified
-        if (preferencesManager.isHistoryEnabled() && url != processedUrl) {
-            saveHistoryEntry(url, processedUrl, platform, wasAlreadyClean)
-        }
-        
-        ProcessedUrlResult(processedUrl, wasAlreadyClean)
-    }
 
 } 

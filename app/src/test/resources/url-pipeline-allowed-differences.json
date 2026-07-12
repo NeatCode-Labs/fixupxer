@@ -1,0 +1,10 @@
+[
+  {
+    "id": "plus-preserved",
+    "reason": "Whole-string URLDecoder decoding was removed so plus signs stay raw."
+  },
+  {
+    "id": "encoded-ampersand-preserved",
+    "reason": "Encoded query delimiters are no longer promoted to structural delimiters."
+  }
+]

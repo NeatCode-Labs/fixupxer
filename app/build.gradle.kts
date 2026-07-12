@@ -23,14 +23,14 @@ android {
         applicationId = "com.fixupxer"
         minSdk = 21
         targetSdk = 35
-        versionCode = 34
-        versionName = "2.0.0"
+        versionCode = 35
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         // Add build config fields
-        buildConfigField("String", "VERSION_NAME", "\"2.0.0\"")
-        buildConfigField("int", "VERSION_CODE", "34")
+        buildConfigField("String", "VERSION_NAME", "\"2.1.0\"")
+        buildConfigField("int", "VERSION_CODE", "35")
     }
 
     signingConfigs {
@@ -76,6 +76,10 @@ android {
         viewBinding = true
         buildConfig = true
     }
+
+    sourceSets {
+        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    }
     
     packaging {
         resources {
@@ -119,6 +123,10 @@ android {
     }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     // Core Android
     implementation(libs.androidx.core.ktx)
@@ -145,6 +153,7 @@ dependencies {
     
     // Logging
     implementation(libs.timber)
+    implementation(libs.re2j)
     
     // Memory leak detection (debug only)
     debugImplementation(libs.leakcanary)
@@ -153,6 +162,8 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
     testImplementation(libs.gson) // JsonBasedCleanerTest čita test-cases.json
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

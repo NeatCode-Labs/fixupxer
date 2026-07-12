@@ -5,7 +5,7 @@
 
 **Clean URLs • Get embeddable links • Use Browser Mode**
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
+[![Version](https://img.shields.io/badge/version-2.1.0-blue?style=for-the-badge)](https://github.com/NeatCode-Labs/fixupxer/releases)
 [![Android](https://img.shields.io/badge/Android-5.0+-green?style=for-the-badge&logo=android)](https://developer.android.com/about/versions/lollipop)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-green?style=for-the-badge)](LICENSE)
 
@@ -65,76 +65,8 @@ FixupXer is a free Android app that makes your shared links cleaner, safer, and 
 
 Browser mode turns FixupXer into an optional "filter browser". When enabled and set as the system-wide default browser, every web link (http or https) is routed to FixupXer first for cleaning.
 
-#### How to Enable Browser Mode:
-
-1. **Enable Browser Mode** - Open FixupXer → tap the three-line menu ▸ **Settings** ▸ **Browser integration** ▸ Turn on **"Enable FixupXer as browser"**
-2. **Set as Default Browser** - Go to **System Settings ▸ Apps ▸ Choose default apps ▸ Browser app** and select **FixupXer**
-   - Android will not switch browsers automatically, you must do this manually
-
-#### Understanding Native App Behavior vs FixupXer Browser Mode:
-
-In normal Android behavior, many apps (YouTube, Instagram, X, etc.) register to handle their own links directly. This is expected and allows apps to open immediately when you tap their links.
-
-When you set FixupXer as your default browser, this changes the behavior:
-- **If native app handlers are enabled:** Android sends the link directly to the native app, bypassing FixupXer entirely
-- **If you want FixupXer to clean the links first:** You need to disable the native app handlers
-
-#### To Ensure FixupXer Processes Links Before Native Apps:
-
-**Method 1:** Open **System Settings ▸ Apps ▸ [App Name] ▸ Set as default** ▸ Switch off **"Open supported links"**
-
-**Method 2:** Long press on app ▸ click on **ⓘ** ▸ **Set as default** ▸ Switch off **"Open supported links"**
-
-Repeat the process for **each** app whose links you want FixupXer to clean and then forward to the native app.
-
-**Important:** If you disable native app handlers, make sure to set your action priority to **Follow action order** and put **Open in native app** first in the list if you want native apps opening your link clicks.
-
-#### After Links Are Cleaned - Choose Your Action:
-
-After a link is cleaned, FixupXer can either:
-
-- **Ask every time** — FixupXer shows its own action dialog and you decide where to send the cleaned link
-- **Follow priority list** — FixupXer looks at your ordered list of actions and executes the first one that works:
-    1. Open in native app (only if such an app exists and is allowed)
-    2. Open in browser
-    3. Share menu
-    4. Copy to clipboard
-
-You can reorder the list under **Settings ▸ Action priority**. Drag and drop items to match your workflow.
-
-**Tip:** If the top action cannot be performed (e.g., no native app installed), FixupXer automatically moves to the next item—no error dialogs, no extra taps.
-
-#### Troubleshooting Browser Mode:
-
-• **Native apps bypass FixupXer entirely**  
-*Expected:* All links get cleaned by FixupXer first  
-*Actual:* Instagram, YouTube, etc. open directly without cleaning  
-*Solution:* Disable "Open supported links" for each app in System Settings ▸ Apps ▸ [App Name] ▸ Set as default
-
-• **"Ask every time" appears to be skipped**  
-*Expected:* FixupXer shows its action dialog for every cleaned link  
-*Actual:* A native app opens directly without FixupXer first  
-*Solution:* Android can bypass the default browser when an app has "Open supported links" enabled. Disable that setting for apps whose links you want FixupXer to clean first
-
-• **Browser mode toggle doesn't work**  
-*Expected:* FixupXer becomes default browser immediately  
-*Actual:* Nothing changes after toggling  
-*Solution:* You must manually set FixupXer as default: System Settings ▸ Apps ▸ Default apps ▸ Browser ▸ FixupXer
-
-• **Conversion settings have no effect**  
-*Expected:* URLs convert to FixupX/kkInstagram  
-*Actual:* URLs stay as x.com/instagram.com  
-*Solution:* Browser mode has separate conversion settings. Tap "Conversion defaults" to configure them
-
-• **YouTube opens wrong app**  
-*Expected:* Links open in ReVanced YouTube  
-*Actual:* Official YouTube app opens  
-*Solution:* Set action mode to "Follow action order" with "Open in native app" first. FixupXer tries ReVanced-compatible package names before the official YouTube app when available
-
-• **Links fall back to browser instead of native app**  
-*Expected:* Cleaned links open in native apps  
-*Actual:* The browser opens instead  
-*Solution:* This means no installed native app accepted the cleaned URL. FixupXer safely falls back to your browser action instead of opening a generic share popup
+See the **[Browser Mode Guide](docs/BROWSER_MODE_GUIDE.md)** for setup,
+native-app handling, action priority, conversion defaults, and troubleshooting.
 
 ### 📜 History Feature
 - **View Past Links** - Tap the History button to see all your cleaned links
@@ -225,7 +157,15 @@ Unlike Instagram, TikTok conversions **keep the host prefix**: `vm.tiktok.com/�
 ### Browser Integration
 - **Enable/Disable Browser Mode** - Set FixupXer as your default browser
 - **Action Priority Configuration** - Reorder post-clean actions by dragging
-- **How to Use Instructions** - Detailed step-by-step browser mode guide
+- **[How to Use](docs/BROWSER_MODE_GUIDE.md)** - Detailed Browser mode setup and troubleshooting
+
+### Custom URL rules
+- Create ordered offline rules for all URLs, one host, a domain plus subdomains, host groups, or an RE2 URL pattern
+- Remove all parameters, remove selected parameters, keep only selected parameters, replace URL text, extract redirect targets, or apply component templates
+- Choose before-cleaning, after-cleaning, or after-conversion phases and Main, Share, or Browser contexts
+- Add excludes, stop-after-match, live Test Lab previews, bundled templates, drag reorder, duplicate, versioned JSON import/export, and import rollback
+- Rules stay in the local Room database and are exported only when you explicitly choose a destination through Android's file picker
+- **[How to Use](docs/CUSTOM_URL_RULES_GUIDE.md)** - Complete scope, action, ordering, Test Lab, and portability guide
 
 ### History Settings
 - **Enable/Disable** - Toggle history tracking on or off
@@ -307,7 +247,7 @@ A: Absolutely! FixupXer has no internet permission and can't send data anywhere.
 - Modular cleaner system with 11 specialized modules
 - O(1) domain lookup performance
 - LRU cache with 1-hour TTL
-- 442 automated tests (252 unit + 190 instrumentation)
+- 464 automated tests (270 unit + 194 instrumentation)
 - Thread-safe, stateless design
 
 ### Building from Source
@@ -380,8 +320,11 @@ FixupXer builds upon ideas from these excellent projects:
 - [FxEmbed](https://github.com/FxEmbed/FxEmbed) - Twitter embed improvements
 - [InstaFix](https://github.com/Wikidepia/InstaFix) - Instagram embed enhancements
 - [fxTikTok](https://github.com/okdargy/fxTikTok) - TikTok embed enhancements
+- [RE2/J](https://github.com/google/re2j) by Google and RE2/Go contributors - the linear-time regular-expression engine used for user-authored URL rules; version 1.8 is used unmodified under its upstream Go License (`LICENSES/LicenseRef-RE2J.txt`)
 
 Special thanks to the maintainers of facebookez.com, toinstagram.com, adamlikes.men, instagram7.com, kkinstagram.com, tnktok.com, tfxktok.com, tiktokez.com, and kktiktok.com. Thanks to [@gautamnabin5](https://github.com/gautamnabin5) for proposing TikTok conversion support in [PR #5](https://github.com/NeatCode-Labs/fixupxer/pull/5). Contact us if you'd like attribution!
+
+The custom-rule engine and bundled templates were independently authored for FixupXer. No third-party cleaner ruleset, parser, regex corpus, or proprietary code was copied.
 
 ## 💖 Support Development
 

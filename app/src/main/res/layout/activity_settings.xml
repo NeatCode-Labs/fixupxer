@@ -128,6 +128,56 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Custom URL rules -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/padding_medium"
+                app:cardCornerRadius="@dimen/card_corner_radius">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/padding_large">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/custom_rules_title"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textColor="?attr/colorPrimary" />
+
+                    <TextView
+                        android:id="@+id/textCustomRulesCount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/padding_small"
+                        android:text="@string/custom_rules_description"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switchCustomRules"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/custom_rules_enabled" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonCustomRules"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/custom_rules_manage" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonCustomRulesHowTo"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/how_to_use" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- Browser Integration Section -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -161,7 +211,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/padding_medium"
-                        android:text="@string/read_this"
+                        android:text="@string/how_to_use"
                         style="@style/Widget.Material3.Button.TextButton" />
 
                 </LinearLayout>

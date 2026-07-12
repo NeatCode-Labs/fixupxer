@@ -1,0 +1,52 @@
+{
+  "format": "fixupxer-custom-rules",
+  "schemaVersion": 1,
+  "appVersion": "2.1.0",
+  "provenance": "Independently authored for FixupXer under GPL-3.0-or-later.",
+  "rules": [
+    {
+      "id": "28f3ff2e-7844-47d6-9340-f6d25849b915",
+      "name": "Remove common campaign parameters",
+      "enabled": true,
+      "sortOrder": 0,
+      "phase": "post_clean",
+      "contexts": ["MAIN", "SHARE", "BROWSER"],
+      "includeScope": {"type": "all_urls"},
+      "excludeScopes": [],
+      "action": {
+        "type": "remove_params",
+        "names": ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"],
+        "ignoreCase": true
+      },
+      "stopAfterMatch": false,
+      "testVectors": [
+        {
+          "input": "https://example.com/?id=1&utm_source=test",
+          "expected": "https://example.com/?id=1"
+        }
+      ]
+    },
+    {
+      "id": "4429742f-932d-42c4-b331-99b853fca5f4",
+      "name": "Remove click identifiers",
+      "enabled": true,
+      "sortOrder": 1,
+      "phase": "post_clean",
+      "contexts": ["MAIN", "SHARE", "BROWSER"],
+      "includeScope": {"type": "all_urls"},
+      "excludeScopes": [],
+      "action": {
+        "type": "remove_params",
+        "names": ["fbclid", "gclid", "msclkid"],
+        "ignoreCase": true
+      },
+      "stopAfterMatch": false,
+      "testVectors": [
+        {
+          "input": "https://example.com/?q=x&fbclid=abc",
+          "expected": "https://example.com/?q=x"
+        }
+      ]
+    }
+  ]
+}

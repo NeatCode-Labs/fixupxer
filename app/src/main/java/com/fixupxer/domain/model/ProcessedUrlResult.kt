@@ -25,5 +25,7 @@ package com.fixupxer.domain.model
  */
 data class ProcessedUrlResult(
     val url: String,
-    val wasAlreadyClean: Boolean
+    val wasAlreadyClean: Boolean,
+    val customRuleApplied: Boolean = false,
+    val rulesRevision: Long = 0
 ) 

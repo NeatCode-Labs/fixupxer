@@ -27,10 +27,16 @@ import androidx.room.RoomDatabase
  * Room database for FixupXer app
  */
 @Database(
-    entities = [UrlHistoryEntity::class],
-    version = 1,
-    exportSchema = false
+    entities = [
+        UrlHistoryEntity::class,
+        CustomRuleEntity::class,
+        RuleSnapshotEntity::class
+    ],
+    version = 2,
+    exportSchema = true
 )
 abstract class FixupXerDatabase : RoomDatabase() {
     abstract fun urlHistoryDao(): UrlHistoryDao
+    abstract fun customRuleDao(): CustomRuleDao
+    abstract fun ruleSnapshotDao(): RuleSnapshotDao
 } 

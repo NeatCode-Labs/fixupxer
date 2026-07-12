@@ -4,7 +4,7 @@ SPDX-PackageSupplier = "NeatCode Labs <neatcodelabs@gmail.com>"
 SPDX-PackageDownloadLocation = "https://github.com/NeatCode-Labs/fixupxer"
 
 [[annotations]]
-path = ["fdroidvenv/**", ".venv/**", "build/**", ".gradle/**", "screenshots/**", "android_icons/**", "GITHUB/fixupxer/screenshots/**", "GITHUB/fixupxer/android_icons/**", "gradle/wrapper/**", ".idea/**", "app/build/**", "GITHUB/fixupxer/build/**", "GITHUB/fixupxer/.gradle/**", "GITHUB/fixupxer/app/build/**", ".vscode/**", "**/__pycache__/**", "**/.pytest_cache/**", "bundletool.jar"]
+path = ["fdroidvenv/**", ".venv/**", "build/**", ".gradle/**", "screenshots/**", "android_icons/**", "gradle/wrapper/**", ".idea/**", "app/build/**", ".vscode/**", "**/__pycache__/**", "**/.pytest_cache/**", "bundletool.jar"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "Various"
 SPDX-License-Identifier = "LicenseRef-ThirdParty"
@@ -34,7 +34,43 @@ SPDX-FileCopyrightText = "2020-2025 NeatCode Labs"
 SPDX-License-Identifier = "GPL-3.0-or-later"
 
 [[annotations]]
-path = ["app/src/main/res/**/*.xml", "app/src/main/AndroidManifest.xml", "GITHUB/fixupxer/app/src/main/res/**/*.xml", "GITHUB/fixupxer/app/src/main/AndroidManifest.xml", "**.toml", "**.kts", "**.pro"]
+path = ["app/src/main/res/**/*.xml", "app/src/main/AndroidManifest.xml", "app/src/debug/AndroidManifest.xml", "**.toml", "**.kts", "**.pro"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2020-2025 NeatCode Labs"
 SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["app/src/main/assets/rule_templates/**"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 NeatCode Labs"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["LICENSES/LicenseRef-RE2J.txt"]
+precedence = "override"
+SPDX-FileCopyrightText = "2009 The Go Authors"
+SPDX-License-Identifier = "LicenseRef-RE2J"
+
+[[annotations]]
+path = ["app/schemas/**"]
+precedence = "override"
+SPDX-FileCopyrightText = "2020-2026 NeatCode Labs"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["keystore.properties.template", "metadata/com.fixupxer.yml"]
+precedence = "override"
+SPDX-FileCopyrightText = "2020-2026 NeatCode Labs"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["app/src/main/assets/license.html"]
+precedence = "override"
+SPDX-FileCopyrightText = "2020-2026 NeatCode Labs"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["NOTICE"]
+precedence = "override"
+SPDX-FileCopyrightText = "2020-2026 NeatCode Labs; 2009 The Go Authors"
+SPDX-License-Identifier = "GPL-3.0-or-later AND LicenseRef-RE2J"

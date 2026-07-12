@@ -50,6 +50,9 @@ class CleanerService @Inject constructor(
         val result = deepCleanWithDetails(url, maxPasses)
         return result.cleanedUrl
     }
+
+    fun deepCleanWithoutCache(url: String, maxPasses: Int = 5): String =
+        performDeepClean(url, maxPasses)
     
     /**
      * Clean a URL and return detailed processing information

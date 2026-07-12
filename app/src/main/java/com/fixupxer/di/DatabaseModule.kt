@@ -23,7 +23,10 @@ package com.fixupxer.di
 import android.content.Context
 import androidx.room.Room
 import com.fixupxer.data.database.FixupXerDatabase
+import com.fixupxer.data.database.CustomRuleDao
+import com.fixupxer.data.database.RuleSnapshotDao
 import com.fixupxer.data.database.UrlHistoryDao
+import com.fixupxer.data.database.MIGRATION_1_2
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -48,7 +51,7 @@ object DatabaseModule {
             FixupXerDatabase::class.java,
             "fixupxer_database"
         )
-        .fallbackToDestructiveMigration() // Allow destructive migration for development
+        .addMigrations(MIGRATION_1_2)
         .build()
     }
     
@@ -59,4 +62,14 @@ object DatabaseModule {
     ): UrlHistoryDao {
         return database.urlHistoryDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideCustomRuleDao(database: FixupXerDatabase): CustomRuleDao =
+        database.customRuleDao()
+
+    @Provides
+    @Singleton
+    fun provideRuleSnapshotDao(database: FixupXerDatabase): RuleSnapshotDao =
+        database.ruleSnapshotDao()
 } 

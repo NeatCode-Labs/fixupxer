@@ -1,3 +1,57 @@
+# FixupXer v2.1.0 - Custom URL Rules
+
+## What's New
+
+### Build Your Own Offline URL Rules
+FixupXer now includes a complete custom URL rule system under **Settings →
+Custom URL rules**. Rules remain fully local and can remove every parameter,
+remove or keep selected names, run safe regex replacements, extract offline
+redirect targets, or rewrite URL components with templates.
+
+- Scope rules to all URLs, one exact host, a domain and its subdomains, a host
+  group, or an RE2/J URL pattern.
+- Choose before-cleaning, after-cleaning, or after-conversion phases.
+- Limit rules to Main, Share, or Browser mode; add excludes and stop-after-match.
+- Enable, duplicate, delete, drag-reorder, or move rules with accessible buttons.
+- Preview unsaved changes through Test Lab with before/after output and a bounded
+  execution trace.
+
+### Templates and Portable Rule Bundles
+- Two independently authored offline template bundles are included.
+- Versioned JSON import/export uses Android's system file picker and requires no
+  storage permission.
+- Import offers Add new, Update matching, and Replace all conflict policies,
+  shows counts before mutation, and keeps the last three rollback snapshots.
+- Invalid, oversized, unknown, or partly broken bundles are rejected atomically.
+
+### GitHub How-to Guides
+- Browser integration and Custom URL rules now have dedicated, maintainable
+  Markdown guides on GitHub.
+- The in-app **How to Use** actions open those guides in an external browser;
+  the previous embedded Browser mode instruction dialog has been removed.
+
+### Privacy, Safety, and Compatibility
+- User regex uses linear-time RE2/J only; unsupported backreferences/lookaround
+  fail validation instead of falling back to Java regex.
+- Raw URL components are preserved: `+`, duplicate parameters, ordering,
+  percent-encoding, and untouched fragments are not rebuilt or whole-decoded.
+- Redirect cycle, hop, URL-length, regex-complexity, rule-count, trace, and bundle
+  limits prevent abusive rules from blocking processing.
+- Room migration 1→2 preserves existing history. Rules and rollback snapshots are
+  excluded from automatic cloud backup and leave the device only through an
+  explicit export.
+- A manifest regression test now enforces the zero-permission privacy model.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 35
+- versionName: 2.1.0
+- Unit tests: 270 / 270 passing. Instrumentation: 194 / 194 passing on
+  `Pixel_API_35_Play`.
+
+---
+
 # FixupXer v2.0.0 - Complete UI Redesign
 
 ## What's New

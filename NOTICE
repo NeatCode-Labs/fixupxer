@@ -51,7 +51,16 @@ Timber
 Gson
 - Copyright Google Inc.
 - Licensed under Apache License 2.0
+- Used only by the automated test suite
 - https://github.com/google/gson
+
+RE2/J 1.8
+- This is a work derived from Russ Cox's RE2 in Go, whose license is at
+  http://golang.org/LICENSE
+- Copyright (c) 2009 The Go Authors
+- Licensed under the upstream "Go License" (BSD-3-Clause-style terms)
+- Full verbatim terms: LICENSES/LicenseRef-RE2J.txt
+- https://github.com/google/re2j
 
 ===============================================================================
 

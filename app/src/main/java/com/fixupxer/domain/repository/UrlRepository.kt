@@ -47,6 +47,12 @@ interface UrlRepository {
      * Process a URL without saving to history - for UI updates only
      */
     suspend fun processUrlWithoutHistory(url: String): ProcessedUrlResult
+
+    /** Process a real Android share intent using the SHARE rule context. */
+    suspend fun processSharedUrl(
+        url: String,
+        previousProcessedUrl: String? = null
+    ): ProcessedUrlResult
     
     /**
      * Process URL for sharing (always converts to alternative domains)

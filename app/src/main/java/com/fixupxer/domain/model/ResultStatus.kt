@@ -19,7 +19,8 @@
 
 package com.fixupxer.domain.model
 
-import android.net.Uri
+import java.net.IDN
+import java.net.URI
 
 /**
  * Describes how a processed URL differs from the original input.
@@ -72,12 +73,13 @@ private fun isSameSite(hostA: String, hostB: String): Boolean =
         hostB.endsWith(".$hostA")
 
 private fun extractComparableHost(url: String): String? {
-    val host = Uri.parse(url).host?.lowercase() ?: return null
-    return host.removePrefix("www.")
+    val host = runCatching { URI(url).host }.getOrNull() ?: return null
+    return IDN.toASCII(host.removeSuffix(".")).lowercase().removePrefix("www.")
 }
 
-private fun extractQuery(url: String): String? = try {
-    Uri.parse(url).query
-} catch (e: Exception) {
-    null
+private fun extractQuery(url: String): String? {
+    val queryStart = url.indexOf('?')
+    if (queryStart < 0) return null
+    val fragmentStart = url.indexOf('#', queryStart)
+    return url.substring(queryStart + 1, if (fragmentStart >= 0) fragmentStart else url.length)
 }

@@ -18,8 +18,12 @@ FixupXer does not collect, store, or share any personal user data. The app opera
 The app only stores the following data locally on your device:
 - Preferences: whether to clean tracking parameters, whether to convert Twitter/X, Instagram, Facebook, and TikTok URLs, the selected Instagram and TikTok embed proxies, any custom proxy domains you add yourself, browser-mode settings (enabled state, post-clean action mode and priority order, per-platform conversion defaults), and history settings (enabled state, maximum entries)
 - Conversion history (optional, on by default, can be disabled or cleared at any time): the original URL, the cleaned URL, a timestamp, and the kind of change made — stored in a local database on your device only
+- Custom URL rules (optional): names, domains, patterns, replacements, templates, test URLs, ordering, and local rollback snapshots. Rules are stored in the local Room database and are not included in automatic cloud backup.
 
 Preferences are stored using Android's SharedPreferences system and history in a local Room (SQLite) database. Both are only accessible to the app itself and never leave your device.
+
+### Rule Import and Export
+Custom rules can be exported or imported only when you explicitly use Android's Storage Access Framework file picker. You choose the file and destination. Exported bundles may reveal private domains, patterns, or test URLs that you entered, so store and share them carefully. FixupXer does not upload or synchronize rule files.
 
 ### URL Processing
 - All URL processing happens locally on your device
@@ -31,10 +35,14 @@ Preferences are stored using Android's SharedPreferences system and history in a
 ### Browser Mode (optional)
 If you enable Browser mode and set FixupXer as your default browser, links you open are cleaned locally and then forwarded to the app or browser you choose. FixupXer itself has no network permission and never loads the links.
 
+### External Help Links
+The **How to Use** buttons open FixupXer documentation hosted on GitHub through an external browser. This happens only when you tap a help link. FixupXer does not load the page itself; the selected browser and GitHub apply their own privacy policies.
+
 ## Third-Party Services
 FixupXer does not integrate with any third-party services that collect user data. The app only uses standard Android system services for:
 - Sharing URLs
 - Opening URLs in a browser
+- Opening user-requested documentation links
 - Copying URLs to clipboard
 - Sending bug reports via email (only when explicitly requested by the user)
 

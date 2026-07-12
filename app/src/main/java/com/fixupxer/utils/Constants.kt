@@ -33,6 +33,11 @@ object Constants {
     // Company URLs
     const val WEBSITE_URL = "https://neatcodelabs.com/"
     const val GITHUB_URL = "https://github.com/NeatCode-Labs"
+    const val GITHUB_REPOSITORY_URL = "$GITHUB_URL/fixupxer"
+    const val BROWSER_MODE_GUIDE_URL =
+        "$GITHUB_REPOSITORY_URL/blob/main/docs/BROWSER_MODE_GUIDE.md"
+    const val CUSTOM_RULES_GUIDE_URL =
+        "$GITHUB_REPOSITORY_URL/blob/main/docs/CUSTOM_URL_RULES_GUIDE.md"
     
     // Domain identifiers
     const val INSTAGRAM_DOMAIN = "instagram.com"
@@ -94,6 +99,23 @@ object Constants {
     
     // URL path identifiers
     const val TWITTER_STATUS_PATH = "/status/"
+
+    // Custom URL rule engine resource limits
+    const val MAX_INPUT_LENGTH = 2048
+    const val MAX_URL_SCAN_LENGTH = 1000
+    const val MAX_URL_LENGTH = 2048
+    const val MAX_CUSTOM_RULES = 200
+    const val MAX_RULE_PATTERN_LENGTH = 2048
+    const val MAX_RULE_REPLACEMENT_LENGTH = 4096
+    const val MAX_RULE_TEMPLATE_LENGTH = 4096
+    const val MAX_SCOPE_ENTRIES = 100
+    const val MAX_EXCLUDES_PER_RULE = 50
+    const val MAX_TEST_VECTORS_PER_RULE = 20
+    const val MAX_REGEX_PROGRAM_SIZE = 10_000
+    const val MAX_PIPELINE_REENTRIES = 5
+    const val MAX_TRACE_STEPS = 1000
+    const val MAX_RULE_BUNDLE_BYTES = 1_048_576
+    const val MAX_RULE_SNAPSHOTS = 3
     
     // Tag for logging
     const val LOG_TAG = "FixupXer"

@@ -80,12 +80,9 @@ class UrlProcessor @Inject constructor(
                 Timber.d("Removed @ from beginning of URL: $inputUrl")
             }
             
-            // Decode URL if it's encoded
-            val decodedUrl = try {
-                URLDecoder.decode(inputUrl, "UTF-8")
-            } catch (e: Exception) {
-                inputUrl
-            }
+            // Keep the URL raw. Whole-string URLDecoder corrupts '+' and turns
+            // encoded query delimiters into structural delimiters.
+            val decodedUrl = inputUrl
             
             var finalUrl = decodedUrl
             var wasAlreadyClean = true
@@ -142,7 +139,7 @@ class UrlProcessor @Inject constructor(
     /**
      * Apply domain conversions based on settings
      */
-    private fun applyDomainConversions(
+    internal fun applyDomainConversions(
         url: String,
         convertToAlternative: Boolean,
         instagramProxy: String = Constants.INSTAGRAM_DEFAULT_PROXY,
@@ -562,8 +559,8 @@ class UrlProcessor @Inject constructor(
      */
     fun findFirstValidUrl(text: String): String? {
         // Limit input size to prevent performance issues
-        val limitedText = if (text.length > MAX_INPUT_LENGTH) {
-            text.substring(0, MAX_INPUT_LENGTH)
+        val limitedText = if (text.length > Constants.MAX_INPUT_LENGTH) {
+            text.substring(0, Constants.MAX_INPUT_LENGTH)
         } else {
             text
         }
@@ -604,8 +601,8 @@ class UrlProcessor @Inject constructor(
         
         // If the above quick checks fail, try to extract URLs using the pattern
         // But limit the search to avoid performance issues
-        val searchText = if (limitedText.length > 1000) {
-            limitedText.substring(0, 1000)
+        val searchText = if (limitedText.length > Constants.MAX_URL_SCAN_LENGTH) {
+            limitedText.substring(0, Constants.MAX_URL_SCAN_LENGTH)
         } else {
             limitedText
         }
@@ -638,11 +635,7 @@ class UrlProcessor @Inject constructor(
         }
         
         return try {
-            val decodedUrl = try {
-                URLDecoder.decode(url.trim(), "UTF-8")
-            } catch (e: Exception) {
-                url.trim()
-            }
+            val decodedUrl = url.trim()
             
             // Use new cleaner service for superior cleaning
             Timber.d("Using new cleaner service for cleanUrl: $decodedUrl")
@@ -654,9 +647,6 @@ class UrlProcessor @Inject constructor(
     }
     
     companion object {
-        // Maximum input size to prevent performance issues
-        private const val MAX_INPUT_LENGTH = 10000
-        
         // Regex that captures each http/https URL up to the next whitespace OR the next http/https occurrence.
         // This prevents blobs like "https://a.comfoohttps://b.com" from being treated as one URL.
         private val URL_PATTERN = Regex(
@@ -728,8 +718,8 @@ class UrlProcessor @Inject constructor(
          */
         fun extractUrls(text: String): List<String> {
             // Limit input size to prevent performance issues
-            val limitedText = if (text.length > MAX_INPUT_LENGTH) {
-                text.substring(0, MAX_INPUT_LENGTH)
+            val limitedText = if (text.length > Constants.MAX_INPUT_LENGTH) {
+                text.substring(0, Constants.MAX_INPUT_LENGTH)
             } else {
                 text
             }
@@ -764,8 +754,8 @@ class UrlProcessor @Inject constructor(
          */
         fun findFirstValidUrl(text: String): String? {
             // Limit input size to prevent performance issues
-            val limitedText = if (text.length > MAX_INPUT_LENGTH) {
-                text.substring(0, MAX_INPUT_LENGTH)
+            val limitedText = if (text.length > Constants.MAX_INPUT_LENGTH) {
+                text.substring(0, Constants.MAX_INPUT_LENGTH)
             } else {
                 text
             }
@@ -804,8 +794,8 @@ class UrlProcessor @Inject constructor(
             
             // If the above quick checks fail, try to extract URLs using the pattern
             // But limit the search to avoid performance issues
-            val searchText = if (limitedText.length > 1000) {
-                limitedText.substring(0, 1000)
+            val searchText = if (limitedText.length > Constants.MAX_URL_SCAN_LENGTH) {
+                limitedText.substring(0, Constants.MAX_URL_SCAN_LENGTH)
             } else {
                 limitedText
             }

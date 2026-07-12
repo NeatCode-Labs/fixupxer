@@ -122,6 +122,8 @@ class BrowserModeTest {
         // Verify browser mode switch is displayed
         onView(withId(R.id.switchBrowserMode))
             .check(matches(isDisplayed()))
+        onView(withId(R.id.buttonReadThis))
+            .check(matches(isDisplayed()))
         
         // Click to enable browser mode
         onView(withId(R.id.switchBrowserMode))

@@ -3,7 +3,7 @@
 ## Executive Summary
 **STATUS: [x] PRODUCTION READY**
 
-FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation verification and is ready as a signed release candidate for physical-device testing. This release adds the complete offline custom URL rule system, external GitHub How-to guides, and consolidated Material 3 polish across the full app.
+FixupXer v2.1.0 has passed unit, lint, REUSE, full emulator instrumentation, clean signed-build, manifest, and signature verification. This release adds the complete offline custom URL rule system, external GitHub How-to guides, and consolidated Material 3 polish across the full app.
 
 ## Build Information
 - **Version**: v2.1.0 (versionCode: 35)
@@ -24,11 +24,11 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 ### Build Verification [x]
 - **Clean Build**: SUCCESS - `assembleRelease` completes signed build
 - **Unit Tests**: SUCCESS - 273/273 tests passed (100%), including default-off preferences, differential, engine, codec, repository and fuzz/idempotence coverage.
-- **Android Tests**: SUCCESS — **194/194 instrumentation tests pass** on `Pixel_API_35_Play` (`connectedDebugAndroidTest`, 7m 37s).
+- **Android Tests**: SUCCESS — **194/194 instrumentation tests pass** on `Pixel_API_35_Play` (`connectedDebugAndroidTest`, 7m 55s).
 - **Visual Verification**: SUCCESS — Main, Share, Settings, Rules, Rule Editor, History and all app dialogs were manually verified in light/dark themes, at 100%/130% font scale and down to 320dp width. Insets, fixed actions, card alignment, proxy labels and empty/list states remain readable without control overlap.
 - **ProGuard/R8**: SUCCESS - Release build with obfuscation completed
-- **APK Size**: 3.92 MiB signed release candidate
-- **AAB Build**: pending the post-physical-test release pipeline
+- **APK Size**: 3.92 MiB signed Google release build
+- **AAB Build**: SUCCESS - 4.92 MiB signed Play bundle with ownership token
 
 #### Security & Privacy (4/4) [x]
 - **Permissions Check**: EXCELLENT - Zero permissions required (privacy-focused)
@@ -73,12 +73,12 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 - **Total Tests**: 467 (273 unit + 194 instrumentation).
 - **Pass Rate**: 100% (273/273 unit + 194/194 instrumentation on `Pixel_API_35_Play`)
 - **New test areas in v2.1.0**: default-off custom-rule preferences, frozen differential corpus, raw query/action matrix, redirect hop protection, bundle assets/round-trip, atomic import/rollback, Room migration, no-code UI, 200-rule performance and merged-manifest privacy.
-- **Instrumentation Time**: 7m 37s for the full suite
+- **Instrumentation Time**: 7m 55s for the final full suite
 - **Lint Issues**: 0 errors on release variant (`lintRelease` clean)
 
 ### Performance Metrics
-- **APK Size (Google)**: 3.92 MiB signed v2.1.0 release candidate
-- **AAB Size**: pending post-physical-test release pipeline
+- **APK Size (Google)**: 3.92 MiB signed v2.1.0 release build
+- **AAB Size**: 4.92 MiB signed Play bundle
 - **Install Size**: Optimized with ProGuard/R8
 - **Memory Usage**: Efficient resource management
 - **Startup Time**: Fast cold start performance
@@ -91,9 +91,9 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 - **Code Obfuscation**: Enabled for release builds
 
 ## Build Artifacts Generated
-- [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` (final SHA-256 reported with the handed-off APK)
-- [ ] **Google Release AAB**: generated only after physical-device approval
-- [ ] **GITHUB Release APK**: generated only after physical-device approval
+- [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` — SHA-256 `9B2E65974E40A50260888C67A1CC24856C2D9197A3EDC7E1FBDAC70A23D5C92D`
+- [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` — SHA-256 `D7050F0FA6AC844E12106EBD2C6D7B2D94EB3B3680D8F94CB240C4F93DAFC339`; `assets/adi-registration.properties` present
+- [ ] **GITHUB Release APK**: pending the required fresh-clone build from the v2.1.0 tag
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
 - [x] **Minified Smoke**: signed APK installs and cold-launches; Main and Share launch; Settings/custom-rules/editor load; a release-mode Remove all rule changed `https://example.com/?id=1` to `https://example.com/`
 - [x] **ProGuard Mapping**: Code obfuscation applied
@@ -130,7 +130,7 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 
 ### **FINAL VERDICT: [x] APPROVED FOR IMMEDIATE RELEASE**
 
-FixupXer v2.1.0 meets all pre-device-test quality standards:
+FixupXer v2.1.0 meets all release quality standards:
 
 - **Zero Critical Issues**: No blocking issues found
 - **Unit Tests**: 273/273 (100%)
@@ -140,7 +140,7 @@ FixupXer v2.1.0 meets all pre-device-test quality standards:
 - **Android 15 Ready**: Full compliance with latest platform requirements
 - **Production Quality**: Meets all Google Play Store and F-Droid requirements
 
-The app is **ready for signed release-candidate creation and physical-device testing**.
+The app is **ready for Google Play upload and GitHub/F-Droid publication**.
 
 ---
 
@@ -149,4 +149,4 @@ The app is **ready for signed release-candidate creation and physical-device tes
 **Quality Assurance**: PASSED [x]  
 **Security Review**: PASSED [x]  
 **Performance Review**: PASSED [x]  
-**Release Authorization**: **PENDING PHYSICAL TEST**
+**Release Authorization**: **APPROVED**

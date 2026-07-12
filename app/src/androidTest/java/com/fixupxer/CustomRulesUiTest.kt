@@ -32,6 +32,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.fixupxer.ui.SettingsActivity
+import org.hamcrest.CoreMatchers.allOf
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -68,7 +69,8 @@ class CustomRulesUiTest {
             onView(withId(R.id.mainScrollView))
                 .perform(swipeUp(), swipeUp(), swipeUp(), swipeUp(), swipeUp())
             onView(withId(R.id.buttonSave)).perform(click())
-            onView(withText("Instrumentation rule")).check(matches(isDisplayed()))
+            onView(allOf(withId(R.id.textRuleName), withText("Instrumentation rule")))
+                .check(matches(isDisplayed()))
             onView(withId(R.id.buttonClear)).perform(click())
             onView(withText(R.string.custom_rules_clear)).perform(click())
             onView(withId(R.id.emptyState)).check(matches(isDisplayed()))

@@ -1,10 +1,10 @@
 # FixupXer Testing Report
 
 ## Test Execution Date
-July 8, 2026
+July 12, 2026
 
 ## Executive Summary
-252/252 unit tests and 190/190 instrumentation tests pass for v2.0.0 on the `Pixel_API_35_Play` emulator. v2.0.0 is the complete UI redesign release: Main and Share screens rebuilt as a before/after flow layout (original URL with struck-through tracking parameters → result card with a status chip), hand-tuned Material 3 DayNight theme with full dark mode, a System/Light/Dark theme picker in Settings, and a new launcher icon. The cleaning engine, proxy systems, browser mode, and validation surface are unchanged from v1.7.2; on top of the redesign a production-hardening pass added reason-aware validation errors, ViewModel concurrency guards, stale-result invalidation, and Share-intent edge-case handling — all covered by new test suites. FixupXer v2.0.0 is **READY FOR PRODUCTION RELEASE**.
+273/273 unit tests and 194/194 instrumentation tests pass for v2.1.0 on the `Pixel_API_35_Play` emulator. v2.1.0 adds the complete opt-in Custom URL rules system, raw-preserving processing, RE2/J validation, Test Lab, templates, atomic import/export with rollback, and a Room 1→2 migration while retaining the zero-permission offline model. The release also modernizes Rules, Rule Editor, History, Settings, and dialogs and links Browser/Rules help to dedicated GitHub guides. Differential, engine, repository, migration, UI, performance, and merged-manifest privacy tests cover the new surface. FixupXer v2.1.0 is **READY FOR PRODUCTION RELEASE**.
 
 ## Test Environment
 - **Device**: Android Emulator - Pixel API 35 Play (Android 15)
@@ -16,49 +16,51 @@ July 8, 2026
 ## Test Results Summary
 
 ### Unit Tests (`./gradlew test`)
-**Status**: [x] PASSED  
-**Total Tests**: 252 unit tests (+41 vs v1.7.2)  
-**Pass Rate**: 100%  
+**Status**: [x] PASSED
+**Total Tests**: 273 unit tests (+21 vs v2.0.0)
+**Pass Rate**: 100%
 **Test Classes (highlights)**:
-- `MainViewModelTest` (new suite) — result statuses (`CLEANED_AND_CONVERTED` etc.), `onUrlChanged` stale-result invalidation vs. result retention, validation-error reason mapping (`MULTIPLE_URLS` → "one URL at a time", `OTHER` → generic invalid-input message), concurrency guards
-- `ShareViewModelTest` (new suite) — platform flag detection, duplicate identical share-text guard, `reprocessAfterProxyChange()`, `setNoSharedText()` error surfacing, error-branch state reset
-- `ResultStatusTest` (new) — status resolution incl. subdomain normalization (`ALREADY_CLEAN` vs `CLEANED`) and lookalike proxy domains (`CONVERTED`), malformed URL fallback
-- `UrlDiffHelperTest` (new) — exact parameter-set strikethrough comparison, fragment handling, `applyStrikesInPlace`
-- `ThemePreferenceTest` (new, Robolectric) — theme mode default/round-trip, corrupted-value fallback to System, `ThemeHelper` → `AppCompatDelegate` mapping
-- `InputValidatorTest` (updated) — reason-aware `ValidationResult` (`MULTIPLE_URLS` vs `OTHER`), multi-URL heuristic robustness (glued URLs vs nested query URLs)
-- `TikTokProxySelectionTest`, `CustomTikTokProxyTest`, `InstagramProxySelectionTest`, `CustomInstagramProxyTest`, `UrlProcessorMatrixTest`, `UpdatedCleanersTest`, cleaner implementation tests — all unchanged and passing
+- `UrlPipelineDifferentialTest` — frozen master-off baseline, intended-difference allow-list, raw URL preservation, redirect hops and cycle limits
+- `CustomRuleEngineTest` — scope/action/phase/context behavior, excludes, stop-after-match, invalid output rejection, idempotence, and raw token preservation
+- `RuleBundleCodecTest` — versioned bundle round-trip, malformed/unknown input rejection, limits, and stable wire names
+- `CustomRuleRepositoryTest` — atomic imports, conflict policies, deterministic order, snapshots, and rollback
+- `CustomRulesPreferenceTest` — first-install/update default-off state and persisted opt-in
+- Existing ViewModel, cleaner, conversion, validation, theme, history, and proxy suites remain green
 
 ### Android Instrumentation Tests (`./gradlew connectedAndroidTest`)
-**Status**: [x] PASSED  
-**Total Tests**: 190 tests (+4 vs v1.7.2)  
-**Pass Rate**: 100%  
-**Passed**: 190 (100%)  
-**Failed**: 0  
-**Execution Time**: ~7 min 25s on `Pixel_API_35_Play`
+**Status**: [x] PASSED
+**Total Tests**: 194 tests (+4 vs v2.0.0)
+**Pass Rate**: 100%
+**Passed**: 194 (100%)
+**Failed**: 0
+**Execution Time**: 7 min 55s on `Pixel_API_35_Play`
 
-### Manual Emulator Verification (redesign walkthrough)
-Manual verification of the new UI on `Pixel_API_35_Play` (release APK):
+### Manual Emulator Verification
+Manual verification of the v2.1.0 UI on `Pixel_API_35_Play` (release APK):
 - [x] Main empty state — placeholder in result card, action buttons disabled
 - [x] Main with dirty X/Twitter URL — tracking parameters struck through in the input, "Tracking removed and converted" status chip, fixupx.com result, action buttons enabled
 - [x] Share with Instagram URL — same flow layout, struck-through `igsh` parameter, toinstagram.com conversion, proxy row with `Active: … Change.`
 - [x] Dark mode — full palette verified on Main (cards, chips, toggles, FAB, status bar)
-- [x] History bottom sheet — entries with platform labels, copy/share per entry, enable toggle + max entries
-- [x] About dialog — new M3 styling, version 2.0.0, GPL notice
+- [x] Rules library/editor — templates, empty/list states, add/edit/save/back behavior, Test Lab, fixed actions, and navigation insets
+- [x] History bottom sheet — optimized list space, per-entry actions, bottom actions, enable toggle, and header settings action
+- [x] About dialog — M3 styling, version 2.1.0, GPL notice
 - [x] Theme picker in Settings — System/Light/Dark selection persisted and restored (also covered by `ThemePickerTest`)
-- [x] Screenshots for README + F-Droid metadata regenerated from this walkthrough
+- [x] Main, Share, Settings, Rules, Rule Editor, History, and dialogs checked in light/dark themes, 100%/130% font scale, and at 320dp width
 
 ## Detailed Test Results by Feature
 
-### 0. Redesign: UI State & Theming (NEW in v2.0.0) [x]
-**Test Files**: `MainViewModelTest.kt`, `ShareViewModelTest.kt`, `ResultStatusTest.kt`, `UrlDiffHelperTest.kt`, `ThemePreferenceTest.kt` (unit), `ThemePickerTest.kt`, `MainActivityProxyLabelTest.kt`, `ReleaseTestSuite.kt`, `UrlInputValidationTest.kt` (instrumentation)
-- [x] Result status chip resolves correctly: already clean / cleaned / converted / cleaned+converted (incl. subdomain and lookalike-proxy edge cases)
-- [x] Strikethrough diff marks exactly the removed parameters (set-based comparison, fragment-aware, no substring false positives)
-- [x] Changing the input invalidates a stale result; identical re-input keeps it
-- [x] Toggle/proxy changes during processing queue exactly one reprocess (no overlapping work, no lost updates)
-- [x] Multiple-URL paste vs. invalid input produce distinct error messages; input field cleared, error surfaced via ViewModel
-- [x] Share edge cases: empty intent → error state; `ClipData` fallback; duplicate share text ignored; config change doesn't kill the share context
-- [x] Theme preference persists, survives restarts, falls back to System on corrupt values; picker UI restores the persisted selection
-- [x] History collector cancelled while history is disabled (no UI updates from a disabled feature)
+### 0. Custom URL Rules (NEW in v2.1.0) [x]
+**Test Files**: `UrlPipelineDifferentialTest.kt`, `CustomRuleEngineTest.kt`, `RuleBundleCodecTest.kt`, `CustomRuleRepositoryTest.kt`, `CustomRulesPreferenceTest.kt`, `CustomRuleMigrationTest.kt`, `CustomRulesUiTest.kt`, `CustomRulesPerformanceTest.kt`, `ManifestPrivacyTest.kt`
+- [x] Master-off output matches the frozen pre-rules baseline; raw path/query/fragment tokens remain encoded and ordered
+- [x] All scopes, excludes, phases, contexts, actions, stop-after-match, redirect hops, and invalid-output paths are covered
+- [x] Bundle imports are bounded, validated, atomic, previewed before mutation, and reversible through snapshots
+- [x] Room migration 1→2 preserves history and creates rule/snapshot tables without destructive fallback
+- [x] Rules remain disabled by default; templates correctly replace the empty state; opening an unchanged rule does not trigger a discard prompt
+- [x] A 200-rule snapshot meets the cold/warm processing budget
+- [x] The merged app manifest declares zero permissions
+
+### 0b. UI State & Theming Regression [x]
+Existing `MainViewModelTest`, `ShareViewModelTest`, `ResultStatusTest`, `UrlDiffHelperTest`, `ThemePreferenceTest`, `ThemePickerTest`, accessibility, responsive-layout, and touch-target suites remain green after the pipeline and visual changes.
 
 ### 1. TikTok Conversion + Proxy Picker (v1.7.0) [x]
 **Test Files**: `TikTokProxySelectionTest.kt` (unit), `CustomTikTokProxyTest.kt` (unit), `TikTokProxyPreferenceTest.kt` (instrumentation), `BidirectionalConversionTest.kt` (instrumentation)
@@ -82,7 +84,7 @@ Manual verification of the new UI on `Pixel_API_35_Play` (release APK):
 **Test Files**: `InstagramProxySelectionTest.kt` (unit), `InstagramProxyPreferenceTest.kt`, `MainActivityProxyLabelTest.kt`, `ShareActivityProxyLabelTest.kt`, `CustomProxyDialogTest.kt` — all passing (label assertions updated for the new `Active: … Change.` row and result placeholder).
 
 ### 4. History Feature [x]
-**Test File**: `HistoryDatabaseTest.kt` + `MainActivityHistoryTest.kt` — all cases pass on the new bottom-sheet UI (entry tap reload, delete with undo, enable/disable collector behaviour).
+**Test File**: `HistoryDatabaseTest.kt` + `MainActivityHistoryTest.kt` + `SettingsTest.kt` — entry reload, copy/share/delete, clear all, enable/disable behavior, header max-entry settings, and empty/list states pass on the optimized bottom sheet.
 
 ### 5. Share Activity [x]
 **Test Files**: `ShareActivityTest.kt`, `ShareActivityProxyLabelTest.kt`, `ShareActivityNoDuplicatesTest.kt` — all pass on the new flow layout.
@@ -100,7 +102,7 @@ Manual verification of the new UI on `Pixel_API_35_Play` (release APK):
 **Test Files**: `UrlValidationImprovementsTest.kt`, `UrlInputValidationTest.kt` — all security and validation tests pass (error-message assertions updated for reason-aware messages).
 
 ### 10-18. UI / Platform Suites [x]
-`AccessibilityTest`, `ResponsiveDesignTest`, `TouchTargetTest`, `KeyboardNavigationTest`, `OfflinePerformanceTest`, `ApiCompatibilityTest`, `ReleaseTestSuite`, `SmartFooterTest`, `BrowserAliasIntentResolutionTest`, `SettingsTest`, `ThemePickerTest` (new) — all pass on the redesigned UI.
+`AccessibilityTest`, `ResponsiveDesignTest`, `TouchTargetTest`, `KeyboardNavigationTest`, `OfflinePerformanceTest`, `ApiCompatibilityTest`, `ReleaseTestSuite`, `SmartFooterTest`, `BrowserAliasIntentResolutionTest`, `SettingsTest`, `ThemePickerTest`, and `CustomRulesUiTest` — all pass on the v2.1.0 UI.
 
 ## Coverage Analysis
 
@@ -113,6 +115,7 @@ Manual verification of the new UI on `Pixel_API_35_Play` (release APK):
 - **Bidirectional Conversions**: 100%
 - **Browser Mode**: 100% (Google variant)
 - **History Management**: 100%
+- **Custom URL Rules**: 100% — engine, storage, migration, import/export, UI, performance, and privacy regression coverage
 - **Input Validation**: 100%
 - **Settings/Preferences**: 100%
 - **Share Functionality**: 100%
@@ -124,16 +127,16 @@ Manual verification of the new UI on `Pixel_API_35_Play` (release APK):
 - **TikTok + active proxies (tnktok.com / tfxktok.com / tiktokez.com / kktiktok.com) + custom proxies + legacy (vxtiktok.com / tiktxk.com)**: [x] Complete
 
 ## GITHUB (F-Droid) Variant
-- Source parity: all v2.0.0 source changes are fully synced into the GITHUB tree; only the standing intentional differences remain (`dependenciesInfo = false`, Linux JDK paths, F-Droid metadata).
+- Source parity: all v2.1.0 source changes are synced into the GITHUB tree; only the standing intentional differences remain (`dependenciesInfo = false`, Linux JDK paths, F-Droid metadata).
 - Instrumentation tests: run from the root tree on Windows (see above); F-Droid CI builds from the tag on Linux.
 
 ## Known Issues
-- None blocking for v2.0.0 release.
-- The `Change.` proxy text links use a deliberate compact (~31dp) touch target instead of the 48dp guideline — a design trade-off approved during review to keep the toggle cards compact.
+- None blocking for v2.1.0 release.
 
 ## Performance Observations
-- Unit suite: ~1m 45s (both variants)
-- Instrumentation suite: ~7m 25s on the Pixel API 35 emulator
+- Unit suite and release lint pass with no failures/errors
+- Final instrumentation suite: 7m 55s on the Pixel API 35 emulator
+- UI responsiveness and the dedicated 200-rule cold/warm performance budgets pass
 - No memory leaks or ANRs detected
 
 ## Security Testing
@@ -145,10 +148,13 @@ Manual verification of the new UI on `Pixel_API_35_Play` (release APK):
 - [x] Custom proxy input validated (format, reserved-domain, duplicates) for BOTH rosters — a custom TikTok entry cannot hijack Instagram/Twitter/Facebook detection and vice versa
 - [x] Stored proxy preferences validated against unknown values (fall back to default)
 - [x] Stored theme preference validated against unknown values (falls back to System)
+- [x] User regexes compile only through RE2/J with bounded program size and no Java-regex fallback
+- [x] Rule output, redirect hops, bundle size/counts, and raw URL structure are validated
+- [x] Merged-manifest test enforces zero declared permissions
 
 ## Conclusion
 **Production Readiness: YES** [x]
 
-FixupXer v2.0.0 passes 252/252 unit tests and 190/190 instrumentation tests on `Pixel_API_35_Play`. The complete UI redesign (before/after flow, dark mode, theme picker) and the accompanying production-hardening pass are covered by five new unit suites, a new instrumentation suite, updated assertions across the existing UI suites, and a manual emulator walkthrough of every main screen in both light and dark themes.
+FixupXer v2.1.0 passes 273/273 unit tests and 194/194 instrumentation tests on `Pixel_API_35_Play`. The custom-rule pipeline, local persistence, migration, portable bundles, Test Lab, privacy guarantees, and consolidated Material 3 UI are covered by automated regression tests and a full manual visual walkthrough.
 
 **The app is ready for production deployment.**

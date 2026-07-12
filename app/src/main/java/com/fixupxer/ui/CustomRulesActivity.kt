@@ -162,7 +162,7 @@ class CustomRulesActivity : BaseActivity() {
                 launch {
                     viewModel.rules.collectLatest { rules ->
                         adapter.submitRules(rules)
-                        binding.textEmpty.isVisible = rules.isEmpty()
+                        binding.emptyState.isVisible = rules.isEmpty()
                         binding.recyclerRules.isVisible = rules.isNotEmpty()
                         val enabledCount = rules.count { it.enabled }
                         binding.textRuleCount.text = resources.getQuantityString(

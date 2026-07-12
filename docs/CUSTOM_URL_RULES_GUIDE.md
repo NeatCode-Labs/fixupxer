@@ -503,11 +503,39 @@ Result: https://other.example/read?newsletter_id=weekly
 Trace:  POST_CLEAN: Remove example.com newsletter tags — SCOPE_MISS
 ```
 
+## Start quickly with Templates
+
+The large **Templates** button adds ready-made example rules to **Your rule
+library**. It is useful when you want working rules immediately or want to
+learn by opening and editing complete examples instead of starting with an
+empty editor.
+
+Tap **Templates**, then choose one of these bundled sets:
+
+- **Privacy basics** adds two rules that remove common `utm_*` campaign
+  parameters and click identifiers such as `fbclid`, `gclid`, and `msclkid`.
+- **Offline redirect wrappers** adds two rules that extract the real
+  destination from Facebook and LinkedIn outbound redirect links.
+
+The selected rules appear in the library as ordinary editable rules. You can
+tap them to inspect their scope and action, test them in Test Lab, disable
+them, reorder them, duplicate them, or delete them. Choosing the same set
+again does not create duplicate copies; the import result reports how many
+rules were added or skipped.
+
+Templates are stored and processed entirely offline. If the master **Enable
+custom rules** switch in Settings is off, the template rules remain saved but
+do not run until you enable it.
+
+> **Templates** is a library of ready-made rules. It is different from the
+> **Template rewrite** action, which builds a new URL from placeholders inside
+> one rule.
+
 ## Manage rules
 
 - Tap a rule to edit, duplicate, or delete it.
 - Use the row switch to disable a rule without deleting it.
-- Use **Templates** to add the bundled privacy or redirect-wrapper examples.
+- Use **Templates** to add the bundled examples described above.
 - Use **Delete all rules** only when you no longer need any saved rule.
 
 The current limits are 200 rules, 100 host/parameter entries per relevant

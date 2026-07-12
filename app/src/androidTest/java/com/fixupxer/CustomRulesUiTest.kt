@@ -25,6 +25,8 @@ import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.isNotChecked
+import androidx.test.espresso.matcher.ViewMatchers.Visibility
+import androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -66,6 +68,14 @@ class CustomRulesUiTest {
                 .perform(swipeUp(), swipeUp(), swipeUp(), swipeUp(), swipeUp())
             onView(withId(R.id.buttonSave)).perform(click())
             onView(withText("Instrumentation rule")).check(matches(isDisplayed()))
+            onView(withId(R.id.buttonClear)).perform(click())
+            onView(withText(R.string.custom_rules_clear)).perform(click())
+            onView(withId(R.id.emptyState)).check(matches(isDisplayed()))
+            onView(withId(R.id.buttonTemplates)).perform(click())
+            onView(withText(R.string.custom_rules_template_privacy)).perform(click())
+            onView(withId(R.id.emptyState))
+                .check(matches(withEffectiveVisibility(Visibility.GONE)))
+            onView(withId(R.id.recyclerRules)).check(matches(isDisplayed()))
             onView(withId(R.id.buttonClear)).perform(click())
             onView(withText(R.string.custom_rules_clear)).perform(click())
         }

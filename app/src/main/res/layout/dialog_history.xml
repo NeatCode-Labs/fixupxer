@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
+    android:background="@drawable/bg_bottom_sheet_surface"
     android:orientation="vertical"
     android:paddingStart="@dimen/padding_medium"
     android:paddingEnd="@dimen/padding_medium">
@@ -89,6 +89,7 @@
                 android:textColor="?attr/colorOnSurface" />
 
             <com.google.android.material.divider.MaterialDivider
+                android:id="@+id/maxEntriesDivider"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="@dimen/margin_small" />
@@ -155,20 +156,10 @@
         android:padding="@dimen/padding_large"
         android:visibility="gone">
 
-        <ImageView
-            android:layout_width="@dimen/flow_node_size"
-            android:layout_height="@dimen/flow_node_size"
-            android:background="@drawable/bg_flow_node_in"
-            android:contentDescription="@null"
-            android:padding="@dimen/flow_node_padding"
-            android:src="@drawable/ic_history"
-            app:tint="?attr/colorOnSurfaceVariant" />
-
         <TextView
             android:id="@+id/textViewEmptyTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_medium"
             android:gravity="center"
             android:text="@string/no_history"
             android:textAppearance="@style/TextAppearance.Material3.TitleMedium"

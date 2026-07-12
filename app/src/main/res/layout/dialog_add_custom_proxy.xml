@@ -11,7 +11,8 @@
     android:layout_marginEnd="@dimen/custom_proxy_dialog_margin_horizontal"
     android:layout_marginTop="@dimen/custom_proxy_dialog_margin_top"
     android:hint="@string/instagram_proxy_add_hint"
-    app:errorEnabled="true">
+    app:errorEnabled="true"
+    app:helperText="@string/instagram_proxy_add_example">
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/customProxyInput"

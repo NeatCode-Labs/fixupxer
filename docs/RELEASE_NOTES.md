@@ -39,6 +39,8 @@ redirect targets, or rewrite URL components with templates.
 - Conversion History now has a modern full-height bottom sheet, clearer empty
   states, before/after cards, visible copy/share/delete actions, and refreshed
   on-device history controls.
+- A full-app visual pass aligns Settings and dialogs, preserves 48dp touch
+  targets, and keeps fixed actions readable at 320dp width with 130% font scaling.
 
 ### Privacy, Safety, and Compatibility
 - User regex uses linear-time RE2/J only; unsupported backreferences/lookaround

@@ -15,45 +15,20 @@
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
+        android:background="?attr/colorSurface"
         android:stateListAnimator="@null"
         android:outlineProvider="none"
         app:liftOnScroll="false"
-        app:liftOnScrollColor="@android:color/transparent"
+        app:liftOnScrollColor="?attr/colorSurface"
         app:elevation="0dp">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="@android:color/transparent"
-                android:theme="@style/ThemeOverlay.Material3.ActionBar"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/titleTextView"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/padding_large"
-                android:layout_marginEnd="@dimen/padding_large"
-                
-                android:text="@string/settings_title"
-                android:textAlignment="center"
-                android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-                android:textColor="?attr/colorPrimary"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="@id/toolbar"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@id/toolbar" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            android:layout_height="wrap_content"
+            app:title="@string/settings_title"
+            app:titleCentered="true"
+            app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -75,7 +50,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/padding_medium"
-                app:cardCornerRadius="@dimen/card_corner_radius">
+                app:cardCornerRadius="@dimen/flow_card_radius">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -104,6 +79,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:paddingStart="@dimen/padding_small"
+                            android:paddingEnd="@dimen/padding_small"
                             android:text="@string/theme_system" />
 
                         <com.google.android.material.button.MaterialButton
@@ -112,6 +89,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:paddingStart="@dimen/padding_small"
+                            android:paddingEnd="@dimen/padding_small"
                             android:text="@string/theme_light" />
 
                         <com.google.android.material.button.MaterialButton
@@ -120,6 +99,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:paddingStart="@dimen/padding_small"
+                            android:paddingEnd="@dimen/padding_small"
                             android:text="@string/theme_dark" />
 
                     </com.google.android.material.button.MaterialButtonToggleGroup>
@@ -133,7 +114,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/padding_medium"
-                app:cardCornerRadius="@dimen/card_corner_radius">
+                app:cardCornerRadius="@dimen/flow_card_radius">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -183,7 +164,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/padding_medium"
-                app:cardCornerRadius="@dimen/card_corner_radius">
+                app:cardCornerRadius="@dimen/flow_card_radius">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -223,7 +204,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/padding_medium"
-                app:cardCornerRadius="@dimen/card_corner_radius">
+                app:cardCornerRadius="@dimen/flow_card_radius">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -283,7 +264,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="gone"
-                app:cardCornerRadius="@dimen/card_corner_radius">
+                app:cardCornerRadius="@dimen/flow_card_radius">
 
                 <LinearLayout
                     android:layout_width="match_parent"

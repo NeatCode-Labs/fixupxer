@@ -165,6 +165,7 @@ class HistoryDialogHelper(
     
     private fun updateHistoryVisibility(enabled: Boolean) {
         binding.maxEntriesContainer.visibility = if (enabled) View.VISIBLE else View.GONE
+        binding.maxEntriesDivider.visibility = if (enabled) View.VISIBLE else View.GONE
         
         if (!enabled) {
             // Stop collecting: a later Room emission (delete, undo, …) must not

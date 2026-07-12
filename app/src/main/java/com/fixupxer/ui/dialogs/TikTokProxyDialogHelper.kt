@@ -284,9 +284,8 @@ object TikTokProxyDialogHelper {
     private fun buildBadgedLabel(context: Context, domain: String, badgeRes: Int): CharSequence {
         val builder = SpannableStringBuilder()
         builder.append(domain)
-        builder.append("  ")
+        builder.append("\n")
         val badgeStart = builder.length
-        builder.append("· ")
         builder.append(context.getString(badgeRes))
         // Smaller + italic badge
         builder.setSpan(RelativeSizeSpan(0.85f), badgeStart, builder.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)

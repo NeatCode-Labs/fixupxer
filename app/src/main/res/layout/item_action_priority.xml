@@ -9,11 +9,12 @@
     
     <ImageView
         android:id="@+id/imageViewDragHandle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/min_touch_target_size"
+        android:layout_height="@dimen/min_touch_target_size"
+        android:padding="@dimen/icon_button_padding"
         android:src="@drawable/ic_drag_handle"
         android:contentDescription="@string/drag_handle_description"
-        android:layout_marginEnd="@dimen/padding_medium"
+        android:layout_marginEnd="@dimen/padding_small"
         app:tint="?attr/colorOnSurfaceVariant" />
     
     <TextView

@@ -3,7 +3,7 @@
 ## Executive Summary
 **STATUS: [x] PRODUCTION READY**
 
-FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation verification and is ready as a signed release candidate for physical-device testing. This release adds the complete offline custom URL rule system, external GitHub How-to guides, and a consolidated Material 3 redesign of Rules and History.
+FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation verification and is ready as a signed release candidate for physical-device testing. This release adds the complete offline custom URL rule system, external GitHub How-to guides, and consolidated Material 3 polish across the full app.
 
 ## Build Information
 - **Version**: v2.1.0 (versionCode: 35)
@@ -24,8 +24,8 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 ### Build Verification [x]
 - **Clean Build**: SUCCESS - `assembleRelease` completes signed build
 - **Unit Tests**: SUCCESS - 273/273 tests passed (100%), including default-off preferences, differential, engine, codec, repository and fuzz/idempotence coverage.
-- **Android Tests**: SUCCESS — **194/194 instrumentation tests pass** on `Pixel_API_35_Play` (`connectedDebugAndroidTest`, 7m 34s).
-- **Visual Verification**: SUCCESS — Rules and History verified on API 35 with flat Extended FABs, navigation-safe actions, grouped M3 cards, exposed dropdowns, modern empty states and visible history actions.
+- **Android Tests**: SUCCESS — **194/194 instrumentation tests pass** on `Pixel_API_35_Play` (`connectedDebugAndroidTest`, 7m 37s).
+- **Visual Verification**: SUCCESS — Main, Share, Settings, Rules, Rule Editor, History and all app dialogs were manually verified in light/dark themes, at 100%/130% font scale and down to 320dp width. Insets, fixed actions, card alignment, proxy labels and empty/list states remain readable without control overlap.
 - **ProGuard/R8**: SUCCESS - Release build with obfuscation completed
 - **APK Size**: 3.92 MiB signed release candidate
 - **AAB Build**: pending the post-physical-test release pipeline
@@ -73,7 +73,7 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 - **Total Tests**: 467 (273 unit + 194 instrumentation).
 - **Pass Rate**: 100% (273/273 unit + 194/194 instrumentation on `Pixel_API_35_Play`)
 - **New test areas in v2.1.0**: default-off custom-rule preferences, frozen differential corpus, raw query/action matrix, redirect hop protection, bundle assets/round-trip, atomic import/rollback, Room migration, no-code UI, 200-rule performance and merged-manifest privacy.
-- **Instrumentation Time**: 7m 34s for the full suite
+- **Instrumentation Time**: 7m 37s for the full suite
 - **Lint Issues**: 0 errors on release variant (`lintRelease` clean)
 
 ### Performance Metrics
@@ -116,9 +116,9 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, and full emulator instrumentation 
 
 ### Accessibility & UX [x]
 - **Screen Readers**: Full accessibility support (content descriptions, live regions on status chip)
-- **Touch Targets**: All primary controls meet the 48dp minimum; secondary `Change.` text links use a deliberate compact (~31dp) target approved during design review
+- **Touch Targets**: All interactive controls, including drag handles, proxy delete actions and `Change.` links, meet the 48dp minimum
 - **Color Contrast**: Meets WCAG guidelines in both light and dark themes
-- **Responsive Design**: Works across all screen sizes (sw320dp/sw600dp dimension sets; SmartFooterHelper re-anchoring on small screens)
+- **Responsive Design**: Verified at 320dp width with 130% font scaling and at the normal phone profile; fixed actions, footers and list content remain navigation-safe
 
 ### Performance & Stability [x]
 - **Memory Management**: No leaks detected during testing

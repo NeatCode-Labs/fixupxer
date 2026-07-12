@@ -37,7 +37,7 @@
     <string name="history_disabled_title">History is off</string>
     <string name="history_disabled_description">Enable history above to save processed links on this device.</string>
     <string name="history_delete_content_desc">Delete history entry</string>
-    <string name="clear_all">Clear All</string>
+    <string name="clear_all">Clear all</string>
     <string name="platform_label">• %s</string>
     <string name="clear_history_confirm">Clear all history?</string>
     <string name="history_cleared">History cleared</string>
@@ -69,7 +69,8 @@
     <string name="instagram_proxy_info_content_desc">More info about Instagram proxies</string>
     <string name="instagram_proxy_add_custom">Add custom proxy…</string>
     <string name="instagram_proxy_add_dialog_title">Add custom proxy</string>
-    <string name="instagram_proxy_add_hint">Proxy domain (e.g. myproxy.com)</string>
+    <string name="instagram_proxy_add_hint">Proxy domain</string>
+    <string name="instagram_proxy_add_example">Example: myproxy.com</string>
     <string name="instagram_proxy_error_invalid_domain">Enter a valid domain, e.g. myproxy.com</string>
     <string name="instagram_proxy_error_reserved_domain">This domain is already known to the app and can\'t be used as a custom proxy</string>
     <string name="instagram_proxy_error_duplicate">This proxy is already in the list</string>
@@ -133,7 +134,7 @@
     <!-- Donate dialog -->
     <string name="donate_message">If you find FixupXer useful, please consider supporting its development. Your donation helps maintain and improve the app.</string>
     <string name="donate_message_monero">Monero (click to copy address)</string>
-    <string name="maybe_later">Maybe Later</string>
+    <string name="maybe_later">Maybe later</string>
     <string name="monero_address" translatable="false" tools:ignore="Typos">48xHkJEcebJMeKfKKiWoqhmHQSrdpkRwzRPoYGNv5bP9LkQRc5pBd5UBMngF84DFEgHBPM1JupPjrbp3XMk7XJMW8sd9qfB</string>
     <string name="donate_dialog_title">Support Development</string>
     <string name="donate_dialog_positive">Donate</string>
@@ -225,7 +226,7 @@
     
     <!-- Additional missing strings -->
     <string name="conversion_defaults">Conversion defaults</string>
-    <string name="conversion_defaults_title">Browser Conversion Settings</string>
+    <string name="conversion_defaults_title">Browser conversion settings</string>
     <string name="action_priority_instructions">Drag items to reorder action priority. FixupXer will attempt actions from top to bottom until one succeeds.</string>
     <string name="conversion_defaults_explanation">When acting as a browser, configure which social media platforms should be converted to alternative domains. These settings are separate from the main app conversion toggles.</string>
     <string name="conversion_defaults_browser_note">These defaults apply only to Browser mode links. For manual cleaning, use the toggles on the main screen.</string>
@@ -241,7 +242,10 @@
     <string name="custom_rules_description">Create offline rules for removing parameters and rewriting URLs.</string>
     <string name="custom_rules_manage">Manage custom rules</string>
     <string name="custom_rules_enabled">Enable custom rules</string>
-    <string name="custom_rules_count">%1$d active rules</string>
+    <plurals name="custom_rules_count">
+        <item quantity="one">%1$d enabled rule</item>
+        <item quantity="other">%1$d enabled rules</item>
+    </plurals>
     <string name="custom_rules_empty">No custom rules yet</string>
     <string name="custom_rules_empty_description">Create a rule from scratch or start with a ready-made template.</string>
     <string name="custom_rules_library">Your rule library</string>
@@ -291,7 +295,10 @@
     <string name="custom_rule_scope_list">Host list</string>
     <string name="custom_rule_scope_regex">URL regex</string>
     <string name="custom_rule_scope_value">Host, host list, or regex</string>
-    <string name="custom_rule_excludes">Exclude scopes (one host or regex per line)</string>
+    <string name="custom_rule_scope_host_value">Host</string>
+    <string name="custom_rule_scope_hosts_value">Hosts (one per line)</string>
+    <string name="custom_rule_scope_regex_value">URL regex</string>
+    <string name="custom_rule_excludes">Exclude scopes</string>
     <string name="custom_rule_action">Action</string>
     <string name="custom_rule_action_remove_all">Remove all parameters</string>
     <string name="custom_rule_action_remove_named">Remove named parameters</string>
@@ -299,7 +306,11 @@
     <string name="custom_rule_action_regex">Regex search and replace</string>
     <string name="custom_rule_action_redirect">Extract redirect parameter</string>
     <string name="custom_rule_action_template">Template rewrite</string>
-    <string name="custom_rule_action_value">Parameter names, pattern, redirect name, or template</string>
+    <string name="custom_rule_action_value">Action value</string>
+    <string name="custom_rule_action_parameters_value">Parameter names (one per line)</string>
+    <string name="custom_rule_action_regex_value">Regex pattern</string>
+    <string name="custom_rule_action_redirect_value">Redirect parameter name</string>
+    <string name="custom_rule_action_template_value">Rewrite template</string>
     <string name="custom_rule_replacement">Regex replacement</string>
     <string name="custom_rule_redirect_decode_mode">Redirect decode mode</string>
     <string name="custom_rule_ignore_case">Ignore case</string>

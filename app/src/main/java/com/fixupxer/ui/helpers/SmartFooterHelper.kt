@@ -87,7 +87,7 @@ object SmartFooterHelper {
                     scrollViewParams.bottomMargin = 0
 
                     if (footer.parent == parentLayout) {
-                        anchorFabToParentBottom(parentLayout, rootView)
+                        anchorFabToParentBottom(parentLayout, rootView, footer)
                         parentLayout.removeView(footer)
                         val scrollContent = scrollView.getChildAt(0) as? LinearLayout
 
@@ -131,7 +131,11 @@ object SmartFooterHelper {
     }
 
     /** Pins the History FAB to the parent bottom (nav-bar aware) before the footer leaves. */
-    private fun anchorFabToParentBottom(parentLayout: ConstraintLayout, rootView: View) {
+    private fun anchorFabToParentBottom(
+        parentLayout: ConstraintLayout,
+        rootView: View,
+        footer: TextView
+    ) {
         val fab = parentLayout.findViewById<View>(R.id.buttonHistory) ?: return
         val params = fab.layoutParams as ConstraintLayout.LayoutParams
         params.bottomToTop = ConstraintLayout.LayoutParams.UNSET
@@ -141,6 +145,13 @@ object SmartFooterHelper {
         params.bottomMargin =
             parentLayout.resources.getDimensionPixelSize(R.dimen.margin_medium) + navBarInset
         fab.layoutParams = params
+        ViewCompat.setPaddingRelative(
+            footer,
+            ViewCompat.getPaddingStart(footer),
+            footer.paddingTop,
+            fab.width + parentLayout.resources.getDimensionPixelSize(R.dimen.margin_medium),
+            footer.paddingBottom
+        )
     }
 
     /** Restores the History FAB anchor above the footer once it is back in the layout. */
@@ -151,5 +162,12 @@ object SmartFooterHelper {
         params.bottomToTop = footer.id
         params.bottomMargin = parentLayout.resources.getDimensionPixelSize(R.dimen.margin_small)
         fab.layoutParams = params
+        ViewCompat.setPaddingRelative(
+            footer,
+            ViewCompat.getPaddingStart(footer),
+            footer.paddingTop,
+            0,
+            footer.paddingBottom
+        )
     }
 }

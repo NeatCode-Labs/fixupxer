@@ -265,7 +265,7 @@ class SettingsTest {
         onView(isRoot()).perform(waitFor(1000))
         
         // Verify dialog is shown
-        onView(withText("Browser Conversion Settings"))
+        onView(withText(R.string.conversion_defaults_title))
             .inRoot(isDialog())
             .check(matches(isDisplayed()))
         
@@ -329,7 +329,7 @@ class SettingsTest {
             .perform(click())
         
         // Verify dialog is dismissed
-        onView(withText("Browser Conversion Settings"))
+        onView(withText(R.string.conversion_defaults_title))
             .check(doesNotExist())
         
         // Reopen dialog to verify changes were saved
@@ -382,7 +382,7 @@ class SettingsTest {
             .perform(click())
         
         // Verify dialog is dismissed
-        onView(withText("Browser Conversion Settings"))
+        onView(withText(R.string.conversion_defaults_title))
             .check(doesNotExist())
         
         // Reopen dialog

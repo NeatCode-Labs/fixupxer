@@ -124,26 +124,28 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/textRuleTools">
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonTemplates"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:text="@string/custom_rules_templates" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonTemplates"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/custom_rules_templates" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonImport"
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/margin_small"
                     android:layout_weight="1"
+                    android:maxLines="1"
                     android:text="@string/custom_rules_import" />
 
                 <com.google.android.material.button.MaterialButton
@@ -153,12 +155,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/margin_small"
                     android:layout_weight="1"
+                    android:maxLines="1"
                     android:text="@string/custom_rules_export" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_extra_small"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -189,25 +193,15 @@
             android:gravity="center"
             android:orientation="vertical"
             android:padding="@dimen/padding_large"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/buttonAddRule"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/ruleToolsContainer">
-
-            <ImageView
-                android:layout_width="@dimen/flow_node_size"
-                android:layout_height="@dimen/flow_node_size"
-                android:background="@drawable/bg_flow_node_in"
-                android:contentDescription="@null"
-                android:padding="@dimen/flow_node_padding"
-                android:src="@drawable/ic_process"
-                app:tint="?attr/colorOnSurfaceVariant" />
 
             <TextView
                 android:id="@+id/textEmpty"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_medium"
                 android:gravity="center"
                 android:text="@string/custom_rules_empty"
                 android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
@@ -229,25 +223,28 @@
             android:layout_height="0dp"
             android:clipToPadding="false"
             android:paddingTop="@dimen/padding_small"
-            android:paddingBottom="@dimen/scroll_bottom_padding"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:paddingBottom="@dimen/padding_small"
             android:scrollbars="vertical"
             android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/buttonAddRule"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/ruleToolsContainer"
             tools:listitem="@layout/item_custom_rule" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/buttonAddRule"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/padding_large"
-        android:stateListAnimator="@null"
-        android:text="@string/custom_rules_add"
-        app:elevation="0dp"
-        app:icon="@drawable/ic_add" />
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/buttonAddRule"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/padding_large"
+            android:layout_marginBottom="@dimen/padding_large"
+            android:stateListAnimator="@null"
+            android:text="@string/custom_rules_add"
+            app:elevation="0dp"
+            app:icon="@drawable/ic_add"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

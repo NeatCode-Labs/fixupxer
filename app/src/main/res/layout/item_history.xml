@@ -116,13 +116,17 @@
 
             <TextView
                 android:id="@+id/textViewPlatform"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:visibility="gone"
                 tools:text="Twitter" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
             <ImageButton
                 android:id="@+id/buttonCopy"

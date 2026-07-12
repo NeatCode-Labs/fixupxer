@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Dialog paddings -->
-    <dimen name="dialog_text_padding_horizontal">50dp</dimen>
-    <dimen name="dialog_text_padding_vertical">30dp</dimen>
+    <dimen name="dialog_text_padding_horizontal">24dp</dimen>
+    <dimen name="dialog_text_padding_vertical">16dp</dimen>
     
     <!-- General paddings -->
     <dimen name="padding_small">8dp</dimen>
@@ -36,7 +36,7 @@
     
     <!-- Proxy picker dialog -->
     <dimen name="proxy_option_padding_horizontal">20dp</dimen>
-    <dimen name="proxy_option_icon_size">40dp</dimen>
+    <dimen name="proxy_option_icon_size">48dp</dimen>
     <dimen name="proxy_option_text_margin_start">12dp</dimen>
     <dimen name="custom_proxy_dialog_margin_horizontal">20dp</dimen>
     <dimen name="custom_proxy_dialog_margin_top">8dp</dimen>
@@ -72,6 +72,7 @@
     <dimen name="dialog_max_height">400dp</dimen>
     <dimen name="dialog_min_height">200dp</dimen>
     <dimen name="dialog_empty_state_height">200dp</dimen>
+    <dimen name="bottom_sheet_corner_radius">28dp</dimen>
     
     <!-- Toggle layout dimensions -->
     <dimen name="toggle_margin_top">12dp</dimen>

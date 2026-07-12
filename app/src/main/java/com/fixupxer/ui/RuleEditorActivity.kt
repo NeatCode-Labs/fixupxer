@@ -340,8 +340,23 @@ class RuleEditorActivity : BaseActivity() {
     private fun updateConditionalFields() {
         val scope = selectedIndex(binding.spinnerScope, scopeLabels)
         binding.layoutScopeValue.isVisible = scope != 0
+        binding.layoutScopeValue.hint = getString(
+            when (scope) {
+                1, 2 -> R.string.custom_rule_scope_host_value
+                3 -> R.string.custom_rule_scope_hosts_value
+                else -> R.string.custom_rule_scope_regex_value
+            }
+        )
         val action = selectedIndex(binding.spinnerAction, actionLabels)
         binding.layoutActionValue.isVisible = action != 0
+        binding.layoutActionValue.hint = getString(
+            when (action) {
+                1, 2 -> R.string.custom_rule_action_parameters_value
+                3 -> R.string.custom_rule_action_regex_value
+                4 -> R.string.custom_rule_action_redirect_value
+                else -> R.string.custom_rule_action_template_value
+            }
+        )
         binding.layoutReplacement.isVisible = action == 3
         binding.checkReplaceAll.isVisible = action == 3
         binding.layoutDecodeMode.isVisible = action == 4

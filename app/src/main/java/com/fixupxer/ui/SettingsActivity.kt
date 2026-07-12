@@ -67,12 +67,7 @@ class SettingsActivity : BaseActivity() {
         setContentView(binding.root)
         
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setDisplayShowTitleEnabled(false)
-        }
-        
-        setAppTitle(binding.titleTextView)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         
         setupViews()
         loadSettings()
@@ -178,9 +173,11 @@ class SettingsActivity : BaseActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     customRulesViewModel.rules.collect { rules ->
-                        binding.textCustomRulesCount.text = getString(
-                            R.string.custom_rules_count,
-                            rules.count { it.enabled }
+                        val enabledCount = rules.count { it.enabled }
+                        binding.textCustomRulesCount.text = resources.getQuantityString(
+                            R.plurals.custom_rules_count,
+                            enabledCount,
+                            enabledCount
                         )
                     }
                 }

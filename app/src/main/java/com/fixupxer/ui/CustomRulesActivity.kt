@@ -164,9 +164,11 @@ class CustomRulesActivity : BaseActivity() {
                         adapter.submitRules(rules)
                         binding.textEmpty.isVisible = rules.isEmpty()
                         binding.recyclerRules.isVisible = rules.isNotEmpty()
-                        binding.textRuleCount.text = getString(
-                            R.string.custom_rules_count,
-                            rules.count { it.enabled }
+                        val enabledCount = rules.count { it.enabled }
+                        binding.textRuleCount.text = resources.getQuantityString(
+                            R.plurals.custom_rules_count,
+                            enabledCount,
+                            enabledCount
                         )
                     }
                 }

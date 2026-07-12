@@ -117,21 +117,8 @@ abstract class BaseActivity : AppCompatActivity() {
                 )
             }
 
-            // Keep the Custom Rules list and its add button clear of gesture and
-            // three-button navigation bars on every supported Android version.
-            val rulesList = view.findViewById<androidx.recyclerview.widget.RecyclerView>(
-                R.id.recyclerRules
-            )
-            if (rulesList != null) {
-                rulesList.setPadding(
-                    rulesList.paddingLeft,
-                    rulesList.paddingTop,
-                    rulesList.paddingRight,
-                    insets.bottom + resources.getDimensionPixelSize(
-                        R.dimen.scroll_bottom_padding
-                    )
-                )
-            }
+            // Keep the Custom Rules add button clear of gesture and three-button
+            // navigation bars. The list is constrained above the button.
             val addRuleButton = view.findViewById<View>(R.id.buttonAddRule)
             val addRuleLayoutParams =
                 addRuleButton?.layoutParams as? android.view.ViewGroup.MarginLayoutParams

@@ -365,7 +365,7 @@ class RuleEditorActivity : BaseActivity() {
     }
 
     private fun confirmDiscard() {
-        if (saved || binding.editName.text.isNullOrBlank()) {
+        if (saved || !hasUnsavedChanges()) {
             finish()
             return
         }
@@ -374,6 +374,13 @@ class RuleEditorActivity : BaseActivity() {
             .setPositiveButton(R.string.discard) { _, _ -> finish() }
             .setNegativeButton(R.string.cancel, null)
             .show()
+    }
+
+    private fun hasUnsavedChanges(): Boolean {
+        val initial = original ?: return !binding.editName.text.isNullOrBlank()
+        return runCatching {
+            buildRule().copy(updatedAt = initial.updatedAt) != initial
+        }.getOrDefault(true)
     }
 
     private fun showValidationError(error: Throwable) {

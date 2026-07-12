@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.replaceText
@@ -76,6 +77,12 @@ class CustomRulesUiTest {
             onView(withId(R.id.emptyState))
                 .check(matches(withEffectiveVisibility(Visibility.GONE)))
             onView(withId(R.id.recyclerRules)).check(matches(isDisplayed()))
+            onView(withText("Remove common campaign parameters")).perform(click())
+            onView(withId(R.id.editName))
+                .check(matches(withText("Remove common campaign parameters")))
+            pressBack()
+            onView(withText(R.string.custom_rule_unsaved_changes)).check(doesNotExist())
+            onView(withId(R.id.buttonTemplates)).check(matches(isDisplayed()))
             onView(withId(R.id.buttonClear)).perform(click())
             onView(withText(R.string.custom_rules_clear)).perform(click())
         }

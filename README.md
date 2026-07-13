@@ -16,6 +16,7 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.fixupxer"><img src="https://img.shields.io/badge/Google%20Play-Download-414141?style=for-the-badge&amp;logo=google-play" alt="Download from Google Play"></a>
   <a href="https://f-droid.org/packages/com.fixupxer/"><img src="https://img.shields.io/badge/F--Droid-Download-1976D2?style=for-the-badge&amp;logo=f-droid" alt="Download from F-Droid"></a>
+  <a href="https://apt.izzysoft.de/packages/com.fixupxer"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroidButton_nofont.svg" width="150" alt="Download from IzzyOnDroid"></a>
   <a href="https://github.com/NeatCode-Labs/fixupxer/releases/latest"><img src="https://img.shields.io/badge/GitHub-APK-181717?style=for-the-badge&amp;logo=github" alt="Download APK from GitHub"></a>
 </p>
 

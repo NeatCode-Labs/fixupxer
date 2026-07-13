@@ -34,6 +34,9 @@ object Constants {
     const val WEBSITE_URL = "https://neatcodelabs.com/"
     const val GITHUB_URL = "https://github.com/NeatCode-Labs"
     const val GITHUB_REPOSITORY_URL = "$GITHUB_URL/fixupxer"
+    private const val BUG_REPORT_EMAIL_LOCAL_PART = "neatcodelabs"
+    private const val BUG_REPORT_EMAIL_DOMAIN = "gmail.com"
+    val BUG_REPORT_EMAIL = "$BUG_REPORT_EMAIL_LOCAL_PART@$BUG_REPORT_EMAIL_DOMAIN"
     const val BROWSER_MODE_GUIDE_URL =
         "$GITHUB_REPOSITORY_URL/blob/main/docs/BROWSER_MODE_GUIDE.md"
     const val CUSTOM_RULES_GUIDE_URL =

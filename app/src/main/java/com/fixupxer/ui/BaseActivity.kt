@@ -245,7 +245,7 @@ abstract class BaseActivity : AppCompatActivity() {
     protected fun reportBug() {
         try {
             val intent = Intent(Intent.ACTION_SENDTO).apply {
-                data = Uri.parse("mailto:${getString(R.string.bug_report_email)}")
+                data = Uri.parse("mailto:${Constants.BUG_REPORT_EMAIL}")
                 putExtra(Intent.EXTRA_SUBJECT, getString(R.string.bug_report_subject))
             }
             

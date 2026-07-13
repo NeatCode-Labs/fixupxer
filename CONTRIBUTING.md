@@ -123,7 +123,7 @@ Run tests with:
 
 - **Bug Reports**: Use the issue template provided
 - **Feature Requests**: Discuss in discussions first
-- **Security Issues**: Email neatcodelabs@gmail.com privately
+- **Security Issues**: Use [GitHub private vulnerability reporting](https://github.com/NeatCode-Labs/fixupxer/security/advisories/new)
 
 ## 📄 License
 
@@ -133,7 +133,7 @@ By contributing to FixupXer, you agree that your contributions will be licensed 
 
 - **General Questions**: Open a discussion on GitHub
 - **Technical Issues**: Open an issue with the bug template
-- **Direct Contact**: Email neatcodelabs@gmail.com
+- **Project Maintainer**: Contact [@NeatCode-Labs](https://github.com/NeatCode-Labs) through GitHub
 
 ---
 

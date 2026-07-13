@@ -1,6 +1,6 @@
 version = 1
 SPDX-PackageName = "FixupXer"
-SPDX-PackageSupplier = "NeatCode Labs <neatcodelabs@gmail.com>"
+SPDX-PackageSupplier = "Organization: NeatCode Labs"
 SPDX-PackageDownloadLocation = "https://github.com/NeatCode-Labs/fixupxer"
 
 [[annotations]]

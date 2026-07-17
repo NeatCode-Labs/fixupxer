@@ -28,6 +28,8 @@ import com.fixupxer.domain.model.ProcessedUrlResult
 import com.fixupxer.domain.model.ResultStatus
 import com.fixupxer.domain.model.resolveResultStatus
 import com.fixupxer.domain.repository.UrlRepository
+import com.fixupxer.processing.LeakFinding
+import com.fixupxer.processing.LinkLeakAnalyzer
 import com.fixupxer.rules.CustomRuleRepository
 import com.fixupxer.utils.InputValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -93,6 +95,11 @@ class MainViewModel @Inject constructor(
                 _uiState.update { it.copy(isTikTokConversionEnabled = enabled) }
             }
         }
+        viewModelScope.launch {
+            urlRepository.isBlueskyConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isBlueskyConversionEnabled = enabled) }
+            }
+        }
     }
     
     fun onUrlChanged(url: String) {
@@ -100,6 +107,7 @@ class MainViewModel @Inject constructor(
         val isFacebook = url.isNotEmpty() && urlRepository.isFacebookUrl(url)
         val showTwitterToggle = url.isNotEmpty() && urlRepository.isTwitterUrl(url)
         val isTikTok = url.isNotEmpty() && urlRepository.isTikTokUrl(url)
+        val isBluesky = url.isNotEmpty() && urlRepository.isBlueskyUrl(url)
 
         _uiState.update {
             // A result belongs to the exact input snapshot that produced it
@@ -114,10 +122,12 @@ class MainViewModel @Inject constructor(
                 isFacebookUrl = isFacebook,
                 isTwitterUrl = showTwitterToggle,
                 isTikTokUrl = isTikTok,
+                isBlueskyUrl = isBluesky,
                 processedUrl = if (keepResult) it.processedUrl else "",
                 actionUrl = if (keepResult) it.actionUrl else "",
                 processedInputUrl = if (keepResult) it.processedInputUrl else "",
                 resultStatus = if (keepResult) it.resultStatus else null,
+                leakFindings = if (keepResult) it.leakFindings else emptyList(),
                 error = null
             )
         }
@@ -150,6 +160,15 @@ class MainViewModel @Inject constructor(
             reprocessIfResultExists()
         }
     }
+
+    fun onBlueskyConversionToggled(enabled: Boolean) {
+        if (_uiState.value.isBlueskyConversionEnabled == enabled) return
+        viewModelScope.launch {
+            urlRepository.setBlueskyConversionEnabled(enabled)
+            _uiState.update { it.copy(isBlueskyConversionEnabled = enabled) }
+            reprocessIfResultExists()
+        }
+    }
     
     fun processUrl() {
         // Prevent double processing
@@ -166,6 +185,7 @@ class MainViewModel @Inject constructor(
                     actionUrl = "",
                     processedInputUrl = "",
                     resultStatus = null,
+                    leakFindings = emptyList(),
                     error = getApplication<Application>().getString(R.string.error_please_enter_url)
                 )
             }
@@ -173,7 +193,13 @@ class MainViewModel @Inject constructor(
         }
         
         isProcessing = true
-        _uiState.update { it.copy(isLoading = true, error = null) }
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                leakFindings = emptyList(),
+                error = null
+            )
+        }
         
         viewModelScope.launch {
             try {
@@ -188,6 +214,7 @@ class MainViewModel @Inject constructor(
                         actionUrl = "",
                         processedInputUrl = "",
                         resultStatus = null,
+                        leakFindings = emptyList(),
                         error = e.message ?: getApplication<Application>().getString(R.string.error_processing_url), 
                         isLoading = false
                     ) 
@@ -248,6 +275,7 @@ class MainViewModel @Inject constructor(
                         actionUrl = "",
                         processedInputUrl = "",
                         resultStatus = null,
+                        leakFindings = emptyList(),
                         isLoading = false,
                         error = e.message
                             ?: getApplication<Application>().getString(R.string.error_processing_url)
@@ -274,11 +302,13 @@ class MainViewModel @Inject constructor(
                 actionUrl = "",
                 processedInputUrl = "",
                 resultStatus = null,
+                leakFindings = emptyList(),
                 isLoading = false,
                 isInstagramUrl = false,
                 isFacebookUrl = false,
                 isTwitterUrl = false,
                 isTikTokUrl = false,
+                isBlueskyUrl = false,
                 error = null
             )
         }
@@ -303,7 +333,9 @@ class MainViewModel @Inject constructor(
                 isFacebookUrl = false,
                 isTwitterUrl = false,
                 isTikTokUrl = false,
+                isBlueskyUrl = false,
                 resultStatus = null,
+                leakFindings = emptyList(),
                 error = getApplication<Application>().getString(messageRes)
             )
         }
@@ -315,16 +347,57 @@ class MainViewModel @Inject constructor(
         isLoading: Boolean = false
     ) {
         val processedUrl = result.url
-        Timber.d("MainViewModel processUrl result: $inputUrl -> $processedUrl")
+        Timber.d("MainViewModel processed URL (inputLength=${inputUrl.length}, outputLength=${processedUrl.length})")
+        val status = resolveResultStatus(inputUrl, processedUrl)
         _uiState.update {
             it.copy(
                 processedUrl = processedUrl,
                 actionUrl = processedUrl,
                 processedInputUrl = inputUrl,
-                resultStatus = resolveResultStatus(inputUrl, processedUrl),
+                resultStatus = status,
+                leakFindings = result.leakFindings,
                 isLoading = isLoading,
                 error = null
             )
+        }
+    }
+
+    /**
+     * Removes only raw query tokens selected by the Link Guard, then re-analyzes
+     * the in-memory result. It never re-enters the persistence pipeline.
+     */
+    fun removeLeakedParameters(parameterNames: Set<String>) {
+        val state = _uiState.value
+        if (state.actionUrl.isEmpty() || parameterNames.isEmpty()) return
+
+        val strippedUrl = removeRawQueryParameters(state.actionUrl, parameterNames)
+        if (strippedUrl == state.actionUrl) return
+
+        _uiState.update {
+            it.copy(
+                processedUrl = strippedUrl,
+                actionUrl = strippedUrl,
+                resultStatus = resolveResultStatus(it.inputUrl, strippedUrl),
+                leakFindings = LinkLeakAnalyzer.analyze(strippedUrl)
+            )
+        }
+    }
+
+    private fun removeRawQueryParameters(url: String, names: Set<String>): String {
+        val fragmentStart = url.indexOf('#')
+        val queryStart = url.indexOf('?')
+        if (queryStart < 0 || (fragmentStart >= 0 && queryStart > fragmentStart)) return url
+
+        val queryEnd = if (fragmentStart >= 0) fragmentStart else url.length
+        val remainingTokens = url.substring(queryStart + 1, queryEnd)
+            .split('&')
+            .filterNot { token -> token.substringBefore('=') in names }
+        val prefix = url.substring(0, queryStart)
+        val suffix = url.substring(queryEnd)
+        return if (remainingTokens.isEmpty()) {
+            prefix + suffix
+        } else {
+            "$prefix?${remainingTokens.joinToString("&")}$suffix"
         }
     }
 }
@@ -345,6 +418,7 @@ data class MainUiState(
     val actionUrl: String = "",
     val processedInputUrl: String = "",
     val resultStatus: ResultStatus? = null,
+    val leakFindings: List<LeakFinding> = emptyList(),
     val isLoading: Boolean = false,
     val isInstagramUrl: Boolean = false,
     val isFacebookUrl: Boolean = false,
@@ -353,5 +427,7 @@ data class MainUiState(
     val isTwitterConversionEnabled: Boolean = true,
     val isTikTokUrl: Boolean = false,
     val isTikTokConversionEnabled: Boolean = true,
+    val isBlueskyUrl: Boolean = false,
+    val isBlueskyConversionEnabled: Boolean = true,
     val error: String? = null
 ) 

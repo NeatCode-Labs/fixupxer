@@ -1,0 +1,8 @@
+v2.2.0 — Private Link Guard & expanded cleaning
+
+• Warn when e-mails, tokens, or coordinates remain in a link — fully offline
+• Keep sensitive links out of history and cache automatically
+• Add 14 platform cleaners; keep unknown functional parameters intact
+• Unwrap Facebook/LinkedIn/YouTube/Google Ads/Reddit/Bluesky redirects offline
+• Convert Bluesky posts to fxbsky.app; clean selected text via "Clean link"
+• Add custom-rule test vectors and Teach-from-example rule drafts

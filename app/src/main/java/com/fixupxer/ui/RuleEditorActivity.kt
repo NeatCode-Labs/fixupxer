@@ -18,11 +18,14 @@ import android.widget.ArrayAdapter
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.fixupxer.R
 import com.fixupxer.databinding.ActivityRuleEditorBinding
+import com.fixupxer.databinding.DialogRuleTestVectorBinding
+import com.fixupxer.databinding.ItemRuleTestVectorBinding
 import com.fixupxer.presentation.rules.RuleEditorViewModel
 import com.fixupxer.processing.ProcessingProfile
 import com.fixupxer.rules.CustomUrlRule
@@ -31,8 +34,15 @@ import com.fixupxer.rules.HostScopeEntry
 import com.fixupxer.rules.RedirectDecodeMode
 import com.fixupxer.rules.ReplaceMode
 import com.fixupxer.rules.RuleAction
+import com.fixupxer.rules.RuleActivationBlockedException
+import com.fixupxer.rules.RuleExampleInferenceRejectionReason
+import com.fixupxer.rules.RuleExampleInferenceResult
 import com.fixupxer.rules.RulePhase
 import com.fixupxer.rules.RuleScope
+import com.fixupxer.rules.RuleTestVector
+import com.fixupxer.rules.RuleVectorRunResult
+import com.fixupxer.utils.Constants
+import com.fixupxer.utils.InputValidator
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -43,6 +53,9 @@ import kotlinx.coroutines.launch
 class RuleEditorActivity : BaseActivity() {
     companion object {
         const val EXTRA_RULE_ID = "ruleId"
+        private const val STATE_VECTOR_INPUTS = "state_vector_inputs"
+        private const val STATE_VECTOR_EXPECTED = "state_vector_expected"
+        private const val STATE_TEACH_EXPANDED = "state_teach_expanded"
     }
 
     private lateinit var binding: ActivityRuleEditorBinding
@@ -54,6 +67,12 @@ class RuleEditorActivity : BaseActivity() {
     private lateinit var actionLabels: List<String>
     private lateinit var decodeModeLabels: List<String>
     private lateinit var profileLabels: List<String>
+    private val testVectors = mutableListOf<RuleTestVector>()
+    private var vectorRunResult: RuleVectorRunResult? = null
+    private var vectorsRestoredFromState = false
+
+    private val isCreatingRule: Boolean
+        get() = intent.getStringExtra(EXTRA_RULE_ID) == null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,19 +81,46 @@ class RuleEditorActivity : BaseActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setTitle(
-            if (intent.getStringExtra(EXTRA_RULE_ID) == null) {
+            if (isCreatingRule) {
                 R.string.custom_rule_create_title
             } else {
                 R.string.custom_rule_editor_title
             }
         )
 
+        restoreVectors(savedInstanceState)
         setupSpinners()
         setupActions()
+        binding.cardTeachExample.isVisible = isCreatingRule
+        binding.teachExampleFields.isVisible =
+            savedInstanceState?.getBoolean(STATE_TEACH_EXPANDED) ?: false
+        renderVectors()
         observeRule()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() = confirmDiscard()
         })
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putStringArrayList(
+            STATE_VECTOR_INPUTS,
+            ArrayList(testVectors.map { it.input })
+        )
+        outState.putStringArrayList(
+            STATE_VECTOR_EXPECTED,
+            ArrayList(testVectors.map { it.expected })
+        )
+        outState.putBoolean(STATE_TEACH_EXPANDED, binding.teachExampleFields.isVisible)
+    }
+
+    private fun restoreVectors(savedInstanceState: Bundle?) {
+        val inputs = savedInstanceState?.getStringArrayList(STATE_VECTOR_INPUTS) ?: return
+        val expected = savedInstanceState.getStringArrayList(STATE_VECTOR_EXPECTED) ?: return
+        if (inputs.size != expected.size) return
+        testVectors.clear()
+        inputs.zip(expected).mapTo(testVectors) { (input, exp) -> RuleTestVector(input, exp) }
+        vectorsRestoredFromState = true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -109,30 +155,79 @@ class RuleEditorActivity : BaseActivity() {
         decodeModeLabels = RedirectDecodeMode.entries.map { it.name.replace('_', ' ') }
         profileLabels = ProcessingProfile.entries.map { it.name }
 
-        setupDropdown(binding.spinnerPhase, phaseLabels)
-        setupDropdown(binding.spinnerScope, scopeLabels, onSelected = ::updateConditionalFields)
-        setupDropdown(binding.spinnerAction, actionLabels, onSelected = ::updateConditionalFields)
-        setupDropdown(binding.spinnerDecodeMode, decodeModeLabels)
+        setupDropdown(binding.spinnerPhase, phaseLabels, onSelected = ::invalidateVectorResults)
+        setupDropdown(binding.spinnerScope, scopeLabels) {
+            updateConditionalFields()
+            invalidateVectorResults()
+        }
+        setupDropdown(binding.spinnerAction, actionLabels) {
+            updateConditionalFields()
+            invalidateVectorResults()
+        }
+        setupDropdown(binding.spinnerDecodeMode, decodeModeLabels, onSelected = ::invalidateVectorResults)
         setupDropdown(binding.spinnerTestProfile, profileLabels)
         updateConditionalFields()
+
+        // Rule-definition edits make a previous Run-all verdict stale.
+        listOf(
+            binding.editScopeValue,
+            binding.editExcludes,
+            binding.editActionValue,
+            binding.editReplacement
+        ).forEach { field -> field.doAfterTextChanged { invalidateVectorResults() } }
+        listOf(
+            binding.checkMain,
+            binding.checkShare,
+            binding.checkBrowser,
+            binding.checkIgnoreCase,
+            binding.checkReplaceAll,
+            binding.checkStop
+        ).forEach { box -> box.setOnCheckedChangeListener { _, _ -> invalidateVectorResults() } }
+    }
+
+    private fun invalidateVectorResults() {
+        if (vectorRunResult != null) {
+            vectorRunResult = null
+            renderVectors()
+        }
     }
 
     private fun setupActions() {
+        binding.buttonTeachToggle.setOnClickListener {
+            binding.teachExampleFields.isVisible = !binding.teachExampleFields.isVisible
+        }
+        binding.buttonInferExample.setOnClickListener {
+            inferRuleFromExample()
+        }
         binding.buttonSave.setOnClickListener {
             val draft = runCatching(::buildRule).getOrElse {
                 showValidationError(it)
                 return@setOnClickListener
             }
-            lifecycleScope.launch {
-                runCatching { viewModel.save(draft) }
-                    .onSuccess {
-                        saved = true
-                        Snackbar.make(binding.root, R.string.custom_rule_saved, Snackbar.LENGTH_SHORT)
-                            .show()
-                        finish()
-                    }
-                    .onFailure(::showValidationError)
+            val vectorResult = runCatching { viewModel.runVectors(draft) }.getOrElse {
+                showValidationError(it)
+                return@setOnClickListener
             }
+            if (draft.enabled && !vectorResult.allPassed) {
+                vectorRunResult = vectorResult
+                renderVectors()
+                showActivationBlocked(draft, vectorResult.failingCount)
+            } else {
+                saveRule(draft)
+            }
+        }
+        binding.buttonAddTestVector.setOnClickListener { showAddVectorDialog() }
+        binding.buttonRunAllTestVectors.setOnClickListener {
+            val draft = runCatching(::buildRule).getOrElse {
+                showValidationError(it)
+                return@setOnClickListener
+            }
+            runCatching { viewModel.runVectors(draft) }
+                .onSuccess {
+                    vectorRunResult = it
+                    renderVectors()
+                }
+                .onFailure(::showValidationError)
         }
         binding.buttonRunTest.setOnClickListener {
             val url = binding.editTestUrl.text?.toString().orEmpty()
@@ -189,6 +284,208 @@ class RuleEditorActivity : BaseActivity() {
         }
     }
 
+    private fun inferRuleFromExample() {
+        lifecycleScope.launch {
+            binding.layoutExampleBefore.error = null
+            binding.layoutExampleDesired.error = null
+            val before = InputValidator.validateAndSanitizeInput(
+                binding.editExampleBefore.text?.toString().orEmpty()
+            )
+            val desired = InputValidator.validateAndSanitizeInput(
+                binding.editExampleDesired.text?.toString().orEmpty()
+            )
+            var valid = true
+            if (before == null) {
+                binding.layoutExampleBefore.error =
+                    getString(R.string.custom_rule_example_invalid_before)
+                valid = false
+            }
+            if (desired == null) {
+                binding.layoutExampleDesired.error =
+                    getString(R.string.custom_rule_example_invalid_desired)
+                valid = false
+            }
+            if (!valid) return@launch
+
+            when (val result = viewModel.inferExample(requireNotNull(before), requireNotNull(desired))) {
+                is RuleExampleInferenceResult.Inferred -> {
+                    val inferred = result.draft.copy(
+                        name = getString(
+                            R.string.custom_rule_example_name,
+                            (result.draft.includeScope as RuleScope.ExactHost).host
+                        )
+                    )
+                    if (testVectors.size >= Constants.MAX_TEST_VECTORS_PER_RULE &&
+                        inferred.testVectors.single() !in testVectors
+                    ) {
+                        Snackbar.make(
+                            binding.root,
+                            R.string.custom_rule_vector_limit_reached,
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                        return@launch
+                    }
+                    val redundant = runCatching {
+                        viewModel.isExampleRedundant(requireNotNull(before), requireNotNull(desired))
+                    }.getOrElse {
+                        showValidationError(it)
+                        return@launch
+                    }
+                    if (redundant) {
+                        Snackbar.make(
+                            binding.root,
+                            R.string.custom_rule_example_redundant,
+                            Snackbar.LENGTH_LONG
+                        ).show()
+                        return@launch
+                    }
+                    populateInferredDraft(inferred)
+                    Snackbar.make(
+                        binding.root,
+                        R.string.custom_rule_example_inferred,
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                }
+                is RuleExampleInferenceResult.Rejected -> {
+                    Snackbar.make(
+                        binding.root,
+                        exampleRejectionMessage(result.reason),
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private fun populateInferredDraft(rule: CustomUrlRule) {
+        populateFields(rule)
+        rule.testVectors.forEach { vector ->
+            if (vector !in testVectors) testVectors += vector
+        }
+        vectorRunResult = null
+        renderVectors()
+        updateConditionalFields()
+    }
+
+    private fun saveRule(draft: CustomUrlRule) {
+        lifecycleScope.launch {
+            runCatching { viewModel.save(draft) }
+                .onSuccess {
+                    saved = true
+                    Snackbar.make(binding.root, R.string.custom_rule_saved, Snackbar.LENGTH_SHORT).show()
+                    finish()
+                }
+                .onFailure { error ->
+                    if (error is RuleActivationBlockedException) {
+                        showActivationBlocked(draft, error.failingVectorCount)
+                    } else {
+                        showValidationError(error)
+                    }
+                }
+        }
+    }
+
+    private fun showActivationBlocked(draft: CustomUrlRule, failingCount: Int) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.custom_rule_activation_blocked_title)
+            .setMessage(getString(R.string.custom_rule_activation_blocked_message, failingCount))
+            .setPositiveButton(R.string.custom_rule_save_disabled_draft) { _, _ ->
+                saveRule(draft.copy(enabled = false))
+            }
+            .setNegativeButton(R.string.custom_rule_fix_now, null)
+            .show()
+    }
+
+    private fun showAddVectorDialog() {
+        val dialogBinding = DialogRuleTestVectorBinding.inflate(layoutInflater)
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.custom_rule_vector_add)
+            .setView(dialogBinding.root)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.add, null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                lifecycleScope.launch {
+                    dialogBinding.layoutVectorInput.error = null
+                    dialogBinding.layoutVectorExpected.error = null
+                    val input = InputValidator.validateAndSanitizeInput(
+                        dialogBinding.editVectorInput.text?.toString().orEmpty()
+                    )
+                    val expected = InputValidator.validateAndSanitizeInput(
+                        dialogBinding.editVectorExpected.text?.toString().orEmpty()
+                    )
+                    var valid = true
+                    if (input == null) {
+                        dialogBinding.layoutVectorInput.error =
+                            getString(R.string.custom_rule_vector_invalid_input)
+                        valid = false
+                    }
+                    if (expected == null) {
+                        dialogBinding.layoutVectorExpected.error =
+                            getString(R.string.custom_rule_vector_invalid_expected)
+                        valid = false
+                    }
+                    if (valid) {
+                        testVectors += RuleTestVector(requireNotNull(input), requireNotNull(expected))
+                        vectorRunResult = null
+                        renderVectors()
+                        dialog.dismiss()
+                    }
+                }
+            }
+        }
+        dialog.show()
+    }
+
+    private fun renderVectors() {
+        binding.vectorList.removeAllViews()
+        testVectors.forEachIndexed { index, vector ->
+            val row = ItemRuleTestVectorBinding.inflate(layoutInflater, binding.vectorList, false)
+            val result = vectorRunResult?.results?.getOrNull(index)
+            row.textVectorPair.text = getString(
+                R.string.custom_rule_vector_pair,
+                vector.input,
+                vector.expected
+            )
+            row.imageVectorStatus.isVisible = result != null
+            if (result != null) {
+                row.imageVectorStatus.setImageResource(
+                    if (result.passed) R.drawable.ic_check else R.drawable.ic_error
+                )
+            }
+            row.buttonDeleteTestVector.setOnClickListener {
+                testVectors.removeAt(index)
+                vectorRunResult = null
+                renderVectors()
+            }
+            binding.vectorList.addView(row.root)
+        }
+
+        val vectorCount = testVectors.size
+        val limitReached = vectorCount >= Constants.MAX_TEST_VECTORS_PER_RULE
+        binding.buttonAddTestVector.isEnabled = !limitReached
+        binding.buttonRunAllTestVectors.isEnabled = vectorCount > 0
+        binding.textVectorLimit.text = if (limitReached) {
+            getString(R.string.custom_rule_vector_limit_reached)
+        } else {
+            getString(
+                R.string.custom_rule_vector_count,
+                vectorCount,
+                Constants.MAX_TEST_VECTORS_PER_RULE
+            )
+        }
+        binding.textVectorSummary.isVisible = vectorRunResult != null
+        vectorRunResult?.let {
+            binding.textVectorSummary.text = getString(
+                R.string.custom_rule_vector_summary,
+                it.passedCount,
+                it.results.size
+            )
+        }
+    }
+
     private fun observeRule() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -205,6 +502,17 @@ class RuleEditorActivity : BaseActivity() {
     }
 
     private fun populate(rule: CustomUrlRule) {
+        populateFields(rule)
+        if (!vectorsRestoredFromState) {
+            testVectors.clear()
+            testVectors.addAll(rule.testVectors)
+            vectorRunResult = runCatching { viewModel.runVectors(rule) }.getOrNull()
+        }
+        renderVectors()
+        updateConditionalFields()
+    }
+
+    private fun populateFields(rule: CustomUrlRule) {
         binding.editName.setText(rule.name)
         binding.switchEnabled.isChecked = rule.enabled
         setDropdownSelection(binding.spinnerPhase, phaseLabels, rule.phase.ordinal)
@@ -217,7 +525,6 @@ class RuleEditorActivity : BaseActivity() {
         setDropdownSelection(binding.spinnerAction, actionLabels, actionIndex(rule.action))
         populateAction(rule.action)
         binding.checkStop.isChecked = rule.stopAfterMatch
-        updateConditionalFields()
     }
 
     private fun populateAction(action: RuleAction) {
@@ -279,7 +586,7 @@ class RuleEditorActivity : BaseActivity() {
             excludeScopes = excludes,
             action = action,
             stopAfterMatch = binding.checkStop.isChecked,
-            testVectors = previous?.testVectors.orEmpty(),
+            testVectors = testVectors.toList(),
             createdAt = previous?.createdAt ?: System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()
         )
@@ -377,7 +684,7 @@ class RuleEditorActivity : BaseActivity() {
     }
 
     private fun hasUnsavedChanges(): Boolean {
-        val initial = original ?: return !binding.editName.text.isNullOrBlank()
+        val initial = original ?: return !binding.editName.text.isNullOrBlank() || testVectors.isNotEmpty()
         return runCatching {
             buildRule().copy(updatedAt = initial.updatedAt) != initial
         }.getOrDefault(true)
@@ -389,6 +696,35 @@ class RuleEditorActivity : BaseActivity() {
             getString(R.string.custom_rule_validation_error, error.message.orEmpty()),
             Snackbar.LENGTH_LONG
         ).show()
+    }
+
+    private fun exampleRejectionMessage(reason: RuleExampleInferenceRejectionReason): Int = when (reason) {
+        RuleExampleInferenceRejectionReason.INVALID_URL ->
+            R.string.custom_rule_example_reject_invalid_url
+        RuleExampleInferenceRejectionReason.IDENTICAL_URLS ->
+            R.string.custom_rule_example_reject_identical
+        RuleExampleInferenceRejectionReason.DIFFERENT_SCHEME ->
+            R.string.custom_rule_example_reject_different_scheme
+        RuleExampleInferenceRejectionReason.DIFFERENT_HOST ->
+            R.string.custom_rule_example_reject_different_host
+        RuleExampleInferenceRejectionReason.DIFFERENT_PORT ->
+            R.string.custom_rule_example_reject_different_port
+        RuleExampleInferenceRejectionReason.DIFFERENT_PATH ->
+            R.string.custom_rule_example_reject_different_path
+        RuleExampleInferenceRejectionReason.DIFFERENT_FRAGMENT ->
+            R.string.custom_rule_example_reject_different_fragment
+        RuleExampleInferenceRejectionReason.AMBIGUOUS_DUPLICATES ->
+            R.string.custom_rule_example_reject_ambiguous_duplicates
+        RuleExampleInferenceRejectionReason.CHANGED_VALUES ->
+            R.string.custom_rule_example_reject_changed_values
+        RuleExampleInferenceRejectionReason.REORDERED_TOKENS ->
+            R.string.custom_rule_example_reject_reordered
+        RuleExampleInferenceRejectionReason.MULTIPLE_REDIRECT_CANDIDATES ->
+            R.string.custom_rule_example_reject_multiple_redirects
+        RuleExampleInferenceRejectionReason.INVALID_REDIRECT_OUTPUT ->
+            R.string.custom_rule_example_reject_invalid_redirect
+        RuleExampleInferenceRejectionReason.NO_SAFE_INFERENCE ->
+            R.string.custom_rule_example_reject_no_safe
     }
 
     private fun labels(vararg ids: Int): List<String> = ids.map(::getString)

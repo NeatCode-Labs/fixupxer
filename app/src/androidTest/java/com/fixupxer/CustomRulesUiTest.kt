@@ -89,4 +89,74 @@ class CustomRulesUiTest {
             onView(withText(R.string.custom_rules_clear)).perform(click())
         }
     }
+
+    @Test
+    fun testVectorsCanRunDeleteAndBlockActivation() {
+        ActivityScenario.launch(SettingsActivity::class.java).use {
+            onView(withId(R.id.buttonCustomRules)).perform(click())
+            onView(withId(R.id.buttonClear)).perform(click())
+            onView(withText(R.string.custom_rules_clear)).perform(click())
+            onView(withId(R.id.buttonAddRule)).perform(click())
+            onView(withId(R.id.editName))
+                .perform(replaceText("Vector rule"), closeSoftKeyboard())
+            onView(withId(R.id.mainScrollView))
+                .perform(swipeUp(), swipeUp(), swipeUp())
+            onView(withId(R.id.buttonAddTestVector)).perform(click())
+            onView(withId(R.id.editVectorInput))
+                .perform(replaceText("https://example.com/?x=1"))
+            onView(withId(R.id.editVectorExpected))
+                .perform(replaceText("https://other.example/"), closeSoftKeyboard())
+            onView(withText(R.string.add)).perform(click())
+            onView(withId(R.id.buttonRunAllTestVectors)).perform(click())
+            onView(withText("0/1 passed")).check(matches(isDisplayed()))
+            onView(withId(R.id.buttonDeleteTestVector)).perform(click())
+            onView(withId(R.id.buttonAddTestVector)).perform(click())
+            onView(withId(R.id.editVectorInput))
+                .perform(replaceText("https://example.com/?x=1"))
+            onView(withId(R.id.editVectorExpected))
+                .perform(replaceText("https://other.example/"), closeSoftKeyboard())
+            onView(withText(R.string.add)).perform(click())
+            onView(withId(R.id.mainScrollView))
+                .perform(swipeUp(), swipeUp(), swipeUp(), swipeUp())
+            onView(withId(R.id.buttonSave)).perform(click())
+            onView(withText(R.string.custom_rule_activation_blocked_title))
+                .check(matches(isDisplayed()))
+            onView(withText(R.string.custom_rule_save_disabled_draft)).perform(click())
+            onView(allOf(withId(R.id.textRuleName), withText("Vector rule")))
+                .check(matches(isDisplayed()))
+            onView(withId(R.id.switchEnabled)).check(matches(isNotChecked()))
+            onView(withId(R.id.buttonClear)).perform(click())
+            onView(withText(R.string.custom_rules_clear)).perform(click())
+        }
+    }
+
+    @Test
+    fun teachFromExampleCardInfersDraftFields() {
+        ActivityScenario.launch(SettingsActivity::class.java).use {
+            onView(withId(R.id.buttonCustomRules)).perform(click())
+            onView(withId(R.id.buttonClear)).perform(click())
+            onView(withText(R.string.custom_rules_clear)).perform(click())
+            onView(withId(R.id.buttonAddRule)).perform(click())
+            onView(withId(R.id.cardTeachExample)).check(matches(isDisplayed()))
+            onView(withId(R.id.buttonTeachToggle)).perform(click())
+            onView(withId(R.id.editExampleBefore))
+                .perform(replaceText("https://example.com/?keep=1&remove_me=1"))
+            onView(withId(R.id.editExampleDesired))
+                .perform(replaceText("https://example.com/?keep=1"), closeSoftKeyboard())
+            onView(withId(R.id.buttonInferExample)).perform(click())
+            onView(withId(R.id.editName))
+                .check(matches(withText("Example: example.com")))
+            onView(withId(R.id.editScopeValue)).check(matches(withText("example.com")))
+            onView(withId(R.id.editActionValue)).check(matches(withText("remove_me")))
+            // Collapse the teach card so the save button fits on screen and
+            // wait out the "inferred" snackbar that overlaps the button.
+            onView(withId(R.id.buttonTeachToggle)).perform(click())
+            Thread.sleep(4000)
+            onView(withId(R.id.mainScrollView))
+                .perform(swipeUp(), swipeUp(), swipeUp(), swipeUp(), swipeUp(), swipeUp())
+            onView(withId(R.id.buttonSave)).perform(click())
+            onView(withId(R.id.buttonClear)).perform(click())
+            onView(withText(R.string.custom_rules_clear)).perform(click())
+        }
+    }
 }

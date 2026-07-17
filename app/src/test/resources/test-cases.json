@@ -90,13 +90,13 @@
       "cases": [
         {
           "input": "https://example.com&utm_source=test&utm_campaign=promo",
-          "expected": "https://example.com",
-          "description": "Fix URL with & but no ?"
+          "expected": "https://example.com&utm_source=test&utm_campaign=promo",
+          "description": "Keep malformed URL without a query delimiter intact"
         },
         {
           "input": "https://example.com/page&important=keep&utm_source=remove",
-          "expected": "https://example.com/page?important=keep",
-          "description": "Fix malformed URL and filter parameters"
+          "expected": "https://example.com/page&important=keep&utm_source=remove",
+          "description": "Keep malformed URL without a query delimiter intact"
         }
       ]
     }

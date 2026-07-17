@@ -62,7 +62,8 @@ main screen.
 
 1. Open **Settings > After-clean behavior**.
 2. Select **Conversion defaults**.
-3. Enable or disable conversion for Twitter/X, Instagram, Facebook, and TikTok.
+3. Enable or disable conversion for Twitter/X, Instagram, Facebook, TikTok, and
+   Bluesky posts.
 4. Save the settings.
 
 Custom URL rules can also be limited to the **Browser mode** context. See the

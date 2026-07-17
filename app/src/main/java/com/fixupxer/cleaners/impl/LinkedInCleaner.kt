@@ -22,12 +22,15 @@ package com.fixupxer.cleaners.impl
 
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
+import com.fixupxer.processing.UrlNormalizer
+import com.fixupxer.utils.Constants
 
 /**
  * Cleaner for LinkedIn URLs - comprehensive tracking removal
  */
 object LinkedInCleaner : UrlCleaner {
     override val id = "linkedin"
+    override val displayName = "LinkedIn"
     override val category = CleanerCategory.SOCIAL_MEDIA
     
     // Comprehensive LinkedIn tracking parameters
@@ -90,7 +93,7 @@ object LinkedInCleaner : UrlCleaner {
         "success", "u", "e", "courseClaim", "learningHistory",
         
         // Legacy & misc parameters
-        "pk", "pv", "biz", "goback", "report", "urlhash",
+        "pk", "pv", "biz", "goback", "report", "urlhash", "rcm",
         "eBP", "rs", "key", "pivot", "redirSrc", "spSrc"
     )
     
@@ -120,26 +123,21 @@ object LinkedInCleaner : UrlCleaner {
     )
     
     override fun matches(url: String): Boolean {
-        val lowerUrl = url.lowercase()
-        return lowerUrl.contains("linkedin.com") ||
-               lowerUrl.contains("lnkd.in") // Short links
+        return UrlNormalizer.urlMatchesAnyDomain(
+            url,
+            listOf(Constants.LINKEDIN_DOMAIN, Constants.LINKEDIN_SHORT_DOMAIN)
+        )
     }
     
     override fun clean(url: String): String {
-        // LinkedIn short links need to be preserved as-is (can't expand client-side)
-        if (url.contains("lnkd.in")) {
-            val idx = url.indexOf('?')
-            return if (idx > -1) url.substring(0, idx) else url
-        }
-        
+        if (!matches(url)) return url
+
         try {
             // If no query parameters, return as is
-            if (!url.contains("?")) {
+            val idx = url.indexOf('?')
+            if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
                 return url
             }
-            
-            val idx = url.indexOf('?')
-            if (idx == -1) return url
             
             val base = url.substring(0, idx)
             val queryAndFragment = url.substring(idx + 1)
@@ -160,16 +158,14 @@ object LinkedInCleaner : UrlCleaner {
             // Process parameters - aggressive cleaning
             val kept = query.split('&').mapNotNull { pair ->
                 val eqIdx = pair.indexOf('=')
-                if (eqIdx == -1) return@mapNotNull null
+                val key = if (eqIdx == -1) pair else pair.substring(0, eqIdx)
                 
-                val key = pair.substring(0, eqIdx)
-                
-                // Keep if essential, remove if tracking or unknown
+                // Keep essential and unknown params, remove only known tracking
                 when {
                     preserveParams.contains(key) -> pair  // Always keep essential params
                     key.startsWith("f_") -> pair  // Keep filter parameters
                     linkedinTracking.contains(key) -> null  // Remove tracking params
-                    else -> null  // Remove unknown params (aggressive cleaning)
+                    else -> pair
                 }
             }.filter { it.isNotEmpty() }
             

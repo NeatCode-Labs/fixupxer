@@ -22,6 +22,8 @@ package com.fixupxer.cleaners.impl
 
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
+import com.fixupxer.processing.UrlNormalizer
+import com.fixupxer.utils.Constants
 import java.net.URLDecoder
 
 /**
@@ -29,6 +31,7 @@ import java.net.URLDecoder
  */
 object RedditCleaner : UrlCleaner {
     override val id = "reddit"
+    override val displayName = "Reddit"
     override val category = CleanerCategory.SOCIAL_MEDIA
     
     // Comprehensive Reddit tracking parameters
@@ -110,39 +113,34 @@ object RedditCleaner : UrlCleaner {
     )
     
     override fun matches(url: String): Boolean {
-        val lowerUrl = url.lowercase()
-        return lowerUrl.contains("reddit.com") ||
-               lowerUrl.contains("redd.it") // Short links
+        return UrlNormalizer.urlMatchesAnyDomain(
+            url,
+            listOf(Constants.REDDIT_DOMAIN, Constants.REDDIT_SHORT_DOMAIN)
+        )
     }
     
     override fun clean(url: String): String {
+        if (!matches(url)) return url
+
         // Outbound redirect wrapper (out.reddit.com/…?url=<dest>&token=…): the
         // Reddit app wraps every external link in it. Its token/url params are
         // NOT tracking — stripping them hands the browser a redirect without a
         // destination, which Reddit rejects with /invalid_token. Extract the
         // destination instead (CleanerService.deepClean then cleans it with the
         // destination's own cleaner, same contract as GoogleSearchCleaner).
-        if (url.contains("out.reddit.com")) {
+        if (UrlNormalizer.urlMatchesDomain(url, "out.reddit.com") && hasRawQuery(url)) {
             extractOutboundUrl(url)?.let { return it }
             // No extractable destination — leave the wrapper untouched so the
             // redirect (with its token) still works server-side.
             return url
         }
         
-        // Reddit short links need to be preserved as-is (can't expand client-side)
-        if (url.contains("redd.it")) {
-            val idx = url.indexOf('?')
-            return if (idx > -1) url.substring(0, idx) else url
-        }
-        
         try {
             // If no query parameters, return as is
-            if (!url.contains("?")) {
+            val idx = url.indexOf('?')
+            if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
                 return url
             }
-            
-            val idx = url.indexOf('?')
-            if (idx == -1) return url
             
             val base = url.substring(0, idx)
             val queryAndFragment = url.substring(idx + 1)
@@ -163,15 +161,13 @@ object RedditCleaner : UrlCleaner {
             // Process parameters - aggressive cleaning
             val kept = query.split('&').mapNotNull { pair ->
                 val eqIdx = pair.indexOf('=')
-                if (eqIdx == -1) return@mapNotNull null
+                val key = if (eqIdx == -1) pair else pair.substring(0, eqIdx)
                 
-                val key = pair.substring(0, eqIdx)
-                
-                // Keep if essential, remove if tracking or unknown
+                // Keep essential and unknown params, remove only known tracking
                 when {
                     preserveParams.contains(key) -> pair  // Always keep essential params
                     redditTracking.contains(key) -> null  // Remove tracking params
-                    else -> null  // Remove unknown params (aggressive cleaning)
+                    else -> pair
                 }
             }.filter { it.isNotEmpty() }
             
@@ -198,5 +194,11 @@ object RedditCleaner : UrlCleaner {
             }
         }
         return null
+    }
+
+    private fun hasRawQuery(url: String): Boolean {
+        val queryIndex = url.indexOf('?')
+        val fragmentIndex = url.indexOf('#')
+        return queryIndex >= 0 && (fragmentIndex < 0 || queryIndex < fragmentIndex)
     }
 } 

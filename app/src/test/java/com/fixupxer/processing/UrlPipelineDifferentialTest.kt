@@ -14,20 +14,10 @@ package com.fixupxer.processing
 import androidx.room.Room
 import com.fixupxer.PreferencesManager
 import com.fixupxer.UrlProcessor
+import com.fixupxer.cleaners.CleanerCatalog
 import com.fixupxer.cleaners.CleanerRegistry
 import com.fixupxer.cleaners.CleanerService
 import com.fixupxer.cleaners.cache.CleanerCache
-import com.fixupxer.cleaners.impl.AmazonCleaner
-import com.fixupxer.cleaners.impl.FacebookCleaner
-import com.fixupxer.cleaners.impl.GeneralTrackingCleaner
-import com.fixupxer.cleaners.impl.GoogleSearchCleaner
-import com.fixupxer.cleaners.impl.InstagramCleaner
-import com.fixupxer.cleaners.impl.LinkedInCleaner
-import com.fixupxer.cleaners.impl.RedditCleaner
-import com.fixupxer.cleaners.impl.SubstackCleaner
-import com.fixupxer.cleaners.impl.TikTokCleaner
-import com.fixupxer.cleaners.impl.TwitterCleaner
-import com.fixupxer.cleaners.impl.YouTubeCleaner
 import com.fixupxer.data.database.FixupXerDatabase
 import com.fixupxer.rules.CustomRuleEngine
 import com.fixupxer.rules.CustomRuleRepository
@@ -35,6 +25,7 @@ import com.fixupxer.rules.RuleActionExecutor
 import com.fixupxer.rules.RuleBundleCodec
 import com.fixupxer.rules.RuleCompiler
 import com.fixupxer.rules.RuleMatcher
+import com.fixupxer.rules.RuleVectorRunner
 import com.fixupxer.rules.CustomUrlRule
 import com.fixupxer.rules.RedirectDecodeMode
 import com.fixupxer.rules.RuleAction
@@ -64,21 +55,7 @@ class UrlPipelineDifferentialTest {
             .allowMainThreadQueries()
             .build()
         val registry = CleanerRegistry().apply {
-            registerAll(
-                listOf(
-                    AmazonCleaner,
-                    YouTubeCleaner,
-                    GoogleSearchCleaner,
-                    TwitterCleaner,
-                    InstagramCleaner,
-                    FacebookCleaner,
-                    RedditCleaner,
-                    TikTokCleaner,
-                    LinkedInCleaner,
-                    SubstackCleaner,
-                    GeneralTrackingCleaner()
-                )
-            )
+            registerAll(CleanerCatalog.createBuiltInCleaners())
         }
         val cleanerService = CleanerService(registry, CleanerCache())
         val urlProcessor = UrlProcessor(cleanerService)
@@ -86,12 +63,17 @@ class UrlPipelineDifferentialTest {
         val compiler = RuleCompiler()
         val codec = RuleBundleCodec()
         val preferences = PreferencesManager(context)
+        val ruleEngine = CustomRuleEngine(
+            RuleMatcher(normalizer),
+            RuleActionExecutor(normalizer)
+        )
         ruleRepository = CustomRuleRepository(
             database,
             database.customRuleDao(),
             database.ruleSnapshotDao(),
             codec,
             compiler,
+            RuleVectorRunner(compiler, ruleEngine),
             preferences
         )
         orchestrator = UrlProcessingOrchestrator(
@@ -99,7 +81,7 @@ class UrlPipelineDifferentialTest {
             normalizer,
             cleanerService,
             DomainConversionService(urlProcessor),
-            CustomRuleEngine(RuleMatcher(normalizer), RuleActionExecutor(normalizer)),
+            ruleEngine,
             ruleRepository
         )
     }

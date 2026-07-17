@@ -407,8 +407,10 @@ class BidirectionalConversionTest {
             launchShareActivityWithText("https://www.tiktok.com/@user/video/123?is_from_webapp=1&_r=1&_t=abc")
             onView(isRoot()).perform(waitFor(2000))
 
+            // is_from_webapp is an unknown/functional key and survives the
+            // keep-unknown contract; _r and _t are known tracking keys.
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.tnktok.com/@user/video/123")))
+                .check(matches(withText("https://www.tnktok.com/@user/video/123?is_from_webapp=1")))
         }
     }
 

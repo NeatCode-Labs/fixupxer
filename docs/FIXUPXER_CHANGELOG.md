@@ -1,18 +1,20 @@
 # FixupXer App - Development Summary
-## Version Progression: v2.1.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.2.0 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 29 (v2.1.0 through v1.2.1)
-**Current Version:** v2.1.0 (versionCode: 35)
-**Development Period:** v1.2.1 (Initial) → v2.1.0 (Current)
+**Total Versions Released:** 30 (v2.2.0 through v1.2.1)
+**Current Version:** v2.2.0 (versionCode: 36)
+**Development Period:** v1.2.1 (Initial) → v2.2.0 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in the complete custom URL rule system in v2.1.0: raw-preserving processing, ordered per-phase rules, safe RE2/J regexes, Test Lab, independent templates, and atomic SAF import/export with rollback while retaining the zero-permission offline model.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.2.0: Private Link Guard (offline detection of sensitive data remaining in links, with ephemeral processing), a keep-unknown cleaning contract with host-boundary matching, 14 new platform cleaners, offline redirect unwrapping, Bluesky post conversion, Process Text ("Clean link") integration, custom-rule test vectors with an activation gate, and Teach-from-example rule inference — all while retaining the zero-permission offline model.
 
 ### Key Achievements:
-- ✅ **Custom URL Rule Engine** - Ordered scopes/actions/phases/contexts, excludes, keep-only, redirects, templates, Test Lab and portable bundles
+- ✅ **Private Link Guard** - Offline detection of credentials, e-mails, JWT/auth tokens and precise coordinates left in links; ephemeral (no-history, no-cache) processing of sensitive URLs
+- ✅ **Keep-Unknown Cleaning Contract** - Only known tracking keys are removed; unknown functional parameters survive, host-boundary matching kills lookalike-domain false positives
+- ✅ **Custom URL Rule Engine** - Ordered scopes/actions/phases/contexts, excludes, keep-only, redirects, templates, Test Lab, test vectors with activation gate, Teach-from-example inference and portable bundles
 - ✅ **TikTok Conversion Support** - Dedicated Embed? toggle + full proxy picker (tnktok.com, tfxktok.com, tiktokez.com, kktiktok.com + custom), subdomain-preserving conversion
 - ✅ **Custom Instagram Proxies** - Users can add/select/delete their own embed proxy domains, validated and persisted locally
 - ✅ **Browser Mode Integration** - Optional system-wide URL filtering as default browser with configurable action priorities
@@ -31,6 +33,18 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.1.0 → v2.2.0
+- **Focus:** Competitive-audit adoption release — bring the existing scope to its peak (cleaner correctness + catalog breadth) and add two first-of-their-kind features: Private Link Guard and Teach-from-example.
+- **Cleaning engine hardening:** `UrlNormalizer` gained static host helpers (`extractAsciiHost`, `hostMatchesDomain`, `urlMatchesDomain`, `urlMatchesAnyDomain`); all cleaners and `UrlProcessor` conversions moved from substring `contains()` to label-boundary host checks anchored to `^https?://`. New **keep-unknown contract**: platform cleaners remove only known tracking keys and preserve unknown/functional parameters and raw encoding. `GeneralTrackingCleaner` narrowed to proven universal trackers. New `CleanerCatalog` as the canonical production cleaner list; explicit `priority`/`displayName` on the `UrlCleaner` interface; frozen master-off differential corpus guards behaviour.
+- **Cleaner catalog expansion:** data-driven `ParameterRuleCatalog` + generic `CatalogParameterCleaner` add 14 platforms (Wikipedia, Threads, Twitch, Spotify, Pinterest, Snapchat, WhatsApp, Medium, Bing, DuckDuckGo, Google Store, eBay, Netflix, AliExpress); new `GoogleMapsCleaner` canonicalizes coordinate URLs; Facebook (`sfnsn`, `fb_` prefix, `_rdr`), LinkedIn (`rcm`) and global keys (`mkt_tok`, `sfmc_activityid`, Webtrekk `wt_`, `#Echobox=` fragment) expanded. Provenance of all adopted behaviours audited against Léon in `docs/THIRD_PARTY_PROVENANCE.md`.
+- **Offline redirect unwrapping:** new `OfflineRedirectCleaner` (extraction priority) unwraps Facebook `l.php`, LinkedIn `/safety/go`, YouTube `/redirect`, `go.bsky.app`, Google Adservices `pagead/aclk` and Reddit Mail wrappers — strict single percent-decode, HTTP(S) targets only. `CleanerRegistry.getCleanersFor` now accumulates cleaners across the host suffix hierarchy (unwrapper + domain cleaner in one pass).
+- **Bluesky conversion:** `bsky.app` ↔ `fxbsky.app` post conversion with its own Embed? toggle on Main/Share and an independent Browser-mode default in Conversion defaults.
+- **Process Text:** new translucent `ProcessTextActivity` + ViewModel handle `ACTION_PROCESS_TEXT` — editable single-URL selections are cleaned and replaced inline (`RESULT_OK`); read-only/prose/multi-URL input forwards to the Share preview.
+- **Private Link Guard:** new `LinkLeakAnalyzer` detects credentials in userinfo, e-mails (path/query/fragment), JWTs, sensitive token parameters (`access_token`, `otp`, `sig`, …) and precise lat/lon pairs — one-time percent-decode, no raw values in results or logs. Sensitive URLs are processed ephemerally: no history entry, no cache entry (cache keys of the run are evicted on output-only findings). Warning row + dialog with Continue / Back / Remove parameter. All processing logs sanitized (no full URLs in logcat).
+- **Custom rules:** per-rule **test vectors** (≤ 20) with isolated `RuleVectorRunner` evaluation and Run-all UI; **activation gate** — a rule can be saved/toggled enabled only while all vectors pass; imports with failing vectors become disabled drafts (existing enabled rules are never auto-disabled). **Teach from example**: `RuleExampleInference` conservatively infers a disabled `RemoveParams`/`ExtractRedirect` draft (exact-host scope, auto test vector) from one before/desired pair; ambiguous examples are rejected with a reason; redundant examples (pipeline already produces the desired output) are reported without creating a rule.
+- **UI:** "What's new?" overflow-menu entry (Main + Share) opens the GitHub release notes. (A "What changed?" per-result trace dialog was implemented and later removed at the maintainer's request; the internal `ChangeOperation` trace remains as a test-verification layer.)
+- **Verification:** 370/370 unit + 201/201 instrumentation tests on `Pixel_API_35_Play`; `lintRelease` and REUSE 3.3 clean; frozen differential baseline byte-identical across the release; zero-permission manifest enforced by test.
 
 ### v2.0.0 → v2.1.0
 - **Focus:** Full offline custom URL rule system requested in issue #6, plus the agreed advanced scope.
@@ -696,11 +710,13 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.7.0 | 31 | TikTok conversion support + TikTok proxy picker | ✅ Released |
 | v1.7.1 | 32 | Gmail browser-mode regression fix (Google redirect validator exemption) | ✅ Released |
 | v1.7.2 | 33 | Reddit/redirect-wrapper fix; host-agnostic validator | ✅ Released |
-| v2.0.0 | 34 | Complete UI redesign: before/after flow, M3 DayNight + dark mode, theme picker | ✅ Current |
+| v2.0.0 | 34 | Complete UI redesign: before/after flow, M3 DayNight + dark mode, theme picker | ✅ Released |
+| v2.1.0 | 35 | Complete opt-in custom URL rule system with Test Lab, templates and import/export | ✅ Released |
+| v2.2.0 | 36 | Private Link Guard, keep-unknown cleaning, 14 new cleaners, redirect unwrapping, Bluesky, Process Text, test vectors, Teach from example | ✅ Current |
 
-### Build Artifacts (v2.0.0):
+### Build Artifacts (v2.2.0):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk`
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
-- **GITHUB / F-Droid APK:** `FixupXer-v2.0.0-release.apk` built from a fresh clone of the `v2.0.0` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+- **GITHUB / F-Droid APK:** `FixupXer-v2.2.0-release.apk` built from a fresh clone of the `v2.2.0` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

@@ -22,12 +22,14 @@ package com.fixupxer.cleaners.impl
 
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
+import com.fixupxer.processing.UrlNormalizer
 
 /**
  * Cleaner for Amazon URLs - extracts product IDs and removes tracking
  */
 object AmazonCleaner : UrlCleaner {
     override val id = "amazon"
+    override val displayName = "Amazon"
     override val category = CleanerCategory.E_COMMERCE
     
     // Common Amazon domains
@@ -128,13 +130,12 @@ object AmazonCleaner : UrlCleaner {
     )
     
     override fun matches(url: String): Boolean {
-        val lowerUrl = url.lowercase()
-        return amazonDomains.any { domain ->
-            lowerUrl.contains(domain)
-        }
+        return UrlNormalizer.urlMatchesAnyDomain(url, amazonDomains)
     }
     
     override fun clean(url: String): String {
+        if (!matches(url)) return url
+
         // Extract product ID if present
         val productId = extractProductId(url)
         if (productId != null) {
@@ -150,12 +151,10 @@ object AmazonCleaner : UrlCleaner {
     private fun cleanNonProductUrl(url: String): String {
         try {
             // If no query parameters, return as is
-            if (!url.contains("?")) {
+            val idx = url.indexOf('?')
+            if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
                 return url
             }
-            
-            val idx = url.indexOf('?')
-            if (idx == -1) return url
             
             val base = url.substring(0, idx)
             val queryAndFragment = url.substring(idx + 1)
@@ -176,15 +175,13 @@ object AmazonCleaner : UrlCleaner {
             // Process parameters - aggressive cleaning
             val kept = query.split('&').mapNotNull { pair ->
                 val eqIdx = pair.indexOf('=')
-                if (eqIdx == -1) return@mapNotNull null
+                val key = if (eqIdx == -1) pair else pair.substring(0, eqIdx)
                 
-                val key = pair.substring(0, eqIdx)
-                
-                // Keep if essential, remove if tracking or unknown
+                // Keep essential and unknown params, remove only known tracking
                 when {
                     preserveParams.contains(key) -> pair  // Always keep essential params
                     amazonTracking.contains(key) -> null  // Remove tracking params
-                    else -> null  // Remove unknown params (aggressive cleaning)
+                    else -> pair
                 }
             }.filter { it.isNotEmpty() }
             
@@ -222,15 +219,13 @@ object AmazonCleaner : UrlCleaner {
     }
     
     private fun extractDomain(url: String): String? {
-        for (domain in amazonDomains) {
-            if (url.contains(domain)) {
-                // Check if it's a subdomain
-                val regex = Regex("((?:www\\.|smile\\.)?$domain)")
-                regex.find(url)?.let { match ->
-                    return match.value
-                }
+        val host = UrlNormalizer.extractAsciiHost(url) ?: return null
+        return host.takeIf { candidate ->
+            amazonDomains.any { domain ->
+                candidate == domain ||
+                    candidate == "www.$domain" ||
+                    candidate == "smile.$domain"
             }
         }
-        return null
     }
 } 

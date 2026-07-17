@@ -20,6 +20,8 @@
 
 package com.fixupxer.cleaners
 
+import com.fixupxer.cleaners.impl.CatalogParameterCleaner
+import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.utils.Constants
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -58,17 +60,24 @@ class CleanerRegistry @Inject constructor() {
      * Get cleaners that can handle the given URL
      */
     fun getCleanersFor(url: String): List<UrlCleaner> {
-        val domain = extractDomain(url)?.lowercase()
-        
-        // First try domain-specific lookup
-        domain?.let { 
-            domainMap[it]?.let { cleaners ->
-                return cleaners.filter { cleaner ->
-                    cleaner.matches(url)
-                }
-            }
+        val host = UrlNormalizer.extractAsciiHost(url)
+
+        var candidate = host
+        val domainSpecific = mutableListOf<UrlCleaner>()
+        while (!candidate.isNullOrBlank()) {
+            domainMap[candidate]
+                ?.filter { it.matches(url) }
+                ?.let(domainSpecific::addAll)
+            candidate = candidate.substringAfter('.', missingDelimiterValue = "")
         }
-        
+
+        if (domainSpecific.isNotEmpty()) {
+            val generalCleaners = allCleaners.filter {
+                it.category == CleanerCategory.GENERAL && it.matches(url)
+            }
+            return (domainSpecific + generalCleaners).distinct()
+        }
+
         // Fallback to checking all cleaners
         return allCleaners.filter { cleaner ->
             cleaner.matches(url)
@@ -84,6 +93,11 @@ class CleanerRegistry @Inject constructor() {
      * Pre-compute domain associations for efficient lookup
      */
     private fun precomputeDomainAssociations(cleaner: UrlCleaner) {
+        if (cleaner is CatalogParameterCleaner) {
+            cleaner.rule.domains.forEach { addDomainAssociation(it, cleaner) }
+            return
+        }
+
         // For known domain-specific cleaners, pre-populate the domain map
         // This is a simple heuristic based on common patterns
         when (cleaner.id) {
@@ -97,10 +111,15 @@ class CleanerRegistry @Inject constructor() {
                 addDomainAssociation("google.de", cleaner)
                 // Add more Google domains as needed
             }
+            "google_maps" -> {
+                addDomainAssociation(Constants.GOOGLE_MAPS_DOMAIN, cleaner)
+                addDomainAssociation(Constants.GOOGLE_DOMAIN, cleaner)
+            }
             "youtube" -> {
                 addDomainAssociation(Constants.YOUTUBE_DOMAIN, cleaner)
                 addDomainAssociation(Constants.YOUTUBE_SHORT_DOMAIN, cleaner)
                 addDomainAssociation("m.${Constants.YOUTUBE_DOMAIN}", cleaner)
+                addDomainAssociation("youtube-nocookie.com", cleaner)
             }
             "facebook" -> {
                 addDomainAssociation(Constants.FACEBOOK_DOMAIN, cleaner)
@@ -144,6 +163,15 @@ class CleanerRegistry @Inject constructor() {
             "substack" -> {
                 addDomainAssociation(Constants.SUBSTACK_DOMAIN, cleaner)
             }
+            "offline_redirect" -> {
+                addDomainAssociation(Constants.FACEBOOK_LINK_SHIM_DOMAIN, cleaner)
+                addDomainAssociation(Constants.FACEBOOK_MOBILE_LINK_SHIM_DOMAIN, cleaner)
+                addDomainAssociation(Constants.LINKEDIN_DOMAIN, cleaner)
+                addDomainAssociation(Constants.YOUTUBE_DOMAIN, cleaner)
+                addDomainAssociation(Constants.BLUESKY_GO_DOMAIN, cleaner)
+                addDomainAssociation(Constants.GOOGLE_ADSERVICES_DOMAIN, cleaner)
+                addDomainAssociation(Constants.REDDITMAIL_CLICK_DOMAIN, cleaner)
+            }
         }
     }
     
@@ -152,26 +180,6 @@ class CleanerRegistry @Inject constructor() {
         synchronized(domainMap) {
             val list = domainMap[key] ?: mutableListOf<UrlCleaner>().also { domainMap[key] = it }
             list.add(cleaner)
-        }
-    }
-    
-    private fun extractDomain(url: String): String? {
-        return try {
-            val withoutProtocol = url
-                .removePrefix("https://")
-                .removePrefix("http://")
-            
-            val domainEnd = withoutProtocol.indexOfAny(charArrayOf('/', '?', '#', ':'))
-            val domain = if (domainEnd > 0) {
-                withoutProtocol.substring(0, domainEnd)
-            } else {
-                withoutProtocol
-            }
-            
-            // Remove www. prefix for better matching
-            domain.removePrefix("www.")
-        } catch (e: Exception) {
-            null
         }
     }
 } 

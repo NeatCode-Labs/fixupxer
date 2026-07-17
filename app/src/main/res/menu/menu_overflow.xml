@@ -23,6 +23,11 @@
         app:showAsAction="never" />
     
     <item
+        android:id="@+id/action_whats_new"
+        android:title="@string/whats_new"
+        app:showAsAction="never" />
+    
+    <item
         android:id="@+id/action_about"
         android:title="@string/about"
         app:showAsAction="never" />

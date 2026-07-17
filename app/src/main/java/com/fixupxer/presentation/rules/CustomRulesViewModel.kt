@@ -24,8 +24,11 @@ import com.fixupxer.rules.CustomUrlRule
 import com.fixupxer.rules.ImportMode
 import com.fixupxer.rules.ImportResult
 import com.fixupxer.rules.RuleCompiler
+import com.fixupxer.rules.RuleExampleInference
+import com.fixupxer.rules.RuleExampleInferenceResult
 import com.fixupxer.rules.RulePhase
 import com.fixupxer.rules.RuleSnapshot
+import com.fixupxer.rules.RuleVectorRunner
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,9 +48,8 @@ class CustomRulesViewModel @Inject constructor(
 
     fun setEnabled(enabled: Boolean) = repository.setEnabled(enabled)
 
-    fun setRuleEnabled(rule: CustomUrlRule, enabled: Boolean) {
-        viewModelScope.launch { repository.save(rule.copy(enabled = enabled)) }
-    }
+    suspend fun setRuleEnabled(rule: CustomUrlRule, enabled: Boolean) =
+        repository.save(rule.copy(enabled = enabled))
 
     suspend fun reorder(phase: RulePhase, ids: List<String>) = repository.reorder(phase, ids)
     suspend fun delete(id: String) = repository.delete(id)
@@ -66,6 +68,8 @@ class RuleEditorViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: CustomRuleRepository,
     private val compiler: RuleCompiler,
+    private val vectorRunner: RuleVectorRunner,
+    private val exampleInference: RuleExampleInference,
     private val orchestrator: UrlProcessingOrchestrator,
     private val preferences: PreferencesManager,
     private val urlRepository: UrlRepository
@@ -88,6 +92,12 @@ class RuleEditorViewModel @Inject constructor(
 
     suspend fun duplicate(id: String): CustomUrlRule = repository.duplicate(id)
     suspend fun delete(id: String) = repository.delete(id)
+    fun runVectors(rule: CustomUrlRule) = vectorRunner.run(rule)
+    fun inferExample(before: String, desired: String): RuleExampleInferenceResult =
+        exampleInference.infer(before, desired)
+
+    suspend fun isExampleRedundant(before: String, desired: String): Boolean =
+        processExistingRules(before).url == desired
 
     suspend fun preview(rule: CustomUrlRule, url: String, profile: ProcessingProfile) =
         repository.getRules().let { stored ->
@@ -100,38 +110,66 @@ class RuleEditorViewModel @Inject constructor(
                 )
             }
             val snapshot = RuleSnapshot(compiler.compileAll(previewRules), repository.revision.value)
-            val isInstagram = urlRepository.isInstagramUrl(url)
-            val isFacebook = urlRepository.isFacebookUrl(url)
-            val isTwitter = urlRepository.isTwitterUrl(url)
-            val isTikTok = urlRepository.isTikTokUrl(url)
-            val convert = when (profile) {
-                ProcessingProfile.MAIN, ProcessingProfile.SHARE -> when {
-                    isInstagram || isFacebook -> preferences.isConvertInstagramEnabled()
-                    isTikTok -> preferences.isConvertTikTokEnabled()
-                    else -> preferences.isConvertTwitterEnabled()
-                }
-                ProcessingProfile.BROWSER -> when {
-                    isInstagram -> preferences.isBrowserConvertInstagramEnabled()
-                    isFacebook -> preferences.isBrowserConvertFacebookEnabled()
-                    isTwitter -> preferences.isBrowserConvertTwitterEnabled()
-                    isTikTok -> preferences.isBrowserConvertTikTokEnabled()
-                    else -> false
-                }
-            }
-            orchestrator.process(
-                rawInput = url,
-                options = ProcessingOptions(
-                    profile = profile,
-                    cleanTracking = isInstagram || preferences.isCleanTrackingEnabled(),
-                    convertDomains = convert,
-                    instagramProxy = preferences.getInstagramProxy(),
-                    tiktokProxy = preferences.getTikTokProxy(),
-                    customRulesEnabled = true,
-                    persistHistory = false,
-                    useCache = false,
-                    traceEnabled = true
-                ),
-                snapshotOverride = snapshot
+            // Test Lab intentionally ignores the master toggle: the user is
+            // inspecting a draft and expects it to run.
+            processWithSnapshot(url, profile, snapshot, customRulesEnabled = true)
+        }
+
+    private suspend fun processExistingRules(url: String) =
+        repository.getRules().let { stored ->
+            val snapshot = RuleSnapshot(compiler.compileAll(stored), repository.revision.value)
+            // Redundancy check must mirror the real MAIN pipeline, including
+            // the custom-rules master toggle.
+            processWithSnapshot(
+                url,
+                ProcessingProfile.MAIN,
+                snapshot,
+                customRulesEnabled = preferences.areCustomRulesEnabled()
             )
         }
+
+    private suspend fun processWithSnapshot(
+        url: String,
+        profile: ProcessingProfile,
+        snapshot: RuleSnapshot,
+        customRulesEnabled: Boolean
+    ) = orchestrator.process(
+        rawInput = url,
+        options = ProcessingOptions(
+            profile = profile,
+            cleanTracking = urlRepository.isInstagramUrl(url) || preferences.isCleanTrackingEnabled(),
+            convertDomains = shouldConvertDomains(url, profile),
+            instagramProxy = preferences.getInstagramProxy(),
+            tiktokProxy = preferences.getTikTokProxy(),
+            customRulesEnabled = customRulesEnabled,
+            persistHistory = false,
+            useCache = false,
+            traceEnabled = true
+        ),
+        snapshotOverride = snapshot
+    )
+
+    private fun shouldConvertDomains(url: String, profile: ProcessingProfile): Boolean {
+        val isInstagram = urlRepository.isInstagramUrl(url)
+        val isFacebook = urlRepository.isFacebookUrl(url)
+        val isTwitter = urlRepository.isTwitterUrl(url)
+        val isTikTok = urlRepository.isTikTokUrl(url)
+        val isBluesky = urlRepository.isBlueskyUrl(url)
+        return when (profile) {
+            ProcessingProfile.MAIN, ProcessingProfile.SHARE -> when {
+                isInstagram || isFacebook -> preferences.isConvertInstagramEnabled()
+                isTikTok -> preferences.isConvertTikTokEnabled()
+                isBluesky -> preferences.isConvertBlueskyEnabled()
+                else -> preferences.isConvertTwitterEnabled()
+            }
+            ProcessingProfile.BROWSER -> when {
+                isInstagram -> preferences.isBrowserConvertInstagramEnabled()
+                isFacebook -> preferences.isBrowserConvertFacebookEnabled()
+                isTwitter -> preferences.isBrowserConvertTwitterEnabled()
+                isTikTok -> preferences.isBrowserConvertTikTokEnabled()
+                isBluesky -> preferences.isBrowserConvertBlueskyEnabled()
+                else -> false
+            }
+        }
+    }
 }

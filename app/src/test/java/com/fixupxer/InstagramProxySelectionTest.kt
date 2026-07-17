@@ -56,20 +56,7 @@ class InstagramProxySelectionTest {
         // InstagramProxyStore is global state — start every test from a clean slate.
         InstagramProxyStore.reset()
         val registry = CleanerRegistry().apply {
-            registerAll(
-                listOf(
-                    com.fixupxer.cleaners.impl.AmazonCleaner,
-                    com.fixupxer.cleaners.impl.YouTubeCleaner,
-                    com.fixupxer.cleaners.impl.GoogleSearchCleaner,
-                    com.fixupxer.cleaners.impl.TwitterCleaner,
-                    com.fixupxer.cleaners.impl.InstagramCleaner,
-                    com.fixupxer.cleaners.impl.FacebookCleaner,
-                    com.fixupxer.cleaners.impl.RedditCleaner,
-                    com.fixupxer.cleaners.impl.TikTokCleaner,
-                    com.fixupxer.cleaners.impl.LinkedInCleaner,
-                    com.fixupxer.cleaners.impl.GeneralTrackingCleaner()
-                )
-            )
+            registerAll(com.fixupxer.cleaners.CleanerCatalog.createBuiltInCleaners())
         }
         val cache = CleanerCache()
         processor = UrlProcessor(CleanerService(registry, cache))

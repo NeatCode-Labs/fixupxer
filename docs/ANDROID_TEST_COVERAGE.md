@@ -1,9 +1,33 @@
-# Android Test Coverage for FixupXer v2.0.0
+# Android Test Coverage for FixupXer v2.2.0
 
 ## Overview
-This document is the canonical test inventory (instrumentation + URL conversion matrix) covering all major features through v2.0.0. v2.0.0 is the complete UI redesign (before/after flow layout, Material 3 DayNight + dark mode, theme picker) plus a production-hardening pass; the conversion engine and validation surface are unchanged from v1.7.2.
+This document is the canonical test inventory (unit, instrumentation, and URL conversion matrix) covering all major features through v2.2.0. v2.2.0 adds Private Link Guard, the keep-unknown cleaning contract, 14 new platform cleaners, offline redirect unwrapping, Bluesky conversion, Process Text, custom-rule test vectors, and Teach-from-example while retaining the zero-permission offline model.
 
-Test-suite delta vs v1.7.2 (252 unit / 190 instrumentation, both 100%):
+Test-suite delta vs v2.1.0 (370 unit / 201 instrumentation, both 100%):
+- **Added**: `LinkLeakAnalyzerTest.kt` — credential/e-mail/JWT/token-parameter/coordinate detection across URL components, one-time percent-decode semantics, false-positive guards, and no raw values in findings.
+- **Added**: `LinkGuardRepositoryTest.kt` — ephemeral processing: sensitive inputs bypass the cleaner cache, history writes are skipped on input/output findings, and cache keys created during a run are evicted on output-only findings (including keys created after PRE_CLEAN custom rules).
+- **Added**: `HostBoundaryRegressionTest.kt` + `GeneralTrackingCleanerContractTest.kt` — label-boundary host matching (lookalike domains, domains inside paths/queries) and the narrowed universal-tracker contract.
+- **Added**: `CatalogParameterCleanerTest.kt` + `GoogleMapsCleanerTest.kt` — the 14 data-driven platform rules and Google Maps coordinate canonicalization.
+- **Added**: `OfflineRedirectCleanerTest.kt` — six wrapper families, strict single percent-decode, HTTP(S)-only targets, non-wrapper URLs untouched.
+- **Added**: `BlueskyConversionTest.kt` — bsky.app ↔ fxbsky.app post conversion (path/query/fragment preserved), profile URLs excluded, go.bsky.app unwrapping, history classification.
+- **Added**: `ChangeOperationTraceTest.kt` — internal operation trace: ordering, cold/warm cache equality, `MAX_CHANGE_OPERATIONS` cap, non-sensitivity (no URLs/values in operations).
+- **Added**: `ProcessTextViewModelTest.kt` (unit) + `ProcessTextActivityTest.kt` (instrumentation) — editable single-URL inline replace (`RESULT_OK` + `EXTRA_PROCESS_TEXT`), read-only/prose/multi-URL forward to Share preview, cancel on empty input, conversion-toggle on/off behavior.
+- **Added**: `RuleVectorRunnerTest.kt` — isolated vector evaluation (no history/cache/prefs), exact raw comparison, evaluation-profile selection.
+- **Added**: `RuleExampleInferenceTest.kt` — RemoveParams and ExtractRedirect inference, all-or-nothing duplicate handling, ambiguity/encoding-change/no-op rejection reasons.
+- **Updated**: `CustomRuleRepositoryTest.kt` — activation gate on save/toggle/import, failing imports become disabled drafts, `vectorFailures` scoping per import mode.
+- **Updated**: `CustomRulesUiTest.kt` — test-vector editor UI (add/run-all/limit), activation-gate dialogs, Teach-from-example card inference flow.
+- **Updated**: cleaner/processor/matrix suites for the keep-unknown contract (unknown parameters survive), `CleanerCatalog` as the canonical test cleaner list, and host-boundary conversions.
+
+Test-suite delta vs v2.0.0 (273 unit / 194 instrumentation, both 100%):
+- **Added**: `UrlPipelineDifferentialTest.kt` — frozen master-off baseline, raw URL preservation, intended-difference allow-list, redirect hop/cycle limits.
+- **Added**: `CustomRuleEngineTest.kt`, `RuleBundleCodecTest.kt`, `CustomRuleRepositoryTest.kt`, and `CustomRulesPreferenceTest.kt` — scopes/actions/phases, RE2/J validation, versioned bundles, atomic import/rollback, deterministic ordering, and default-off behavior.
+- **Added**: `CustomRuleMigrationTest.kt` — Room schema 1→2 migration preserves history and creates custom-rule tables.
+- **Added**: `CustomRulesUiTest.kt` — Settings entry, add/save, templates, empty/list states, editor back behavior, and navigation-safe Add rule positioning.
+- **Added**: `CustomRulesPerformanceTest.kt` — 200-rule cold/warm Share-profile performance budget.
+- **Added**: `ManifestPrivacyTest.kt` — merged app manifest must declare zero permissions.
+- **Updated**: `SettingsTest.kt`, `MainActivityHistoryTest.kt`, `OfflinePerformanceTest.kt`, and existing responsive/accessibility suites for the redesigned Rules, Rule Editor, History, Settings, and dialog layouts.
+
+v2.0.0 test-suite delta vs v1.7.2 (252 unit / 190 instrumentation, both 100%):
 - **Added**: `MainViewModelTest.kt` (unit) — result statuses incl. `CLEANED_AND_CONVERTED`, `onUrlChanged` stale-result invalidation vs. retention, validation-error reason mapping (`MULTIPLE_URLS` vs `OTHER`), loading/action-URL state.
 - **Added**: `ShareViewModelTest.kt` (unit) — platform flag detection, duplicate identical share-text guard, `reprocessAfterProxyChange()`, `setNoSharedText()` error surfacing, error-branch state reset.
 - **Added**: `ResultStatusTest.kt` (unit) — status resolution: `ALREADY_CLEAN` vs `CLEANED` under subdomain normalization, `CONVERTED` with lookalike proxy domains, `CLEANED_AND_CONVERTED`, malformed URL fallback.

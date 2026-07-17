@@ -22,12 +22,14 @@ package com.fixupxer.cleaners.impl
 
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
+import com.fixupxer.processing.UrlNormalizer
 
 /**
  * Cleaner for YouTube URLs - comprehensive tracking removal
  */
 object YouTubeCleaner : UrlCleaner {
     override val id = "youtube"
+    override val displayName = "YouTube"
     override val category = CleanerCategory.VIDEO_PLATFORMS
     
     // Comprehensive YouTube tracking parameters
@@ -123,21 +125,17 @@ object YouTubeCleaner : UrlCleaner {
     )
     
     override fun matches(url: String): Boolean {
-        val lowerUrl = url.lowercase()
-        return lowerUrl.contains("youtube.com") || 
-               lowerUrl.contains("youtu.be") ||
-               lowerUrl.contains("youtube-nocookie.com") ||
-               lowerUrl.contains("music.youtube.com")
+        return UrlNormalizer.urlMatchesAnyDomain(
+            url,
+            listOf("youtube.com", "youtu.be", "youtube-nocookie.com")
+        )
     }
     
     override fun clean(url: String): String {
-        // Handle short URLs (youtu.be)
-        if (url.contains("youtu.be/")) {
-            return cleanShortUrl(url)
-        }
-        
+        if (!matches(url)) return url
+
         // Handle YouTube Music differently
-        if (url.contains("music.youtube.com")) {
+        if (UrlNormalizer.urlMatchesDomain(url, "music.youtube.com")) {
             return cleanYouTubeMusic(url)
         }
         
@@ -148,12 +146,10 @@ object YouTubeCleaner : UrlCleaner {
     private fun cleanStandardUrl(url: String): String {
         try {
             // If no query parameters, return as is
-            if (!url.contains("?")) {
+            val idx = url.indexOf('?')
+            if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
                 return url
             }
-            
-            val idx = url.indexOf('?')
-            if (idx == -1) return url
             
             val base = url.substring(0, idx)
             val queryAndFragment = url.substring(idx + 1)
@@ -174,15 +170,13 @@ object YouTubeCleaner : UrlCleaner {
             // Process parameters - aggressive cleaning
             val kept = query.split('&').mapNotNull { pair ->
                 val eqIdx = pair.indexOf('=')
-                if (eqIdx == -1) return@mapNotNull null
+                val key = if (eqIdx == -1) pair else pair.substring(0, eqIdx)
                 
-                val key = pair.substring(0, eqIdx)
-                
-                // Keep if essential, remove if tracking or unknown
+                // Keep essential and unknown params, remove only known tracking
                 when {
                     preserveParams.contains(key) -> pair  // Always keep essential params
                     youtubeTracking.contains(key) -> null  // Remove tracking params
-                    else -> null  // Remove unknown params (aggressive cleaning)
+                    else -> pair
                 }
             }.filter { it.isNotEmpty() }
             
@@ -197,41 +191,6 @@ object YouTubeCleaner : UrlCleaner {
         }
     }
     
-    private fun cleanShortUrl(url: String): String {
-        // Extract video ID from youtu.be/VIDEO_ID format
-        val regex = Regex("youtu\\.be/([a-zA-Z0-9_-]{11})")
-        val match = regex.find(url)
-        
-        return if (match != null) {
-            val videoId = match.groupValues[1]
-            var cleanUrl = "https://youtu.be/$videoId"
-            
-            // Preserve timestamp and list if present
-            val params = mutableListOf<String>()
-            
-            // Extract timestamp
-            val timeRegex = Regex("[?&]t=([0-9]+[hms]?[0-9]*[ms]?[0-9]*s?)")
-            timeRegex.find(url)?.let { timeMatch ->
-                params.add("t=${timeMatch.groupValues[1]}")
-            }
-            
-            // Extract playlist
-            val listRegex = Regex("[?&]list=([a-zA-Z0-9_-]+)")
-            listRegex.find(url)?.let { listMatch ->
-                params.add("list=${listMatch.groupValues[1]}")
-            }
-            
-            if (params.isNotEmpty()) {
-                cleanUrl += "?" + params.joinToString("&")
-            }
-            
-            cleanUrl
-        } else {
-            // Fallback to standard cleaning
-            cleanStandardUrl(url)
-        }
-    }
-    
     private fun cleanYouTubeMusic(url: String): String {
         // YouTube Music specific preserve params
         val musicPreserveParams = preserveParams + setOf(
@@ -241,12 +200,10 @@ object YouTubeCleaner : UrlCleaner {
         
         try {
             // If no query parameters, return as is
-            if (!url.contains("?")) {
+            val idx = url.indexOf('?')
+            if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
                 return url
             }
-            
-            val idx = url.indexOf('?')
-            if (idx == -1) return url
             
             val base = url.substring(0, idx)
             val queryAndFragment = url.substring(idx + 1)
@@ -267,15 +224,13 @@ object YouTubeCleaner : UrlCleaner {
             // Process parameters
             val kept = query.split('&').mapNotNull { pair ->
                 val eqIdx = pair.indexOf('=')
-                if (eqIdx == -1) return@mapNotNull null
+                val key = if (eqIdx == -1) pair else pair.substring(0, eqIdx)
                 
-                val key = pair.substring(0, eqIdx)
-                
-                // Keep if essential for music, remove if tracking or unknown
+                // Keep music-essential and unknown params, remove only known tracking
                 when {
                     musicPreserveParams.contains(key) -> pair
                     youtubeTracking.contains(key) -> null
-                    else -> null
+                    else -> pair
                 }
             }.filter { it.isNotEmpty() }
             

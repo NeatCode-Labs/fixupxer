@@ -20,12 +20,13 @@
 
 package com.fixupxer.cleaners
 
+import com.fixupxer.cleaners.cache.CachedCleanResult
 import com.fixupxer.cleaners.cache.CleanerCache
-import com.fixupxer.cleaners.model.AppliedCleaner
 import com.fixupxer.cleaners.model.ProcessingResult
-import com.fixupxer.cleaners.model.RemovedParameter
+import com.fixupxer.processing.ChangeOperation
+import com.fixupxer.processing.ChangeOperationType
+import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.utils.Constants
-import com.fixupxer.utils.InstagramProxyStore
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -52,52 +53,45 @@ class CleanerService @Inject constructor(
     }
 
     fun deepCleanWithoutCache(url: String, maxPasses: Int = 5): String =
-        performDeepClean(url, maxPasses)
+        deepCleanWithDetailsWithoutCache(url, maxPasses).cleanedUrl
     
     /**
-     * Clean a URL and return detailed processing information
+     * Clean a URL and return detailed, non-sensitive processing information.
      */
     fun deepCleanWithDetails(url: String, maxPasses: Int = 5): ProcessingResult {
-        // Try cache first for the cleaned URL
-        val cleanedUrl = cache.getOrCompute(url) {
-            performDeepClean(url, maxPasses)
+        val cached = cache.getOrCompute(url) {
+            val result = performDeepCleanWithDetails(url, maxPasses)
+            CachedCleanResult(result.cleanedUrl, result.operations, result.totalPasses)
         }
-        
-        // If cached, we need to reconstruct the result
-        if (cleanedUrl != url) {
-            // For cached results, we can't provide detailed info
-            return ProcessingResult(
-                originalUrl = url,
-                cleanedUrl = cleanedUrl,
-                removedParameters = emptyList(),
-                appliedCleaners = emptyList(),
-                totalPasses = 1,
-                wasModified = true
-            )
-        }
-        
-        // Otherwise, do a full processing run with details
-        return performDeepCleanWithDetails(url, maxPasses)
+
+        return ProcessingResult(
+            originalUrl = url,
+            cleanedUrl = cached.cleanedUrl,
+            operations = cached.operations,
+            totalPasses = cached.totalPasses
+        )
     }
-    
-    private fun performDeepClean(url: String, maxPasses: Int): String {
-        val result = performDeepCleanWithDetails(url, maxPasses)
-        return result.cleanedUrl
-    }
+
+    /**
+     * Clean a URL without using the cache and return non-sensitive details.
+     */
+    fun deepCleanWithDetailsWithoutCache(url: String, maxPasses: Int = 5): ProcessingResult =
+        performDeepCleanWithDetails(url, maxPasses)
     
     private fun performDeepCleanWithDetails(url: String, maxPasses: Int): ProcessingResult {
         val detailedLogging = false
         
         if (detailedLogging) {
             Timber.d("===== URL Cleaning Start =====")
-            Timber.d("Original URL: $url")
+            Timber.d(
+                "Original URL host=${UrlNormalizer.extractAsciiHost(url) ?: "unknown"}, length=${url.length}"
+            )
             Timber.d("Max passes: $maxPasses")
         }
         
         var current = url
         var passCount = 0
-        val removedParameters = mutableListOf<RemovedParameter>()
-        val appliedCleaners = mutableListOf<AppliedCleaner>()
+        val operations = mutableListOf<ChangeOperation>()
         
         repeat(maxPasses) { pass ->
             if (detailedLogging) {
@@ -115,18 +109,12 @@ class CleanerService @Inject constructor(
                 if (detailedLogging) {
                     Timber.d("No cleaners match URL, stopping")
                 }
-                return ProcessingResult(
-                    originalUrl = url,
-                    cleanedUrl = current,
-                    removedParameters = removedParameters,
-                    appliedCleaners = appliedCleaners,
-                    totalPasses = passCount
-                )
+                return processingResult(url, current, operations, passCount)
             }
             
             // Apply cleaners in sequence (extraction → conversion → parameter removal)
             val next = cleaners
-                .sortedBy { getCleanerPriority(it) }
+                .sortedBy { it.priority }
                 .asSequence()
                 .fold(current) { urlToClean, cleaner ->
                     
@@ -137,31 +125,29 @@ class CleanerService @Inject constructor(
                     try {
                         val cleaned = cleaner.clean(urlToClean)
                         if (cleaned != urlToClean) {
-                            
-                            appliedCleaners.add(
-                                AppliedCleaner(
-                                    id = cleaner.id,
-                                    name = getCleanerName(cleaner),
-                                    action = describeAction(urlToClean, cleaned)
+                            operations.addBounded(
+                                operationForCleanerChange(
+                                    cleaner = cleaner,
+                                    originalUrl = urlToClean,
+                                    cleanedUrl = cleaned
                                 )
                             )
-                            
-                            // Extract removed parameters if applicable
-                            extractRemovedParameters(urlToClean, cleaned)?.let { params ->
-                                removedParameters.addAll(params)
-                                if (detailedLogging) {
-                                    Timber.d("Removed parameters: ${params.map { "${it.key}=${it.value}" }.joinToString()}")
-                                }
-                            }
-                            
-                            Timber.d("Cleaner ${cleaner.id} modified URL: $urlToClean → $cleaned")
+
+                            Timber.d(
+                                "Cleaner ${cleaner.id} modified URL " +
+                                    "(host=${UrlNormalizer.extractAsciiHost(cleaned) ?: "unknown"})"
+                            )
                         } else if (detailedLogging) {
                             Timber.d("Cleaner ${cleaner.id} made no changes")
                         }
                         cleaned
                     } catch (e: Exception) {
                         // Crash-safe: log error and continue with original URL
-                        Timber.e(e, "Cleaner ${cleaner.id} failed on URL: $urlToClean")
+                        Timber.e(
+                            e,
+                            "Cleaner ${cleaner.id} failed " +
+                                "(host=${UrlNormalizer.extractAsciiHost(urlToClean) ?: "unknown"})"
+                        )
                         urlToClean
                     }
                 }
@@ -173,20 +159,14 @@ class CleanerService @Inject constructor(
                 if (detailedLogging) {
                     Timber.d("URL stabilized after $passCount passes")
                     Timber.d("===== URL Cleaning Complete =====")
-                    Timber.d("Final URL: $current")
-                    if (removedParameters.isNotEmpty()) {
-                        Timber.d("Total parameters removed: ${removedParameters.size}")
-                    }
+                    Timber.d(
+                        "Final URL host=${UrlNormalizer.extractAsciiHost(current) ?: "unknown"}, " +
+                            "length=${current.length}"
+                    )
                 } else {
                     Timber.d("URL stabilized after $passCount passes")
                 }
-                return ProcessingResult(
-                    originalUrl = url,
-                    cleanedUrl = current,
-                    removedParameters = removedParameters,
-                    appliedCleaners = appliedCleaners,
-                    totalPasses = passCount
-                )
+                return processingResult(url, current, operations, passCount)
             }
             
             current = next
@@ -195,116 +175,71 @@ class CleanerService @Inject constructor(
         if (detailedLogging) {
             Timber.d("Reached max passes ($maxPasses)")
             Timber.d("===== URL Cleaning Complete =====")
-            Timber.d("Final URL: $current")
+            Timber.d(
+                "Final URL host=${UrlNormalizer.extractAsciiHost(current) ?: "unknown"}, " +
+                    "length=${current.length}"
+            )
         }
         
-        return ProcessingResult(
-            originalUrl = url,
-            cleanedUrl = current,
-            removedParameters = removedParameters,
-            appliedCleaners = appliedCleaners,
-            totalPasses = passCount
-        )
+        return processingResult(url, current, operations, passCount)
     }
-    
-    /**
-     * Get priority for cleaner execution order
-     * Lower number = higher priority (executes first)
-     */
-    private fun getCleanerPriority(cleaner: UrlCleaner): Int {
+
+    private fun processingResult(
+        originalUrl: String,
+        cleanedUrl: String,
+        operations: List<ChangeOperation>,
+        totalPasses: Int
+    ) = ProcessingResult(
+        originalUrl = originalUrl,
+        cleanedUrl = cleanedUrl,
+        operations = operations.toList(),
+        totalPasses = totalPasses
+    )
+
+    private fun operationForCleanerChange(
+        cleaner: UrlCleaner,
+        originalUrl: String,
+        cleanedUrl: String
+    ): ChangeOperation {
+        val fromHost = UrlNormalizer.extractAsciiHost(originalUrl)
+        val toHost = UrlNormalizer.extractAsciiHost(cleanedUrl)
+        val removedNames = extractRemovedParameterNames(originalUrl, cleanedUrl)
+
         return when {
-            // URL extraction cleaners (e.g., Google redirect) should run first
-            cleaner.id.contains("search") || 
-            cleaner.id.contains("redirect") ||
-            cleaner.id.contains("short") -> 1
-            
-            // Domain conversion cleaners (e.g., Twitter→FixupX) run second
-            cleaner.id.contains("twitter") ||
-            cleaner.id.contains("instagram") ||
-            cleaner.id.contains("facebook") -> 2
-            
-            // Domain-specific parameter cleaners run third
-            cleaner.id != "general" && cleaner.id != "general_tracking" -> 3
-            
-            // General parameter removal runs last
-            cleaner.id == "general" || cleaner.id == "general_tracking" -> 4
-            
-            // Unknown cleaners
-            else -> 5
+            fromHost != toHost || cleaner.priority == UrlCleaner.PRIORITY_EXTRACTION ->
+                ChangeOperation(
+                    type = ChangeOperationType.REDIRECT_EXTRACTED,
+                    source = cleaner.displayName,
+                    fromHost = fromHost,
+                    toHost = toHost
+                )
+            removedNames.isNotEmpty() ->
+                ChangeOperation(
+                    type = ChangeOperationType.PARAMETERS_REMOVED,
+                    source = cleaner.displayName,
+                    parameterNames = removedNames
+                )
+            else ->
+                ChangeOperation(
+                    type = ChangeOperationType.URL_CANONICALIZED,
+                    source = cleaner.displayName
+                )
         }
     }
-    
+
     /**
-     * Get human-readable name for a cleaner
+     * Compares raw query keys only, preserving original order and never reading values.
      */
-    private fun getCleanerName(cleaner: UrlCleaner): String {
-        return when (cleaner.id) {
-            "amazon" -> "Amazon"
-            "youtube" -> "YouTube"
-            "google_search" -> "Google Search"
-            "twitter" -> "Twitter/X"
-            "instagram" -> "Instagram"
-            "facebook" -> "Facebook"
-            "reddit" -> "Reddit"
-            "tiktok" -> "TikTok"
-            "linkedin" -> "LinkedIn"
-            "substack" -> "Substack"
-            "general_tracking" -> "General Tracking"
-            else -> cleaner.id.replaceFirstChar { it.uppercaseChar() }
-        }
+    private fun extractRemovedParameterNames(originalUrl: String, cleanedUrl: String): List<String> {
+        if (!originalUrl.contains("?") || originalUrl == cleanedUrl) return emptyList()
+
+        return runCatching {
+            val cleanedNames = extractParameterNames(cleanedUrl).toSet()
+            extractParameterNames(originalUrl).filterNot(cleanedNames::contains)
+        }.getOrDefault(emptyList())
     }
-    
-    /**
-     * Describe what action the cleaner performed
-     */
-    private fun describeAction(originalUrl: String, cleanedUrl: String): String {
-        return when {
-            // URL extraction (e.g., Google redirect)
-            originalUrl.contains("/url?") && !cleanedUrl.contains("/url?") -> "Extracted actual URL"
-            
-            // Domain conversion
-            originalUrl.contains(Constants.TWITTER_DOMAIN) &&
-                cleanedUrl.contains(Constants.FIXUPX_DOMAIN) -> "Converted to FixupX"
-            originalUrl.contains(Constants.INSTAGRAM_DOMAIN) &&
-                InstagramProxyStore.activeProxies().any { cleanedUrl.contains(it) } -> "Converted to Instagram proxy"
-            originalUrl.contains(Constants.FACEBOOK_DOMAIN) &&
-                cleanedUrl.contains(Constants.FACEBOOKEZ_DOMAIN) -> "Converted to FacebookEZ"
-            
-            // Product ID extraction
-            originalUrl.contains("amazon") && cleanedUrl.contains("/dp/") && 
-                originalUrl.length > cleanedUrl.length + 20 -> "Extracted product ID"
-            
-            // Parameter removal
-            originalUrl.contains("?") && (!cleanedUrl.contains("?") || 
-                cleanedUrl.substringAfter("?").length < originalUrl.substringAfter("?").length) -> 
-                    "Removed tracking parameters"
-            
-            else -> "Cleaned URL"
-        }
-    }
-    
-    /**
-     * Extract removed parameters by comparing URLs
-     */
-    private fun extractRemovedParameters(originalUrl: String, cleanedUrl: String): List<RemovedParameter>? {
-        if (!originalUrl.contains("?") || originalUrl == cleanedUrl) return null
-        
-        try {
-            val originalParams = extractParameters(originalUrl)
-            val cleanedParams = extractParameters(cleanedUrl)
-            
-            return originalParams
-                .filterNot { param -> cleanedParams.any { it.first == param.first } }
-                .map { RemovedParameter(it.first, it.second) }
-        } catch (e: Exception) {
-            return null
-        }
-    }
-    
-    /**
-     * Extract parameters from a URL
-     */
-    private fun extractParameters(url: String): List<Pair<String, String>> {
+
+    private fun extractParameterNames(url: String): List<String> {
         val queryStart = url.indexOf('?')
         if (queryStart == -1) return emptyList()
         
@@ -315,10 +250,13 @@ class CleanerService @Inject constructor(
             url.substring(queryStart + 1)
         }
         
-        return query.split('&').mapNotNull { pair ->
-            val parts = pair.split('=', limit = 2)
-            if (parts.size == 2) parts[0] to parts[1] else null
+        return query.split('&').mapNotNull { token ->
+            token.substringBefore('=').takeIf { it.isNotEmpty() }
         }
+    }
+
+    private fun MutableList<ChangeOperation>.addBounded(operation: ChangeOperation) {
+        if (size < Constants.MAX_CHANGE_OPERATIONS) add(operation)
     }
     
     /**
@@ -341,6 +279,11 @@ class CleanerService @Inject constructor(
      */
     fun clearCache() {
         cache.clear()
+    }
+
+    /** Evict a single raw input URL from the cleaner cache. */
+    fun evictFromCache(url: String) {
+        cache.remove(url)
     }
     
     /**

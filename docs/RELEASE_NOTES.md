@@ -1,3 +1,75 @@
+# FixupXer v2.2.0 - Private Link Guard & Expanded Cleaning
+
+## What's New
+
+### Private Link Guard
+FixupXer now warns you when a link still carries data that could identify or
+compromise you — even after cleaning. Detection is fully offline and covers
+login credentials embedded in the URL, e-mail addresses, auth tokens (JWT),
+sign-in/reset/invite token parameters, and precise GPS coordinates.
+
+- A warning row appears under the result; tapping it lists what was found and
+  where (no values are ever displayed, logged, or stored).
+- Choose **Continue anyway**, go **Back**, or **Remove parameter** directly
+  from the dialog.
+- Links with detected sensitive data are processed ephemerally: they are kept
+  out of Conversion History and the processing cache, so no trace remains on
+  the device either.
+
+### Smarter, More Careful Cleaning
+- **Keep-unknown contract** — platform cleaners now remove only *known*
+  tracking keys and keep unknown functional parameters, so cleaned links are
+  far less likely to break.
+- **Host-boundary matching** — cleaners and conversions only trigger when a
+  domain actually terminates the URL's hostname, eliminating false positives
+  from domains appearing in paths, queries, or lookalike hosts.
+- **14 new platform cleaners** — Wikipedia, Threads, Twitch, Spotify,
+  Pinterest, Snapchat, WhatsApp, Medium, Bing, DuckDuckGo, Google Store, eBay,
+  Netflix, and AliExpress, plus Google Maps coordinate-URL canonicalization.
+- **Expanded existing cleaners** — additional Facebook, LinkedIn, and global
+  marketing keys (`mkt_tok`, Webtrekk `wt_` prefix, `#Echobox=` fragments, …).
+
+### Offline Redirect Unwrapping
+Known redirect wrappers are unwrapped locally, with strict single decoding and
+HTTP(S)-only targets: Facebook `l.php`, LinkedIn `/safety/go`, YouTube
+`/redirect`, Google Ads `pagead/aclk`, Reddit Mail click tracking, and
+Bluesky `go.bsky.app`.
+
+### Bluesky Post Conversion
+A new **Embed?** toggle converts Bluesky post links to `fxbsky.app` for better
+embedding (and back when disabled). Browser mode has its own independent
+Bluesky default under **Conversion defaults**.
+
+### Clean Link from Selected Text
+Select a URL in any app and choose **Clean link** from the text-selection menu.
+In editable fields the link is cleaned and replaced inline without leaving the
+app; elsewhere FixupXer opens a share-style preview.
+
+### Custom Rules: Test Vectors and Teach from Example
+- Save up to 20 input → expected-output **test vectors** per rule and run them
+  all with one tap. A rule can only be enabled while every saved vector passes;
+  imports with failing vectors are kept as disabled drafts.
+- **Teach from example** — give one *before* URL and the exact *desired*
+  result, and FixupXer conservatively infers a disabled draft rule (with an
+  auto-generated test vector). Ambiguous examples are rejected with a reason.
+
+### Other Changes
+- New **What's new?** entry in the overflow menu opens the release notes on
+  GitHub.
+- All processing logs were sanitized so full URLs never reach the logcat.
+- Documentation refreshed: supported platforms, custom rules guide, browser
+  mode guide, and third-party provenance notes.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 36
+- versionName: 2.2.0
+- Unit tests: 370 / 370 passing. Instrumentation: 201 / 201 passing on
+  `Pixel_API_35_Play`.
+
+---
+
 # FixupXer v2.1.0 - Custom URL Rules
 
 ## What's New

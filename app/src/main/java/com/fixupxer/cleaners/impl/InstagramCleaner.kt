@@ -22,6 +22,7 @@ package com.fixupxer.cleaners.impl
 
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
+import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InstagramProxyStore
 
@@ -30,6 +31,8 @@ import com.fixupxer.utils.InstagramProxyStore
  */
 object InstagramCleaner : UrlCleaner {
     override val id = "instagram"
+    override val displayName = "Instagram"
+    override val priority = UrlCleaner.PRIORITY_CONVERSION
     override val category = CleanerCategory.SOCIAL_MEDIA
     
     // Comprehensive Instagram-specific tracking parameters
@@ -96,22 +99,23 @@ object InstagramCleaner : UrlCleaner {
     )
     
     override fun matches(url: String): Boolean {
-        val lowerUrl = url.lowercase()
         // All known proxies (fixed + custom + legacy) so e.g. legacy eeinstagram.com
         // links still get Instagram-specific parameter cleaning (igsh, igshid, ...).
-        return lowerUrl.contains(Constants.INSTAGRAM_DOMAIN) ||
-               InstagramProxyStore.allKnownProxies().any { lowerUrl.contains(it) }
+        return UrlNormalizer.urlMatchesAnyDomain(
+            url,
+            listOf(Constants.INSTAGRAM_DOMAIN) + InstagramProxyStore.allKnownProxies()
+        )
     }
     
     override fun clean(url: String): String {
+        if (!matches(url)) return url
+
         try {
             // If no query parameters, return as is
-            if (!url.contains("?")) {
+            val idx = url.indexOf('?')
+            if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
                 return url
             }
-            
-            val idx = url.indexOf('?')
-            if (idx == -1) return url
             
             val base = url.substring(0, idx)
             val queryAndFragment = url.substring(idx + 1)
@@ -132,15 +136,13 @@ object InstagramCleaner : UrlCleaner {
             // Process parameters - remove ALL tracking parameters
             val kept = query.split('&').mapNotNull { pair ->
                 val eqIdx = pair.indexOf('=')
-                if (eqIdx == -1) return@mapNotNull null
-                
-                val key = pair.substring(0, eqIdx)
+                val key = if (eqIdx == -1) pair else pair.substring(0, eqIdx)
                 
                 // Keep if essential, remove if tracking
                 when {
                     preserveParams.contains(key) -> pair  // Always keep essential params
                     instagramTracking.contains(key) -> null  // Remove tracking params
-                    else -> null  // Remove unknown params (aggressive cleaning)
+                    else -> pair
                 }
             }.filter { it.isNotEmpty() }
             

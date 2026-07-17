@@ -21,7 +21,6 @@
 package com.fixupxer.cleaners
 
 import com.fixupxer.cleaners.cache.CleanerCache
-import com.fixupxer.cleaners.impl.*
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import org.junit.Assert.assertEquals
@@ -85,19 +84,7 @@ class JsonBasedCleanerTest(
         val registry = CleanerRegistry()
         val cache = CleanerCache()
         
-        // Register all cleaners
-        registry.registerAll(listOf(
-            AmazonCleaner,
-            YouTubeCleaner,
-            GoogleSearchCleaner,
-            TwitterCleaner,
-            InstagramCleaner,
-            FacebookCleaner,
-            RedditCleaner,
-            TikTokCleaner,
-            LinkedInCleaner,
-            GeneralTrackingCleaner()
-        ))
+        registry.registerAll(CleanerCatalog.createBuiltInCleaners())
         
         cleanerService = CleanerService(registry, cache)
     }
@@ -125,19 +112,7 @@ class JsonTestLoader {
         val registry = CleanerRegistry()
         val cache = CleanerCache()
         
-        // Register all cleaners
-        registry.registerAll(listOf(
-            AmazonCleaner,
-            YouTubeCleaner,
-            GoogleSearchCleaner,
-            TwitterCleaner,
-            InstagramCleaner,
-            FacebookCleaner,
-            RedditCleaner,
-            TikTokCleaner,
-            LinkedInCleaner,
-            GeneralTrackingCleaner()
-        ))
+        registry.registerAll(CleanerCatalog.createBuiltInCleaners())
         
         cleanerService = CleanerService(registry, cache)
     }

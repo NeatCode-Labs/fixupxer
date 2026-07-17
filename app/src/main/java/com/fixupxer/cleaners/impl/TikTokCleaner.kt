@@ -22,6 +22,8 @@ package com.fixupxer.cleaners.impl
 
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
+import com.fixupxer.processing.UrlNormalizer
+import com.fixupxer.utils.Constants
 import com.fixupxer.utils.TikTokProxyStore
 
 /**
@@ -29,6 +31,7 @@ import com.fixupxer.utils.TikTokProxyStore
  */
 object TikTokCleaner : UrlCleaner {
     override val id = "tiktok"
+    override val displayName = "TikTok"
     override val category = CleanerCategory.SOCIAL_MEDIA
     
     // Comprehensive TikTok tracking parameters
@@ -115,24 +118,27 @@ object TikTokCleaner : UrlCleaner {
     )
     
     override fun matches(url: String): Boolean {
-        val lowerUrl = url.lowercase()
         // All known proxies (fixed + custom + legacy) so proxy links get the same
         // TikTok-specific parameter cleaning (_r, _t, tt_from, ...).
-        return lowerUrl.contains("tiktok.com") ||
-               lowerUrl.contains("tiktokcdn.com") ||
-               lowerUrl.contains("tiktokv.com") ||
-               TikTokProxyStore.allKnownProxies().any { lowerUrl.contains(it) }
+        return UrlNormalizer.urlMatchesAnyDomain(
+            url,
+            listOf(
+                Constants.TIKTOK_DOMAIN,
+                "tiktokcdn.com",
+                "tiktokv.com"
+            ) + TikTokProxyStore.allKnownProxies()
+        )
     }
     
     override fun clean(url: String): String {
+        if (!matches(url)) return url
+
         try {
             // If no query parameters, return as is
-            if (!url.contains("?")) {
+            val idx = url.indexOf('?')
+            if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
                 return url
             }
-            
-            val idx = url.indexOf('?')
-            if (idx == -1) return url
             
             val base = url.substring(0, idx)
             val queryAndFragment = url.substring(idx + 1)
@@ -153,15 +159,13 @@ object TikTokCleaner : UrlCleaner {
             // Process parameters - aggressive cleaning
             val kept = query.split('&').mapNotNull { pair ->
                 val eqIdx = pair.indexOf('=')
-                if (eqIdx == -1) return@mapNotNull null
+                val key = if (eqIdx == -1) pair else pair.substring(0, eqIdx)
                 
-                val key = pair.substring(0, eqIdx)
-                
-                // Keep if essential, remove if tracking or unknown
+                // Keep essential and unknown params, remove only known tracking
                 when {
                     preserveParams.contains(key) -> pair  // Always keep essential params
                     tiktokTracking.contains(key) -> null  // Remove tracking params
-                    else -> null  // Remove unknown params (aggressive cleaning)
+                    else -> pair
                 }
             }.filter { it.isNotEmpty() }
             

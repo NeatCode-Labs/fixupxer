@@ -18,6 +18,8 @@ import com.fixupxer.data.database.FixupXerDatabase
 import com.fixupxer.data.database.RuleSnapshotDao
 import com.fixupxer.data.database.RuleSnapshotEntity
 import com.fixupxer.utils.Constants
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,7 +39,17 @@ enum class ImportMode {
 data class ImportResult(
     val added: Int,
     val updated: Int,
-    val skipped: Int
+    val skipped: Int,
+    val vectorFailures: List<ImportVectorFailure> = emptyList()
+) {
+    val failingRuleCount: Int
+        get() = vectorFailures.size
+}
+
+data class ImportVectorFailure(
+    val ruleId: String,
+    val ruleName: String,
+    val failingVectorCount: Int
 )
 
 @Singleton
@@ -47,6 +59,7 @@ class CustomRuleRepository @Inject constructor(
     private val snapshotDao: RuleSnapshotDao,
     private val codec: RuleBundleCodec,
     private val compiler: RuleCompiler,
+    private val vectorRunner: RuleVectorRunner,
     private val preferences: PreferencesManager
 ) {
     private val mutex = Mutex()
@@ -100,6 +113,7 @@ class CustomRuleRepository @Inject constructor(
             updatedAt = System.currentTimeMillis()
         )
         compiler.compile(normalized)
+        validateActivation(normalized)
         database.withTransaction {
             ruleDao.upsert(codec.toEntity(normalized))
             reindexLocked(ruleDao.getAll().map(codec::fromEntity))
@@ -119,10 +133,15 @@ class CustomRuleRepository @Inject constructor(
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()
         )
-        compiler.compile(copy)
-        database.withTransaction { ruleDao.upsert(codec.toEntity(copy)) }
+        val activationSafeCopy = if (copy.enabled && !vectorRunner.run(copy).allPassed) {
+            copy.copy(enabled = false)
+        } else {
+            copy
+        }
+        compiler.compile(activationSafeCopy)
+        database.withTransaction { ruleDao.upsert(codec.toEntity(activationSafeCopy)) }
         refreshSnapshotLocked()
-        copy
+        activationSafeCopy
     }
 
     suspend fun delete(id: String) = mutex.withLock {
@@ -155,21 +174,29 @@ class CustomRuleRepository @Inject constructor(
 
     fun exportRules(rules: List<CustomUrlRule>): String = codec.encodeBundle(rules)
 
-    suspend fun previewImport(json: String, mode: ImportMode): ImportResult {
-        require(json.toByteArray().size <= Constants.MAX_RULE_BUNDLE_BYTES) {
-            "Rule bundle is too large"
+    suspend fun previewImport(json: String, mode: ImportMode): ImportResult =
+        // Decode + compile + vector evaluation are CPU-bound and run for up to
+        // three modes back-to-back — keep them off the main thread.
+        withContext(Dispatchers.Default) {
+            require(json.toByteArray().size <= Constants.MAX_RULE_BUNDLE_BYTES) {
+                "Rule bundle is too large"
+            }
+            val imported = codec.decodeBundle(json).rules
+            compiler.compileAll(imported)
+            val currentIds = ruleDao.getAll().map { it.id }.toSet()
+            val affectedRules = when (mode) {
+                ImportMode.ADD_NEW -> imported.filter { it.id !in currentIds }
+                ImportMode.UPDATE_MATCHING, ImportMode.REPLACE_ALL -> imported
+            }
+            val vectorFailures = vectorFailures(affectedRules)
+            val matching = imported.count { it.id in currentIds }
+            val newRules = imported.size - matching
+            when (mode) {
+                ImportMode.ADD_NEW -> ImportResult(newRules, 0, matching, vectorFailures)
+                ImportMode.UPDATE_MATCHING -> ImportResult(newRules, matching, 0, vectorFailures)
+                ImportMode.REPLACE_ALL -> ImportResult(newRules, matching, 0, vectorFailures)
+            }
         }
-        val imported = codec.decodeBundle(json).rules
-        compiler.compileAll(imported)
-        val currentIds = ruleDao.getAll().map { it.id }.toSet()
-        val matching = imported.count { it.id in currentIds }
-        val newRules = imported.size - matching
-        return when (mode) {
-            ImportMode.ADD_NEW -> ImportResult(newRules, 0, matching)
-            ImportMode.UPDATE_MATCHING -> ImportResult(newRules, matching, 0)
-            ImportMode.REPLACE_ALL -> ImportResult(newRules, matching, 0)
-        }
-    }
 
     suspend fun importBundle(json: String, mode: ImportMode): ImportResult = mutex.withLock {
         require(json.toByteArray().size <= Constants.MAX_RULE_BUNDLE_BYTES) {
@@ -178,6 +205,16 @@ class CustomRuleRepository @Inject constructor(
         val imported = codec.decodeBundle(json).rules
         compiler.compileAll(imported)
         require(imported.size <= Constants.MAX_CUSTOM_RULES) { "Too many rules" }
+        val existingIds = ruleDao.getAll().map { it.id }.toSet()
+        val affectedRules = when (mode) {
+            ImportMode.ADD_NEW -> imported.filter { it.id !in existingIds }
+            ImportMode.UPDATE_MATCHING, ImportMode.REPLACE_ALL -> imported
+        }
+        val importVectorFailures = vectorFailures(affectedRules)
+        val failingRuleIds = importVectorFailures.mapTo(mutableSetOf()) { it.ruleId }
+        val importedWithSafeActivation = imported.map { rule ->
+            if (rule.enabled && rule.id in failingRuleIds) rule.copy(enabled = false) else rule
+        }
 
         var added = 0
         var updated = 0
@@ -191,7 +228,7 @@ class CustomRuleRepository @Inject constructor(
                     val nextByPhase = RulePhase.entries.associateWith { phase ->
                         current.filter { it.phase == phase }.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
                     }.toMutableMap()
-                    val additions = imported.mapNotNull { rule ->
+                    val additions = importedWithSafeActivation.mapNotNull { rule ->
                         if (rule.id in currentById) {
                             skipped++
                             null
@@ -208,7 +245,7 @@ class CustomRuleRepository @Inject constructor(
                     val nextByPhase = RulePhase.entries.associateWith { phase ->
                         current.filter { it.phase == phase }.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
                     }.toMutableMap()
-                    val replacements = imported.associateBy { it.id }
+                    val replacements = importedWithSafeActivation.associateBy { it.id }
                     val retainedOrUpdated = current.map { existing ->
                         val incoming = replacements[existing.id] ?: return@map existing
                         updated++
@@ -220,17 +257,19 @@ class CustomRuleRepository @Inject constructor(
                             incoming.copy(sortOrder = order)
                         }
                     }
-                    val additions = imported.filter { it.id !in currentById }.map { incoming ->
-                        val order = requireNotNull(nextByPhase[incoming.phase])
-                        nextByPhase[incoming.phase] = order + 1
-                        added++
-                        incoming.copy(sortOrder = order)
-                    }
+                    val additions = importedWithSafeActivation
+                        .filter { it.id !in currentById }
+                        .map { incoming ->
+                            val order = requireNotNull(nextByPhase[incoming.phase])
+                            nextByPhase[incoming.phase] = order + 1
+                            added++
+                            incoming.copy(sortOrder = order)
+                        }
                     retainedOrUpdated + additions
                 }
                 ImportMode.REPLACE_ALL -> {
-                    added = imported.size
-                    imported
+                    added = importedWithSafeActivation.size
+                    importedWithSafeActivation
                 }
             }
             val normalized = normalizeOrders(output)
@@ -241,7 +280,7 @@ class CustomRuleRepository @Inject constructor(
             snapshotDao.prune(Constants.MAX_RULE_SNAPSHOTS)
         }
         refreshSnapshotLocked()
-        ImportResult(added, updated, skipped)
+        ImportResult(added, updated, skipped, importVectorFailures)
     }
 
     suspend fun rollbackLatest(): Boolean = mutex.withLock {
@@ -280,5 +319,26 @@ class CustomRuleRepository @Inject constructor(
             rules.filter { it.phase == phase }
                 .sortedWith(compareBy<CustomUrlRule>({ it.sortOrder }, { it.id }))
                 .mapIndexed { index, rule -> rule.copy(sortOrder = index) }
+        }
+
+    private fun validateActivation(rule: CustomUrlRule) {
+        if (rule.enabled) {
+            val result = vectorRunner.run(rule)
+            if (!result.allPassed) {
+                throw RuleActivationBlockedException(result.failingCount)
+            }
+        }
+    }
+
+    private suspend fun vectorFailures(rules: List<CustomUrlRule>): List<ImportVectorFailure> =
+        withContext(Dispatchers.Default) {
+            rules.mapNotNull { rule ->
+                val result = vectorRunner.run(rule)
+                if (result.allPassed) {
+                    null
+                } else {
+                    ImportVectorFailure(rule.id, rule.name, result.failingCount)
+                }
+            }
         }
 }

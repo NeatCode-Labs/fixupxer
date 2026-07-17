@@ -24,6 +24,7 @@ import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
 import com.fixupxer.cleaners.utils.CleanerUtils
 import javax.inject.Inject
+import java.util.Locale
 
 /**
  * General cleaner for removing tracking parameters from any URL
@@ -31,48 +32,30 @@ import javax.inject.Inject
  */
 class GeneralTrackingCleaner @Inject constructor() : UrlCleaner {
     override val id = "general"
+    override val displayName = "General Tracking"
+    override val priority = UrlCleaner.PRIORITY_GENERAL
     override val category = CleanerCategory.GENERAL
     
     companion object {
         // Common tracking parameters used across many sites
         private val COMMON_TRACKING_PARAMS = setOf(
-            // UTM parameters
-            "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", 
+            "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
             "utm_id", "utm_name", "utm_reader", "utm_brand", "utm_pubreferrer",
             "utm_swu", "utm_viz_id", "utm_referrer", "utm_social", "utm_social-type",
-            
-            // Click IDs
-            "fbclid", "gclid", "dclid", "twclid", "msclkid", "yclid", "gbraid", 
-            "wbraid", "ko_click_id", "epik", "pp", "gclsrc", "gad_source",
-            
-            // Analytics
-            "_ga", "_gl", "_hsenc", "_hsmi", "__hssc", "__hstc", "mc_cid", "mc_eid",
-            "_openstat", "vgo_ee", "hsCtaTracking", "_ke", "_kx", "__hmb", "__hmc",
-            "__hmd", "__hml", "__s", "rb_clickid", "ai", "_bta_tid", "_bta_c",
-            
-            // General tracking
-            "ref", "referer", "referrer", "source", "src", "share", "si", "spm", 
-            "campaign_id", "ad_id", "affiliate", "aff_id", "click_id", "clickid",
-            "session_id", "sessionid", "soc_src", "soc_trk", "trk", "trkInfo",
-            
-            // Email tracking
-            "eid", "mid", "ml_subscriber", "ml_subscriber_hash", "eh", "amp",
-            "amp_device_id", "usqp", "ved", "usp", "sa", "cid", "icid",
-            
-            // Social & sharing
-            "shared_by", "share_id", "share_token", "__twitter_impression", "spJobID",
-            "spMailingID", "spReportId", "spUserID", "__tn__", "fb_action_ids",
-            
-            // E-commerce
-            "irclickid", "irgwc", "ircid", "sharedid", "sscid", "wickedid",
-            "zanpid", "pepperjam_enterprise_affiliate", "ranMID", "ranEAID",
-            "ranSiteID", "shareasale_site_id", "shareasale_user_id"
+            "fbclid", "gclid", "gclsrc", "gad_source", "dclid", "twclid", "msclkid",
+            "yclid", "gbraid", "wbraid", "ko_click_id", "epik", "_ga", "_gl",
+            "_hsenc", "_hsmi", "__hssc", "__hstc", "hsctatracking", "mc_cid", "mc_eid",
+            "_openstat", "_ke", "_kx", "__s", "vgo_ee", "rb_clickid", "_bta_tid",
+            "_bta_c", "ml_subscriber", "ml_subscriber_hash", "oly_anon_id", "oly_enc_id",
+            "vero_conv", "vero_id", "wickedid", "irclickid", "irgwc", "sscid", "zanpid",
+            "sharedid", "ranmid", "raneaid", "ransiteid", "shareasale_site_id",
+            "shareasale_user_id", "spjobid", "spmailingid", "spreportid", "spuserid",
+            "__twitter_impression", "mkt_tok", "sfmc_activityid"
         )
         
         // Prefixes that indicate tracking parameters
         private val TRACKING_PREFIXES = listOf(
-            "wt.", "WT.", "pk_", "at_", "sc_", "campaign", "itm_", "elq",
-            "matomo_", "mtm_", "clk", "ito", "xtor", "piwik_", "dm_", "cx_"
+            "pk_", "mtm_", "matomo_", "piwik_", "wt.", "wt_", "itm_", "elq", "xtor", "at_"
         )
     }
     
@@ -83,10 +66,19 @@ class GeneralTrackingCleaner @Inject constructor() : UrlCleaner {
     
     override fun clean(url: String): String {
         try {
+            val queryIndex = url.indexOf('?')
+            val fragmentIndex = url.indexOf('#')
+            val removeEchoboxFragment = fragmentIndex >= 0 &&
+                url.substring(fragmentIndex + 1).startsWith("Echobox=")
+            if (queryIndex < 0 || (fragmentIndex >= 0 && fragmentIndex < queryIndex)) {
+                return if (removeEchoboxFragment) url.substring(0, fragmentIndex) else url
+            }
+
             // Use CleanerUtils to split URL and handle edge cases
-            val (base, query, fragment) = CleanerUtils.splitUrl(url)
+            val (base, query, rawFragment) = CleanerUtils.splitUrl(url)
+            val fragment = if (removeEchoboxFragment) "" else rawFragment
             
-            // If no query parameters, return as is
+            // Preserve existing behavior for an explicit empty query.
             if (query.isEmpty()) {
                 return CleanerUtils.rebuildUrl(base, emptyList(), fragment)
             }
@@ -94,19 +86,15 @@ class GeneralTrackingCleaner @Inject constructor() : UrlCleaner {
             // Process parameters
             val kept = query.split('&').mapNotNull { pair ->
                 val eqIdx = pair.indexOf('=')
-                if (eqIdx == -1) return@mapNotNull null
-                
-                val key = pair.substring(0, eqIdx)
-                val lowercaseKey = key.lowercase()
+                val key = if (eqIdx == -1) pair else pair.substring(0, eqIdx)
+                val lowercaseKey = key.lowercase(Locale.ROOT)
                 
                 // Check if should remove
                 val shouldRemove = 
                     // Check exact matches
                     COMMON_TRACKING_PARAMS.contains(lowercaseKey) ||
                     // Check prefix matches
-                    TRACKING_PREFIXES.any { prefix -> 
-                        lowercaseKey.startsWith(prefix.lowercase()) 
-                    }
+                    TRACKING_PREFIXES.any { prefix -> lowercaseKey.startsWith(prefix) }
                 
                 if (!shouldRemove) {
                     pair

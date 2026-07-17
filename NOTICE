@@ -70,7 +70,9 @@ FixupXer builds upon ideas from these excellent projects:
 
 - ClearURLs (https://github.com/ClearURLs/Addon) - Tracking parameter database
 - Leon URL Cleaner (https://github.com/svenjacobs/leon) - Android URL cleaning concept  
+- Léon (https://github.com/leon-cleaning-services/leon) - GPL-3.0-or-later; selected cleaner behaviour independently adapted without copying code or rule data
 - FxEmbed (https://github.com/FxEmbed/FxEmbed) - Twitter embed improvements
+- fxbsky.app / FxEmbed (https://github.com/FxEmbed/FxEmbed) - Bluesky embed link service
 - InstaFix (https://github.com/Wikidepia/InstaFix) - Instagram embed enhancements
 
 Special thanks to the maintainers of facebookez.com, toinstagram.com, adamlikes.men and instagram7.com for their link enhancement services. (FixupXer also still recognises the earlier proxies kkinstagram.com and eeinstagram.com so legacy URLs continue to work.)

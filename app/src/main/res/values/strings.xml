@@ -4,6 +4,7 @@
     <string name="app_name">FixupXer - URL Enhancer</string>
     <string name="app_title">FixupXer - URL Enhancer</string>
     <string name="share_activity_name">Process Shared URL</string>
+    <string name="process_text_menu_label">Clean link</string>
     
     <!-- Main screen labels -->
     <string name="original_url">Original URL</string>
@@ -13,9 +14,11 @@
     <string name="platform_monogram_instagram" translatable="false">IG</string>
     <string name="platform_monogram_facebook" translatable="false">FB</string>
     <string name="platform_monogram_twitter" translatable="false">X</string>
+    <string name="platform_monogram_bluesky" translatable="false">BS</string>
     <string name="platform_monogram_tiktok" translatable="false">TT</string>
     <string name="via_facebookez">via facebookez.com</string>
     <string name="via_fixupx">via fixupx.com</string>
+    <string name="via_fxbsky">via fxbsky.app</string>
     <string name="enter_url_to_process">Enter URL to process</string>
     <string name="cleaned_url">Processed URL</string>
     <string name="process_url">Process URL</string>
@@ -23,6 +26,7 @@
     <string name="share">Share</string>
     <string name="open">Open</string>
     <string name="donate">Donate</string>
+    <string name="whats_new">What\'s new?</string>
     <string name="history">History</string>
     
     <!-- History strings -->
@@ -52,6 +56,8 @@
     <string name="convert_instagram_toggle_desc">When enabled, Instagram, Facebook, and X/Twitter links will be converted to an Instagram proxy (adamlikes.men, toinstagram.com, instagram7.com, kkinstagram.com, or a custom proxy you add yourself), facebookez.com, and fixupx.com for better embedding</string>
     <string name="convert_twitter_toggle">Embed?</string>
     <string name="convert_twitter_toggle_desc">When enabled, X/Twitter links will be converted to fixupx.com for better embedding</string>
+    <string name="convert_bluesky_toggle">Embed?</string>
+    <string name="convert_bluesky_toggle_desc">When enabled, Bluesky post links will be converted to fxbsky.app for better embedding</string>
 
     <!-- Instagram proxy selection -->
     <string name="currently_using_proxy">Active: %1$s.</string>
@@ -94,6 +100,22 @@
     <string name="no_url_found">No URL found in shared text</string>
     <string name="processing">Processing…</string>
     <string name="result_placeholder">Your clean link will appear here</string>
+    <string name="leak_warning_banner">Possible sensitive data remains in this link</string>
+    <string name="leak_dialog_title">Private Link Guard</string>
+    <string name="leak_warning_body">FixupXer can\'t tell whether this is intentional. The link still works — decide whether you want to share it.</string>
+    <string name="leak_finding_credentials">Login credentials in the link itself</string>
+    <string name="leak_finding_email_path">E-mail address in URL path</string>
+    <string name="leak_finding_email_query">E-mail address in URL query</string>
+    <string name="leak_finding_email_parameter">E-mail address in parameter "%1$s"</string>
+    <string name="leak_finding_email_fragment">E-mail address in URL fragment</string>
+    <string name="leak_finding_jwt">Auth token (JWT) in the link</string>
+    <string name="leak_finding_token_parameter">Sign-in token in parameter "%1$s"</string>
+    <string name="leak_finding_coordinate">Precise location in parameter "%1$s"</string>
+    <string name="leak_finding_coordinates">Precise location in parameters "%1$s", "%2$s"</string>
+    <string name="leak_continue_anyway">Continue anyway</string>
+    <string name="leak_back">Back</string>
+    <string name="leak_remove_parameter">Remove parameter</string>
+    <string name="leak_remove_param_warning">The link may stop working without this parameter.</string>
     
     <!-- Messages -->
     <string name="url_copied">URL copied to clipboard</string>
@@ -125,7 +147,7 @@
     <string name="license_info">This app is free software licensed under the GNU General Public License v3.0 or later. You can view the source code at https://github.com/NeatCode-Labs/fixupxer</string>
     <string name="bug_report_subject">FixupXer Bug Report</string>
     <string name="disclaimer_dialog_title">Disclaimer</string>
-    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not transmit any user data or URLs to external servers. If history is enabled, processed URLs are stored locally on your device only and can be cleared at any time.<br/><br/> <b>History Feature</b><br/> The optional history feature stores your URL conversions locally on your device. This data never leaves your device and can be disabled or cleared at any time through the History settings.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Proxy services such as facebookez.com, fixupx.com, adamlikes.men, toinstagram.com, instagram7.com, kkinstagram.com, tnktok.com, tfxktok.com, tiktokez.com and kktiktok.com are not owned or maintained by us and may stop working at any given time. The same applies to any custom proxy domains you add yourself.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses usage of third-party proxy services such as facebookez.com, fixupx.com, adamlikes.men, toinstagram.com, instagram7.com, kkinstagram.com, tnktok.com, tfxktok.com, tiktokez.com and kktiktok.com, nor of any custom proxy services you configure yourself. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram, TikTok and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.<br/><br/> <b>License</b><br/> FixupXer is free software licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). You have the freedom to use, modify, and distribute this software under the terms of the GPL. Source code is available at https://github.com/NeatCode-Labs/fixupxer]]></string>
+    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not transmit any user data or URLs to external servers. If history is enabled, processed URLs are stored locally on your device only and can be cleared at any time.<br/><br/> <b>History Feature</b><br/> The optional history feature stores your URL conversions locally on your device. This data never leaves your device and can be disabled or cleared at any time through the History settings.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Proxy services such as facebookez.com, fixupx.com, fxbsky.app, adamlikes.men, toinstagram.com, instagram7.com, kkinstagram.com, tnktok.com, tfxktok.com, tiktokez.com and kktiktok.com are not owned or maintained by us and may stop working at any given time. The same applies to any custom proxy domains you add yourself.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses usage of third-party proxy services such as facebookez.com, fixupx.com, fxbsky.app, adamlikes.men, toinstagram.com, instagram7.com, kkinstagram.com, tnktok.com, tfxktok.com, tiktokez.com and kktiktok.com, nor of any custom proxy services you configure yourself. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram, TikTok and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.<br/><br/> <b>License</b><br/> FixupXer is free software licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). You have the freedom to use, modify, and distribute this software under the terms of the GPL. Source code is available at https://github.com/NeatCode-Labs/fixupxer]]></string>
     
     <!-- Donate dialog -->
     <string name="donate_message">If you find FixupXer useful, please consider supporting its development. Your donation helps maintain and improve the app.</string>
@@ -227,6 +249,7 @@
     <string name="conversion_defaults_explanation">When acting as a browser, configure which social media platforms should be converted to alternative domains. These settings are separate from the main app conversion toggles.</string>
     <string name="conversion_defaults_browser_note">These defaults apply only to Browser mode links. For manual cleaning, use the toggles on the main screen.</string>
     <string name="convert_twitter_browser">Convert Twitter/X links</string>
+    <string name="convert_bluesky_browser">Convert Bluesky post links</string>
     <string name="convert_instagram_browser">Convert Instagram links</string>
     <string name="convert_facebook_browser">Convert Facebook links</string>
     <string name="convert_tiktok_browser">Convert TikTok links</string>
@@ -251,7 +274,6 @@
     <string name="custom_rules_import">Import</string>
     <string name="custom_rules_templates">Templates</string>
     <string name="custom_rules_template_privacy">Privacy basics</string>
-    <string name="custom_rules_template_redirects">Offline redirect wrappers</string>
     <string name="custom_rules_export">Export</string>
     <string name="custom_rules_rollback">Undo last import</string>
     <string name="custom_rules_clear">Delete all rules</string>
@@ -262,6 +284,8 @@
     <string name="custom_rules_import_replace">Replace all</string>
     <string name="custom_rules_imported">Imported: %1$d added, %2$d updated, %3$d skipped</string>
     <string name="custom_rules_import_preview">%1$s — %2$d added, %3$d updated, %4$d skipped</string>
+    <string name="custom_rules_import_vector_failures">Test-vector failures (saved disabled):\n%1$s</string>
+    <string name="custom_rules_import_vector_failure_rule">%1$s — %2$d failed</string>
     <string name="custom_rules_exported">Rules exported</string>
     <string name="custom_rules_rollback_done">Last import was restored</string>
     <string name="custom_rules_rollback_empty">No import snapshot is available</string>
@@ -270,6 +294,29 @@
     <string name="custom_rule_create_title">New custom rule</string>
     <string name="custom_rule_basics">Basics</string>
     <string name="custom_rule_basics_description">Name the rule and choose when it runs.</string>
+    <string name="custom_rule_example_title">Teach from example</string>
+    <string name="custom_rule_example_description">Paste one original URL and the exact result you want. FixupXer infers only unambiguous rules.</string>
+    <string name="custom_rule_example_before">Before URL</string>
+    <string name="custom_rule_example_desired">Desired URL</string>
+    <string name="custom_rule_example_infer">Infer rule</string>
+    <string name="custom_rule_example_invalid_before">Enter one valid original URL</string>
+    <string name="custom_rule_example_invalid_desired">Enter one valid desired URL</string>
+    <string name="custom_rule_example_name">Example: %1$s</string>
+    <string name="custom_rule_example_inferred">Rule draft inferred. Review it and run the test vector before enabling.</string>
+    <string name="custom_rule_example_redundant">FixupXer already produces this result — no rule needed.</string>
+    <string name="custom_rule_example_reject_invalid_url">Both examples must be valid HTTP(S) URLs.</string>
+    <string name="custom_rule_example_reject_identical">The URLs are identical, so there is no rule to infer.</string>
+    <string name="custom_rule_example_reject_different_scheme">Changing the URL scheme cannot be inferred safely.</string>
+    <string name="custom_rule_example_reject_different_host">Changing the host cannot be inferred safely.</string>
+    <string name="custom_rule_example_reject_different_port">Changing the port cannot be inferred safely.</string>
+    <string name="custom_rule_example_reject_different_path">Changing the path cannot be inferred safely.</string>
+    <string name="custom_rule_example_reject_different_fragment">Changing the fragment cannot be inferred safely.</string>
+    <string name="custom_rule_example_reject_ambiguous_duplicates">Only some duplicate parameters were removed, so the rule is ambiguous.</string>
+    <string name="custom_rule_example_reject_changed_values">Parameter values changed, so a removal rule cannot be inferred safely.</string>
+    <string name="custom_rule_example_reject_reordered">The surviving parameters changed order, so the rule is ambiguous.</string>
+    <string name="custom_rule_example_reject_multiple_redirects">More than one redirect rule could produce this result.</string>
+    <string name="custom_rule_example_reject_invalid_redirect">The redirect target is not a valid HTTP(S) URL.</string>
+    <string name="custom_rule_example_reject_no_safe">FixupXer could not infer a safe rule from these examples.</string>
     <string name="custom_rule_matching">Matching</string>
     <string name="custom_rule_matching_description">Choose where this rule is allowed to run.</string>
     <string name="custom_rule_transformation">Transformation</string>
@@ -329,6 +376,25 @@
     <string name="custom_rule_test">Run test</string>
     <string name="custom_rule_test_result">Result: %1$s</string>
     <string name="custom_rule_test_trace">Trace:\n%1$s</string>
+    <string name="custom_rule_vectors">Test vectors</string>
+    <string name="custom_rule_vectors_description">Save input and expected-output pairs. Enabled rules must pass every saved vector.</string>
+    <string name="custom_rule_vector_input">Input URL</string>
+    <string name="custom_rule_vector_expected">Expected URL</string>
+    <string name="custom_rule_vector_pair">%1$s → %2$s</string>
+    <string name="custom_rule_vector_add">Add test vector</string>
+    <string name="custom_rule_vector_run_all">Run all</string>
+    <string name="custom_rule_vector_delete">Delete test vector</string>
+    <string name="custom_rule_vector_status">Test-vector result</string>
+    <string name="custom_rule_vector_count">%1$d/%2$d vectors</string>
+    <string name="custom_rule_vector_limit_reached">Test-vector limit reached</string>
+    <string name="custom_rule_vector_summary">%1$d/%2$d passed</string>
+    <string name="custom_rule_vector_invalid_input">Enter one valid input URL</string>
+    <string name="custom_rule_vector_invalid_expected">Enter one valid expected URL</string>
+    <string name="custom_rule_activation_blocked_title">Cannot enable rule</string>
+    <string name="custom_rule_activation_blocked_message">%1$d test vectors fail. Fix them, or save this rule as a disabled draft.</string>
+    <string name="custom_rule_save_disabled_draft">Save as disabled draft</string>
+    <string name="custom_rule_fix_now">Fix now</string>
+    <string name="custom_rule_activation_blocked_list">Rule remains disabled: %1$d test vectors fail</string>
     <string name="custom_rule_unsaved_changes">Discard unsaved changes?</string>
     <string name="discard">Discard</string>
     <string name="done">Done</string>

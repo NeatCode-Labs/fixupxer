@@ -34,6 +34,7 @@ object Constants {
     const val WEBSITE_URL = "https://neatcodelabs.com/"
     const val GITHUB_URL = "https://github.com/NeatCode-Labs"
     const val GITHUB_REPOSITORY_URL = "$GITHUB_URL/fixupxer"
+    const val RELEASE_NOTES_URL = "$GITHUB_REPOSITORY_URL/blob/main/docs/RELEASE_NOTES.md"
     private const val BUG_REPORT_EMAIL_LOCAL_PART = "neatcodelabs"
     private const val BUG_REPORT_EMAIL_DOMAIN = "gmail.com"
     val BUG_REPORT_EMAIL = "$BUG_REPORT_EMAIL_LOCAL_PART@$BUG_REPORT_EMAIL_DOMAIN"
@@ -67,6 +68,11 @@ object Constants {
     const val FACEBOOK_DOMAIN = "facebook.com"
     const val FB_SHORT_DOMAIN = "fb.com"
     const val FACEBOOKEZ_DOMAIN = "facebookez.com"
+    const val FACEBOOK_LINK_SHIM_DOMAIN = "l.facebook.com"
+    const val FACEBOOK_MOBILE_LINK_SHIM_DOMAIN = "lm.facebook.com"
+    const val BLUESKY_DOMAIN = "bsky.app"
+    const val FXBSKY_DOMAIN = "fxbsky.app"
+    const val BLUESKY_GO_DOMAIN = "go.bsky.app"
 
     // TikTok + embed proxies (v1.7.0)
     // NOTE: kktiktok.com and vxtiktok.com contain "tiktok.com" as a substring —
@@ -99,6 +105,26 @@ object Constants {
     const val AMAZON_SHORT_DOMAIN = "amzn.to"
     const val SUBSTACK_DOMAIN = "substack.com"
     const val GOOGLE_DOMAIN = "google.com"
+    const val GOOGLE_MAPS_DOMAIN = "maps.google.com"
+    const val GOOGLE_ADSERVICES_DOMAIN = "googleadservices.com"
+    const val GOOGLE_STORE_DOMAIN = "store.google.com"
+    const val REDDITMAIL_CLICK_DOMAIN = "click.redditmail.com"
+    const val WIKIPEDIA_DOMAIN = "wikipedia.org"
+    const val THREADS_NET_DOMAIN = "threads.net"
+    const val THREADS_COM_DOMAIN = "threads.com"
+    const val TWITCH_DOMAIN = "twitch.tv"
+    const val SPOTIFY_DOMAIN = "spotify.com"
+    const val PINTEREST_DOMAIN = "pinterest.com"
+    const val SNAPCHAT_DOMAIN = "snapchat.com"
+    const val WHATSAPP_DOMAIN = "whatsapp.com"
+    const val MEDIUM_DOMAIN = "medium.com"
+    const val BING_DOMAIN = "bing.com"
+    const val DUCKDUCKGO_DOMAIN = "duckduckgo.com"
+    const val EBAY_COM_DOMAIN = "ebay.com"
+    const val EBAY_CO_UK_DOMAIN = "ebay.co.uk"
+    const val EBAY_DE_DOMAIN = "ebay.de"
+    const val NETFLIX_DOMAIN = "netflix.com"
+    const val ALIEXPRESS_DOMAIN = "aliexpress.com"
     
     // URL path identifiers
     const val TWITTER_STATUS_PATH = "/status/"
@@ -117,8 +143,63 @@ object Constants {
     const val MAX_REGEX_PROGRAM_SIZE = 10_000
     const val MAX_PIPELINE_REENTRIES = 5
     const val MAX_TRACE_STEPS = 1000
+    const val MAX_CHANGE_OPERATIONS = 20
     const val MAX_RULE_BUNDLE_BYTES = 1_048_576
     const val MAX_RULE_SNAPSHOTS = 3
+
+    // Private Link Guard: high-confidence literal URL leak indicators only.
+    const val LEAK_MIN_TOKEN_VALUE_LENGTH = 8
+    const val MAX_LEAK_FINDINGS = 10
+
+    val LEAK_EMAIL_PATTERN = Regex(
+        "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+    )
+    val LEAK_JWT_PATTERN = Regex(
+        "eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+"
+    )
+    val LEAK_PRECISE_COORDINATE_PATTERN = Regex(
+        "[-+]?\\d+\\.\\d{4,}"
+    )
+    val LEAK_SENSITIVE_PARAM_NAMES = setOf(
+        "access_token",
+        "refresh_token",
+        "id_token",
+        "token",
+        "auth",
+        "authorization",
+        "auth_token",
+        "otp",
+        "one_time_code",
+        "reset",
+        "reset_token",
+        "password_reset_token",
+        "invite",
+        "invite_code",
+        "invitation_token",
+        "api_key",
+        "apikey",
+        "secret",
+        "client_secret",
+        "session",
+        "session_id",
+        "session_token",
+        "sessionid",
+        "signature",
+        "sig",
+        "private_token",
+        "share_token",
+        "confirmation_token",
+        "unlock_token",
+        "recovery_token",
+        "bearer"
+    )
+    /*
+     * Deliberately excluded: "code" (frequently a discount/region/article code),
+     * "key" (too generic), and "sid" (ambiguous service/session identifier).
+     * The guard favours high confidence over broad token detection.
+     */
+    val LEAK_LATITUDE_PARAM_NAMES = setOf("lat", "latitude")
+    val LEAK_LONGITUDE_PARAM_NAMES = setOf("lon", "lng", "longitude")
     
     // Tag for logging
     const val LOG_TAG = "FixupXer"

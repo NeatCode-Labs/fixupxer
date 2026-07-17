@@ -22,6 +22,7 @@ package com.fixupxer.cleaners.impl
 
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
+import com.fixupxer.processing.UrlNormalizer
 import java.net.URLDecoder
 
 /**
@@ -29,6 +30,8 @@ import java.net.URLDecoder
  */
 object GoogleSearchCleaner : UrlCleaner {
     override val id = "google_search"
+    override val displayName = "Google Search"
+    override val priority = UrlCleaner.PRIORITY_EXTRACTION
     override val category = CleanerCategory.SEARCH_ENGINES
     
     // Google domains across different regions
@@ -123,16 +126,16 @@ object GoogleSearchCleaner : UrlCleaner {
     )
     
     override fun matches(url: String): Boolean {
-        val lowerUrl = url.lowercase()
-        // Check if it's a Google domain with /url path (redirect)
-        return googleDomains.any { domain ->
-            lowerUrl.contains(domain) && (lowerUrl.contains("/url?") || lowerUrl.contains("/search?"))
-        }
+        val host = UrlNormalizer.extractAsciiHost(url)
+        return googleDomains.any { UrlNormalizer.hostMatchesDomain(host, it) } &&
+            rawPath(url).let { isPathSegment(it, "/url") || isPathSegment(it, "/search") }
     }
     
     override fun clean(url: String): String {
+        if (!matches(url)) return url
+
         // Check if this is a redirect URL
-        if (url.contains("/url?")) {
+        if (isPathSegment(rawPath(url), "/url") && hasRawQuery(url)) {
             // Extract the actual URL from 'url' or 'q' parameter
             extractRedirectUrl(url)?.let { extractedUrl ->
                 return extractedUrl
@@ -146,12 +149,10 @@ object GoogleSearchCleaner : UrlCleaner {
     private fun cleanGoogleUrl(url: String): String {
         try {
             // If no query parameters, return as is
-            if (!url.contains("?")) {
+            val idx = url.indexOf('?')
+            if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
                 return url
             }
-            
-            val idx = url.indexOf('?')
-            if (idx == -1) return url
             
             val base = url.substring(0, idx)
             val queryAndFragment = url.substring(idx + 1)
@@ -172,15 +173,13 @@ object GoogleSearchCleaner : UrlCleaner {
             // Process parameters - aggressive cleaning
             val kept = query.split('&').mapNotNull { pair ->
                 val eqIdx = pair.indexOf('=')
-                if (eqIdx == -1) return@mapNotNull null
+                val key = if (eqIdx == -1) pair else pair.substring(0, eqIdx)
                 
-                val key = pair.substring(0, eqIdx)
-                
-                // Keep if essential, remove if tracking or unknown
+                // Keep essential and unknown params, remove only known tracking
                 when {
                     preserveParams.contains(key) -> pair  // Always keep essential params
                     googleTracking.contains(key) -> null  // Remove tracking params
-                    else -> null  // Remove unknown params (aggressive cleaning)
+                    else -> pair
                 }
             }.filter { it.isNotEmpty() }
             
@@ -222,5 +221,25 @@ object GoogleSearchCleaner : UrlCleaner {
         }
         
         return null
+    }
+
+    /** Segment-boundary path check: "/url" matches "/url" and "/url/…" but not "/urlfoo". */
+    private fun isPathSegment(path: String, segment: String): Boolean =
+        path == segment || path.startsWith("$segment/")
+
+    private fun rawPath(url: String): String {
+        val authorityStart = url.indexOf("://")
+            .let { if (it >= 0) it + 3 else 0 }
+        val pathStart = url.indexOfAny(charArrayOf('/', '?', '#'), authorityStart)
+        if (pathStart < 0 || url[pathStart] != '/') return ""
+        val pathEnd = url.indexOfAny(charArrayOf('?', '#'), pathStart)
+            .let { if (it >= 0) it else url.length }
+        return url.substring(pathStart, pathEnd)
+    }
+
+    private fun hasRawQuery(url: String): Boolean {
+        val queryIndex = url.indexOf('?')
+        val fragmentIndex = url.indexOf('#')
+        return queryIndex >= 0 && (fragmentIndex < 0 || queryIndex < fragmentIndex)
     }
 } 

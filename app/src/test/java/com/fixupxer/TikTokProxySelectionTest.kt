@@ -20,6 +20,7 @@
 
 package com.fixupxer
 
+import com.fixupxer.cleaners.CleanerCatalog
 import com.fixupxer.cleaners.CleanerRegistry
 import com.fixupxer.cleaners.CleanerService
 import com.fixupxer.cleaners.cache.CleanerCache
@@ -57,20 +58,7 @@ class TikTokProxySelectionTest {
         // TikTokProxyStore is global state — start every test from a clean slate.
         TikTokProxyStore.reset()
         val registry = CleanerRegistry().apply {
-            registerAll(
-                listOf(
-                    com.fixupxer.cleaners.impl.AmazonCleaner,
-                    com.fixupxer.cleaners.impl.YouTubeCleaner,
-                    com.fixupxer.cleaners.impl.GoogleSearchCleaner,
-                    com.fixupxer.cleaners.impl.TwitterCleaner,
-                    com.fixupxer.cleaners.impl.InstagramCleaner,
-                    com.fixupxer.cleaners.impl.FacebookCleaner,
-                    com.fixupxer.cleaners.impl.RedditCleaner,
-                    com.fixupxer.cleaners.impl.TikTokCleaner,
-                    com.fixupxer.cleaners.impl.LinkedInCleaner,
-                    com.fixupxer.cleaners.impl.GeneralTrackingCleaner()
-                )
-            )
+            registerAll(CleanerCatalog.createBuiltInCleaners())
         }
         val cache = CleanerCache()
         processor = UrlProcessor(CleanerService(registry, cache))
@@ -293,7 +281,10 @@ class TikTokProxySelectionTest {
             convertTwitter = true,
             tiktokProxy = Constants.TNKTOK_DOMAIN
         ).first
-        assertEquals("https://www.tnktok.com/@user/video/123", result)
+        assertEquals(
+            "https://www.tnktok.com/@user/video/123?is_from_webapp=1&sender_device=pc",
+            result
+        )
     }
 
     // ---------------------------------------------------------------------

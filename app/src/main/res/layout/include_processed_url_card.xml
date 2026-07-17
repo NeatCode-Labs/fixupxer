@@ -55,5 +55,35 @@
             android:textStyle="bold"
             android:lineSpacingMultiplier="1.2"
             android:minHeight="@dimen/processed_url_min_height" />
+
+        <LinearLayout
+            android:id="@+id/leakWarningRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="@string/leak_warning_banner"
+            android:focusable="true"
+            android:orientation="horizontal"
+            android:paddingTop="@dimen/margin_extra_small"
+            android:paddingBottom="@dimen/margin_extra_small"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="@null"
+                android:src="@android:drawable/ic_dialog_alert"
+                app:tint="?attr/colorError" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
+                android:text="@string/leak_warning_banner"
+                android:textColor="?attr/colorError"
+                android:textSize="@dimen/text_size_small" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

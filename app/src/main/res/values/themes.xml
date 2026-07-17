@@ -62,6 +62,14 @@
 
     <style name="Theme.FixupXer" parent="Base.Theme.FixupXer" />
 
+    <style name="Theme.FixupXer.Translucent" parent="Theme.FixupXer">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowIsFloating">false</item>
+    </style>
+
     <!-- Material card style -->
     <style name="CardStyle" parent="Widget.Material3.CardView.Elevated">
         <item name="cardCornerRadius">@dimen/card_corner_radius</item>

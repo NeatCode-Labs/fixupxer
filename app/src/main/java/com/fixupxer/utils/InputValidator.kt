@@ -107,6 +107,9 @@ object InputValidator {
     suspend fun validateAndSanitizeInput(input: String): String? =
         (validate(input) as? ValidationResult.Valid)?.value
 
+    /** Returns whether [value] is a single, whitespace-free HTTP(S) URL token. */
+    fun isSingleUrlToken(value: String): Boolean = SINGLE_URL_TOKEN.matches(value)
+
     /**
      * Same checks as [validateAndSanitizeInput], but reports WHY the input was
      * rejected so callers can distinguish a genuine multi-URL paste from other
@@ -262,12 +265,9 @@ object InputValidator {
                 val hasGluedUrls = detectGluedUrls(input)
                 
                 // Debug logging
-                Timber.d("InputValidator: input='$input'")
+                Timber.d("InputValidator: inputLength=${input.length}")
                 Timber.d("InputValidator: protocolCount=$protocolCount, wwwCount=$wwwCount")
                 Timber.d("InputValidator: domains.size=${domainsMatches.size}, distinct=${distinctDomains.size}, domainDots=$domainDots")
-                Timber.d("InputValidator: mainUrl='$mainUrl'")
-                Timber.d("InputValidator: domainPart='$domainPart'")
-                Timber.d("InputValidator: domainOnly='$domainOnly'")
                 Timber.d("InputValidator: hasTldGlue=$hasTldGlue")
                 Timber.d("InputValidator: hasGluedUrls=$hasGluedUrls")
                 
@@ -318,7 +318,7 @@ object InputValidator {
                 if (remaining.isNotEmpty() && remaining[0].isLetterOrDigit()) {
                     // Check if what follows is another domain
                     if (NEXT_DOMAIN_PATTERN.containsMatchIn(remaining)) {
-                        Timber.d("InputValidator: Detected glued domains: '$domain' followed immediately by another domain in '$input'")
+                        Timber.d("InputValidator: detected glued domains")
                         return true
                     }
                 }
@@ -346,7 +346,7 @@ object InputValidator {
                 
                 // If what follows forms a complete domain, it's glued
                 if (NEXT_DOMAIN_PATTERN.containsMatchIn(afterMatch)) {
-                    Timber.d("InputValidator: Detected glued pattern: domain '$domainPart.$tld' followed by another domain")
+                    Timber.d("InputValidator: detected glued pattern")
                     return true
                 }
             }

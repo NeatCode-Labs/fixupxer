@@ -22,12 +22,15 @@ package com.fixupxer.cleaners.impl
 
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
+import com.fixupxer.processing.UrlNormalizer
+import com.fixupxer.utils.Constants
 
 /**
  * Cleaner for Substack URLs - removes all tracking while preserving essential publication/post IDs
  */
 object SubstackCleaner : UrlCleaner {
     override val id = "substack"
+    override val displayName = "Substack"
     override val category = CleanerCategory.NEWS_MEDIA
     
     // Comprehensive Substack tracking parameters
@@ -96,19 +99,18 @@ object SubstackCleaner : UrlCleaner {
     )
     
     override fun matches(url: String): Boolean {
-        val lowerUrl = url.lowercase()
-        return lowerUrl.contains("substack.com")
+        return UrlNormalizer.urlMatchesDomain(url, Constants.SUBSTACK_DOMAIN)
     }
     
     override fun clean(url: String): String {
+        if (!matches(url)) return url
+
         try {
             // If no query parameters, return as is
-            if (!url.contains("?")) {
+            val idx = url.indexOf('?')
+            if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
                 return url
             }
-            
-            val idx = url.indexOf('?')
-            if (idx == -1) return url
             
             val base = url.substring(0, idx)
             val queryAndFragment = url.substring(idx + 1)
@@ -126,18 +128,16 @@ object SubstackCleaner : UrlCleaner {
                 ""
             }
             
-            // Process parameters - keep only essential ones
+            // Process parameters - remove known tracking while preserving unknown parameters.
             val kept = query.split('&').mapNotNull { pair ->
                 val eqIdx = pair.indexOf('=')
-                if (eqIdx == -1) return@mapNotNull null
+                val key = if (eqIdx == -1) pair else pair.substring(0, eqIdx)
                 
-                val key = pair.substring(0, eqIdx)
-                
-                // Only keep publication_id and post_id
+                // Keep essential params first to protect them from future tracking-list additions.
                 when {
                     preserveParams.contains(key) -> pair  // Keep essential params
                     substackTracking.contains(key) -> null  // Remove known tracking
-                    else -> null  // Remove unknown params (aggressive cleaning)
+                    else -> pair
                 }
             }.filter { it.isNotEmpty() }
             

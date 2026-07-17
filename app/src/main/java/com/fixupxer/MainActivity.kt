@@ -50,6 +50,7 @@ import com.fixupxer.utils.InputValidator
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.ui.dialogs.HistoryDialogHelper
 import com.fixupxer.ui.dialogs.InstagramProxyDialogHelper
+import com.fixupxer.ui.dialogs.LinkGuardDialogHelper
 import com.fixupxer.ui.dialogs.TikTokProxyDialogHelper
 import com.fixupxer.utils.PostCleanRunner
 import com.fixupxer.domain.repository.UrlRepository
@@ -114,7 +115,7 @@ class MainActivity : BaseActivity() {
             val uri = intent.data
             val scheme = uri?.scheme
             
-            Timber.d("handleViewIntentIfPresent: URI=$uri, scheme=$scheme")
+            Timber.d("VIEW intent received (host=${uri?.host ?: "unknown"}, scheme=$scheme)")
             
             // Only handle http and https schemes
             if (scheme == "http" || scheme == "https") {
@@ -144,7 +145,10 @@ class MainActivity : BaseActivity() {
                         val result = urlRepository.processUrlForBrowser(originalUrl)
                         val cleanedUri = Uri.parse(result.url)
                         
-                        Timber.d("URL cleaned: $uri -> $cleanedUri")
+                        Timber.d(
+                            "VIEW URL processed (host=${cleanedUri.host ?: "unknown"}, " +
+                                "length=${result.url.length})"
+                        )
                         
                         // Run post-clean action
                         val postCleanRunner = PostCleanRunner(this@MainActivity, preferencesManager)
@@ -191,6 +195,10 @@ class MainActivity : BaseActivity() {
             }
             R.id.action_donate -> {
                 showDonateDialog()
+                true
+            }
+            R.id.action_whats_new -> {
+                openWhatsNew()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -347,6 +355,13 @@ class MainActivity : BaseActivity() {
                         viewModel.onTwitterConversionToggled(isChecked)
                     }
 
+                    binding.togglesInclude.blueskyToggleContainer.isVisible = state.isBlueskyUrl
+                    binding.togglesInclude.switchBluesky.setOnCheckedChangeListener(null)
+                    binding.togglesInclude.switchBluesky.isChecked = state.isBlueskyConversionEnabled
+                    binding.togglesInclude.switchBluesky.setOnCheckedChangeListener { _, isChecked ->
+                        viewModel.onBlueskyConversionToggled(isChecked)
+                    }
+
                     binding.togglesInclude.tiktokToggleContainer.isVisible = state.isTikTokUrl
                     if (state.isTikTokUrl) {
                         refreshTikTokProxyLabel()
@@ -367,6 +382,16 @@ class MainActivity : BaseActivity() {
                     binding.buttonShare.isEnabled = hasActionUrl
                     binding.buttonOpen.isEnabled = hasActionUrl
                     binding.buttonCopy.isEnabled = hasActionUrl
+                    binding.processedUrlInclude.leakWarningRow.isVisible =
+                        state.leakFindings.isNotEmpty()
+                    binding.processedUrlInclude.leakWarningRow.setOnClickListener {
+                        LinkGuardDialogHelper.show(
+                            context = this@MainActivity,
+                            findings = state.leakFindings,
+                            onRemoveParameter = viewModel::removeLeakedParameters,
+                            onBack = viewModel::clearInput
+                        )
+                    }
 
                     // Input-related errors (empty input, multiple URLs) belong on the
                     // text field; processing errors render in the result card below.

@@ -14,6 +14,7 @@ Lab**, and only then enable the rule for normal use.
 - [Choose an include scope](#include-scopes)
 - [Configure actions and see examples](#actions)
 - [Test safely in Test Lab](#test-lab)
+- [Teach FixupXer from an example](#teach-from-example)
 - [Fix common beginner mistakes](#common-beginner-mistakes)
 
 ## The 30-second mental model
@@ -463,6 +464,31 @@ matches and URLs that must remain unchanged.
 Test Lab runs the complete FixupXer pipeline with the unsaved draft inserted
 among your saved rules. The final result can therefore include built-in
 cleaning and changes from other enabled custom rules.
+
+### Teach from example
+
+When creating a new rule, expand **Teach from example** and enter one original
+URL plus the exact URL you want. FixupXer can safely infer only two narrow
+cases: removing named query parameters while preserving every surviving raw
+query token and its order, or extracting one unambiguous redirect parameter.
+
+The generated draft is deliberately disabled, scoped to the original exact
+host, limited to the Main screen, and placed before built-in cleaning. It also
+adds your example as a saved test vector. Review the fields, run the vector,
+and enable the rule only after it passes. If FixupXer already produces the
+desired result through its existing pipeline, no draft is created.
+
+### Saved test vectors
+
+Use **Test vectors** to save up to 20 input → expected-output pairs with a
+rule. **Run all** checks the rule by itself through its configured phase and
+scope; it does not read preferences or touch history, the cleaner cache, or
+other rules. Evaluation uses the first context the rule is active in (Main,
+then Share, then Browser), so a vector's outcome is the same in every context.
+An enabled rule must pass every saved vector. Failed imports are
+kept as disabled drafts and identified in the import preview. Existing enabled
+rules are never automatically disabled, but their saved-vector failures appear
+when you open the editor.
 
 Useful trace statuses include:
 

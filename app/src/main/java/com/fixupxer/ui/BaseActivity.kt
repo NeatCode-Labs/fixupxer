@@ -257,6 +257,18 @@ abstract class BaseActivity : AppCompatActivity() {
     }
     
     /**
+     * Open the GitHub release notes in an external browser.
+     */
+    protected fun openWhatsNew() {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.RELEASE_NOTES_URL)))
+        } catch (e: Exception) {
+            Timber.e(e, "Error opening release notes URL")
+            Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
      * Show donate dialog
      */
     protected fun showDonateDialog() {

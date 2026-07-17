@@ -7,7 +7,7 @@
 <h3 align="center">Clean tracking from links. Improve social previews. Build your own offline URL rules.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.1.0"><img src="https://img.shields.io/badge/version-2.1.0-blue?style=flat-square" alt="Version 2.1.0"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.2.0"><img src="https://img.shields.io/badge/version-2.2.0-blue?style=flat-square" alt="Version 2.2.0"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>
@@ -34,14 +34,21 @@ declares no permissions and never sends your links anywhere.
 
 ## Highlights
 
-- **Broad tracking cleanup** — 964 known tracking parameters across specialized
-  and universal cleaners.
+- **Selective tracking cleanup** — known tracking keys from 25 host-bound
+  cleaners and one universal cleaner; unknown functional parameters are kept.
+- **Private Link Guard** — warns when e-mails, tokens, or precise coordinates
+  remain visible in a link — fully offline.
 - **Custom URL rules** — create ordered scopes, actions, phases, excludes, and
   context-specific rules without editing raw JSON.
+- **Teach by example** — infer a conservative disabled custom-rule draft from
+  one original URL and its exact desired result.
 - **Better social previews** — optional conversions for Instagram, Facebook,
-  Twitter/X, and TikTok, including user-selectable and custom proxy domains.
+  Twitter/X, Bluesky posts, and TikTok, including user-selectable and custom
+  proxy domains.
 - **Browser Mode** — route web links through FixupXer before opening a browser
   or native app.
+- **Process Text** — select a link in any app and choose “Clean link” to clean
+  it in place, entirely offline.
 - **Local history** — revisit, copy, share, or delete processed links; history
   is optional and remains on the device.
 - **Modern Android UI** — Material 3 before/after flow, light and dark themes,
@@ -98,6 +105,9 @@ them in Settings.
   conversion; limit them to Main, Share, or Browser contexts.
 - Preview unsaved changes in Test Lab, inspect a bounded execution trace, add
   excludes, stop after a match, and reorder rules.
+- Save up to 20 isolated input → expected-output test vectors per rule. A rule
+  can be enabled only after all of its saved vectors pass; imports with failures
+  are retained as disabled drafts.
 - Start from bundled templates or import/export validated, versioned JSON
   bundles through Android's system file picker. Imports are atomic and can be
   rolled back.
@@ -108,13 +118,21 @@ beginner-friendly examples and a complete action/scope reference.
 ## Built-in cleaning and link conversion
 
 Dedicated cleaners cover Facebook, Instagram, Twitter/X, TikTok, LinkedIn,
-Reddit, Amazon, AliExpress, eBay, YouTube, Substack, Google Search, and more.
-A universal cleaner removes common tracking parameters from other websites.
+Reddit, Amazon, YouTube, Substack, Google Search, Google Maps, Google Store,
+Wikipedia, Threads, Twitch, Spotify, Pinterest, Snapchat, WhatsApp, Medium,
+Bing, DuckDuckGo, eBay, Netflix, and AliExpress. A universal cleaner removes
+proven common tracking parameters from other websites.
+
+Curated offline redirect unwrapping handles Facebook `l.php`, LinkedIn
+`/safety/go`, YouTube `/redirect`, Google Ads `pagead/aclk`, Reddit Mail, and
+Bluesky `go.bsky.app` wrappers. Destinations are decoded once and accepted only
+when they are valid HTTP(S) URLs.
 
 When **Embed?** is enabled, FixupXer can locally rewrite:
 
 - Facebook links to `facebookez.com`
 - Twitter/X links to `fixupx.com`
+- Bluesky post links to `fxbsky.app`
 - Instagram links to a selected fixed or custom proxy
 - TikTok links to a selected fixed or custom proxy
 
@@ -220,7 +238,7 @@ custom domain. Disable **Embed?** to keep the original social-media domain.
 - Modular cleaner registry with O(1) domain dispatch
 - Raw-preserving URL processing with immutable per-request rule snapshots
 - RE2/J 1.8 for user-authored regular expressions
-- 467 automated tests: 273 unit + 194 instrumentation
+- 571 automated tests: 370 unit + 201 instrumentation
 - Release lint, zero-permission manifest regression test, and REUSE 3.3
   compliance
 

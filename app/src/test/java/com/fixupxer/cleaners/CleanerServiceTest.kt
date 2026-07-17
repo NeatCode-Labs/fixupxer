@@ -21,7 +21,7 @@
 package com.fixupxer.cleaners
 
 import com.fixupxer.cleaners.cache.CleanerCache
-import com.fixupxer.cleaners.impl.*
+import com.fixupxer.processing.ChangeOperationType
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -39,19 +39,7 @@ class CleanerServiceTest {
         registry = CleanerRegistry()
         cache = CleanerCache()
         
-        // Register all cleaners
-        registry.registerAll(listOf(
-            AmazonCleaner,
-            YouTubeCleaner,
-            GoogleSearchCleaner,
-            TwitterCleaner,
-            InstagramCleaner,
-            FacebookCleaner,
-            RedditCleaner,
-            TikTokCleaner,
-            LinkedInCleaner,
-            GeneralTrackingCleaner()
-        ))
+        registry.registerAll(CleanerCatalog.createBuiltInCleaners())
         
         // Create the service with real registry and cache
         cleanerService = CleanerService(registry, cache)
@@ -79,7 +67,12 @@ class CleanerServiceTest {
         
         // Verify that the final URL is the cleaned Amazon product link
         assertEquals("https://www.amazon.com/dp/B08N5WRWNW", result.cleanedUrl)
-        // We no longer rely on appliedCleaners list because cross-pass cleaners may not be recorded.
+        assertTrue(
+            result.operations.any {
+                it.type == ChangeOperationType.REDIRECT_EXTRACTED &&
+                    it.source == "Google Search"
+            }
+        )
     }
     
     @Test
@@ -115,8 +108,8 @@ class CleanerServiceTest {
         
         val result = cleanerService.deepCleanWithDetails(complexUrl, maxPasses = 2)
         
-        // Should stop after 2 passes
-        assertTrue(result.totalPasses <= 2)
+        // Should report at least one real pass and stop after 2 passes
+        assertTrue(result.totalPasses in 1..2)
     }
     
     @Test
@@ -154,9 +147,11 @@ class CleanerServiceTest {
         assertTrue(result.cleanedUrl.contains("v=dQw4w9WgXcQ"))
         assertTrue(result.cleanedUrl.contains("t=30s"))
         
-        // Check summary
-        val summary = result.getSummary()
-        assertTrue(summary.contains("Removed"))
-        assertTrue(summary.contains("tracking parameter(s)"))
+        assertTrue(
+            result.operations.any {
+                it.type == ChangeOperationType.PARAMETERS_REMOVED &&
+                    "utm_source" in it.parameterNames
+            }
+        )
     }
 }

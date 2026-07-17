@@ -42,6 +42,7 @@ class PreferencesManager(context: Context) {
         internal const val KEY_CONVERT_TWITTER = "convert_twitter"
         internal const val KEY_CONVERT_INSTAGRAM = "convert_instagram"
         internal const val KEY_CONVERT_TIKTOK = "convert_tiktok"
+        internal const val KEY_CONVERT_BLUESKY = "convert_bluesky"
         private const val KEY_INSTAGRAM_PROXY = "instagram_proxy_domain"
         private const val KEY_CUSTOM_INSTAGRAM_PROXIES = "custom_instagram_proxies"
         private const val KEY_TIKTOK_PROXY = "tiktok_proxy_domain"
@@ -67,6 +68,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_BROWSER_CONVERT_INSTAGRAM = "browser_convert_instagram"
         private const val KEY_BROWSER_CONVERT_FACEBOOK = "browser_convert_facebook"
         private const val KEY_BROWSER_CONVERT_TIKTOK = "browser_convert_tiktok"
+        internal const val KEY_BROWSER_CONVERT_BLUESKY = "browser_convert_bluesky"
         
         // Action mode constants
         const val ACTION_MODE_ASK = "ask"
@@ -157,6 +159,20 @@ class PreferencesManager(context: Context) {
      */
     fun setConvertTikTokEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_CONVERT_TIKTOK, enabled) }
+    }
+
+    /**
+     * Check if Bluesky post URL conversion is enabled.
+     */
+    fun isConvertBlueskyEnabled(): Boolean {
+        return prefs.getBoolean(KEY_CONVERT_BLUESKY, true)
+    }
+
+    /**
+     * Set whether Bluesky post URL conversion is enabled.
+     */
+    fun setConvertBlueskyEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_CONVERT_BLUESKY, enabled) }
     }
 
     /**
@@ -431,5 +447,19 @@ class PreferencesManager(context: Context) {
      */
     fun setBrowserConvertTikTokEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_BROWSER_CONVERT_TIKTOK, enabled) }
+    }
+
+    /**
+     * Check if Bluesky post URL conversion is enabled for browser mode.
+     */
+    fun isBrowserConvertBlueskyEnabled(): Boolean {
+        return prefs.getBoolean(KEY_BROWSER_CONVERT_BLUESKY, false)
+    }
+
+    /**
+     * Set whether Bluesky post URL conversion is enabled for browser mode.
+     */
+    fun setBrowserConvertBlueskyEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_BROWSER_CONVERT_BLUESKY, enabled) }
     }
 } 

@@ -21,7 +21,6 @@
 package com.fixupxer.cleaners
 
 import com.fixupxer.cleaners.cache.CleanerCache
-import com.fixupxer.cleaners.impl.*
 import org.junit.Before
 import org.junit.Test
 import kotlin.system.measureTimeMillis
@@ -39,19 +38,7 @@ class CleanerPerformanceTest {
         registry = CleanerRegistry()
         val cache = CleanerCache()
         
-        // Register all cleaners
-        registry.registerAll(listOf(
-            AmazonCleaner,
-            YouTubeCleaner,
-            GoogleSearchCleaner,
-            TwitterCleaner,
-            InstagramCleaner,
-            FacebookCleaner,
-            RedditCleaner,
-            TikTokCleaner,
-            LinkedInCleaner,
-            GeneralTrackingCleaner()
-        ))
+        registry.registerAll(CleanerCatalog.createBuiltInCleaners())
         
         cleanerService = CleanerService(registry, cache)
     }
@@ -131,7 +118,7 @@ class CleanerPerformanceTest {
             }
             println("URL: ${url.take(50)}...")
             println("  Passes: ${result.totalPasses}, Time: ${time}ms")
-            println("  Cleaners applied: ${result.appliedCleaners.map { it.id }.joinToString()}")
+            println("  Operations: ${result.operations.map { it.source }.joinToString()}")
         }
     }
     

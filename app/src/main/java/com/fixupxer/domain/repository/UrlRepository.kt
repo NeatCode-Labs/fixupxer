@@ -91,7 +91,14 @@ interface UrlRepository {
      * @return True if it's a TikTok URL
      */
     fun isTikTokUrl(url: String): Boolean
-    
+
+    /**
+     * Check if a URL is a Bluesky post or its FxEmbed equivalent.
+     * @param url The URL to check
+     * @return True if it supports Bluesky embed conversion
+     */
+    fun isBlueskyUrl(url: String): Boolean
+
     /**
      * Check if a URL contains tracking parameters
      */
@@ -136,7 +143,17 @@ interface UrlRepository {
      * Set TikTok conversion preference
      */
     suspend fun setTikTokConversionEnabled(enabled: Boolean)
-    
+
+    /**
+     * Get the current state of Bluesky conversion preference.
+     */
+    fun isBlueskyConversionEnabled(): Flow<Boolean>
+
+    /**
+     * Set Bluesky conversion preference.
+     */
+    suspend fun setBlueskyConversionEnabled(enabled: Boolean)
+
     /**
      * Process URL for browser mode with browser-specific conversion settings
      */

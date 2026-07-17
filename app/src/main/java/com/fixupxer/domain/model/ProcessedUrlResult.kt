@@ -20,6 +20,9 @@
 
 package com.fixupxer.domain.model
 
+import com.fixupxer.processing.ChangeOperation
+import com.fixupxer.processing.LeakFinding
+
 /**
  * Result of URL processing
  */
@@ -27,5 +30,7 @@ data class ProcessedUrlResult(
     val url: String,
     val wasAlreadyClean: Boolean,
     val customRuleApplied: Boolean = false,
-    val rulesRevision: Long = 0
+    val rulesRevision: Long = 0,
+    val operations: List<ChangeOperation> = emptyList(),
+    val leakFindings: List<LeakFinding> = emptyList()
 ) 

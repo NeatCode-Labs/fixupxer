@@ -40,6 +40,12 @@ class CustomRuleAdapter(
         notifyDataSetChanged()
     }
 
+    fun restoreEnabled(ruleId: String) {
+        items.indexOfFirst { it.id == ruleId }
+            .takeIf { it >= 0 }
+            ?.let(::notifyItemChanged)
+    }
+
     fun canMove(from: Int, to: Int): Boolean =
         from in items.indices && to in items.indices && items[from].phase == items[to].phase
 

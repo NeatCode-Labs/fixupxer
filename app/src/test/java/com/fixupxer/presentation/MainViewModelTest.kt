@@ -25,6 +25,9 @@ import com.fixupxer.domain.model.ProcessedUrlResult
 import com.fixupxer.domain.model.ResultStatus
 import com.fixupxer.domain.model.resolveResultStatus
 import com.fixupxer.presentation.main.MainViewModel
+import com.fixupxer.processing.LeakCategory
+import com.fixupxer.processing.LeakComponent
+import com.fixupxer.processing.LeakFinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -35,6 +38,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -295,5 +299,59 @@ class MainViewModelTest {
         advanceUntilIdle()
 
         assertEquals(false, viewModel.uiState.value.isInstagramConversionEnabled)
+    }
+
+    @Test
+    fun `leak findings are exposed then selected raw parameters can be removed`() = runTest(testDispatcher) {
+        val urlRepository = TestUrlRepository()
+        val input = "https://example.com/?a=1&access_token=SECRET123&b=%2Bx"
+        urlRepository.processResult = ProcessedUrlResult(
+            url = input,
+            wasAlreadyClean = true,
+            leakFindings = listOf(
+                LeakFinding(LeakCategory.TOKEN_PARAM, LeakComponent.QUERY, "access_token")
+            )
+        )
+        val viewModel = createViewModel(urlRepository)
+        advanceUntilIdle()
+
+        viewModel.onUrlChanged(input)
+        viewModel.processUrl()
+        advanceUntilIdle()
+        assertEquals(1, viewModel.uiState.value.leakFindings.size)
+
+        viewModel.removeLeakedParameters(setOf("access_token"))
+        val stripped = "https://example.com/?a=1&b=%2Bx"
+        assertEquals(stripped, viewModel.uiState.value.actionUrl)
+        assertTrue(viewModel.uiState.value.leakFindings.isEmpty())
+
+        viewModel.clearInput()
+        assertTrue(viewModel.uiState.value.leakFindings.isEmpty())
+    }
+
+    @Test
+    fun `processing error clears previous leak findings`() = runTest(testDispatcher) {
+        val urlRepository = TestUrlRepository()
+        val input = "https://example.com/?access_token=SECRET123"
+        urlRepository.processResult = ProcessedUrlResult(
+            url = input,
+            wasAlreadyClean = true,
+            leakFindings = listOf(
+                LeakFinding(LeakCategory.TOKEN_PARAM, LeakComponent.QUERY, "access_token")
+            )
+        )
+        val viewModel = createViewModel(urlRepository)
+        advanceUntilIdle()
+
+        viewModel.onUrlChanged(input)
+        viewModel.processUrl()
+        advanceUntilIdle()
+        assertEquals(1, viewModel.uiState.value.leakFindings.size)
+
+        urlRepository.processHandler = { _, _, _ -> throw IllegalArgumentException("failed") }
+        viewModel.processUrl()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.leakFindings.isEmpty())
     }
 }

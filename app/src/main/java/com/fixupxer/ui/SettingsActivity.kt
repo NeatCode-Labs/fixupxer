@@ -247,6 +247,7 @@ class SettingsActivity : BaseActivity() {
         
         // Load current settings
         dialogBinding.switchBrowserTwitter.isChecked = preferencesManager.isBrowserConvertTwitterEnabled()
+        dialogBinding.switchBrowserBluesky.isChecked = preferencesManager.isBrowserConvertBlueskyEnabled()
         dialogBinding.switchBrowserInstagram.isChecked = preferencesManager.isBrowserConvertInstagramEnabled()
         dialogBinding.switchBrowserFacebook.isChecked = preferencesManager.isBrowserConvertFacebookEnabled()
         dialogBinding.switchBrowserTikTok.isChecked = preferencesManager.isBrowserConvertTikTokEnabled()
@@ -261,12 +262,13 @@ class SettingsActivity : BaseActivity() {
         dialogBinding.btnSave.setOnClickListener {
             // Save the settings
             preferencesManager.setBrowserConvertTwitterEnabled(dialogBinding.switchBrowserTwitter.isChecked)
+            preferencesManager.setBrowserConvertBlueskyEnabled(dialogBinding.switchBrowserBluesky.isChecked)
             preferencesManager.setBrowserConvertInstagramEnabled(dialogBinding.switchBrowserInstagram.isChecked)
             preferencesManager.setBrowserConvertFacebookEnabled(dialogBinding.switchBrowserFacebook.isChecked)
             preferencesManager.setBrowserConvertTikTokEnabled(dialogBinding.switchBrowserTikTok.isChecked)
             
             SnackbarHelper.showShort(binding.root, getString(R.string.browser_conversion_settings_saved))
-            Timber.d("Browser conversion settings saved - Twitter: ${dialogBinding.switchBrowserTwitter.isChecked}, Instagram: ${dialogBinding.switchBrowserInstagram.isChecked}, Facebook: ${dialogBinding.switchBrowserFacebook.isChecked}, TikTok: ${dialogBinding.switchBrowserTikTok.isChecked}")
+            Timber.d("Browser conversion settings saved - Twitter: ${dialogBinding.switchBrowserTwitter.isChecked}, Bluesky: ${dialogBinding.switchBrowserBluesky.isChecked}, Instagram: ${dialogBinding.switchBrowserInstagram.isChecked}, Facebook: ${dialogBinding.switchBrowserFacebook.isChecked}, TikTok: ${dialogBinding.switchBrowserTikTok.isChecked}")
             dialog.dismiss()
         }
         

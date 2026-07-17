@@ -22,6 +22,7 @@ package com.fixupxer.cleaners.impl
 
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
+import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.utils.Constants
 
 /**
@@ -29,6 +30,8 @@ import com.fixupxer.utils.Constants
  */
 object FacebookCleaner : UrlCleaner {
     override val id = "facebook"
+    override val displayName = "Facebook"
+    override val priority = UrlCleaner.PRIORITY_CONVERSION
     override val category = CleanerCategory.SOCIAL_MEDIA
     
     // Comprehensive Facebook tracking parameters
@@ -97,7 +100,8 @@ object FacebookCleaner : UrlCleaner {
         // Legacy & misc parameters
         "sk", "sfnsn", "s", "hc", "hc_ref", "hc_location",
         "pn_ref", "aref", "medium", "linkshim", "next",
-        "acontext", "paipv", "entrypoint", "fref", "rc"
+        "acontext", "paipv", "entrypoint", "fref", "rc",
+        "_rdr"
     )
     
     // Parameters essential for Facebook functionality
@@ -124,21 +128,25 @@ object FacebookCleaner : UrlCleaner {
     )
     
     override fun matches(url: String): Boolean {
-        val lowerUrl = url.lowercase()
-        return lowerUrl.contains(Constants.FACEBOOK_DOMAIN) ||
-               lowerUrl.contains(Constants.FACEBOOKEZ_DOMAIN) ||
-               lowerUrl.contains(Constants.FB_SHORT_DOMAIN)
+        return UrlNormalizer.urlMatchesAnyDomain(
+            url,
+            listOf(
+                Constants.FACEBOOK_DOMAIN,
+                Constants.FACEBOOKEZ_DOMAIN,
+                Constants.FB_SHORT_DOMAIN
+            )
+        )
     }
     
     override fun clean(url: String): String {
+        if (!matches(url)) return url
+
         try {
             // If no query parameters, return as is
-            if (!url.contains("?")) {
+            val idx = url.indexOf('?')
+            if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
                 return url
             }
-            
-            val idx = url.indexOf('?')
-            if (idx == -1) return url
             
             val base = url.substring(0, idx)
             val queryAndFragment = url.substring(idx + 1)
@@ -166,11 +174,12 @@ object FacebookCleaner : UrlCleaner {
                     pair.substring(0, eqIdx)
                 }
                 
-                // Keep if essential, remove if tracking or unknown
+                // Keep essential and unknown parameters; remove known tracking.
                 when {
                     preserveParams.contains(key) -> pair  // Always keep essential params
                     facebookTracking.contains(key) -> null  // Remove tracking params
-                    else -> null  // Remove unknown params (aggressive cleaning)
+                    key.startsWith("fb_") -> null
+                    else -> pair
                 }
             }.filter { it.isNotEmpty() }
             

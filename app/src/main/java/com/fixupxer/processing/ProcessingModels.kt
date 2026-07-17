@@ -39,5 +39,13 @@ data class PipelineProcessingResult(
     val domainConverted: Boolean,
     val customRuleChanged: Boolean,
     val rulesRevision: Long,
-    val trace: List<RuleTraceStep>
+    val trace: List<RuleTraceStep>,
+    val operations: List<ChangeOperation>,
+    /**
+     * Exact URLs used as cleaner-cache keys during this run (only when caching
+     * was enabled). Needed to evict entries when a leak shows up in the output:
+     * custom PRE_CLEAN rules or redirect re-entries can make these differ from
+     * [originalUrl].
+     */
+    val cleanerCacheKeys: List<String> = emptyList()
 )

@@ -85,6 +85,16 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.ProcessTextActivity"
+            android:exported="true"
+            android:theme="@style/Theme.FixupXer.Translucent"
+            android:label="@string/process_text_menu_label"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|density">
             <intent-filter>
                 <action android:name="android.intent.action.PROCESS_TEXT" />
                 <category android:name="android.intent.category.DEFAULT" />

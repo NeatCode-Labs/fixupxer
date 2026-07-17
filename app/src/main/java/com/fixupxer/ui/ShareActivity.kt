@@ -22,7 +22,6 @@ package com.fixupxer.ui
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -40,6 +39,7 @@ import com.fixupxer.utils.Constants
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.ui.dialogs.HistoryDialogHelper
 import com.fixupxer.ui.dialogs.InstagramProxyDialogHelper
+import com.fixupxer.ui.dialogs.LinkGuardDialogHelper
 import com.fixupxer.ui.dialogs.TikTokProxyDialogHelper
 import com.fixupxer.PreferencesManager
 import com.fixupxer.ui.helpers.ResultStatusHelper
@@ -114,6 +114,10 @@ class ShareActivity : BaseActivity() {
             }
             R.id.action_donate -> {
                 showDonateDialog()
+                true
+            }
+            R.id.action_whats_new -> {
+                openWhatsNew()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -242,7 +246,14 @@ class ShareActivity : BaseActivity() {
                     binding.togglesInclude.switchTwitter.setOnCheckedChangeListener { _, isChecked ->
                         viewModel.onTwitterConversionToggled(isChecked)
                     }
-                    
+
+                    binding.togglesInclude.blueskyToggleContainer.isVisible = state.isBlueskyUrl
+                    binding.togglesInclude.switchBluesky.setOnCheckedChangeListener(null)
+                    binding.togglesInclude.switchBluesky.isChecked = state.isBlueskyConversionEnabled
+                    binding.togglesInclude.switchBluesky.setOnCheckedChangeListener { _, isChecked ->
+                        viewModel.onBlueskyConversionToggled(isChecked)
+                    }
+
                     binding.togglesInclude.tiktokToggleContainer.isVisible = state.isTikTokUrl
                     if (state.isTikTokUrl) {
                         refreshTikTokProxyLabel()
@@ -259,6 +270,16 @@ class ShareActivity : BaseActivity() {
                     binding.buttonCopy.isEnabled = !state.isLoading && state.actionUrl.isNotEmpty()
                     binding.buttonShare.isEnabled = !state.isLoading && state.actionUrl.isNotEmpty()
                     binding.buttonOpen.isEnabled = !state.isLoading && state.actionUrl.isNotEmpty()
+                    binding.processedUrlInclude.leakWarningRow.isVisible =
+                        state.leakFindings.isNotEmpty()
+                    binding.processedUrlInclude.leakWarningRow.setOnClickListener {
+                        LinkGuardDialogHelper.show(
+                            context = this@ShareActivity,
+                            findings = state.leakFindings,
+                            onRemoveParameter = viewModel::removeLeakedParameters,
+                            onBack = { finish() }
+                        )
+                    }
                     
                     if (state.error != null) {
                         binding.processedUrlInclude.textViewProcessedUrl.text = state.error
@@ -294,13 +315,6 @@ class ShareActivity : BaseActivity() {
                 intent.getStringExtra(Intent.EXTRA_TEXT)
                     ?: intent.clipData?.takeIf { it.itemCount > 0 }
                         ?.getItemAt(0)?.coerceToText(this)?.toString()
-            }
-            intent.action == Intent.ACTION_PROCESS_TEXT -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
-                } else {
-                    null
-                }
             }
             else -> null
         }

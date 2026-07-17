@@ -151,15 +151,30 @@ class UpdatedCleanersTest {
     }
     
     @Test
-    fun testAggressiveCleaningRemovesUnknownParams() {
-        // Test that our cleaners remove unknown parameters (aggressive cleaning)
+    fun testDomainCleanersPreserveUnknownParams() {
         val instagramUrl = "https://www.instagram.com/p/ABC/?unknown_param=123"
-        assertEquals("https://www.instagram.com/p/ABC/", InstagramCleaner.clean(instagramUrl))
+        assertEquals("https://www.instagram.com/p/ABC/?unknown_param=123", InstagramCleaner.clean(instagramUrl))
         
         val twitterUrl = "https://x.com/status/123?unknown_param=xyz"
-        assertEquals("https://x.com/status/123", TwitterCleaner.clean(twitterUrl))
+        assertEquals("https://x.com/status/123?unknown_param=xyz", TwitterCleaner.clean(twitterUrl))
         
         val youtubeUrl = "https://www.youtube.com/watch?v=ABC&unknown_param=test"
-        assertEquals("https://www.youtube.com/watch?v=ABC", YouTubeCleaner.clean(youtubeUrl))
+        assertEquals("https://www.youtube.com/watch?v=ABC&unknown_param=test", YouTubeCleaner.clean(youtubeUrl))
+    }
+
+    @Test
+    fun testAdoptedExistingCleanerKeysRemainHostScoped() {
+        assertEquals(
+            "https://www.facebook.com/page?keep=value",
+            FacebookCleaner.clean("https://www.facebook.com/page?sfnsn=one&fb_source=two&keep=value")
+        )
+        assertEquals(
+            "https://www.linkedin.com/feed?keep=value",
+            LinkedInCleaner.clean("https://www.linkedin.com/feed?rcm=one&keep=value")
+        )
+        assertEquals(
+            "https://www.amazon.com/s?k=laptop",
+            AmazonCleaner.clean("https://www.amazon.com/s?k=laptop&ref=nav&ref_=legacy")
+        )
     }
 } 

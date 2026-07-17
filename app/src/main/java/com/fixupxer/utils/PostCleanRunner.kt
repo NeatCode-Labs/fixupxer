@@ -47,7 +47,10 @@ class PostCleanRunner(
      * Backward-compatible run method for the existing system
      */
     fun run(cleanedUri: Uri, onComplete: (() -> Unit)? = null) {
-        Timber.d("PostCleanRunner.run called with URI: $cleanedUri")
+        Timber.d(
+            "PostCleanRunner.run called (host=${cleanedUri.host ?: "unknown"}, " +
+                "length=${cleanedUri.toString().length})"
+        )
         
         if (preferencesManager == null) {
             Timber.e("PreferencesManager is null")
@@ -157,7 +160,7 @@ class PostCleanRunner(
      * Try to launch native app
      */
     private fun launchNativeApp(uri: Uri): Boolean {
-        Timber.d("launchNativeApp: Trying to find native app for $uri")
+        Timber.d("launchNativeApp: trying to find native app (host=${uri.host ?: "unknown"})")
         
         // First, try to launch known native apps directly
         val nativeAppLaunchResult = tryLaunchKnownNativeApp(uri)
@@ -276,7 +279,7 @@ class PostCleanRunner(
             val url = uri.toString()
             val manuallyAddedApps = mutableListOf<String>()
             
-            Timber.d("Checking URL for manual app addition: $url")
+            Timber.d("Checking URL host for manual app addition: ${uri.host ?: "unknown"}")
             
             // Always try to add Chrome for http/https URLs to ensure chooser has options
             if (url.startsWith("http://") || url.startsWith("https://")) {
@@ -335,7 +338,7 @@ class PostCleanRunner(
             
             // If no other apps can handle this, return false
             if (targetIntents.isEmpty()) {
-                Timber.d("No apps available to handle URL: $uri")
+                Timber.d("No apps available to handle URL host=${uri.host ?: "unknown"}")
                 return false
             }
             
@@ -378,7 +381,7 @@ class PostCleanRunner(
         targetIntents: MutableList<Intent>,
         addedApps: MutableList<String>
     ) {
-        Timber.d("tryAddManualApp called for package: $packageName, uri: $uri")
+        Timber.d("tryAddManualApp called for package: $packageName")
         try {
             // Check if app is installed
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -424,7 +427,7 @@ class PostCleanRunner(
      * Launch in browser
      */
     private fun launchBrowser(uri: Uri): Boolean {
-        Timber.d("launchBrowser: Trying to launch browser for $uri")
+        Timber.d("launchBrowser: trying to launch browser (host=${uri.host ?: "unknown"})")
         try {
             val browserIntents = resolveExternalBrowserIntents(uri)
             if (browserIntents.isEmpty()) {

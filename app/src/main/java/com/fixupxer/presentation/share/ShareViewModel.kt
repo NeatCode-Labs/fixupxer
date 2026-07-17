@@ -29,6 +29,8 @@ import com.fixupxer.domain.model.ProcessedUrlResult
 import com.fixupxer.domain.model.ResultStatus
 import com.fixupxer.domain.model.resolveResultStatus
 import com.fixupxer.domain.repository.UrlRepository
+import com.fixupxer.processing.LeakFinding
+import com.fixupxer.processing.LinkLeakAnalyzer
 import com.fixupxer.utils.InputValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -79,6 +81,11 @@ class ShareViewModel @Inject constructor(
                 _uiState.update { it.copy(isTikTokConversionEnabled = enabled) }
             }
         }
+        viewModelScope.launch {
+            urlRepository.isBlueskyConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isBlueskyConversionEnabled = enabled) }
+            }
+        }
     }
     
     fun processSharedText(sharedText: String) {
@@ -93,7 +100,14 @@ class ShareViewModel @Inject constructor(
             return
         }
         
-        _uiState.update { it.copy(sharedText = sharedText, isLoading = true, error = null) }
+        _uiState.update {
+            it.copy(
+                sharedText = sharedText,
+                isLoading = true,
+                leakFindings = emptyList(),
+                error = null
+            )
+        }
         
         isProcessing = true
         viewModelScope.launch {
@@ -111,11 +125,13 @@ class ShareViewModel @Inject constructor(
                                 processedUrl = "",
                                 actionUrl = "",
                                 resultStatus = null,
+                                leakFindings = emptyList(),
                                 isLoading = false,
                                 isInstagramUrl = false,
                                 isFacebookUrl = false,
                                 isTwitterUrl = false,
                                 isTikTokUrl = false,
+                                isBlueskyUrl = false,
                                 error = getApplication<Application>().getString(messageRes)
                             )
                         }
@@ -133,11 +149,13 @@ class ShareViewModel @Inject constructor(
                                 processedUrl = "",
                                 actionUrl = "",
                                 resultStatus = null,
+                                leakFindings = emptyList(),
                                 isLoading = false,
                                 isInstagramUrl = false,
                                 isFacebookUrl = false,
                                 isTwitterUrl = false,
                                 isTikTokUrl = false,
+                                isBlueskyUrl = false,
                                 error = getApplication<Application>().getString(R.string.error_no_url_found_in_shared_text)
                             )
                         }
@@ -150,13 +168,15 @@ class ShareViewModel @Inject constructor(
                     // Facebook URLs use the Instagram toggle
                     val isFacebook = urlProcessor.isFacebookUrl(url)
                     val isTikTok = urlProcessor.isTikTokUrl(url)
+                    val isBluesky = urlProcessor.isBlueskyUrl(url)
                     
                     _uiState.update { 
                         it.copy(
                             isInstagramUrl = isInstagram,
                             isFacebookUrl = isFacebook,
                             isTwitterUrl = isTwitter,
-                            isTikTokUrl = isTikTok
+                            isTikTokUrl = isTikTok,
+                            isBlueskyUrl = isBluesky
                         ) 
                     }
                     
@@ -170,6 +190,7 @@ class ShareViewModel @Inject constructor(
                         processedUrl = "",
                         actionUrl = "",
                         resultStatus = null,
+                        leakFindings = emptyList(),
                         isLoading = false,
                         error = getApplication<Application>().getString(R.string.error_processing_url)
                     )
@@ -181,6 +202,7 @@ class ShareViewModel @Inject constructor(
                         processedUrl = "",
                         actionUrl = "",
                         resultStatus = null,
+                        leakFindings = emptyList(),
                         isLoading = false,
                         error = getApplication<Application>().getString(R.string.error_processing_url_with_message, e.message)
                     )
@@ -195,7 +217,7 @@ class ShareViewModel @Inject constructor(
     // Runs inside the caller's coroutine (no nested launch — a second launch would
     // escape processSharedText's withTimeout and allow racing state updates).
     private suspend fun processUrlInternal(url: String) {
-        Timber.d("ShareViewModel processing URL: $url")
+        Timber.d("ShareViewModel processing URL (length=${url.length})")
         
         try {
             val result = urlRepository.processSharedUrl(url)
@@ -207,6 +229,7 @@ class ShareViewModel @Inject constructor(
                     processedUrl = "",
                     actionUrl = "",
                     resultStatus = null,
+                    leakFindings = emptyList(),
                     isLoading = false,
                     error = getApplication<Application>().getString(R.string.error_processing_url_with_message, e.message)
                 )
@@ -239,6 +262,16 @@ class ShareViewModel @Inject constructor(
             if (_uiState.value.isTikTokConversionEnabled != enabled) {
                 urlRepository.setTikTokConversionEnabled(enabled)
                 _uiState.update { it.copy(isTikTokConversionEnabled = enabled) }
+                requestReprocess()
+            }
+        }
+    }
+
+    fun onBlueskyConversionToggled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (_uiState.value.isBlueskyConversionEnabled != enabled) {
+                urlRepository.setBlueskyConversionEnabled(enabled)
+                _uiState.update { it.copy(isBlueskyConversionEnabled = enabled) }
                 requestReprocess()
             }
         }
@@ -301,6 +334,7 @@ class ShareViewModel @Inject constructor(
                     processedUrl = "",
                     actionUrl = "",
                     resultStatus = null,
+                    leakFindings = emptyList(),
                     isLoading = false,
                     error = getApplication<Application>().getString(R.string.error_processing_url)
                 )
@@ -319,11 +353,13 @@ class ShareViewModel @Inject constructor(
                 processedUrl = "",
                 actionUrl = "",
                 resultStatus = null,
+                leakFindings = emptyList(),
                 isLoading = false,
                 isInstagramUrl = false,
                 isFacebookUrl = false,
                 isTwitterUrl = false,
                 isTikTokUrl = false,
+                isBlueskyUrl = false,
                 error = getApplication<Application>().getString(R.string.error_no_url_found_in_shared_text)
             )
         }
@@ -336,11 +372,13 @@ class ShareViewModel @Inject constructor(
                 processedUrl = "",
                 actionUrl = "",
                 resultStatus = null,
+                leakFindings = emptyList(),
                 isLoading = false,
                 isInstagramUrl = false,
                 isFacebookUrl = false,
                 isTwitterUrl = false,
                 isTikTokUrl = false,
+                isBlueskyUrl = false,
                 error = null
             )
         }
@@ -352,15 +390,57 @@ class ShareViewModel @Inject constructor(
         isLoading: Boolean = false
     ) {
         val processedUrl = result.url
-        Timber.d("ShareViewModel processUrl result: $inputUrl -> $processedUrl")
+        Timber.d("ShareViewModel processed URL (inputLength=${inputUrl.length}, outputLength=${processedUrl.length})")
+        val status = resolveResultStatus(inputUrl, processedUrl)
         _uiState.update {
             it.copy(
                 processedUrl = processedUrl,
                 actionUrl = processedUrl,
-                resultStatus = resolveResultStatus(inputUrl, processedUrl),
+                resultStatus = status,
+                leakFindings = result.leakFindings,
                 isLoading = isLoading,
                 error = null
             )
+        }
+    }
+
+    /**
+     * Removes only raw query tokens selected by the Link Guard without sending
+     * the edited result back through history persistence.
+     */
+    fun removeLeakedParameters(parameterNames: Set<String>) {
+        val state = _uiState.value
+        if (state.actionUrl.isEmpty() || parameterNames.isEmpty()) return
+
+        val strippedUrl = removeRawQueryParameters(state.actionUrl, parameterNames)
+        if (strippedUrl == state.actionUrl) return
+
+        val inputUrl = UrlProcessor.findFirstValidUrl(state.sharedText) ?: strippedUrl
+        _uiState.update {
+            it.copy(
+                processedUrl = strippedUrl,
+                actionUrl = strippedUrl,
+                resultStatus = resolveResultStatus(inputUrl, strippedUrl),
+                leakFindings = LinkLeakAnalyzer.analyze(strippedUrl)
+            )
+        }
+    }
+
+    private fun removeRawQueryParameters(url: String, names: Set<String>): String {
+        val fragmentStart = url.indexOf('#')
+        val queryStart = url.indexOf('?')
+        if (queryStart < 0 || (fragmentStart >= 0 && queryStart > fragmentStart)) return url
+
+        val queryEnd = if (fragmentStart >= 0) fragmentStart else url.length
+        val remainingTokens = url.substring(queryStart + 1, queryEnd)
+            .split('&')
+            .filterNot { token -> token.substringBefore('=') in names }
+        val prefix = url.substring(0, queryStart)
+        val suffix = url.substring(queryEnd)
+        return if (remainingTokens.isEmpty()) {
+            prefix + suffix
+        } else {
+            "$prefix?${remainingTokens.joinToString("&")}$suffix"
         }
     }
 }
@@ -377,6 +457,7 @@ data class ShareUiState(
     val processedUrl: String = "",
     val actionUrl: String = "",
     val resultStatus: ResultStatus? = null,
+    val leakFindings: List<LeakFinding> = emptyList(),
     val isLoading: Boolean = false,
     val isInstagramUrl: Boolean = false,
     val isFacebookUrl: Boolean = false,
@@ -385,5 +466,7 @@ data class ShareUiState(
     val isTwitterConversionEnabled: Boolean = true,
     val isTikTokUrl: Boolean = false,
     val isTikTokConversionEnabled: Boolean = true,
+    val isBlueskyUrl: Boolean = false,
+    val isBlueskyConversionEnabled: Boolean = true,
     val error: String? = null
 ) 

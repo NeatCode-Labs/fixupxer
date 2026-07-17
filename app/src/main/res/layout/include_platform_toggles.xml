@@ -212,6 +212,63 @@
             android:contentDescription="@string/convert_twitter_toggle_desc" />
     </LinearLayout>
 
+    <!-- Bluesky toggle -->
+    <LinearLayout
+        android:id="@+id/blueskyToggleContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:background="@drawable/toggle_background"
+        android:padding="@dimen/toggle_padding"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="@dimen/platform_monogram_size"
+            android:layout_height="@dimen/platform_monogram_size"
+            android:background="@drawable/bg_platform_monogram"
+            android:gravity="center"
+            android:text="@string/platform_monogram_bluesky"
+            android:textSize="@dimen/text_size_small"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/margin_medium"
+            android:layout_marginEnd="@dimen/margin_medium"
+            android:orientation="vertical"
+            tools:ignore="NestedWeights">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/embed_friendly_link"
+                android:textSize="@dimen/text_size_small"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:text="@string/via_fxbsky"
+                android:textSize="@dimen/text_size_tiny"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchBluesky"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:contentDescription="@string/convert_bluesky_toggle_desc" />
+    </LinearLayout>
+
     <!-- TikTok toggle -->
     <LinearLayout
         android:id="@+id/tiktokToggleContainer"

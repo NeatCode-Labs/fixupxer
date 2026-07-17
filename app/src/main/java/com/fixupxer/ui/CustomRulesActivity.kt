@@ -29,6 +29,8 @@ import com.fixupxer.R
 import com.fixupxer.databinding.ActivityCustomRulesBinding
 import com.fixupxer.presentation.rules.CustomRulesViewModel
 import com.fixupxer.rules.ImportMode
+import com.fixupxer.rules.ImportResult
+import com.fixupxer.rules.RuleActivationBlockedException
 import com.fixupxer.ui.adapters.CustomRuleAdapter
 import com.fixupxer.utils.Constants
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -67,7 +69,26 @@ class CustomRulesActivity : BaseActivity() {
 
         adapter = CustomRuleAdapter(
             onEdit = { openEditor(it.id) },
-            onEnabled = viewModel::setRuleEnabled,
+            onEnabled = { rule, enabled ->
+                lifecycleScope.launch {
+                    runCatching { viewModel.setRuleEnabled(rule, enabled) }
+                        .onFailure { error ->
+                            adapter.restoreEnabled(rule.id)
+                            if (error is RuleActivationBlockedException) {
+                                Snackbar.make(
+                                    binding.root,
+                                    getString(
+                                        R.string.custom_rule_activation_blocked_list,
+                                        error.failingVectorCount
+                                    ),
+                                    Snackbar.LENGTH_LONG
+                                ).show()
+                            } else {
+                                showImportError(error)
+                            }
+                        }
+                }
+            },
             onReordered = { phase, ids ->
                 lifecycleScope.launch { viewModel.reorder(phase, ids) }
             }
@@ -115,11 +136,8 @@ class CustomRulesActivity : BaseActivity() {
             }
         }
         binding.buttonTemplates.setOnClickListener {
-            val labels = arrayOf(
-                getString(R.string.custom_rules_template_privacy),
-                getString(R.string.custom_rules_template_redirects)
-            )
-            val files = arrayOf("privacy_basics.json", "offline_redirects.json")
+            val labels = arrayOf(getString(R.string.custom_rules_template_privacy))
+            val files = arrayOf("privacy_basics.json")
             MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.custom_rules_templates)
                 .setItems(labels) { _, index ->
@@ -240,7 +258,10 @@ class CustomRulesActivity : BaseActivity() {
                 preview.added,
                 preview.updated,
                 preview.skipped
-            )
+            ).let { baseLabel ->
+                val failureSummary = importVectorFailureSummary(preview)
+                if (failureSummary.isEmpty()) baseLabel else "$baseLabel\n$failureSummary"
+            }
         }.toTypedArray()
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.custom_rules_import_mode)
@@ -272,6 +293,18 @@ class CustomRulesActivity : BaseActivity() {
             getString(R.string.error_rule_import, error.message.orEmpty()),
             Snackbar.LENGTH_LONG
         ).show()
+    }
+
+    private fun importVectorFailureSummary(preview: ImportResult): String {
+        if (preview.vectorFailures.isEmpty()) return ""
+        val details = preview.vectorFailures.joinToString("\n") { failure ->
+            getString(
+                R.string.custom_rules_import_vector_failure_rule,
+                failure.ruleName,
+                failure.failingVectorCount
+            )
+        }
+        return getString(R.string.custom_rules_import_vector_failures, details)
     }
 
     private fun writeExport(uri: Uri, json: String) {

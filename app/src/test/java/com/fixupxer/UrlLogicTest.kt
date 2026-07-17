@@ -21,7 +21,6 @@
 package com.fixupxer
 
 import com.fixupxer.cleaners.CleanerService
-import com.fixupxer.data.config.TrackingParameters
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test

@@ -25,10 +25,29 @@ package com.fixupxer.cleaners
  * Each cleaner handles specific domains or URL patterns.
  */
 interface UrlCleaner {
+    companion object {
+        const val PRIORITY_EXTRACTION = 1
+        const val PRIORITY_CONVERSION = 2
+        const val PRIORITY_DOMAIN = 3
+        const val PRIORITY_GENERAL = 4
+    }
+
     /**
      * Unique identifier for this cleaner
      */
     val id: String
+
+    /**
+     * Execution order for the cleaner. Lower values execute first.
+     */
+    val priority: Int
+        get() = PRIORITY_DOMAIN
+
+    /**
+     * Human-readable name used in processing details.
+     */
+    val displayName: String
+        get() = id.replaceFirstChar { it.uppercaseChar() }
     
     /**
      * Category for grouping cleaners in UI
@@ -38,7 +57,7 @@ interface UrlCleaner {
     
     /**
      * Check if this cleaner should process the given URL.
-     * This should be a cheap operation (e.g., simple string contains).
+     * This should be a cheap operation (e.g., a host-boundary domain check).
      * 
      * @param url The URL to check
      * @return true if this cleaner can handle the URL

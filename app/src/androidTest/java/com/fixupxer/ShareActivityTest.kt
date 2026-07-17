@@ -192,8 +192,9 @@ class ShareActivityTest {
             preferencesManager.setConvertInstagramEnabled(true)
             delay(100)
             
-            // Share a dirty facebook.com URL
-            launchShareActivityWithText("https://www.facebook.com/zuck/posts/10115959821974691?tracking=test123")
+            // Share a dirty facebook.com URL (fbclid is a known tracking key;
+            // unknown parameters survive the keep-unknown contract)
+            launchShareActivityWithText("https://www.facebook.com/zuck/posts/10115959821974691?fbclid=test123")
             
             // Wait for initial processing
             onView(isRoot()).perform(waitFor(2000))

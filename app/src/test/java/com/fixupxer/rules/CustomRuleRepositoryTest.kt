@@ -14,6 +14,7 @@ package com.fixupxer.rules
 import androidx.room.Room
 import com.fixupxer.PreferencesManager
 import com.fixupxer.data.database.FixupXerDatabase
+import com.fixupxer.processing.UrlNormalizer
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -30,6 +31,7 @@ class CustomRuleRepositoryTest {
     private lateinit var database: FixupXerDatabase
     private lateinit var repository: CustomRuleRepository
     private val codec = RuleBundleCodec()
+    private val compiler = RuleCompiler()
 
     @Before
     fun setup() {
@@ -42,7 +44,14 @@ class CustomRuleRepositoryTest {
             database.customRuleDao(),
             database.ruleSnapshotDao(),
             codec,
-            RuleCompiler(),
+            compiler,
+            RuleVectorRunner(
+                compiler,
+                CustomRuleEngine(
+                    RuleMatcher(UrlNormalizer()),
+                    RuleActionExecutor(UrlNormalizer())
+                )
+            ),
             PreferencesManager(context)
         )
     }
@@ -83,6 +92,63 @@ class CustomRuleRepositoryTest {
         assertTrue(repository.isEnabled())
         assertTrue(snapshot.rules.isEmpty())
         assertFalse(snapshot.revision == 0L)
+    }
+
+    @Test
+    fun `save blocks enabling rule with failing vectors`() = runTest {
+        val disabled = rule("Draft").copy(
+            enabled = false,
+            testVectors = listOf(
+                RuleTestVector("https://example.com/?x=1", "https://other.example/")
+            )
+        )
+        repository.save(disabled)
+
+        val failure = runCatching { repository.save(disabled.copy(enabled = true)) }.exceptionOrNull()
+
+        assertTrue(failure is RuleActivationBlockedException)
+        assertFalse(requireNotNull(repository.getRule(disabled.id)).enabled)
+    }
+
+    @Test
+    fun `save allows enabled rule with zero vectors`() = runTest {
+        val rule = rule("No vectors")
+
+        repository.save(rule)
+
+        assertTrue(requireNotNull(repository.getRule(rule.id)).enabled)
+    }
+
+    @Test
+    fun `save allows enabled rule when all vectors pass`() = runTest {
+        val rule = rule("Passing vectors").copy(
+            testVectors = listOf(
+                RuleTestVector("https://example.com/?x=1", "https://example.com/")
+            )
+        )
+
+        repository.save(rule)
+
+        assertTrue(requireNotNull(repository.getRule(rule.id)).enabled)
+    }
+
+    @Test
+    fun `import preview reports failures and imported failing rules are disabled`() = runTest {
+        val imported = rule("Broken import").copy(
+            testVectors = listOf(
+                RuleTestVector("https://example.com/?x=1", "https://other.example/")
+            )
+        )
+        val json = codec.encodeBundle(listOf(imported))
+
+        val preview = repository.previewImport(json, ImportMode.ADD_NEW)
+        val result = repository.importBundle(json, ImportMode.ADD_NEW)
+
+        assertEquals(1, preview.vectorFailures.size)
+        assertEquals(imported.id, preview.vectorFailures.single().ruleId)
+        assertEquals(1, preview.vectorFailures.single().failingVectorCount)
+        assertEquals(preview.vectorFailures, result.vectorFailures)
+        assertFalse(requireNotNull(repository.getRule(imported.id)).enabled)
     }
 
     private fun rule(name: String) = CustomUrlRule(

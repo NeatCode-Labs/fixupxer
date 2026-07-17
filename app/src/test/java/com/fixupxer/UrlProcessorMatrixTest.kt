@@ -21,6 +21,7 @@
 package com.fixupxer
 
 import android.net.Uri
+import com.fixupxer.cleaners.CleanerCatalog
 import com.fixupxer.cleaners.CleanerService
 import com.fixupxer.cleaners.CleanerRegistry
 import org.junit.Assert.*
@@ -34,18 +35,7 @@ class UrlProcessorMatrixTest {
     @Before
     fun setup() {
         val registry = CleanerRegistry().apply {
-            registerAll(listOf(
-                com.fixupxer.cleaners.impl.AmazonCleaner,
-                com.fixupxer.cleaners.impl.YouTubeCleaner,
-                com.fixupxer.cleaners.impl.GoogleSearchCleaner,
-                com.fixupxer.cleaners.impl.TwitterCleaner,
-                com.fixupxer.cleaners.impl.InstagramCleaner,
-                com.fixupxer.cleaners.impl.FacebookCleaner,
-                com.fixupxer.cleaners.impl.RedditCleaner,
-                com.fixupxer.cleaners.impl.TikTokCleaner,
-                com.fixupxer.cleaners.impl.LinkedInCleaner,
-                com.fixupxer.cleaners.impl.GeneralTrackingCleaner()
-            ))
+            registerAll(CleanerCatalog.createBuiltInCleaners())
         }
         val cache = com.fixupxer.cleaners.cache.CleanerCache()
         cleanerService = CleanerService(registry, cache)
@@ -147,8 +137,8 @@ class UrlProcessorMatrixTest {
             // Host prefix (www., vm., …) is preserved on conversion.
             Case("tiktok clean, toggle OFF", "https://www.tiktok.com/@user/video/1", true, false, "https://www.tiktok.com/@user/video/1", true, true),
             Case("tiktok clean, toggle ON", "https://www.tiktok.com/@user/video/1", true, true, "https://www.tnktok.com/@user/video/1", false, false),
-            Case("tiktok dirty, toggle OFF", "https://www.tiktok.com/@user/video/1?is_from_webapp=1&_r=1", true, false, "https://www.tiktok.com/@user/video/1", false, false),
-            Case("tiktok dirty, toggle ON", "https://www.tiktok.com/@user/video/1?is_from_webapp=1&_r=1", true, true, "https://www.tnktok.com/@user/video/1", false, false),
+            Case("tiktok dirty, toggle OFF", "https://www.tiktok.com/@user/video/1?is_from_webapp=1&_r=1", true, false, "https://www.tiktok.com/@user/video/1?is_from_webapp=1", false, false),
+            Case("tiktok dirty, toggle ON", "https://www.tiktok.com/@user/video/1?is_from_webapp=1&_r=1", true, true, "https://www.tnktok.com/@user/video/1?is_from_webapp=1", false, false),
             // vm. short link keeps its prefix
             Case("vm.tiktok clean, toggle ON", "https://vm.tiktok.com/ZMabcdef/", true, true, "https://vm.tnktok.com/ZMabcdef/", false, false),
             // Clean active default proxy (tnktok.com): no-op when toggle ON, reverts to tiktok when OFF

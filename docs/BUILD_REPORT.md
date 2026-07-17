@@ -3,11 +3,11 @@
 ## Executive Summary
 **STATUS: [x] PRODUCTION READY**
 
-FixupXer v2.1.0 has passed unit, lint, REUSE, full emulator instrumentation, clean signed-build, manifest, and signature verification. This release adds the complete offline custom URL rule system, external GitHub How-to guides, and consolidated Material 3 polish across the full app.
+FixupXer v2.2.0 has passed unit, lint, REUSE, full emulator instrumentation, clean signed-build, manifest, and signature verification. This release adds Private Link Guard, the keep-unknown cleaning contract with host-boundary matching, 14 new platform cleaners, offline redirect unwrapping, Bluesky conversion, Process Text integration, custom-rule test vectors, and Teach-from-example inference.
 
 ## Build Information
-- **Version**: v2.1.0 (versionCode: 35)
-- **Build Date**: July 12, 2026
+- **Version**: v2.2.0 (versionCode: 36)
+- **Build Date**: July 17, 2026
 - **Android Target SDK**: 35 (Android 15)
 - **Minimum SDK**: 21 (Android 5.0)
 - **Build Environment**: Gradle 8.11.1
@@ -17,49 +17,49 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, full emulator instrumentation, cle
 
 ### Pre-Build Code Analysis [x]
 - **Lint Analysis**: CLEAN - `lintRelease` passes with no errors (report: `app/build/reports/lint-results-release.html`)
-- **Code Review**: COMPLETE - raw preservation, rule validation, migration, import atomicity, cycle limits, privacy and accessibility paths reviewed
+- **Code Review**: COMPLETE - four-stage subagent review (implementation + two read-only reviews + fixer) per section, with final main-agent verification; all reported issues resolved
 - **TODO/FIXME Check**: CLEAN
 - **Deprecated API Check**: COMPLIANT
 
 ### Build Verification [x]
 - **Clean Build**: SUCCESS - `assembleRelease` completes signed build
-- **Unit Tests**: SUCCESS - 273/273 tests passed (100%), including default-off preferences, differential, engine, codec, repository and fuzz/idempotence coverage.
-- **Android Tests**: SUCCESS — **194/194 instrumentation tests pass** on `Pixel_API_35_Play` (`connectedDebugAndroidTest`, 7m 55s).
-- **Visual Verification**: SUCCESS — Main, Share, Settings, Rules, Rule Editor, History and all app dialogs were manually verified in light/dark themes, at 100%/130% font scale and down to 320dp width. Insets, fixed actions, card alignment, proxy labels and empty/list states remain readable without control overlap.
+- **Unit Tests**: SUCCESS - 370/370 tests passed (100%), including leak analysis, keep-unknown contract, host-boundary regression, catalog cleaners, redirect unwrapping, Bluesky, operation trace, vector runner and example inference coverage.
+- **Android Tests**: SUCCESS — **201/201 instrumentation tests pass** on `Pixel_API_35_Play` (`connectedDebugAndroidTest`, full run 12m 2s incl. build).
+- **Visual Verification**: SUCCESS — layout unchanged from v2.1.0 except the Link Guard warning row, vector editor section, Teach card, and the What's new? menu entry; verified on emulator during bugfixing plus a release APK handed to the maintainer for on-device testing.
 - **ProGuard/R8**: SUCCESS - Release build with obfuscation completed
-- **APK Size**: 3.92 MiB signed Google release build
-- **AAB Build**: SUCCESS - 4.92 MiB signed Play bundle with ownership token
+- **APK Size**: 3.99 MiB signed Google release build
+- **AAB Build**: SUCCESS - 4.98 MiB signed Play bundle with ownership token
 
 #### Security & Privacy (4/4) [x]
-- **Permissions Check**: EXCELLENT - Zero permissions required (privacy-focused)
+- **Permissions Check**: EXCELLENT - Zero permissions required (privacy-focused); merged-manifest regression test enforces this
 - **Network Security**: N/A - No network access required; proxy domains (fixed and custom) are used only as string replacements in URLs
 - **Secret Scanning**: CLEAN - No hardcoded secrets or credentials
-- **Debug Logs**: SECURE - Debug logging disabled in release builds via Timber configuration
-- **Validation surface**: raw URL components remain encoded; every rule is compiled and output-validated before use
+- **Debug Logs**: SECURE - Debug logging disabled in release builds via Timber configuration; processing logs sanitized (no full URLs or parameter values)
+- **Validation surface**: raw URL components remain encoded; leak analysis uses one-time percent-decode; sensitive URLs bypass history and cache
 
 #### Functionality Testing (5/5) [x]
 - **App Installation**: SUCCESS - Release APK installs correctly on emulator
 - **App Launch**: SUCCESS - App starts without crashes
-- **Core Functionality**: SUCCESS - URL cleaning, strikethrough diff, result status chips, Instagram/TikTok proxy selection, and browser-mode handoff work as expected
-- **Share Functionality**: SUCCESS - Intent handling (incl. `ClipData` fallback and empty intents), toggles, proxy labels, and action buttons verified
-- **Edge Cases**: SUCCESS - stale-result invalidation on input change, concurrent toggle changes during processing, theme persistence across restarts, config changes on Share screen — all verified
+- **Core Functionality**: SUCCESS - URL cleaning (keep-unknown), Link Guard warnings, redirect unwrapping, Bluesky/Instagram/TikTok/Twitter/Facebook conversions, and browser-mode handoff work as expected
+- **Share Functionality**: SUCCESS - Intent handling, toggles, proxy labels, action buttons, and Process Text inline replacement verified
+- **Edge Cases**: SUCCESS - lookalike-domain hosts, domains inside paths/queries, PRE_CLEAN-keyed cache eviction, round-trip conversions, draft-vector rotation persistence — all verified
 
 #### Performance & Compatibility (4/4) [x]
 - **Memory Usage**: OPTIMAL - No memory leaks detected
-- **ANR Check**: CLEAN - No Application Not Responding issues
-- **API Compatibility**: VERIFIED - Works on API 21-35 (incl. API 21-25 nav-bar scrim handling)
+- **ANR Check**: CLEAN - No Application Not Responding issues; import preview and vector evaluation moved off the main thread
+- **API Compatibility**: VERIFIED - Works on API 21-35
 - **Device Compatibility**: CONFIRMED - Tested on Pixel API 35 emulator
 
 #### Release Artifacts (4/4) [x]
 - **Signing Configuration**: SECURE - Production keystore properly configured
-- **Version Code**: CORRECT - Version code 35 (root AND `GITHUB/fixupxer` mirror)
-- **Version Name**: COMPLIANT - Version 2.1.0 follows semantic versioning
+- **Version Code**: CORRECT - Version code 36 (root AND `GITHUB/fixupxer` mirror)
+- **Version Name**: COMPLIANT - Version 2.2.0 follows semantic versioning
 - **Release Notes**: UPDATED - Changelog reflects current version changes
 
 #### Final Verification (4/4) [x]
-- **Smoke Test**: SUCCESS - End-to-end functionality verified via instrumentation suite + manual emulator walkthrough
-- **Regression Test**: SUCCESS - All existing features functional (Instagram/Twitter/Facebook/TikTok/browser-mode suites green)
-- **Documentation**: CURRENT - Browser mode and custom rules have dedicated GitHub Markdown guides linked from Settings
+- **Smoke Test**: SUCCESS - End-to-end functionality verified via instrumentation suite
+- **Regression Test**: SUCCESS - Frozen master-off differential baseline byte-identical; Instagram/Twitter/Facebook/TikTok/browser-mode suites green
+- **Documentation**: CURRENT - README, supported platforms, custom rules guide, browser mode guide, provenance notes, and F-Droid descriptions updated
 - **Backup**: COMPLETE - Release artifacts properly stored
 
 #### Sign-off (3/3) [x]
@@ -70,15 +70,16 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, full emulator instrumentation, cle
 ## Detailed Test Metrics
 
 ### Code Quality
-- **Total Tests**: 467 (273 unit + 194 instrumentation).
-- **Pass Rate**: 100% (273/273 unit + 194/194 instrumentation on `Pixel_API_35_Play`)
-- **New test areas in v2.1.0**: default-off custom-rule preferences, frozen differential corpus, raw query/action matrix, redirect hop protection, bundle assets/round-trip, atomic import/rollback, Room migration, no-code UI, 200-rule performance and merged-manifest privacy.
-- **Instrumentation Time**: 7m 55s for the final full suite
+- **Total Tests**: 571 (370 unit + 201 instrumentation).
+- **Pass Rate**: 100% (370/370 unit + 201/201 instrumentation on `Pixel_API_35_Play`)
+- **New test areas in v2.2.0**: link-leak analysis, ephemeral cache/history behavior, host-boundary regression, keep-unknown contract, catalog cleaners, Google Maps canonicalization, offline redirect unwrapping, Bluesky conversion, change-operation trace, Process Text decision paths, rule test vectors + activation gate, Teach-from-example inference.
+- **Instrumentation Time**: 12m 2s for the final full run (incl. Gradle build)
 - **Lint Issues**: 0 errors on release variant (`lintRelease` clean)
+- **REUSE**: compliant with specification 3.3 (339/339 files)
 
 ### Performance Metrics
-- **APK Size (Google)**: 3.92 MiB signed v2.1.0 release build
-- **AAB Size**: 4.92 MiB signed Play bundle
+- **APK Size (Google)**: 3.99 MiB signed v2.2.0 release build
+- **AAB Size**: 4.98 MiB signed Play bundle
 - **Install Size**: Optimized with ProGuard/R8
 - **Memory Usage**: Efficient resource management
 - **Startup Time**: Fast cold start performance
@@ -86,25 +87,24 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, full emulator instrumentation, cle
 ### Security Assessment
 - **Permissions**: NONE (excellent privacy model)
 - **Network Access**: NONE (offline-first architecture; proxy domains are string replacements, not network endpoints)
-- **Data Collection**: NONE (no user data transmitted)
+- **Data Collection**: NONE (no user data transmitted; sensitive links additionally excluded from history/cache)
 - **Third-party Libraries**: All dependencies security-verified
 - **Code Obfuscation**: Enabled for release builds
 
 ## Build Artifacts Generated
-- [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` — SHA-256 `9B2E65974E40A50260888C67A1CC24856C2D9197A3EDC7E1FBDAC70A23D5C92D`
-- [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` — SHA-256 `D7050F0FA6AC844E12106EBD2C6D7B2D94EB3B3680D8F94CB240C4F93DAFC339`; `assets/adi-registration.properties` present
-- [x] **GITHUB Release APK**: `FixupXer-v2.1.0-release.apk` — 3.77 MiB, SHA-256 `B7FD2A69881E49A31F495D29975AE5E1E66F6C0BC3CAA8778A8557E85C4376F0`; two clean tag builds were byte-identical
+- [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` — SHA-256 `2C1358AB1CEEFF6B95FDEB8C5A534E8B82BB62C6A47F016C40CBADCEC4407C0D`
+- [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` — SHA-256 `BDCD2BBF30D4AB6540A8D7B1B77EF89F4FE9DABE2D14BE885781E63DD7AD0B98`; `assets/adi-registration.properties` present
+- [ ] **GITHUB Release APK**: `FixupXer-v2.2.0-release.apk` — built from a fresh clone of the `v2.2.0` tag (hash recorded below after tag build)
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
-- [x] **Minified Smoke**: signed APK installs and cold-launches; Main and Share launch; Settings/custom-rules/editor load; a release-mode Remove all rule changed `https://example.com/?id=1` to `https://example.com/`
 - [x] **ProGuard Mapping**: Code obfuscation applied
-- [x] **Test Reports**: 273/273 unit + 194/194 instrumentation, all green
+- [x] **Test Reports**: 370/370 unit + 201/201 instrumentation, all green
 
 ## GITHUB (F-Droid) Variant Verification
-- [x] Version 2.1.0 applied to the mirror's four version fields
+- [x] Version 2.2.0 applied to the mirror's four version fields
 - [x] `dependenciesInfo.includeInBundle = false` and `includeInApk = false` remain preserved
-- [x] Full root → mirror source/docs sync completed with intentional build differences preserved
-- [x] F-Droid changelog 35 added and validated under 500 characters
-- [x] `main` and tag `v2.1.0` pushed; reproducible fresh-clone APK published at `https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.1.0`
+- [ ] Full root → mirror source/docs sync completed with intentional build differences preserved
+- [x] F-Droid changelog 36 added and validated under 500 characters; short/full descriptions refreshed
+- [ ] `main` and tag `v2.2.0` pushed; reproducible fresh-clone APK published
 
 ## Quality Assurance Verification
 
@@ -115,28 +115,28 @@ FixupXer v2.1.0 has passed unit, lint, REUSE, full emulator instrumentation, cle
 - **Deprecated APIs**: Zero usage of deprecated edge-to-edge APIs
 
 ### Accessibility & UX [x]
-- **Screen Readers**: Full accessibility support (content descriptions, live regions on status chip)
-- **Touch Targets**: All interactive controls, including drag handles, proxy delete actions and `Change.` links, meet the 48dp minimum
+- **Screen Readers**: Full accessibility support (content descriptions, live regions; Link Guard warning row is focusable and labeled)
+- **Touch Targets**: All interactive controls meet the 48dp minimum
 - **Color Contrast**: Meets WCAG guidelines in both light and dark themes
-- **Responsive Design**: Verified at 320dp width with 130% font scaling and at the normal phone profile; fixed actions, footers and list content remain navigation-safe
+- **Responsive Design**: Layout unchanged from the verified v2.1.0 pass; new controls follow the same grouped M3 card patterns
 
 ### Performance & Stability [x]
 - **Memory Management**: No leaks detected during testing
-- **Resource Cleanup**: Proper lifecycle management (history collector cancelled when disabled)
-- **Background Processing**: Efficient background task handling
+- **Resource Cleanup**: Proper lifecycle management
+- **Background Processing**: Efficient background task handling; CPU-bound rule evaluation on Dispatchers.Default
 - **Battery Optimization**: Minimal battery impact
 
 ## Release Recommendation
 
 ### **FINAL VERDICT: [x] APPROVED FOR IMMEDIATE RELEASE**
 
-FixupXer v2.1.0 meets all release quality standards:
+FixupXer v2.2.0 meets all release quality standards:
 
 - **Zero Critical Issues**: No blocking issues found
-- **Unit Tests**: 273/273 (100%)
-- **Instrumentation Tests**: 194/194 (100%) on `Pixel_API_35_Play`
-- **Security Excellence**: merged APK declares no permissions; user regex is RE2/J-only; rule storage remains local
-- **Custom Rules**: all issue #6 and advanced capabilities are available without raw JSON editing
+- **Unit Tests**: 370/370 (100%)
+- **Instrumentation Tests**: 201/201 (100%) on `Pixel_API_35_Play`
+- **Security Excellence**: merged APK declares no permissions; sensitive links processed ephemerally; logs sanitized
+- **Novelty Features**: Private Link Guard and Teach-from-example are covered by dedicated suites
 - **Android 15 Ready**: Full compliance with latest platform requirements
 - **Production Quality**: Meets all Google Play Store and F-Droid requirements
 
@@ -144,7 +144,7 @@ The app is **ready for Google Play upload and GitHub/F-Droid publication**.
 
 ---
 
-**Report Generated**: July 12, 2026
+**Report Generated**: July 17, 2026
 **Next Review**: After next major feature release  
 **Quality Assurance**: PASSED [x]  
 **Security Review**: PASSED [x]  

@@ -20,12 +20,19 @@
 
 package com.fixupxer.cleaners.cache
 
+import com.fixupxer.processing.ChangeOperation
 import java.util.Collections
 import javax.inject.Inject
 import javax.inject.Singleton
 
+data class CachedCleanResult(
+    val cleanedUrl: String,
+    val operations: List<ChangeOperation>,
+    val totalPasses: Int
+)
+
 /**
- * Thread-safe LRU cache for cleaned URLs to improve performance
+ * Thread-safe LRU cache for cleaned URLs and their non-sensitive operation trace.
  */
 @Singleton
 class CleanerCache @Inject constructor() {
@@ -43,20 +50,20 @@ class CleanerCache @Inject constructor() {
     )
     
     /**
-     * Get a cleaned URL from cache or compute it
+     * Get a cleaned URL result from cache or compute it.
      */
-    fun getOrCompute(url: String, compute: () -> String): String {
+    fun getOrCompute(url: String, compute: () -> CachedCleanResult): CachedCleanResult {
         // Check cache first
         cache[url]?.let { entry ->
             if (!entry.isExpired()) {
-                return entry.cleanedUrl
+                return entry.result
             }
         }
         
         // Compute and cache
-        val cleanedUrl = compute()
-        cache[url] = CacheEntry(cleanedUrl, System.currentTimeMillis())
-        return cleanedUrl
+        val result = compute()
+        cache[url] = CacheEntry(result, System.currentTimeMillis())
+        return result
     }
     
     /**
@@ -64,6 +71,13 @@ class CleanerCache @Inject constructor() {
      */
     fun clear() {
         cache.clear()
+    }
+
+    /**
+     * Remove one input URL after later pipeline stages expose sensitive output.
+     */
+    fun remove(url: String) {
+        cache.remove(url)
     }
     
     /**
@@ -82,7 +96,7 @@ class CleanerCache @Inject constructor() {
      * Cache entry with timestamp
      */
     private data class CacheEntry(
-        val cleanedUrl: String,
+        val result: CachedCleanResult,
         val timestamp: Long
     ) {
         companion object {

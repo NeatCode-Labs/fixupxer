@@ -16,6 +16,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import java.nio.charset.StandardCharsets
 
 @RunWith(RobolectricTestRunner::class)
 class RuleBundleCodecTest {
@@ -25,7 +26,7 @@ class RuleBundleCodecTest {
     @Test
     fun `bundled templates parse and compile`() {
         val assets = RuntimeEnvironment.getApplication().assets
-        listOf("privacy_basics.json", "offline_redirects.json").forEach { file ->
+        listOf("privacy_basics.json").forEach { file ->
             val json = assets.open("rule_templates/$file").bufferedReader().use { it.readText() }
             val bundle = codec.decodeBundle(json)
             compiler.compileAll(bundle.rules)
@@ -40,12 +41,24 @@ class RuleBundleCodecTest {
             excludeScopes = listOf(RuleScope.ExactHost("private.example.com")),
             action = RuleAction.KeepOnlyParams(listOf("id"), ignoreCase = true),
             testVectors = listOf(
-                RuleTestVector("https://example.com/?id=1&x=2", "https://example.com/?id=1")
+                RuleTestVector("https://example.com/?id=1&x=2", "https://example.com/?id=1"),
+                RuleTestVector(
+                    "https://example.com/?q=a+b&path=%2Fone%2Ftwo",
+                    "https://example.com/?q=a+b&path=%2Fone%2Ftwo"
+                )
             )
         )
 
         val decoded = codec.decodeBundle(codec.encodeBundle(listOf(rule))).rules.single()
 
         assertEquals(rule, decoded)
+        assertEquals(
+            rule.testVectors[1].input.toByteArray(StandardCharsets.UTF_8).toList(),
+            decoded.testVectors[1].input.toByteArray(StandardCharsets.UTF_8).toList()
+        )
+        assertEquals(
+            rule.testVectors[1].expected.toByteArray(StandardCharsets.UTF_8).toList(),
+            decoded.testVectors[1].expected.toByteArray(StandardCharsets.UTF_8).toList()
+        )
     }
 }

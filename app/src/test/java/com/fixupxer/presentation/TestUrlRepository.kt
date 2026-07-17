@@ -27,6 +27,7 @@ internal class TestUrlRepository : UrlRepository {
     val instagramFlow = MutableStateFlow(true)
     val twitterFlow = MutableStateFlow(true)
     val tikTokFlow = MutableStateFlow(true)
+    val blueskyFlow = MutableStateFlow(true)
     val trackingFlow = MutableStateFlow(true)
 
     var processResult: ProcessedUrlResult = ProcessedUrlResult("", false)
@@ -65,6 +66,8 @@ internal class TestUrlRepository : UrlRepository {
 
     override fun isTikTokUrl(url: String): Boolean = false
 
+    override fun isBlueskyUrl(url: String): Boolean = false
+
     override fun hasTrackingParameters(url: String): Boolean = false
 
     override fun isInstagramConversionEnabled() = instagramFlow
@@ -89,6 +92,12 @@ internal class TestUrlRepository : UrlRepository {
 
     override suspend fun setTikTokConversionEnabled(enabled: Boolean) {
         tikTokFlow.value = enabled
+    }
+
+    override fun isBlueskyConversionEnabled() = blueskyFlow
+
+    override suspend fun setBlueskyConversionEnabled(enabled: Boolean) {
+        blueskyFlow.value = enabled
     }
 
     override suspend fun processUrlForBrowser(url: String): ProcessedUrlResult =

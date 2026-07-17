@@ -6,11 +6,11 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 * Browser Mode: Set FixupXer as your default browser for automatic system-wide URL cleaning
 * Direct Sharing: Share your links directly to FixupXer, no need to open the main app
 * Clean Link from Selection: Select a URL in any app and choose "Clean link" to clean it in place
-* Privacy Protection: Removes 1000+ tracking parameters from all major platforms; unknown functional parameters are kept so links do not break
-* Redirect Unwrapping: Extracts real destinations from Facebook, LinkedIn, YouTube, Google Ads, Reddit, and Bluesky redirect wrappers — entirely offline
+* Privacy Protection: Removes documented tracking keys across 26 host-bound platform cleaners; unknown functional parameters are kept so links do not break
+* Redirect Unwrapping: Extracts real destinations from Facebook, LinkedIn, YouTube, Google Ads, Reddit, Bluesky, GeoRiot/Geniuslink, and LinkSynergy/Rakuten wrappers — entirely offline
 * Fast Processing: Cleans any URL in under 0.1 seconds with advanced caching
 * Offline Operation: Works completely offline - your URLs never leave your device
-* Platform Support: Works with 25+ platforms including YouTube, Facebook, Amazon, Twitter/X, Instagram, TikTok, Bluesky, Google Search, Google Maps, LinkedIn, Reddit, Spotify, Wikipedia, and more
+* Platform Support: Works with 26 platforms including YouTube, Facebook, Amazon, Twitter/X, Instagram, TikTok, Bluesky, Bilibili, Google Search, Google Maps, LinkedIn, Reddit, Spotify, Wikipedia, and more
 * Smart Conversions: Optional conversion to embed-friendly alternatives (fixupx.com for Twitter/X, facebookez.com for Facebook, fxbsky.app for Bluesky posts, and selectable built-in or custom proxies for Instagram and TikTok)
 * Custom URL Rules: Build ordered offline rules with host or regex scopes, multiple processing phases, Test Lab previews, per-rule test vectors, Teach-from-example drafts, templates, and JSON import/export
 * History Tracking: Keep track of cleaned URLs with optional history feature
@@ -33,7 +33,7 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 
 <b>Technical Excellence</b>
 
-* Modular architecture with 27 specialized URL cleaners and host-boundary matching
+* Modular architecture with 26 host-bound domain cleaners, one universal cleaner, and curated offline redirect unwrapping
 * Thread-safe design optimized for modern Android devices
 * Redesigned Material Design 3 interface with full dark mode and a System/Light/Dark theme picker
 * Full Android 15 compliance with edge-to-edge display support

@@ -1,0 +1,8 @@
+v2.3.0 — Expanded international cleaning
+
+• Clean Bilibili share-tracking keys while preserving from and unknown parameters
+• Remove exact Yahoo/Guce referrer keys on destination links
+• Unwrap GeoRiot/Geniuslink and LinkSynergy/Rakuten redirects offline
+• Require exact wrapper hosts/paths and one-time percent decoding
+• Reject invalid ports, malformed escapes, fragment pseudo-queries, and unsafe duplicates
+• Preserve raw encoding, target fragments, +, and functional parameters

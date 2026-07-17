@@ -5,7 +5,7 @@ FixupXer removes known tracking parameters from URLs using registered, host-boun
 ## 🚀 Engine Architecture
 
 ### Modular Design
-- **25 domain-specific cleaners + 1 universal cleaner** - each registered platform has its own cleaner
+- **26 domain-specific cleaners + 1 universal cleaner** - each registered platform has its own cleaner
 - **Selective parameter removal** - known tracking keys are removed; unknown and functional keys are preserved
 - **Deep-Clean Technology** - Multi-pass cleaning ensures nothing gets missed
 - **Lightning Fast** - O(1) domain lookup with intelligent caching
@@ -39,6 +39,7 @@ These registered platforms support host-bound tracking parameter removal:
 - **Twitch** - Removes `tt_medium` and `tt_content`
 - **Spotify** - Removes `si`, `dl_branch`, and `dl_mobileapp`; keeps `context` and `uri`
 - **Netflix** - Removes `trkid` and `tctx`
+- **Bilibili** - Removes `vd_source`, `seid`, `share_source`, and `copy_link`; keeps `from` and unknown keys
 
 ### Content & Publishing
 - **Substack** - Removes known Substack tracking keys while preserving `publication_id` and `post_id`
@@ -64,14 +65,16 @@ These registered platforms support host-bound tracking parameter removal:
 - **Google Ads** - Extracts the `adurl` destination from `googleadservices.com/pagead/aclk`
 - **Reddit Mail** - Extracts the encoded destination from `click.redditmail.com`
 - **Bluesky Go** - Extracts the `u` destination from `go.bsky.app/redirect`
+- **GeoRiot / Geniuslink** - Extracts the `GR_URL` destination from `target.georiot.com/Proxy.ashx`
+- **LinkSynergy / Rakuten** - Extracts the `murl` destination from `click.linksynergy.com/link`
 
 ## General Tracking Cleaner
 
-The GeneralTrackingCleaner removes 68 exact universal tracking keys and 10
+The GeneralTrackingCleaner removes 71 exact universal tracking keys and 10
 tracking-key prefixes from any host. It runs after a matching domain cleaner,
 so universal keys such as `utm_source` are removed on supported platforms too.
 It intentionally preserves non-universal keys such as `ref`, `source`, `si`,
-and unknown flag parameters.
+`from`, and unknown flag parameters.
 
 ## Performance Features
 
@@ -104,7 +107,6 @@ The app preserves essential parameters needed for functionality:
 - Essential query parameters for proper URL functionality
 
 ### Privacy Excellence
-- Most comprehensive tracking removal available
-- Industry-leading parameter coverage per platform
-- Continuous multi-pass cleaning
-- Future-proof modular architecture 
+- Host-bound cleaners remove documented tracking keys while preserving unknown and functional parameters
+- Registered platform coverage with multi-pass cleaning
+- Future-proof modular architecture

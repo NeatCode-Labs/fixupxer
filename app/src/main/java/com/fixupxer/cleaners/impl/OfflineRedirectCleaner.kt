@@ -28,6 +28,8 @@ import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
 
 object OfflineRedirectCleaner : UrlCleaner {
+    private val targetNormalizer = UrlNormalizer()
+
     private data class QueryRule(
         val host: String,
         val exactHost: Boolean,
@@ -41,7 +43,9 @@ object OfflineRedirectCleaner : UrlCleaner {
         QueryRule(Constants.LINKEDIN_DOMAIN, false, "/safety/go", "url"),
         QueryRule(Constants.YOUTUBE_DOMAIN, false, "/redirect", "q"),
         QueryRule(Constants.BLUESKY_GO_DOMAIN, true, "/redirect", "u"),
-        QueryRule(Constants.GOOGLE_ADSERVICES_DOMAIN, false, "/pagead/aclk", "adurl")
+        QueryRule(Constants.GOOGLE_ADSERVICES_DOMAIN, false, "/pagead/aclk", "adurl"),
+        QueryRule(Constants.GEORIOT_TARGET_DOMAIN, true, "/Proxy.ashx", "GR_URL"),
+        QueryRule(Constants.LINKSYNERGY_CLICK_DOMAIN, true, "/link", "murl")
     )
 
     override val id = "offline_redirect"
@@ -54,7 +58,7 @@ object OfflineRedirectCleaner : UrlCleaner {
         val query = rawQuery(url)
         return queryRules.any { rule ->
             hostMatches(host, rule.host, rule.exactHost) &&
-                isPathSegment(path, rule.path) &&
+                path == rule.path &&
                 firstParameterValue(query, rule.parameter) != null
         } ||
             isExactHost(host, Constants.REDDITMAIL_CLICK_DOMAIN) &&
@@ -69,7 +73,7 @@ object OfflineRedirectCleaner : UrlCleaner {
             val query = rawQuery(url)
             val queryRule = queryRules.firstOrNull { rule ->
                 hostMatches(host, rule.host, rule.exactHost) &&
-                    isPathSegment(rawPath(url), rule.path) &&
+                    rawPath(url) == rule.path &&
                     firstParameterValue(query, rule.parameter) != null
             }
             val encodedTarget = if (queryRule != null) {
@@ -97,9 +101,6 @@ object OfflineRedirectCleaner : UrlCleaner {
         UrlNormalizer.hostMatchesDomain(host, domain) &&
             UrlNormalizer.hostMatchesDomain(domain, host)
 
-    private fun isPathSegment(path: String, segment: String): Boolean =
-        path == segment || path.startsWith("$segment/")
-
     private fun rawPath(url: String): String {
         val authorityStart = url.indexOf("://").let { if (it >= 0) it + 3 else 0 }
         val pathStart = url.indexOfAny(charArrayOf('/', '?', '#'), authorityStart)
@@ -111,8 +112,8 @@ object OfflineRedirectCleaner : UrlCleaner {
 
     private fun rawQuery(url: String): String? {
         val queryStart = url.indexOf('?')
-        if (queryStart < 0) return null
-        val fragmentStart = url.indexOf('#', queryStart)
+        val fragmentStart = url.indexOf('#')
+        if (queryStart < 0 || (fragmentStart >= 0 && fragmentStart < queryStart)) return null
         return url.substring(queryStart + 1, if (fragmentStart >= 0) fragmentStart else url.length)
     }
 
@@ -130,12 +131,32 @@ object OfflineRedirectCleaner : UrlCleaner {
             ?.takeIf { it.isNotEmpty() }
 
     private fun isValidTarget(target: String): Boolean {
+        if (target != target.trim() || !hasValidPercentEscapes(target)) return false
+        if (!targetNormalizer.isValidHttpUrl(target)) return false
         if (!target.startsWith("http://", ignoreCase = true) &&
             !target.startsWith("https://", ignoreCase = true)
         ) {
             return false
         }
         return UrlNormalizer.extractAsciiHost(target)?.contains('.') == true
+    }
+
+    private fun hasValidPercentEscapes(value: String): Boolean {
+        var index = 0
+        while (index < value.length) {
+            if (value[index] == '%') {
+                if (index + 2 >= value.length ||
+                    value[index + 1].digitToIntOrNull(16) == null ||
+                    value[index + 2].digitToIntOrNull(16) == null
+                ) {
+                    return false
+                }
+                index += 3
+            } else {
+                index++
+            }
+        }
+        return true
     }
 
     private fun strictPercentDecode(value: String): String? = runCatching {

@@ -144,6 +144,13 @@ object ParameterRuleCatalog {
                 "utparam-url"
             ),
             preserveKeys = setOf("sku_id", "currency", "language", "gatewayAdapt")
+        ),
+        PlatformParameterRule(
+            id = "bilibili",
+            displayName = "Bilibili",
+            category = CleanerCategory.VIDEO_PLATFORMS,
+            domains = listOf(Constants.BILIBILI_DOMAIN),
+            removeKeys = setOf("vd_source", "seid", "share_source", "copy_link")
         )
     )
 }

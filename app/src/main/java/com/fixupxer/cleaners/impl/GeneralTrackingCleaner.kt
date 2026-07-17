@@ -50,7 +50,8 @@ class GeneralTrackingCleaner @Inject constructor() : UrlCleaner {
             "vero_conv", "vero_id", "wickedid", "irclickid", "irgwc", "sscid", "zanpid",
             "sharedid", "ranmid", "raneaid", "ransiteid", "shareasale_site_id",
             "shareasale_user_id", "spjobid", "spmailingid", "spreportid", "spuserid",
-            "__twitter_impression", "mkt_tok", "sfmc_activityid"
+            "__twitter_impression", "mkt_tok", "sfmc_activityid",
+            "guccounter", "guce_referrer", "guce_referrer_sig"
         )
         
         // Prefixes that indicate tracking parameters

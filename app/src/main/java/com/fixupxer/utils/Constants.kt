@@ -125,6 +125,9 @@ object Constants {
     const val EBAY_DE_DOMAIN = "ebay.de"
     const val NETFLIX_DOMAIN = "netflix.com"
     const val ALIEXPRESS_DOMAIN = "aliexpress.com"
+    const val BILIBILI_DOMAIN = "bilibili.com"
+    const val GEORIOT_TARGET_DOMAIN = "target.georiot.com"
+    const val LINKSYNERGY_CLICK_DOMAIN = "click.linksynergy.com"
     
     // URL path identifiers
     const val TWITTER_STATUS_PATH = "/status/"

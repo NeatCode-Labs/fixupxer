@@ -79,6 +79,22 @@ class GeneralTrackingCleanerContractTest {
     }
 
     @Test
+    fun `removes Yahoo Guce referrer keys case insensitively`() {
+        assertEquals(
+            "https://ex.com/?keep=value",
+            cleaner.clean(
+                "https://ex.com/?guccounter=1&Guce_Referrer=two&guce_referrer_sig=three&keep=value"
+            )
+        )
+        assertEquals(
+            "https://ex.com/?guce_referrer_extra=four&guce_sig=five",
+            cleaner.clean(
+                "https://ex.com/?guce_referrer_extra=four&guce_sig=five&guccounter=1"
+            )
+        )
+    }
+
+    @Test
     fun `removes only exact Echobox fragments`() {
         assertEquals(
             "https://ex.com/path",

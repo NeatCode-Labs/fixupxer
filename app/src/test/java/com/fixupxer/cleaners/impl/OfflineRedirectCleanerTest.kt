@@ -53,7 +53,11 @@ class OfflineRedirectCleanerTest {
             "https://go.bsky.app/redirect?u=https%3A%2F%2Fexample.com%2Fbluesky" to
                 "https://example.com/bluesky",
             "https://www.googleadservices.com/pagead/aclk?adurl=https%3A%2F%2Fexample.com%2Fads" to
-                "https://example.com/ads"
+                "https://example.com/ads",
+            "https://target.georiot.com/Proxy.ashx?GR_URL=https%3A%2F%2Fexample.com%2Fgeoriot" to
+                "https://example.com/georiot",
+            "https://click.linksynergy.com/link?id=123&murl=https%3A%2F%2Fexample.com%2Faffiliate" to
+                "https://example.com/affiliate"
         )
 
         cases.forEach { (input, expected) ->
@@ -76,7 +80,23 @@ class OfflineRedirectCleanerTest {
             "https://go.bsky.app.evil.com/redirect?u=https%3A%2F%2Fexample.com",
             "https://notclick.redditmail.com/CL0/https%3A%2F%2Fexample.com",
             "https://l.facebook.com/l.phpx?u=https%3A%2F%2Fexample.com",
-            "https://youtube.com/redirectx?q=https%3A%2F%2Fexample.com"
+            "https://youtube.com/redirectx?q=https%3A%2F%2Fexample.com",
+            "https://target.georiot.com.evil.com/Proxy.ashx?GR_URL=https%3A%2F%2Fexample.com",
+            "https://notclick.linksynergy.com/link?murl=https%3A%2F%2Fexample.com",
+            "https://click.linksynergy.com/linkx?murl=https%3A%2F%2Fexample.com",
+            "https://target.georiot.com/Proxy.ashxx?GR_URL=https%3A%2F%2Fexample.com",
+            "https://target.georiot.com/Proxy.ashx/extra?GR_URL=https%3A%2F%2Fexample.com",
+            "https://click.linksynergy.com/link/extra?murl=https%3A%2F%2Fexample.com"
+        )
+
+        inputs.forEach { input -> assertEquals(input, OfflineRedirectCleaner.clean(input)) }
+    }
+
+    @Test
+    fun `ignores query-like text inside wrapper fragments`() {
+        val inputs = listOf(
+            "https://target.georiot.com/Proxy.ashx#note?GR_URL=https%3A%2F%2Fexample.com",
+            "https://click.linksynergy.com/link#note?murl=https%3A%2F%2Fexample.com"
         )
 
         inputs.forEach { input -> assertEquals(input, OfflineRedirectCleaner.clean(input)) }
@@ -91,10 +111,63 @@ class OfflineRedirectCleanerTest {
             "https://l.facebook.com/l.php?u=https%253A%252F%252Fexample.com",
             "https://l.facebook.com/l.php?u=javascript%3Aalert%281%29",
             "https://l.facebook.com/l.php?u=%2F%2Fevil.com",
-            "https://l.facebook.com/l.php?u=%2Frelative"
+            "https://l.facebook.com/l.php?u=%2Frelative",
+            "https://target.georiot.com/Proxy.ashx?x=https%3A%2F%2Fexample.com",
+            "https://target.georiot.com/Proxy.ashx?GR_URL=",
+            "https://target.georiot.com/Proxy.ashx?GR_URL=https%253A%252F%252Fexample.com",
+            "https://target.georiot.com/Proxy.ashx?GR_URL=javascript%3Aalert%281%29",
+            "https://click.linksynergy.com/link?x=https%3A%2F%2Fexample.com",
+            "https://click.linksynergy.com/link?murl=",
+            "https://click.linksynergy.com/link?murl=https%253A%252F%252Fexample.com",
+            "https://click.linksynergy.com/link?murl=javascript%3Aalert%281%29",
+            "https://click.linksynergy.com/link?murl=%2Frelative"
         )
 
         inputs.forEach { input -> assertEquals(input, OfflineRedirectCleaner.clean(input)) }
+    }
+
+    @Test
+    fun `rejects structurally invalid target ports`() {
+        val inputs = listOf(
+            "https://target.georiot.com/Proxy.ashx?GR_URL=https%3A%2F%2Fexample.com%3A0%2Fitem",
+            "https://click.linksynergy.com/link?murl=https%3A%2F%2Fexample.com%3A99999%2Fitem"
+        )
+
+        inputs.forEach { input -> assertEquals(input, OfflineRedirectCleaner.clean(input)) }
+    }
+
+    @Test
+    fun `rejects malformed target escapes and boundary whitespace`() {
+        val inputs = listOf(
+            "https://target.georiot.com/Proxy.ashx?GR_URL=https%3A%2F%2Fexample.com%2F%25ZZ",
+            "https://click.linksynergy.com/link?murl=%20https%3A%2F%2Fexample.com%2Fitem",
+            "https://click.linksynergy.com/link?murl=https%3A%2F%2Fexample.com%2Fitem%20"
+        )
+
+        inputs.forEach { input -> assertEquals(input, OfflineRedirectCleaner.clean(input)) }
+    }
+
+    @Test
+    fun `uses case-sensitive destination keys`() {
+        val inputs = listOf(
+            "https://target.georiot.com/Proxy.ashx?gr_url=https%3A%2F%2Fexample.com",
+            "https://click.linksynergy.com/link?Murl=https%3A%2F%2Fexample.com"
+        )
+
+        inputs.forEach { input -> assertEquals(input, OfflineRedirectCleaner.clean(input)) }
+    }
+
+    @Test
+    fun `uses first destination value and cannot bypass an unsafe first value`() {
+        val firstWins =
+            "https://target.georiot.com/Proxy.ashx?GR_URL=https%3A%2F%2Ffirst.example%2Fitem" +
+                "&GR_URL=https%3A%2F%2Fsecond.example%2Fitem"
+        val unsafeFirst =
+            "https://click.linksynergy.com/link?murl=javascript%3Aalert%281%29" +
+                "&murl=https%3A%2F%2Fsafe.example%2Fitem"
+
+        assertEquals("https://first.example/item", OfflineRedirectCleaner.clean(firstWins))
+        assertEquals(unsafeFirst, OfflineRedirectCleaner.clean(unsafeFirst))
     }
 
     @Test
@@ -102,6 +175,18 @@ class OfflineRedirectCleanerTest {
         val input = "https://l.facebook.com/l.php?u=https%3A%2F%2Fexample.com%2Fsearch%3Fq%3Da+b#source"
 
         assertEquals("https://example.com/search?q=a+b", OfflineRedirectCleaner.clean(input))
+    }
+
+    @Test
+    fun `preserves target plus encoded separators and fragment`() {
+        val input =
+            "https://target.georiot.com/Proxy.ashx?GR_URL=https%3A%2F%2Fexample.com%2Fsearch" +
+                "%3Fq%3Da+b%26encoded%3Dx%2526y%23section%2Fone"
+
+        assertEquals(
+            "https://example.com/search?q=a+b&encoded=x%26y#section/one",
+            OfflineRedirectCleaner.clean(input)
+        )
     }
 
     @Test
@@ -117,6 +202,21 @@ class OfflineRedirectCleanerTest {
         val input = "https://l.facebook.com/l.php?u=https%3A%2F%2Fwww.youtube.com%2Fredirect%3Fq%3Dhttps%253A%252F%252Fexample.com%252Farticle%253Futm_source%253Dmail"
 
         assertEquals("https://example.com/article", cleanerService.deepClean(input))
+    }
+
+    @Test
+    fun `deep clean resolves nested georiot wrapper target`() {
+        val input = "https://target.georiot.com/Proxy.ashx?GR_URL=https%3A%2F%2Fexample.com%2Farticle%3Futm_source%3Dmail"
+
+        assertEquals("https://example.com/article", cleanerService.deepClean(input))
+    }
+
+    @Test
+    fun `deep clean resolves linksynergy target and removes nested tracking`() {
+        val input = "https://click.linksynergy.com/link?murl=https%3A%2F%2Fexample.com%2Farticle" +
+            "%3Futm_source%3Dmail%26keep%3Dvalue"
+
+        assertEquals("https://example.com/article?keep=value", cleanerService.deepClean(input))
     }
 
     @Test

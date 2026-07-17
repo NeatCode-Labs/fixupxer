@@ -7,7 +7,7 @@
 <h3 align="center">Clean tracking from links. Improve social previews. Build your own offline URL rules.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.2.0"><img src="https://img.shields.io/badge/version-2.2.0-blue?style=flat-square" alt="Version 2.2.0"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.3.0"><img src="https://img.shields.io/badge/version-2.3.0-blue?style=flat-square" alt="Version 2.3.0"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>
@@ -120,13 +120,14 @@ beginner-friendly examples and a complete action/scope reference.
 Dedicated cleaners cover Facebook, Instagram, Twitter/X, TikTok, LinkedIn,
 Reddit, Amazon, YouTube, Substack, Google Search, Google Maps, Google Store,
 Wikipedia, Threads, Twitch, Spotify, Pinterest, Snapchat, WhatsApp, Medium,
-Bing, DuckDuckGo, eBay, Netflix, and AliExpress. A universal cleaner removes
-proven common tracking parameters from other websites.
+Bing, DuckDuckGo, eBay, Netflix, AliExpress, and Bilibili. A universal cleaner
+removes proven common tracking parameters from other websites.
 
 Curated offline redirect unwrapping handles Facebook `l.php`, LinkedIn
-`/safety/go`, YouTube `/redirect`, Google Ads `pagead/aclk`, Reddit Mail, and
-Bluesky `go.bsky.app` wrappers. Destinations are decoded once and accepted only
-when they are valid HTTP(S) URLs.
+`/safety/go`, YouTube `/redirect`, Google Ads `pagead/aclk`, Reddit Mail,
+Bluesky `go.bsky.app`, GeoRiot `target.georiot.com/Proxy.ashx`, and LinkSynergy
+`click.linksynergy.com/link` wrappers. Destinations are decoded once and accepted
+only when they are valid HTTP(S) URLs.
 
 When **Embed?** is enabled, FixupXer can locally rewrite:
 
@@ -238,7 +239,7 @@ custom domain. Disable **Embed?** to keep the original social-media domain.
 - Modular cleaner registry with O(1) domain dispatch
 - Raw-preserving URL processing with immutable per-request rule snapshots
 - RE2/J 1.8 for user-authored regular expressions
-- 571 automated tests: 370 unit + 201 instrumentation
+- 581 automated tests: 380 unit + 201 instrumentation
 - Release lint, zero-permission manifest regression test, and REUSE 3.3
   compliance
 

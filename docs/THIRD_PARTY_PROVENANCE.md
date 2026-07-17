@@ -59,7 +59,7 @@ same target but deliberately does differently.
 | `AolSearchSanitizer` | `search.aol.com` | Decodes and returns the path value following `RU=`. | **rejected (backlog)** — niche search redirect with no fixture or demand. |
 | `AtAnalyticsSanitizer` | Any host | Removes parameter names starting with `at_`. | **behavior adopted** — FixupXer's `GeneralTrackingCleaner` already removes the `at_` prefix on every host (pre-existing, independent implementation). |
 | `AutoTraderSanitizer` | `autotrader.co.uk` | Deletes from `?` onward. | **rejected (backlog)** — regional marketplace without fixtures or demand. |
-| `BilibiliSanitizer` | `bilibili.com` | Removes `vd_source`, `seid`, `from`, `share_source`, and `copy_link`. | **rejected (backlog)** — no fixtures or user demand. |
+| `BilibiliSanitizer` | `bilibili.com` | Removes `vd_source`, `seid`, `from`, `share_source`, and `copy_link`. | **adopted** — curated Bilibili support removes four known share keys on `bilibili.com` and subdomains; FixupXer deliberately preserves generic `from` and unknown keys. |
 | `CarGurusSanitizer` | `cargurus.co.uk` | Deletes every query parameter except `listingId` and `entitySelectingHelper.selectedEntity`. | **rejected (backlog)** — regional marketplace without fixtures or demand. |
 | `ChangeSanitizer` | `change.org` | Deletes from `?` onward. | **rejected (backlog)** — whole-query approach is unsafe without a demonstrated fixture. |
 | `CxAnalyticsSanitizer` | Any host | Removes parameters beginning `cx_`, `cxrecs_s`, or `mibextid`. | **rejected (backlog)** — generic cross-site keys need a fixture and false-positive review. |
@@ -75,7 +75,7 @@ same target but deliberately does differently.
 | `FastCompanySanitizer` | `fastcompany.com` | Deletes from `?` onward. | **rejected (backlog)** — whole-query approach without fixtures or demand. |
 | `FlipkartSanitizer` | Flipkart subdomains | Deletes from `?` onward. | **rejected (backlog)** — regional marketplace without fixtures or demand. |
 | `FeishuSanitizer` | `feishu.cn` and `feishu.net` subdomains | Removes `from`, `scene`, `channel`, `source`, and `refer`. | **rejected (backlog)** — no fixtures or user demand. |
-| `GeoRiotSanitizer` | `target.georiot.<TLD>/Proxy.ashx` | Decodes and returns the `GR_URL` parameter. | **rejected (backlog)** — affiliate redirect without fixtures or demand. |
+| `GeoRiotSanitizer` | `target.georiot.<TLD>/Proxy.ashx` | Decodes and returns the `GR_URL` parameter. | **adopted** — offline GeoRiot/Geniuslink unwrapping on exact host `target.georiot.com` and path `/Proxy.ashx` only, with strict single percent-decode and HTTP(S) destination validation. |
 | `GoogleAdsSanitizer` | `googleadservices.com`, including `pagead/aclk` links | Decodes and returns `adurl`. | **adopted** — offline Google Ads redirect unwrapping, with destination validation and fixtures. |
 | `GoogleAnalyticsSanitizer` | Any host | Removes names beginning `ga_`, `utm_`, `gclid`, or `gad_`. | **adopted** — accepted known analytics-key behaviour, independently implemented. |
 | `GoogleMapsSanitizer` | `google.com/maps` and `maps.google.com` | Extracts an `@latitude,longitude,zoom` path segment and emits `<scheme>://www.google.com/maps/<coordinates>`, preserving the input scheme. | **adopted** — Google platform expansion; FixupXer will use independently tested coordinate canonicalisation. |
@@ -93,7 +93,7 @@ same target but deliberately does differently.
 | `LatinaTodaySanitizer` | `latinatoday.it` | Deletes from `?` onward. | **rejected (backlog)** — regional news site without fixtures or demand. |
 | `LazadaSanitizer` | `lazada.com.my` | Deletes from `?` onward. | **rejected (backlog)** — regional marketplace without fixtures or demand. |
 | `LinkedInSanitizer` | `linkedin.com` | Removes `rcm`. | **adopted** — accepted LinkedIn known-key behaviour, independently implemented with functional keys retained. |
-| `LinkSynergySanitizer` | `linksynergy.<TLD>/link` | Decodes and returns `murl`. | **rejected (backlog)** — affiliate redirect without fixtures or demand. |
+| `LinkSynergySanitizer` | `linksynergy.<TLD>/link` | Decodes and returns `murl`. | **adopted** — offline LinkSynergy/Rakuten unwrapping on exact host `click.linksynergy.com` and path `/link` only, with strict single percent-decode and HTTP(S) destination validation. |
 | `MetaAdSanitizer` | Any host | Removes `ad_id`, `adset_id`, `campaign_id`, `gc_id`, `h_ad_id`, and `placement`. | **rejected (backlog)** — global ad-key removal needs targeted fixtures and false-positive review. |
 | `MyDealzParametersSanitizer` | `mydealz.de`, `chollometro.com`, `dealabs.com`, `desidime.com`, `hotukdeals.com`, `nl.pepper.com`, `pepper.it`, `pepper.pl`, `pepper.ru`, `promodescuentos.com`, `pelando.com.br`, `preisjaeger.at` | Deletes from `?` onward. | **rejected (backlog)** — regional deal sites without fixtures or demand. |
 | `MyDealzRedirectsSanitizer` | `mydealz.de`, `chollometro.com`, `dealabs.com`, `desidime.com`, `hotukdeals.com`, `nl.pepper.com`, `pepper.it`, `pepper.pl`, `pepper.ru`, `promodescuentos.com`, `pelando.com.br`, `preisjaeger.at` | Rewrites `https://<host>/share-deal-from-app/<id>` to `https://<host>/deals/a-<id>`. | **rejected (backlog)** — regional redirect/canonicalisation without fixtures or demand. |
@@ -122,7 +122,7 @@ same target but deliberately does differently.
 | `WeiboSanitizer` | `weibo.com` and `m.weibo.cn` | Removes `from`, `refer`, and `share_token`. | **rejected (backlog)** — regional platform without fixtures or demand. |
 | `XSanitizer` | `twitter.com` and `x.com` | Deletes from `?` onward. | **intentional difference** — FixupXer already removes known Twitter/X tracking keys while preserving functional or unknown keys. |
 | `XiaohongshuSanitizer` | `xiaohongshu.com` and `xhslink.com` | Deletes from `?` onward. | **rejected (backlog)** — regional platform without fixtures or demand. |
-| `YahooReferrerSanitizer` | Any host | Removes `guccounter`, `guce_referrer`, and `guce_referrer_sig`. | **rejected (backlog)** — global keys without a tested acceptance case. |
+| `YahooReferrerSanitizer` | Any host | Removes `guccounter`, `guce_referrer`, and `guce_referrer_sig`. | **adopted** — the general cleaner removes only these three exact Yahoo/Guce referrer keys case-insensitively on any host; near-match keys are preserved. |
 | `YahooSearchSanitizer` | `search.yahoo.com` | On `/search`, deletes all parameters except `p`; otherwise decodes and returns the `RU=` destination. | **rejected (backlog)** — no fixtures or user demand. |
 | `YandexSanitizer` | `yandex.com` and `ya.ru` | Deletes every query parameter except `text`. | **rejected (backlog)** — regional search engine and whole-query approach lack fixtures. |
 | `YoutubeMusicSanitizer` | `music.youtube.com` | Removes the `music.` hostname label, producing the corresponding `youtube.com` URL. | **intentional difference** — FixupXer keeps the YouTube Music host and cleans only its known tracking keys. |

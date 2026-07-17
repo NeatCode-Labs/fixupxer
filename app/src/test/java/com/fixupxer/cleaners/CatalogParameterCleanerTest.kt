@@ -123,6 +123,28 @@ class CatalogParameterCleanerTest {
     }
 
     @Test
+    fun `bilibili cleaner removes only documented keys and preserves from`() {
+        val rule = ParameterRuleCatalog.rules.first { it.id == "bilibili" }
+        val cleaner = CatalogParameterCleaner(rule)
+        val input = "https://www.bilibili.com/video/BV1?vd_source=share&seid=123&share_source=copy" +
+            "&copy_link=1&from=search&VD_SOURCE=keep&unknown=raw+plus%26value" +
+            "&unknown=second#frag%2Fvalue"
+        val expected = "https://www.bilibili.com/video/BV1?from=search&VD_SOURCE=keep" +
+            "&unknown=raw+plus%26value&unknown=second#frag%2Fvalue"
+
+        assertEquals(expected, cleaner.clean(input))
+        assertEquals(expected, cleaner.clean(cleaner.clean(input)))
+
+        assertFalse(cleaner.matches("https://notbilibili.com/video?${
+            rule.removeKeys.first()}=value"))
+        assertFalse(cleaner.matches("https://mybilibili.com.evil.com/video?${
+            rule.removeKeys.first()}=value"))
+
+        val subdomainInput = "https://m.bilibili.com/video/BV1?vd_source=share&from=app"
+        assertEquals("https://m.bilibili.com/video/BV1?from=app", cleaner.clean(subdomainInput))
+    }
+
+    @Test
     fun `cleaners expose explicit execution priorities`() {
         assertEquals(UrlCleaner.PRIORITY_EXTRACTION, GoogleSearchCleaner.priority)
         assertEquals(UrlCleaner.PRIORITY_CONVERSION, TwitterCleaner.priority)

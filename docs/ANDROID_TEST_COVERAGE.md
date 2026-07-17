@@ -1,7 +1,13 @@
-# Android Test Coverage for FixupXer v2.2.0
+# Android Test Coverage for FixupXer v2.3.0
 
 ## Overview
-This document is the canonical test inventory (unit, instrumentation, and URL conversion matrix) covering all major features through v2.2.0. v2.2.0 adds Private Link Guard, the keep-unknown cleaning contract, 14 new platform cleaners, offline redirect unwrapping, Bluesky conversion, Process Text, custom-rule test vectors, and Teach-from-example while retaining the zero-permission offline model.
+This document is the canonical test inventory (unit, instrumentation, and URL conversion matrix) covering all major features through v2.3.0. v2.3.0 adds selective Bilibili and Yahoo/Guce cleaning plus GeoRiot/Geniuslink and LinkSynergy/Rakuten offline redirect unwrapping while retaining the keep-unknown, zero-permission offline model.
+
+Test-suite delta vs v2.2.0 (380 unit / 201 instrumentation, both 100% passing):
+- **Updated**: `CatalogParameterCleanerTest.kt` — Bilibili removes only `vd_source`, `seid`, `share_source`, and `copy_link`; `from`, unknown/duplicate raw tokens, fragments, valid subdomains, and lookalike hosts are covered.
+- **Updated**: `GeneralTrackingCleanerContractTest.kt` — exact case-insensitive removal of `guccounter`, `guce_referrer`, and `guce_referrer_sig`, with near-match names preserved.
+- **Updated**: `OfflineRedirectCleanerTest.kt` — exact GeoRiot/LinkSynergy hosts and paths, single-decode behavior, registry multi-pass destination cleaning, fragment pseudo-query rejection, invalid ports/escapes/whitespace, unsafe duplicate semantics, case-sensitive destination keys, and raw `+`/query/fragment preservation.
+- **Unchanged**: 201 instrumentation tests exercise the full existing UI, Browser, Share, Process Text, conversion, history, theme, accessibility, responsive-layout, and zero-permission regressions; v2.3.0 adds no UI or manifest surface.
 
 Test-suite delta vs v2.1.0 (370 unit / 201 instrumentation, both 100%):
 - **Added**: `LinkLeakAnalyzerTest.kt` — credential/e-mail/JWT/token-parameter/coordinate detection across URL components, one-time percent-decode semantics, false-positive guards, and no raw values in findings.

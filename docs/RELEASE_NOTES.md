@@ -1,3 +1,48 @@
+# FixupXer v2.3.0 - International Cleaning & Affiliate Redirects
+
+## What's New
+
+### Bilibili Cleaning
+FixupXer now removes four documented Bilibili share-tracking keys:
+`vd_source`, `seid`, `share_source`, and `copy_link`. The generic `from`
+parameter and every unknown or functional key remain intact under the
+keep-unknown contract.
+
+### Yahoo Referrer Cleanup
+Three Yahoo/Guce referrer keys are now removed on any destination host:
+`guccounter`, `guce_referrer`, and `guce_referrer_sig`. Matching is
+case-insensitive but exact, so similarly named parameters are preserved.
+
+### More Offline Redirect Unwrapping
+- **GeoRiot / Geniuslink** links on
+  `target.georiot.com/Proxy.ashx` unwrap their `GR_URL` destination.
+- **LinkSynergy / Rakuten** links on
+  `click.linksynergy.com/link` unwrap their `murl` destination.
+
+Both wrappers require the exact host and path, decode the destination exactly
+once, and accept only structurally valid HTTP(S) targets. Invalid ports,
+malformed percent escapes, relative or non-HTTP destinations, unsafe duplicate
+parameters, lookalike hosts, subpaths, and query-like fragment text remain
+wrapped.
+
+### Privacy and Compatibility
+- No new permissions or network access: all changes are deterministic string
+  processing on the device.
+- Unknown parameters, raw encoding, duplicate ordering, target fragments, and
+  literal `+` characters remain preserved.
+- Existing wrapper rules were hardened to ignore `?` characters that appear
+  after a URL fragment and to require exact endpoint paths.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 37
+- versionName: 2.3.0
+- Unit tests: 380 / 380 passing. Instrumentation: 201 / 201 passing on
+  `Pixel_API_35_Play`.
+
+---
+
 # FixupXer v2.2.0 - Private Link Guard & Expanded Cleaning
 
 ## What's New

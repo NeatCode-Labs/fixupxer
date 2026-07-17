@@ -1,15 +1,15 @@
 # FixupXer App - Development Summary
-## Version Progression: v2.2.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.3.0 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 30 (v2.2.0 through v1.2.1)
-**Current Version:** v2.2.0 (versionCode: 36)
-**Development Period:** v1.2.1 (Initial) → v2.2.0 (Current)
+**Total Versions Released:** 31 (v2.3.0 through v1.2.1)
+**Current Version:** v2.3.0 (versionCode: 37)
+**Development Period:** v1.2.1 (Initial) → v2.3.0 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.2.0: Private Link Guard (offline detection of sensitive data remaining in links, with ephemeral processing), a keep-unknown cleaning contract with host-boundary matching, 14 new platform cleaners, offline redirect unwrapping, Bluesky post conversion, Process Text ("Clean link") integration, custom-rule test vectors with an activation gate, and Teach-from-example rule inference — all while retaining the zero-permission offline model.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.3.0: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard, curated offline redirect unwrapping, social embed conversion, Process Text, and a tested no-code custom-rule engine — all while retaining the zero-permission offline model.
 
 ### Key Achievements:
 - ✅ **Private Link Guard** - Offline detection of credentials, e-mails, JWT/auth tokens and precise coordinates left in links; ephemeral (no-history, no-cache) processing of sensitive URLs
@@ -21,18 +21,26 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 - ✅ **Selectable Instagram Embed Proxy** - User-chosen, persistent proxy for Instagram embeds with cross-proxy swap, legacy auto-migration, and bare-hostname conversion
 - ✅ **Cross-OEM Default-Browser Support** - `MAIN + APP_BROWSER` filter so Xiaomi/Redmi/HyperOS (and other non-AOSP pickers) list FixupXer as a browser candidate
 - ✅ **Professional UI/UX** - Polished Material Design 3 interface with perfect text formatting and typography
-- ✅ **Complete Engine Overhaul** - Revolutionary modular architecture with 11 specialized cleaners
-- ✅ **Industry-Leading Coverage** - 964 unique tracking parameters across all platforms
-- ✅ **Performance Revolution** - 5x faster with O(1) domain dispatch and smart caching
+- ✅ **Selective Cleaner Catalog** - 26 host-bound domain cleaners plus one universal cleaner preserve unknown and functional parameters
+- ✅ **Offline Redirect Unwrapping** - Curated HTTP(S) target extraction with exact host/path checks, strict single decoding and multi-pass destination cleaning
+- ✅ **Efficient Dispatch** - O(1) domain dispatch and bounded smart caching
 - ✅ **International Support** - Full IDN support and zero-width character handling
-- ✅ **100% Test Coverage** - Comprehensive test suite with JSON-based test cases
-- ✅ **Thread-Safe Design** - Enterprise-grade architecture ready for multi-core processing
+- ✅ **Comprehensive Verification** - 581 automated tests plus release lint, REUSE and reproducible-build checks
+- ✅ **Thread-Safe Design** - Immutable processing snapshots and concurrency-safe state
 - ✅ **Security Hardening** - Comprehensive protection against malicious input attacks
 - ✅ **Professional Architecture** - Clean, maintainable, and extensible codebase
 
 ---
 
 ## 📋 Version History
+
+### v2.2.0 → v2.3.0
+- **Focus:** Expand useful international cleaning and safe affiliate-wrapper extraction without adopting whole-query deletion or adding permissions.
+- **Bilibili:** New host-bound catalog rule removes only `vd_source`, `seid`, `share_source`, and `copy_link`; generic `from`, unknown keys, duplicate ordering, raw encoding, and fragments remain intact.
+- **Yahoo/Guce:** The universal cleaner now removes only the exact case-insensitive keys `guccounter`, `guce_referrer`, and `guce_referrer_sig`; near-match names remain untouched.
+- **Offline wrappers:** GeoRiot/Geniuslink (`target.georiot.com/Proxy.ashx`, `GR_URL`) and LinkSynergy/Rakuten (`click.linksynergy.com/link`, `murl`) join the curated offline unwrapper roster. Both require exact hosts and paths, decode once, validate the complete HTTP(S) target, and then pass the destination through the existing multi-pass cleaner pipeline.
+- **Redirect hardening:** Query-like text after fragments is ignored; endpoint subpaths, invalid ports, malformed percent escapes, boundary whitespace, relative/non-HTTP targets, unsafe duplicate bypasses, and double-encoded targets remain wrapped. Valid target `+`, encoding, query order, and fragments are preserved.
+- **Verification:** 380/380 unit + 201/201 instrumentation tests on `Pixel_API_35_Play`; `lintRelease` and REUSE 3.3 clean; zero-permission manifest unchanged.
 
 ### v2.1.0 → v2.2.0
 - **Focus:** Competitive-audit adoption release — bring the existing scope to its peak (cleaner correctness + catalog breadth) and add two first-of-their-kind features: Private Link Guard and Teach-from-example.
@@ -712,11 +720,12 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v1.7.2 | 33 | Reddit/redirect-wrapper fix; host-agnostic validator | ✅ Released |
 | v2.0.0 | 34 | Complete UI redesign: before/after flow, M3 DayNight + dark mode, theme picker | ✅ Released |
 | v2.1.0 | 35 | Complete opt-in custom URL rule system with Test Lab, templates and import/export | ✅ Released |
-| v2.2.0 | 36 | Private Link Guard, keep-unknown cleaning, 14 new cleaners, redirect unwrapping, Bluesky, Process Text, test vectors, Teach from example | ✅ Current |
+| v2.2.0 | 36 | Private Link Guard, keep-unknown cleaning, 14 new cleaners, redirect unwrapping, Bluesky, Process Text, test vectors, Teach from example | ✅ Released |
+| v2.3.0 | 37 | Bilibili cleaning, Yahoo referrer keys, GeoRiot/LinkSynergy offline unwrapping and redirect validation hardening | ✅ Current |
 
-### Build Artifacts (v2.2.0):
+### Build Artifacts (v2.3.0):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk`
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
-- **GITHUB / F-Droid APK:** `FixupXer-v2.2.0-release.apk` built from a fresh clone of the `v2.2.0` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+- **GITHUB / F-Droid APK:** `FixupXer-v2.3.0-release.apk` built from a fresh clone of the `v2.3.0` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

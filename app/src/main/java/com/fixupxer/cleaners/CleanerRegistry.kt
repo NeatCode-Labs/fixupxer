@@ -171,6 +171,8 @@ class CleanerRegistry @Inject constructor() {
                 addDomainAssociation(Constants.BLUESKY_GO_DOMAIN, cleaner)
                 addDomainAssociation(Constants.GOOGLE_ADSERVICES_DOMAIN, cleaner)
                 addDomainAssociation(Constants.REDDITMAIL_CLICK_DOMAIN, cleaner)
+                addDomainAssociation(Constants.GEORIOT_TARGET_DOMAIN, cleaner)
+                addDomainAssociation(Constants.LINKSYNERGY_CLICK_DOMAIN, cleaner)
             }
         }
     }

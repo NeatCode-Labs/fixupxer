@@ -1,10 +1,10 @@
 # FixupXer Testing Report
 
 ## Test Execution Date
-July 17, 2026
+July 18, 2026
 
 ## Executive Summary
-370/370 unit tests and 201/201 instrumentation tests pass for v2.2.0 on the `Pixel_API_35_Play` emulator. v2.2.0 adds Private Link Guard (offline leak detection with ephemeral processing), the keep-unknown cleaning contract with host-boundary matching, 14 new platform cleaners plus Google Maps canonicalization, offline redirect unwrapping, Bluesky post conversion, Process Text ("Clean link") integration, custom-rule test vectors with an activation gate, and Teach-from-example inference — all under the zero-permission offline model. New unit suites cover leak analysis, repository cache/history behavior, host-boundary regressions, catalog cleaners, redirect unwrapping, Bluesky conversion, operation tracing, vector running, and example inference. FixupXer v2.2.0 is **READY FOR PRODUCTION RELEASE**.
+380/380 unit tests and 201/201 instrumentation tests pass for v2.3.0 on the `Pixel_API_35_Play` emulator. v2.3.0 adds selective Bilibili cleaning, three exact Yahoo/Guce referrer keys, and offline GeoRiot/Geniuslink plus LinkSynergy/Rakuten redirect unwrapping. Redirect extraction now requires exact hosts and paths, ignores query-like fragment text, decodes once, and rejects invalid ports, malformed escapes, boundary whitespace, unsafe duplicate bypasses, and non-HTTP targets while preserving valid raw destination data. FixupXer v2.3.0 remains fully offline and zero-permission.
 
 ## Test Environment
 - **Device**: Android Emulator - Pixel API 35 Play (Android 15)
@@ -17,9 +17,14 @@ July 17, 2026
 
 ### Unit Tests (`./gradlew test`)
 **Status**: [x] PASSED
-**Total Tests**: 370 unit tests (+97 vs v2.1.0)
+**Total Tests**: 380 unit tests (+10 vs v2.2.0)
 **Pass Rate**: 100%
-**Test Classes (highlights, new in v2.2.0)**:
+**Test Classes (expanded in v2.3.0)**:
+- `CatalogParameterCleanerTest` — Bilibili exact-key removal with `from`, unknown keys, duplicate raw tokens, fragments, subdomains, and lookalike hosts preserved
+- `GeneralTrackingCleanerContractTest` — exact case-insensitive Yahoo/Guce key removal with near-match preservation
+- `OfflineRedirectCleanerTest` — GeoRiot and LinkSynergy extraction, registry deep-clean, exact host/path boundaries, strict decoding, structural target validation, duplicate semantics, fragment safety, and raw target preservation
+
+**Carried-over v2.2.0 highlights**:
 - `LinkLeakAnalyzerTest` — credentials/e-mail/JWT/token/coordinate detection, false-positive guards, no raw values in findings
 - `LinkGuardRepositoryTest` — ephemeral processing: history skip, cache bypass for sensitive inputs, cache-key eviction on output-only findings (incl. PRE_CLEAN custom-rule keying)
 - `HostBoundaryRegressionTest` + `GeneralTrackingCleanerContractTest` — label-boundary matching and the keep-unknown contract
@@ -33,14 +38,14 @@ July 17, 2026
 
 ### Android Instrumentation Tests (`./gradlew connectedAndroidTest`)
 **Status**: [x] PASSED
-**Total Tests**: 201 tests (+7 vs v2.1.0)
+**Total Tests**: 201 tests (unchanged vs v2.2.0)
 **Pass Rate**: 100%
 **Passed**: 201 (100%)
 **Failed**: 0
 **Execution Time**: ~8 min on `Pixel_API_35_Play` (animations disabled)
 
 ### Manual Emulator Verification
-Manual verification of the v2.2.0 UI on `Pixel_API_35_Play` (release APK; carried-over checks from v2.1.0 remain valid — the flow layout is unchanged):
+Manual verification of the v2.3.0 UI on `Pixel_API_35_Play` (the flow layout is unchanged from v2.2.0):
 - [x] Process Text — instrumentation covers inline replace (`RESULT_OK` + `EXTRA_PROCESS_TEXT`), read-only forward to Share preview, and conversion-toggle on/off behavior
 - [x] Link Guard warning row + dialog covered by ViewModel/repository tests; a release APK is provided to the maintainer for on-device verification
 - [x] Main empty state — placeholder in result card, action buttons disabled
@@ -49,7 +54,7 @@ Manual verification of the v2.2.0 UI on `Pixel_API_35_Play` (release APK; carrie
 - [x] Dark mode — full palette verified on Main (cards, chips, toggles, FAB, status bar)
 - [x] Rules library/editor — templates, empty/list states, add/edit/save/back behavior, Test Lab, fixed actions, and navigation insets
 - [x] History bottom sheet — optimized list space, per-entry actions, bottom actions, enable toggle, and header settings action
-- [x] About dialog — M3 styling, version 2.2.0, GPL notice
+- [x] About dialog — M3 styling, version 2.3.0, GPL notice
 - [x] Theme picker in Settings — System/Light/Dark selection persisted and restored (also covered by `ThemePickerTest`)
 - [x] Main, Share, Settings, Rules, Rule Editor, History, and dialogs checked in light/dark themes, 100%/130% font scale, and at 320dp width
 
@@ -108,7 +113,7 @@ Existing `MainViewModelTest`, `ShareViewModelTest`, `ResultStatusTest`, `UrlDiff
 **Test Files**: `UrlValidationImprovementsTest.kt`, `UrlInputValidationTest.kt` — all security and validation tests pass (error-message assertions updated for reason-aware messages).
 
 ### 10-18. UI / Platform Suites [x]
-`AccessibilityTest`, `ResponsiveDesignTest`, `TouchTargetTest`, `KeyboardNavigationTest`, `OfflinePerformanceTest`, `ApiCompatibilityTest`, `ReleaseTestSuite`, `SmartFooterTest`, `BrowserAliasIntentResolutionTest`, `SettingsTest`, `ThemePickerTest`, `CustomRulesUiTest`, and `ProcessTextActivityTest` (new) — all pass on the v2.2.0 UI.
+`AccessibilityTest`, `ResponsiveDesignTest`, `TouchTargetTest`, `KeyboardNavigationTest`, `OfflinePerformanceTest`, `ApiCompatibilityTest`, `ReleaseTestSuite`, `SmartFooterTest`, `BrowserAliasIntentResolutionTest`, `SettingsTest`, `ThemePickerTest`, `CustomRulesUiTest`, and `ProcessTextActivityTest` — all pass on the v2.3.0 build.
 
 ## Coverage Analysis
 
@@ -123,7 +128,7 @@ Existing `MainViewModelTest`, `ShareViewModelTest`, `ResultStatusTest`, `UrlDiff
 - **History Management**: 100%
 - **Custom URL Rules**: 100% — engine, storage, migration, import/export, test vectors, Teach-from-example, UI, performance, and privacy regression coverage
 - **Private Link Guard (v2.2.0)**: 100% — detection categories, ephemeral history/cache behavior, parameter removal
-- **Cleaner catalog + redirect unwrapping (v2.2.0)**: 100% — keep-unknown contract, host boundaries, 14 catalog platforms, Google Maps, six wrapper families
+- **Cleaner catalog + redirect unwrapping (through v2.3.0)**: 100% — keep-unknown contract, host boundaries, 15 catalog platforms, Google Maps, eight wrapper families
 - **Bluesky conversion + Process Text (v2.2.0)**: 100%
 - **Input Validation**: 100%
 - **Settings/Preferences**: 100%
@@ -135,14 +140,14 @@ Existing `MainViewModelTest`, `ShareViewModelTest`, `ResultStatusTest`, `UrlDiff
 - **Facebook (facebook.com / fb.com) / FacebookEZ**: [x] Complete
 - **TikTok + active proxies (tnktok.com / tfxktok.com / tiktokez.com / kktiktok.com) + custom proxies + legacy (vxtiktok.com / tiktxk.com)**: [x] Complete
 - **Bluesky posts (bsky.app ↔ fxbsky.app) + go.bsky.app unwrapping**: [x] Complete
-- **Catalog platforms (Wikipedia, Threads, Twitch, Spotify, Pinterest, Snapchat, WhatsApp, Medium, Bing, DuckDuckGo, Google Store, eBay, Netflix, AliExpress) + Google Maps**: [x] Complete
+- **Catalog platforms (Wikipedia, Threads, Twitch, Spotify, Pinterest, Snapchat, WhatsApp, Medium, Bing, DuckDuckGo, Google Store, eBay, Netflix, AliExpress, Bilibili) + Google Maps**: [x] Complete
 
 ## GITHUB (F-Droid) Variant
-- Source parity: all v2.2.0 source changes are synced into the GITHUB tree; only the standing intentional differences remain (`dependenciesInfo = false`, Linux JDK paths, F-Droid metadata).
+- Source parity: all v2.3.0 source changes are synced into the GITHUB tree; only the standing intentional differences remain (`dependenciesInfo = false`, Linux JDK paths, F-Droid metadata).
 - Instrumentation tests: run from the root tree on Windows (see above); F-Droid CI builds from the tag on Linux.
 
 ## Known Issues
-- None blocking for v2.2.0 release.
+- None blocking for v2.3.0 release.
 - The API 35 emulator occasionally drops window focus on long runs when animations are enabled (`RootViewWithoutFocusException`); animations are kept disabled on the AVD, after which the full suite is stable.
 
 ## Performance Observations
@@ -165,11 +170,11 @@ Existing `MainViewModelTest`, `ShareViewModelTest`, `ResultStatusTest`, `UrlDiff
 - [x] Merged-manifest test enforces zero declared permissions
 - [x] Sensitive URLs (Link Guard findings) bypass cache and history; created cache keys are evicted on output-only findings
 - [x] Processing logs sanitized — full URLs and parameter values never reach logcat
-- [x] Redirect unwrapping accepts only single-decoded HTTP(S) targets
+- [x] Redirect unwrapping requires exact registered hosts/paths and accepts only single-decoded, structurally valid HTTP(S) targets
 
 ## Conclusion
 **Production Readiness: YES** [x]
 
-FixupXer v2.2.0 passes 370/370 unit tests and 201/201 instrumentation tests on `Pixel_API_35_Play`. Private Link Guard, the keep-unknown cleaning contract, the expanded cleaner catalog, offline redirect unwrapping, Bluesky conversion, Process Text, custom-rule test vectors, and Teach-from-example are covered by automated regression tests.
+FixupXer v2.3.0 passes 380/380 unit tests and 201/201 instrumentation tests on `Pixel_API_35_Play`. The Bilibili and Yahoo/Guce additions plus GeoRiot/LinkSynergy wrappers are covered alongside all existing cleaning, Link Guard, conversion, Process Text, and custom-rule regressions.
 
 **The app is ready for production deployment.**

@@ -94,7 +94,7 @@ FixupXer v2.2.0 has passed unit, lint, REUSE, full emulator instrumentation, cle
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` — SHA-256 `2C1358AB1CEEFF6B95FDEB8C5A534E8B82BB62C6A47F016C40CBADCEC4407C0D`
 - [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` — SHA-256 `BDCD2BBF30D4AB6540A8D7B1B77EF89F4FE9DABE2D14BE885781E63DD7AD0B98`; `assets/adi-registration.properties` present
-- [ ] **GITHUB Release APK**: `FixupXer-v2.2.0-release.apk` — built from a fresh clone of the `v2.2.0` tag (hash recorded below after tag build)
+- [x] **GITHUB Release APK**: `FixupXer-v2.2.0-release.apk` — 3.83 MiB, SHA-256 `774DC83C5D0B7890AC5D086CA67B33677493C1DEC789C4F8C01DD229F6A116FE`; two clean tag builds were byte-identical; verified free of `dependencies.pb` and `adi-registration.properties`
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: 370/370 unit + 201/201 instrumentation, all green
@@ -102,9 +102,9 @@ FixupXer v2.2.0 has passed unit, lint, REUSE, full emulator instrumentation, cle
 ## GITHUB (F-Droid) Variant Verification
 - [x] Version 2.2.0 applied to the mirror's four version fields
 - [x] `dependenciesInfo.includeInBundle = false` and `includeInApk = false` remain preserved
-- [ ] Full root → mirror source/docs sync completed with intentional build differences preserved
+- [x] Full root → mirror source/docs sync completed with intentional build differences preserved
 - [x] F-Droid changelog 36 added and validated under 500 characters; short/full descriptions refreshed
-- [ ] `main` and tag `v2.2.0` pushed; reproducible fresh-clone APK published
+- [x] `main` and tag `v2.2.0` pushed; reproducible fresh-clone APK published at `https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.2.0`
 
 ## Quality Assurance Verification
 

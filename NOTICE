@@ -69,8 +69,8 @@ Credits & Inspiration
 FixupXer builds upon ideas from these excellent projects:
 
 - ClearURLs (https://github.com/ClearURLs/Addon) - Tracking parameter database
-- Leon URL Cleaner (https://github.com/svenjacobs/leon) - Android URL cleaning concept  
-- Léon (https://github.com/leon-cleaning-services/leon) - GPL-3.0-or-later; selected cleaner behaviour independently adapted without copying code or rule data
+- Léon - The URL Cleaner by Sven Jacobs (https://github.com/leon-cleaning-services/leon, formerly svenjacobs/leon) - GPL-3.0-or-later; Android URL-cleaning concept; selected cleaner behaviour independently adapted without copying code or rule data (see docs/THIRD_PARTY_PROVENANCE.md)
+- Untracker (https://github.com/zhanghai/Untracker) - Apache-2.0; URL-cleaning scope inspiration, no code or rules imported
 - FxEmbed (https://github.com/FxEmbed/FxEmbed) - Twitter embed improvements
 - fxbsky.app / FxEmbed (https://github.com/FxEmbed/FxEmbed) - Bluesky embed link service
 - InstaFix (https://github.com/Wikidepia/InstaFix) - Instagram embed enhancements

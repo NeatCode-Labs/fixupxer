@@ -272,10 +272,13 @@ without warranty.
 
 Ideas and data sources include
 [ClearURLs](https://github.com/ClearURLs/Addon),
-[Leon URL Cleaner](https://github.com/svenjacobs/leon),
+[Léon – The URL Cleaner](https://github.com/leon-cleaning-services/leon),
 [FxEmbed](https://github.com/FxEmbed/FxEmbed),
 [InstaFix](https://github.com/Wikidepia/InstaFix), and
 [fxTikTok](https://github.com/okdargy/fxTikTok).
+Selected cleaner behaviours were independently re-implemented from Léon
+(GPL-3.0-or-later) without copying code or rule data; the full audit is in
+[docs/THIRD_PARTY_PROVENANCE.md](docs/THIRD_PARTY_PROVENANCE.md).
 [RE2/J](https://github.com/google/re2j) 1.8 is used unmodified under its
 upstream Go License; details are in `NOTICE` and
 `LICENSES/LicenseRef-RE2J.txt`.

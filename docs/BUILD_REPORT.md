@@ -94,7 +94,7 @@ FixupXer v2.3.0 has passed unit, lint, REUSE, full emulator instrumentation, sig
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` — 4,179,361 bytes, SHA-256 `D40CF7833253DF1C23C120E5A76DA3F829F05F4CED95F3EACC7785AA0E5C07FC`
 - [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` — 5,222,008 bytes, SHA-256 `EC4EA30BEDFFD9C2A830845355B49517BDE8E076FD448FCDB3C0DB3325234F7B`; `assets/adi-registration.properties` present
-- [ ] **GITHUB Release APK**: `FixupXer-v2.3.0-release.apk` — generated and verified from the pushed tag in the release steps below
+- [x] **GITHUB Release APK**: `FixupXer-v2.3.0-release.apk` — 4,020,504 bytes, SHA-256 `A7F1CCF0F6EF2DCFE1EE035EF488EF58FA1CFCB189468670E4396EB8B4C440FB`; two fresh-clone tag builds were byte-identical and contained neither `dependencies.pb` nor `adi-registration.properties`
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: 380/380 unit + 201/201 instrumentation, all green
@@ -104,7 +104,7 @@ FixupXer v2.3.0 has passed unit, lint, REUSE, full emulator instrumentation, sig
 - [x] `dependenciesInfo.includeInBundle = false` and `includeInApk = false` remain preserved
 - [x] Full root → mirror source/docs sync completed with intentional build differences preserved
 - [x] F-Droid changelog 37 added and validated under 500 characters; short/full descriptions refreshed
-- [ ] `main` and tag `v2.3.0` push, fresh-clone reproducibility check, and GitHub Release publication
+- [x] `main` and annotated tag `v2.3.0` pushed; reproducible fresh-clone APK published at `https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.3.0`
 
 ## Quality Assurance Verification
 

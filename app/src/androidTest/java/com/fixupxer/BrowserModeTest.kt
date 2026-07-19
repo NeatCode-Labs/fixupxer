@@ -126,32 +126,28 @@ class BrowserModeTest {
     
     @Test
     fun testSettingsActivityBrowserModeToggle() {
-        // Launch Settings activity
-        val scenario = ActivityScenario.launch(SettingsActivity::class.java)
-        
-        // Verify browser mode switch is displayed
-        onView(withId(R.id.switchBrowserMode))
-            .check(matches(isDisplayed()))
-        onView(withId(R.id.buttonReadThis))
-            .check(matches(isDisplayed()))
-        
-        // Click to enable browser mode
-        onView(withId(R.id.switchBrowserMode))
-            .perform(click())
-        
-        // Verify preference is updated
-        Thread.sleep(500) // Allow time for preference update
-        assertTrue(preferencesManager.isBrowserModeEnabled())
-        
-        // Click again to disable
-        onView(withId(R.id.switchBrowserMode))
-            .perform(click())
-        
-        // Verify preference is updated
-        Thread.sleep(500) // Allow time for preference update
-        assertFalse(preferencesManager.isBrowserModeEnabled())
-        
-        scenario.close()
+        ActivityScenario.launch(SettingsActivity::class.java).use {
+            // The Browser integration card can start below the viewport after the
+            // App layout section was added, so scroll before visibility/actions.
+            onView(withId(R.id.switchBrowserMode))
+                .perform(nestedScrollTo())
+                .check(matches(isDisplayed()))
+            onView(withId(R.id.buttonReadThis))
+                .perform(nestedScrollTo())
+                .check(matches(isDisplayed()))
+
+            onView(withId(R.id.switchBrowserMode))
+                .perform(nestedScrollTo(), click())
+
+            Thread.sleep(500) // Allow time for preference update
+            assertTrue(preferencesManager.isBrowserModeEnabled())
+
+            onView(withId(R.id.switchBrowserMode))
+                .perform(nestedScrollTo(), click())
+
+            Thread.sleep(500) // Allow time for preference update
+            assertFalse(preferencesManager.isBrowserModeEnabled())
+        }
     }
     
     @Test

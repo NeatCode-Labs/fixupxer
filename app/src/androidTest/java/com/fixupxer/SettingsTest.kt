@@ -422,44 +422,45 @@ class SettingsTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val initialDisabled = PreferencesManager(context).getDisabledBuiltIns(ProxyPlatform.X)
 
-        ActivityScenario.launch(SettingsActivity::class.java)
+        ActivityScenario.launch(SettingsActivity::class.java).use {
+            onView(withId(R.id.buttonConversionDefaults))
+                .perform(nestedScrollTo(), click())
 
-        onView(withId(R.id.buttonConversionDefaults))
-            .perform(nestedScrollTo(), click())
+            onView(isRoot()).perform(waitFor(1000))
 
-        onView(isRoot()).perform(waitFor(1000))
-
-        onView(
-            allOf(
-                withId(R.id.textViewChangePrivacyTarget),
-                hasSibling(withText(R.string.convert_twitter_browser)),
+            onView(
+                allOf(
+                    withId(R.id.textViewChangePrivacyTarget),
+                    hasSibling(withText(R.string.convert_twitter_browser)),
+                )
             )
-        )
-            .inRoot(isDialog())
-            .perform(click())
+                .inRoot(isDialog())
+                .perform(click())
 
-        onView(isRoot()).perform(waitFor(500))
+            onView(isRoot()).perform(waitFor(500))
 
-        onView(allOf(withText(R.string.proxy_action_restore_builtins), isDisplayed()))
-            .perform(click())
+            onView(allOf(withText(R.string.proxy_action_restore_builtins), isDisplayed()))
+                .perform(click())
 
-        onView(isRoot()).perform(waitFor(500))
+            onView(isRoot()).perform(waitFor(500))
 
-        // Close the picker without choosing a reader, then cancel the outer dialog:
-        // the unsaved roster restore must be rolled back completely.
-        pressBack()
-        onView(isRoot()).perform(waitFor(500))
+            // Close the picker without choosing a reader, then wait for its
+            // dismissal animation before targeting the parent dialog.
+            pressBack()
+            Thread.sleep(700)
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync()
 
-        onView(withId(R.id.btnCancel))
-            .inRoot(isDialog())
-            .perform(click())
+            onView(withId(R.id.btnCancel))
+                .inRoot(isDialog())
+                .perform(click())
 
-        onView(isRoot()).perform(waitFor(300))
+            onView(isRoot()).perform(waitFor(300))
 
-        assertEquals(
-            initialDisabled,
-            PreferencesManager(context).getDisabledBuiltIns(ProxyPlatform.X),
-        )
+            assertEquals(
+                initialDisabled,
+                PreferencesManager(context).getDisabledBuiltIns(ProxyPlatform.X),
+            )
+        }
     }
 
     @Test

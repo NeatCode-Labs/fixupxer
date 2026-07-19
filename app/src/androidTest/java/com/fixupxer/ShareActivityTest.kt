@@ -66,13 +66,13 @@ class ShareActivityTest {
         }
     }
     
-    private fun launchShareActivityWithText(text: String) {
+    private fun launchShareActivityWithText(text: String): ActivityScenario<ShareActivity> {
         val intent = Intent(InstrumentationRegistry.getInstrumentation().targetContext, ShareActivity::class.java).apply {
             action = Intent.ACTION_SEND
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
         }
-        ActivityScenario.launch<ShareActivity>(intent)
+        return ActivityScenario.launch(intent)
     }
     
     @Test
@@ -252,19 +252,22 @@ class ShareActivityTest {
             preferencesManager.setConvertTwitterEnabled(true)
             delay(100)
             
-            launchShareActivityWithText("https://www.instagram.com/p/test/")
-            onView(isRoot()).perform(waitFor(1500))
-            onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
+            launchShareActivityWithText("https://www.instagram.com/p/test/").use {
+                onView(isRoot()).perform(waitFor(1500))
+                onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
+            }
             
             // Test Twitter URL - should show Twitter toggle
-            launchShareActivityWithText("https://x.com/user/status/123")
-            onView(isRoot()).perform(waitFor(1500))
-            onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
+            launchShareActivityWithText("https://x.com/user/status/123").use {
+                onView(isRoot()).perform(waitFor(1500))
+                onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
+            }
             
             // Test Facebook URL - should show Facebook toggle (uses convert_instagram pref)
-            launchShareActivityWithText("https://www.facebook.com/test")
-            onView(isRoot()).perform(waitFor(1500))
-            onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
+            launchShareActivityWithText("https://www.facebook.com/test").use {
+                onView(isRoot()).perform(waitFor(1500))
+                onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
+            }
         }
     }
     

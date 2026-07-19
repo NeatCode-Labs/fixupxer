@@ -283,12 +283,10 @@ All historical FixupXer versions and commits are retroactively licensed under
 GPL-3.0-or-later, superseding earlier license notices. The software is provided
 without warranty.
 
-Ideas and data sources include
-[ClearURLs](https://github.com/ClearURLs/Addon),
-[Léon – The URL Cleaner](https://github.com/leon-cleaning-services/leon),
-[FxEmbed](https://github.com/FxEmbed/FxEmbed),
-[InstaFix](https://github.com/Wikidepia/InstaFix), and
-[fxTikTok](https://github.com/okdargy/fxTikTok).
+URL-cleaning research and independently re-implemented behaviour were informed
+by [ClearURLs Rules](https://github.com/ClearURLs/Rules),
+[Léon – The URL Cleaner](https://github.com/leon-cleaning-services/leon), and
+[Untracker](https://github.com/zhanghai/Untracker).
 Selected cleaner behaviours were independently re-implemented from Léon
 (GPL-3.0-or-later) without copying code or rule data; the full audit is in
 [docs/THIRD_PARTY_PROVENANCE.md](docs/THIRD_PARTY_PROVENANCE.md).
@@ -296,10 +294,21 @@ Selected cleaner behaviours were independently re-implemented from Léon
 upstream Go License; details are in `NOTICE` and
 `LICENSES/LicenseRef-RE2J.txt`.
 
+The alternative-frontend ecosystem used by built-in targets includes
+[FxEmbed](https://github.com/FxEmbed/FxEmbed),
+[InstaFix](https://github.com/Wikidepia/InstaFix),
+[fxTikTok](https://github.com/okdargy/fxTikTok),
+[Nitter](https://github.com/zedeus/nitter),
+[SkyLib](https://codeberg.org/bg443/skylib-backend),
+[Redlib](https://github.com/redlib-org/redlib),
+[Invidious](https://github.com/iv-org/invidious), and
+[Farside](https://github.com/benbusby/farside). FixupXer does not bundle their
+code or operate these external services.
+
 Thanks to [@gautamnabin5](https://github.com/gautamnabin5) for proposing TikTok
 conversion support in [PR #5](https://github.com/NeatCode-Labs/fixupxer/pull/5).
-Thanks also to the maintainers of the third-party proxy services listed in
-[Supported Platforms](docs/SUPPORTED_PLATFORMS.md).
+Thanks also to the developers and operators of the built-in embed and privacy
+frontend instances shown in the app.
 The custom-rule engine and bundled templates were independently authored for
 FixupXer; no third-party ruleset, parser, regex corpus, or proprietary code was
 copied.

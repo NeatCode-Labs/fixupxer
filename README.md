@@ -305,8 +305,23 @@ The alternative-frontend ecosystem used by built-in targets includes
 [Farside](https://github.com/benbusby/farside). FixupXer does not bundle their
 code or operate these external services.
 
-Thanks to [@gautamnabin5](https://github.com/gautamnabin5) for proposing TikTok
-conversion support in [PR #5](https://github.com/NeatCode-Labs/fixupxer/pull/5).
+Community thanks:
+
+- [@serrq](https://github.com/serrq) for proposing default-browser integration
+  in [issue #1](https://github.com/NeatCode-Labs/fixupxer/issues/1).
+- [@gituser765](https://github.com/gituser765) for documenting TikTok redirect
+  short-link limitations in
+  [issue #2](https://github.com/NeatCode-Labs/fixupxer/issues/2).
+- [@Milliw](https://github.com/Milliw) for reporting the F-Droid Settings-menu
+  regression in [issue #3](https://github.com/NeatCode-Labs/fixupxer/issues/3).
+- [@IzzySoft](https://github.com/IzzySoft) for identifying F-Droid metadata
+  limits in [issue #4](https://github.com/NeatCode-Labs/fixupxer/issues/4).
+- [@gautamnabin5](https://github.com/gautamnabin5) for proposing TikTok
+  conversion support in [PR #5](https://github.com/NeatCode-Labs/fixupxer/pull/5).
+- [@ItsIgnacioPortal](https://github.com/ItsIgnacioPortal) for the detailed
+  custom-rules proposal and testing feedback in
+  [issue #6](https://github.com/NeatCode-Labs/fixupxer/issues/6).
+
 Thanks also to the developers and operators of the built-in embed and privacy
 frontend instances shown in the app.
 The custom-rule engine and bundled templates were independently authored for

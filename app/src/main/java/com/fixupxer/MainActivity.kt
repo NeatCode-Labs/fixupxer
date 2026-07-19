@@ -40,6 +40,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.fixupxer.databinding.ActivityMainBinding
 import com.fixupxer.presentation.main.MainViewModel
 import com.fixupxer.ui.BaseActivity
+import com.fixupxer.ui.helpers.DominantHandLayoutHelper
 import com.fixupxer.ui.helpers.ResultStatusHelper
 import com.fixupxer.ui.helpers.SmartFooterHelper
 import com.fixupxer.ui.helpers.SnackbarHelper
@@ -49,9 +50,9 @@ import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InputValidator
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.ui.dialogs.HistoryDialogHelper
-import com.fixupxer.ui.dialogs.InstagramProxyDialogHelper
 import com.fixupxer.ui.dialogs.LinkGuardDialogHelper
-import com.fixupxer.ui.dialogs.TikTokProxyDialogHelper
+import com.fixupxer.ui.dialogs.ProxyPickerDialogHelper
+import com.fixupxer.ui.helpers.PlatformToggleHelper
 import com.fixupxer.utils.PostCleanRunner
 import com.fixupxer.domain.repository.UrlRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -94,6 +95,7 @@ class MainActivity : BaseActivity() {
         supportActionBar?.setDisplayShowTitleEnabled(false)
         
         initializeViews()
+        applyDominantHandLayout()
         setupListeners()
         observeViewModel()
         setupSmartFooter()
@@ -102,6 +104,13 @@ class MainActivity : BaseActivity() {
         handleViewIntentIfPresent(intent)
 
         Timber.d("MainActivity onCreate completed")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::binding.isInitialized) {
+            applyDominantHandLayout()
+        }
     }
     
     override fun onNewIntent(intent: Intent) {
@@ -231,7 +240,21 @@ class MainActivity : BaseActivity() {
             context = this,
             rootView = binding.root,
             scrollView = binding.mainScrollView,
-            footer = binding.footerTextView
+            footer = binding.footerTextView,
+            historyAnchor = binding.buttonHistory,
+        )
+    }
+
+    private fun applyDominantHandLayout() {
+        DominantHandLayoutHelper.apply(
+            actionRow = binding.actionRow,
+            openButton = binding.buttonOpen,
+            copyButton = binding.buttonCopy,
+            shareButton = binding.buttonShare,
+            historyButton = binding.buttonHistory,
+            hand = preferencesManager.getDominantHand(),
+            actionGapPx = resources.getDimensionPixelSize(R.dimen.margin_small),
+            historyEdgeMarginPx = resources.getDimensionPixelSize(R.dimen.margin_medium),
         )
     }
     
@@ -319,58 +342,44 @@ class MainActivity : BaseActivity() {
         binding.togglesInclude.textViewChangeProxy.setOnClickListener {
             onChangeProxyClick()
         }
-
-        binding.togglesInclude.textViewChangeTikTokProxy.setOnClickListener {
-            onChangeTikTokProxyClick()
-        }
     }
     
     private fun observeViewModel() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    binding.togglesInclude.instagramToggleContainer.isVisible = state.isInstagramUrl
-                    binding.togglesInclude.facebookToggleContainer.isVisible = state.isFacebookUrl
-                    binding.togglesInclude.instagramProxyRow.isVisible = state.isInstagramUrl
-                    if (state.isInstagramUrl) {
-                        refreshProxyLabel()
-                    }
-
-                    binding.togglesInclude.switchInstagram.setOnCheckedChangeListener(null)
-                    binding.togglesInclude.switchInstagram.isChecked = state.isInstagramConversionEnabled
-                    binding.togglesInclude.switchInstagram.setOnCheckedChangeListener { _, isChecked ->
-                        viewModel.onInstagramConversionToggled(isChecked)
-                    }
-
-                    binding.togglesInclude.switchFacebook.setOnCheckedChangeListener(null)
-                    binding.togglesInclude.switchFacebook.isChecked = state.isInstagramConversionEnabled
-                    binding.togglesInclude.switchFacebook.setOnCheckedChangeListener { _, isChecked ->
-                        viewModel.onInstagramConversionToggled(isChecked)
-                    }
-
-                    binding.togglesInclude.twitterToggleContainer.isVisible = state.isTwitterUrl
-                    binding.togglesInclude.switchTwitter.setOnCheckedChangeListener(null)
-                    binding.togglesInclude.switchTwitter.isChecked = state.isTwitterConversionEnabled
-                    binding.togglesInclude.switchTwitter.setOnCheckedChangeListener { _, isChecked ->
-                        viewModel.onTwitterConversionToggled(isChecked)
-                    }
-
-                    binding.togglesInclude.blueskyToggleContainer.isVisible = state.isBlueskyUrl
-                    binding.togglesInclude.switchBluesky.setOnCheckedChangeListener(null)
-                    binding.togglesInclude.switchBluesky.isChecked = state.isBlueskyConversionEnabled
-                    binding.togglesInclude.switchBluesky.setOnCheckedChangeListener { _, isChecked ->
-                        viewModel.onBlueskyConversionToggled(isChecked)
-                    }
-
-                    binding.togglesInclude.tiktokToggleContainer.isVisible = state.isTikTokUrl
-                    if (state.isTikTokUrl) {
-                        refreshTikTokProxyLabel()
-                    }
-                    binding.togglesInclude.switchTikTok.setOnCheckedChangeListener(null)
-                    binding.togglesInclude.switchTikTok.isChecked = state.isTikTokConversionEnabled
-                    binding.togglesInclude.switchTikTok.setOnCheckedChangeListener { _, isChecked ->
-                        viewModel.onTikTokConversionToggled(isChecked)
-                    }
+                    val toggles = binding.togglesInclude
+                    PlatformToggleHelper.bindPlatformToggle(
+                        context = this@MainActivity,
+                        container = toggles.platformToggleContainer,
+                        monogram = toggles.platformMonogram,
+                        title = toggles.platformTitle,
+                        proxyRow = toggles.platformProxyRow,
+                        proxyStatus = toggles.textViewPlatformProxyStatus,
+                        changeProxy = toggles.textViewChangeProxy,
+                        platformSwitch = toggles.switchPlatform,
+                        platform = state.detectedPlatform,
+                        preferencesManager = preferencesManager,
+                        conversionEnabled = PlatformToggleHelper.isConversionEnabled(
+                            platform = state.detectedPlatform,
+                            isInstagramConversionEnabled = state.isInstagramConversionEnabled,
+                            isTwitterConversionEnabled = state.isTwitterConversionEnabled,
+                            isFacebookConversionEnabled = state.isFacebookConversionEnabled,
+                            isTikTokConversionEnabled = state.isTikTokConversionEnabled,
+                            isBlueskyConversionEnabled = state.isBlueskyConversionEnabled,
+                            isRedditConversionEnabled = state.isRedditConversionEnabled,
+                            isYoutubeConversionEnabled = state.isYoutubeConversionEnabled,
+                            isPinterestConversionEnabled = state.isPinterestConversionEnabled,
+                            isThreadsConversionEnabled = state.isThreadsConversionEnabled,
+                        ),
+                        proxySelectionRevision = state.proxySelectionRevision,
+                        onToggle = { enabled ->
+                            state.detectedPlatform?.let { platform ->
+                                viewModel.onPlatformConversionToggled(platform, enabled)
+                            }
+                        },
+                        onChangeProxy = { onChangeProxyClick() },
+                    )
 
                     binding.progressIndicator.visibility =
                         if (state.isLoading) View.VISIBLE else View.INVISIBLE
@@ -452,36 +461,16 @@ class MainActivity : BaseActivity() {
     }
 
     private fun onChangeProxyClick() {
-        // Settings no longer hosts a proxy chooser (v1.5.1+); the dialog is
-        // now the single source of truth for picking the Instagram proxy on
-        // both Main and Share screens. After the user picks a proxy:
-        //   1. refresh the "Active: <proxy>." label,
-        //   2. re-process *only if* a Processed URL already exists for an
-        //      Instagram input (i.e. the user has already tapped Process once).
-        // The first-time processing flow still belongs to the Process button —
-        // pasting a fresh link does not auto-process.
-        InstagramProxyDialogHelper.show(this, preferencesManager) {
-            refreshProxyLabel()
+        val platform = viewModel.uiState.value.detectedPlatform ?: return
+        ProxyPickerDialogHelper.show(
+            context = this,
+            layoutInflater = layoutInflater,
+            platform = platform,
+            preferencesManager = preferencesManager,
+        ) {
+            viewModel.notifyProxySelectionChanged()
             viewModel.reprocessAfterProxyChange()
         }
-    }
-
-    private fun onChangeTikTokProxyClick() {
-        // Same contract as onChangeProxyClick(), but for the TikTok proxy roster.
-        TikTokProxyDialogHelper.show(this, preferencesManager) {
-            refreshTikTokProxyLabel()
-            viewModel.reprocessAfterProxyChange()
-        }
-    }
-
-    private fun refreshProxyLabel() {
-        binding.togglesInclude.textViewInstagramProxyStatus.text =
-            getString(R.string.currently_using_proxy, preferencesManager.getInstagramProxy())
-    }
-
-    private fun refreshTikTokProxyLabel() {
-        binding.togglesInclude.textViewTikTokProxyStatus.text =
-            getString(R.string.currently_using_proxy, preferencesManager.getTikTokProxy())
     }
     
     private fun pasteFromClipboard() {

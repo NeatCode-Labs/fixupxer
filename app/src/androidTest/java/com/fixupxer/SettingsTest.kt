@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
@@ -31,10 +32,17 @@ import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.fixupxer.MainActivity
+import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
+import androidx.test.espresso.matcher.ViewMatchers.hasSibling
+import com.fixupxer.ui.SettingsActivity
+import com.fixupxer.utils.AlternativeFrontendCatalog
+import com.fixupxer.utils.Constants
+import com.fixupxer.utils.ProxyPlatform
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
 import android.view.View
@@ -184,10 +192,11 @@ class SettingsTest {
         // Wait for dialog
         onView(isRoot()).perform(waitFor(1000))
         
-        // Clear and enter invalid value (too low)
+        // Clear and enter invalid value (too low); close the keyboard so the
+        // IME can't steal window focus when the dialog later dismisses.
         onView(withId(R.id.editTextMaxEntries))
             .inRoot(isDialog())
-            .perform(clearText(), typeText("0"))
+            .perform(clearText(), typeText("0"), closeSoftKeyboard())
         
         // Try to confirm
         onView(withId(R.id.buttonOk))
@@ -205,7 +214,7 @@ class SettingsTest {
         // Enter valid value
         onView(withId(R.id.editTextMaxEntries))
             .inRoot(isDialog())
-            .perform(clearText(), typeText("50"))
+            .perform(clearText(), typeText("50"), closeSoftKeyboard())
         
         // Confirm
         onView(withId(R.id.buttonOk))
@@ -257,38 +266,255 @@ class SettingsTest {
     
     @Test
     fun testConversionDefaultsDialog() {
-        // Launch Settings activity directly
-        ActivityScenario.launch(com.fixupxer.ui.SettingsActivity::class.java)
+        ActivityScenario.launch(SettingsActivity::class.java)
         
-        // Click on Conversion defaults button
         onView(withId(R.id.buttonConversionDefaults))
             .perform(nestedScrollTo(), click())
         
-        // Wait for dialog
         onView(isRoot()).perform(waitFor(1000))
         
-        // Verify dialog is shown
         onView(withText(R.string.conversion_defaults_title))
             .inRoot(isDialog())
             .check(matches(isDisplayed()))
         
-        // Verify explanation text is shown
-        onView(withText(containsString("When acting as a browser")))
+        onView(withText(containsString("privacy readers")))
             .inRoot(isDialog())
             .check(matches(isDisplayed()))
         
-        // Verify all three toggles are present
+        // Every supported row shows a target line; anchor on the X row to avoid ambiguity.
+        onView(
+            allOf(
+                withId(R.id.textViewPrivacyTargetStatus),
+                hasSibling(withText(R.string.convert_twitter_browser)),
+            )
+        )
+            .inRoot(isDialog())
+            .check(matches(allOf(isDisplayed(), withText(containsString("Privacy frontend:")))))
+
+        // Exactly four supported platforms (X, Bluesky, Reddit, Pinterest).
         onView(withId(R.id.switchBrowserTwitter))
             .inRoot(isDialog())
+            .perform(scrollTo())
             .check(matches(isDisplayed()))
         
-        onView(withId(R.id.switchBrowserInstagram))
+        onView(withId(R.id.switchBrowserBluesky))
             .inRoot(isDialog())
+            .perform(scrollTo())
             .check(matches(isDisplayed()))
         
-        onView(withId(R.id.switchBrowserFacebook))
+        onView(withId(R.id.switchBrowserReddit))
+            .inRoot(isDialog())
+            .perform(scrollTo())
+            .check(matches(isDisplayed()))
+
+        onView(withId(R.id.switchBrowserPinterest))
+            .inRoot(isDialog())
+            .perform(scrollTo())
+            .check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun testConversionDefaultsButtonsVisibleWhenBrowserModeOff() {
+        ActivityScenario.launch(SettingsActivity::class.java)
+
+        onView(withId(R.id.switchBrowserMode))
+            .check(matches(isNotChecked()))
+
+        onView(withId(R.id.buttonConversionDefaults))
+            .perform(nestedScrollTo())
+            .check(matches(allOf(isDisplayed(), isClickable())))
+
+        onView(withId(R.id.buttonConfigurationStatus))
+            .perform(nestedScrollTo())
+            .check(matches(allOf(isDisplayed(), isClickable())))
+    }
+
+    @Test
+    fun testConfigurationStatusDialog() {
+        ActivityScenario.launch(SettingsActivity::class.java)
+
+        onView(withId(R.id.buttonConfigurationStatus))
+            .perform(nestedScrollTo(), click())
+
+        onView(isRoot()).perform(waitFor(1000))
+
+        onView(withText(R.string.configuration_status_title))
             .inRoot(isDialog())
             .check(matches(isDisplayed()))
+
+        onView(withText(R.string.configuration_status_detail_browser_off))
+            .inRoot(isDialog())
+            .check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun testConversionDefaultsRestoreReaderFlow() {
+        runBlocking {
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .putBoolean("browser_convert_twitter", true)
+                .commit()
+            delay(100)
+            AlternativeFrontendCatalog.builtInReaders(ProxyPlatform.X).forEach { reader ->
+                PreferencesManager(context).disableBuiltIn(ProxyPlatform.X, reader.id)
+            }
+            delay(100)
+        }
+
+        ActivityScenario.launch(SettingsActivity::class.java)
+
+        onView(withId(R.id.buttonConversionDefaults))
+            .perform(nestedScrollTo(), click())
+
+        onView(isRoot()).perform(waitFor(1000))
+
+        onView(
+            allOf(
+                withId(R.id.textViewChangePrivacyTarget),
+                hasSibling(withText(R.string.convert_twitter_browser)),
+            )
+        )
+            .inRoot(isDialog())
+            .perform(click())
+
+        onView(isRoot()).perform(waitFor(500))
+
+        onView(allOf(withText(R.string.proxy_action_restore_builtins), isDisplayed()))
+            .perform(click())
+
+        onView(isRoot()).perform(waitFor(500))
+
+        onView(allOf(withText(containsString(Constants.NITTER_NET_DOMAIN)), isDisplayed()))
+            .perform(click())
+
+        onView(isRoot()).perform(waitFor(500))
+
+        onView(withId(R.id.btnSave))
+            .inRoot(isDialog())
+            .perform(click())
+
+        onView(isRoot()).perform(waitFor(300))
+
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+        assertEquals("x_nitter_net", prefs.getString("browser_privacy_target_x", null))
+        assertEquals(true, prefs.getBoolean("browser_convert_twitter", false))
+    }
+
+    @Test
+    fun testConversionDefaultsRestoreCancelRollsBackRoster() {
+        runBlocking {
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .putBoolean("browser_convert_twitter", true)
+                .commit()
+            delay(100)
+            AlternativeFrontendCatalog.builtInReaders(ProxyPlatform.X).forEach { reader ->
+                PreferencesManager(context).disableBuiltIn(ProxyPlatform.X, reader.id)
+            }
+            delay(100)
+        }
+
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val initialDisabled = PreferencesManager(context).getDisabledBuiltIns(ProxyPlatform.X)
+
+        ActivityScenario.launch(SettingsActivity::class.java)
+
+        onView(withId(R.id.buttonConversionDefaults))
+            .perform(nestedScrollTo(), click())
+
+        onView(isRoot()).perform(waitFor(1000))
+
+        onView(
+            allOf(
+                withId(R.id.textViewChangePrivacyTarget),
+                hasSibling(withText(R.string.convert_twitter_browser)),
+            )
+        )
+            .inRoot(isDialog())
+            .perform(click())
+
+        onView(isRoot()).perform(waitFor(500))
+
+        onView(allOf(withText(R.string.proxy_action_restore_builtins), isDisplayed()))
+            .perform(click())
+
+        onView(isRoot()).perform(waitFor(500))
+
+        // Close the picker without choosing a reader, then cancel the outer dialog:
+        // the unsaved roster restore must be rolled back completely.
+        pressBack()
+        onView(isRoot()).perform(waitFor(500))
+
+        onView(withId(R.id.btnCancel))
+            .inRoot(isDialog())
+            .perform(click())
+
+        onView(isRoot()).perform(waitFor(300))
+
+        assertEquals(
+            initialDisabled,
+            PreferencesManager(context).getDisabledBuiltIns(ProxyPlatform.X),
+        )
+    }
+
+    @Test
+    fun testConversionDefaultsPrivacyTargetPickerSave() {
+        runBlocking {
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .putBoolean("browser_convert_twitter", true)
+                .commit()
+            delay(100)
+        }
+
+        ActivityScenario.launch(SettingsActivity::class.java)
+
+        onView(withId(R.id.buttonConversionDefaults))
+            .perform(nestedScrollTo(), click())
+
+        onView(isRoot()).perform(waitFor(1000))
+
+        onView(
+            allOf(
+                withId(R.id.textViewChangePrivacyTarget),
+                hasSibling(withText(R.string.convert_twitter_browser)),
+            )
+        )
+            .inRoot(isDialog())
+            .perform(click())
+
+        onView(isRoot()).perform(waitFor(500))
+
+        // Selection-only privacy picker: no embed/automatic targets, no section
+        // header for embeds and no management actions may be present.
+        onView(withText(containsString(Constants.FIXUPX_DOMAIN))).check(doesNotExist())
+        onView(withText(containsString(Constants.TWIIIT_DOMAIN))).check(doesNotExist())
+        onView(withText(R.string.proxy_section_embed)).check(doesNotExist())
+        // Empty-state Add custom button is always in the hierarchy but must stay hidden.
+        onView(withText(R.string.proxy_action_add_custom)).check(matches(not(isDisplayed())))
+        onView(withText(R.string.proxy_action_edit)).check(doesNotExist())
+
+        onView(allOf(withText(containsString(Constants.NITTER_NET_DOMAIN)), isDisplayed()))
+            .perform(click())
+
+        onView(isRoot()).perform(waitFor(500))
+
+        onView(withId(R.id.btnSave))
+            .inRoot(isDialog())
+            .perform(click())
+
+        onView(isRoot()).perform(waitFor(300))
+
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+        assertEquals("x_nitter_net", prefs.getString("browser_privacy_target_x", null))
     }
     
     @Test
@@ -299,15 +525,15 @@ class SettingsTest {
             val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
             prefs.edit()
                 .putBoolean("browser_convert_twitter", true)
-                .putBoolean("browser_convert_instagram", true)
-                .putBoolean("browser_convert_facebook", true)
+                .putBoolean("browser_convert_bluesky", true)
+                .putBoolean("browser_convert_reddit", true)
+                .putBoolean("browser_convert_pinterest", true)
                 .commit()
             
             delay(100)
         }
         
-        // Launch Settings activity  
-        ActivityScenario.launch(com.fixupxer.ui.SettingsActivity::class.java)
+        ActivityScenario.launch(SettingsActivity::class.java)
         
         // Open conversion defaults dialog
         onView(withId(R.id.buttonConversionDefaults))
@@ -319,12 +545,15 @@ class SettingsTest {
         // Toggle Twitter conversion off
         onView(withId(R.id.switchBrowserTwitter))
             .inRoot(isDialog())
-            .perform(click())
+            .perform(scrollTo(), click())
         
-        // Toggle Instagram conversion off
-        onView(withId(R.id.switchBrowserInstagram))
+        onView(withId(R.id.switchBrowserBluesky))
             .inRoot(isDialog())
-            .perform(click())
+            .perform(scrollTo(), click())
+
+        onView(withId(R.id.switchBrowserReddit))
+            .inRoot(isDialog())
+            .perform(scrollTo(), click())
         
         // Save
         onView(withId(R.id.btnSave))
@@ -342,30 +571,36 @@ class SettingsTest {
         // Verify toggles are still off
         onView(withId(R.id.switchBrowserTwitter))
             .inRoot(isDialog())
+            .perform(scrollTo())
             .check(matches(isNotChecked()))
         
-        onView(withId(R.id.switchBrowserInstagram))
+        onView(withId(R.id.switchBrowserBluesky))
             .inRoot(isDialog())
+            .perform(scrollTo())
+            .check(matches(isNotChecked()))
+
+        onView(withId(R.id.switchBrowserReddit))
+            .inRoot(isDialog())
+            .perform(scrollTo())
             .check(matches(isNotChecked()))
     }
     
     @Test
     fun testConversionDefaultsCancel() {
         runBlocking {
-            // Set initial state - all enabled
             val context = InstrumentationRegistry.getInstrumentation().targetContext
             val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
             prefs.edit()
                 .putBoolean("browser_convert_twitter", true)
-                .putBoolean("browser_convert_instagram", true)
-                .putBoolean("browser_convert_facebook", true)
+                .putBoolean("browser_convert_bluesky", true)
+                .putBoolean("browser_convert_reddit", true)
+                .putBoolean("browser_convert_pinterest", true)
                 .commit()
             
             delay(100)
         }
         
-        // Launch Settings activity
-        ActivityScenario.launch(com.fixupxer.ui.SettingsActivity::class.java)
+        ActivityScenario.launch(SettingsActivity::class.java)
         
         // Open conversion defaults dialog
         onView(withId(R.id.buttonConversionDefaults))
@@ -374,10 +609,9 @@ class SettingsTest {
         // Wait for dialog
         onView(isRoot()).perform(waitFor(1000))
         
-        // Toggle a switch
-        onView(withId(R.id.switchBrowserFacebook))
+        onView(withId(R.id.switchBrowserPinterest))
             .inRoot(isDialog())
-            .perform(click())
+            .perform(scrollTo(), click())
         
         // Cancel
         onView(withId(R.id.btnCancel))
@@ -392,9 +626,9 @@ class SettingsTest {
         onView(withId(R.id.buttonConversionDefaults))
             .perform(nestedScrollTo(), click())
         
-        // Verify change was not saved (should still be checked)
-        onView(withId(R.id.switchBrowserFacebook))
+        onView(withId(R.id.switchBrowserPinterest))
             .inRoot(isDialog())
+            .perform(scrollTo())
             .check(matches(isChecked()))
     }
     

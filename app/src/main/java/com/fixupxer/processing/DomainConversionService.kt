@@ -25,12 +25,10 @@ class DomainConversionService @Inject constructor(
     fun convert(
         url: String,
         enabled: Boolean,
-        instagramProxy: String,
-        tiktokProxy: String
+        selections: ProxySelections,
     ): String = urlProcessor.applyDomainConversions(
         url = url,
         convertToAlternative = enabled,
-        instagramProxy = instagramProxy,
-        tiktokProxy = tiktokProxy
+        selections = selections,
     )
 }

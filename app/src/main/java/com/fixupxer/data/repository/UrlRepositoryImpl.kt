@@ -25,14 +25,18 @@ import com.fixupxer.UrlProcessor
 import com.fixupxer.domain.model.ProcessedUrlResult
 import com.fixupxer.domain.repository.UrlRepository
 import com.fixupxer.domain.repository.HistoryRepository
+import com.fixupxer.processing.BrowserConversionPolicy
 import com.fixupxer.processing.LinkLeakAnalyzer
+import com.fixupxer.processing.PlatformDomainConverter
 import com.fixupxer.processing.ProcessingOptions
 import com.fixupxer.processing.ProcessingProfile
+import com.fixupxer.processing.ProxySelections
 import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.processing.UrlProcessingOrchestrator
+import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.Constants
-import com.fixupxer.utils.InstagramProxyStore
-import com.fixupxer.utils.TikTokProxyStore
+import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.utils.ProxyRoster
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -61,8 +65,22 @@ class UrlRepositoryImpl @Inject constructor(
         private const val PLATFORM_FACEBOOK = "Facebook"
         private const val PLATFORM_TIKTOK = "TikTok"
         private const val PLATFORM_BLUESKY = "Bluesky"
+        private const val PLATFORM_REDDIT = "Reddit"
+        private const val PLATFORM_YOUTUBE = "YouTube"
+        private const val PLATFORM_PINTEREST = "Pinterest"
+        private const val PLATFORM_THREADS = "Threads"
         private const val PLATFORM_OTHER = "Other"
     }
+
+    private fun buildProxySelections(profile: ProcessingProfile): ProxySelections =
+        when (profile) {
+            ProcessingProfile.BROWSER ->
+                ProxySelections(preferencesManager.resolveBrowserPrivacySelections())
+            ProcessingProfile.MAIN, ProcessingProfile.SHARE ->
+                ProxySelections(
+                    ProxyPlatform.entries.associateWith { preferencesManager.getSelectedProxyDomain(it) },
+                )
+        }
 
     private fun detectPlatform(url: String): String = when {
         urlProcessor.isInstagramUrl(url) -> PLATFORM_INSTAGRAM
@@ -70,6 +88,10 @@ class UrlRepositoryImpl @Inject constructor(
         urlProcessor.isFacebookUrl(url) -> PLATFORM_FACEBOOK
         urlProcessor.isTikTokUrl(url) -> PLATFORM_TIKTOK
         urlProcessor.isBlueskyUrl(url) -> PLATFORM_BLUESKY
+        urlProcessor.isRedditUrl(url) -> PLATFORM_REDDIT
+        urlProcessor.isYouTubeUrl(url) -> PLATFORM_YOUTUBE
+        urlProcessor.isPinterestUrl(url) -> PLATFORM_PINTEREST
+        urlProcessor.isThreadsUrl(url) -> PLATFORM_THREADS
         else -> PLATFORM_OTHER
     }
 
@@ -83,72 +105,59 @@ class UrlRepositoryImpl @Inject constructor(
         trackingRemoved: Boolean,
         customRuleApplied: Boolean = false
     ): String {
-        val originalHost = UrlNormalizer.extractAsciiHost(url)
-        val processedHost = UrlNormalizer.extractAsciiHost(processedUrl)
-        val knownProxies = InstagramProxyStore.allKnownProxies()
-        val urlHasProxy = knownProxies.any { UrlNormalizer.hostMatchesDomain(originalHost, it) }
-        val resultHasProxy = knownProxies.any { UrlNormalizer.hostMatchesDomain(processedHost, it) }
-        val isInstagramConversion =
-            (UrlNormalizer.hostMatchesDomain(originalHost, Constants.INSTAGRAM_DOMAIN) &&
-                !urlHasProxy && resultHasProxy) ||
-                (urlHasProxy &&
-                    UrlNormalizer.hostMatchesDomain(processedHost, Constants.INSTAGRAM_DOMAIN) &&
-                    !resultHasProxy) ||
-                (urlHasProxy && resultHasProxy && knownProxies.none { p ->
-                    UrlNormalizer.hostMatchesDomain(originalHost, p) &&
-                        UrlNormalizer.hostMatchesDomain(processedHost, p)
-                })
-
-        val isFacebookConversion =
-            ((UrlNormalizer.hostMatchesDomain(originalHost, Constants.FACEBOOK_DOMAIN) ||
-                UrlNormalizer.hostMatchesDomain(originalHost, Constants.FB_SHORT_DOMAIN)) &&
-                UrlNormalizer.hostMatchesDomain(processedHost, Constants.FACEBOOKEZ_DOMAIN)) ||
-                (UrlNormalizer.hostMatchesDomain(originalHost, Constants.FACEBOOKEZ_DOMAIN) &&
-                    UrlNormalizer.hostMatchesDomain(processedHost, Constants.FACEBOOK_DOMAIN) &&
-                    !UrlNormalizer.hostMatchesDomain(processedHost, Constants.FACEBOOKEZ_DOMAIN))
-
-        val toFixupx = UrlNormalizer.hostMatchesDomain(processedHost, Constants.FIXUPX_DOMAIN)
-        val isTwitterConversion =
-            ((UrlNormalizer.hostMatchesDomain(originalHost, Constants.TWITTER_DOMAIN) ||
-                UrlNormalizer.hostMatchesDomain(originalHost, Constants.X_DOMAIN)) &&
-                !UrlNormalizer.hostMatchesDomain(originalHost, Constants.FIXUPX_DOMAIN) && toFixupx) ||
-                (UrlNormalizer.hostMatchesDomain(originalHost, Constants.FIXUPX_DOMAIN) && !toFixupx &&
-                    (UrlNormalizer.hostMatchesDomain(processedHost, Constants.X_DOMAIN) ||
-                        UrlNormalizer.hostMatchesDomain(processedHost, Constants.TWITTER_DOMAIN))) ||
-                (UrlNormalizer.hostMatchesDomain(originalHost, Constants.FXTWITTER_DOMAIN) &&
-                    (toFixupx || UrlNormalizer.hostMatchesDomain(processedHost, Constants.X_DOMAIN))) ||
-                (UrlNormalizer.hostMatchesDomain(originalHost, Constants.VXTWITTER_DOMAIN) &&
-                    (toFixupx || UrlNormalizer.hostMatchesDomain(processedHost, Constants.X_DOMAIN)))
-
-        val tiktokProxies = TikTokProxyStore.allKnownProxies()
-        val urlHasTikTokProxy = tiktokProxies.any {
-            UrlNormalizer.hostMatchesDomain(originalHost, it)
+        val domainConverted = ProxyPlatform.entries.any { platform ->
+            isPlatformDomainConversion(url, processedUrl, platform)
         }
-        val resultHasTikTokProxy = tiktokProxies.any {
-            UrlNormalizer.hostMatchesDomain(processedHost, it)
-        }
-        val isTikTokConversion =
-            (UrlNormalizer.hostMatchesDomain(originalHost, Constants.TIKTOK_DOMAIN) &&
-                !urlHasTikTokProxy && resultHasTikTokProxy) ||
-                (urlHasTikTokProxy &&
-                    UrlNormalizer.hostMatchesDomain(processedHost, Constants.TIKTOK_DOMAIN) &&
-                    !resultHasTikTokProxy) ||
-                (urlHasTikTokProxy && resultHasTikTokProxy && tiktokProxies.none { p ->
-                    UrlNormalizer.hostMatchesDomain(originalHost, p) &&
-                        UrlNormalizer.hostMatchesDomain(processedHost, p)
-                })
-        val isBlueskyConversion =
-            (UrlNormalizer.hostMatchesDomain(originalHost, Constants.BLUESKY_DOMAIN) &&
-                UrlNormalizer.hostMatchesDomain(processedHost, Constants.FXBSKY_DOMAIN)) ||
-                (UrlNormalizer.hostMatchesDomain(originalHost, Constants.FXBSKY_DOMAIN) &&
-                    UrlNormalizer.hostMatchesDomain(processedHost, Constants.BLUESKY_DOMAIN))
-
         return when {
             customRuleApplied -> CONVERSION_CUSTOM_RULE_APPLIED
-            isInstagramConversion || isFacebookConversion || isTwitterConversion ||
-                isTikTokConversion || isBlueskyConversion -> CONVERSION_DOMAIN_CONVERTED
+            domainConverted -> CONVERSION_DOMAIN_CONVERTED
             trackingRemoved -> CONVERSION_TRACKING_REMOVED
             else -> CONVERSION_URL_CLEANED
+        }
+    }
+
+    private fun isPlatformDomainConversion(
+        originalUrl: String,
+        processedUrl: String,
+        platform: ProxyPlatform,
+    ): Boolean {
+        val originalHost = UrlNormalizer.extractAsciiHost(originalUrl)
+        val processedHost = UrlNormalizer.extractAsciiHost(processedUrl)
+        val originalIsSource = isPlatformSource(originalHost, platform)
+        val processedIsSource = isPlatformSource(processedHost, platform)
+        val originalIsProxy = isPlatformProxy(originalUrl, originalHost, platform)
+        val processedIsProxy = isPlatformProxy(processedUrl, processedHost, platform)
+        val fromSourceToProxy = originalIsSource && processedIsProxy && !originalIsProxy
+        val fromProxyToSource = originalIsProxy && processedIsSource && !processedIsProxy
+        val proxySwap = originalIsProxy && processedIsProxy && originalHost != processedHost
+        return fromSourceToProxy || fromProxyToSource || proxySwap
+    }
+
+    private fun isPlatformSource(host: String?, platform: ProxyPlatform): Boolean {
+        if (host == null) return false
+        if (platform == ProxyPlatform.REDDIT) {
+            return host == Constants.REDDIT_DOMAIN ||
+                host == "www.${Constants.REDDIT_DOMAIN}" ||
+                host == "old.${Constants.REDDIT_DOMAIN}" ||
+                host == "new.${Constants.REDDIT_DOMAIN}"
+        }
+        return AlternativeFrontendCatalog.sourceDomains(platform).any {
+            UrlNormalizer.hostMatchesDomain(host, it)
+        }
+    }
+
+    private fun isPlatformProxy(
+        url: String,
+        host: String?,
+        platform: ProxyPlatform,
+    ): Boolean {
+        if (host == null) return false
+        return ProxyRoster.allKnownDomains(platform).any { domain ->
+            if (platform == ProxyPlatform.X && domain == Constants.FARSIDE_DOMAIN) {
+                PlatformDomainConverter.isFarsideNitterUrl(url)
+            } else {
+                UrlNormalizer.hostMatchesDomain(host, domain)
+            }
         }
     }
 
@@ -224,9 +233,8 @@ class UrlRepositoryImpl @Inject constructor(
     override suspend fun processUrlForSharing(url: String): String = withContext(Dispatchers.IO) {
         // This legacy string-only path cannot return output findings, so it never caches.
         urlProcessor.processUrlForSharing(
-            url,
-            preferencesManager.getInstagramProxy(),
-            preferencesManager.getTikTokProxy(),
+            url = url,
+            selections = buildProxySelections(ProcessingProfile.SHARE),
             useCache = false
         )
     }
@@ -246,24 +254,46 @@ class UrlRepositoryImpl @Inject constructor(
         val isTwitter = urlProcessor.isTwitterUrl(url)
         val isTikTok = urlProcessor.isTikTokUrl(url)
         val isBluesky = urlProcessor.isBlueskyUrl(url)
+        val isReddit = urlProcessor.isRedditUrl(url)
+        val isYouTube = urlProcessor.isYouTubeUrl(url)
+        val isPinterest = urlProcessor.isPinterestUrl(url)
+        val isThreads = urlProcessor.isThreadsUrl(url)
         val cleanTracking = isInstagram ||
             forceCleanTracking ||
             preferencesManager.isCleanTrackingEnabled()
+        val browserPlatform = when {
+            isInstagram -> ProxyPlatform.INSTAGRAM
+            isFacebook -> ProxyPlatform.FACEBOOK
+            isTwitter -> ProxyPlatform.X
+            isTikTok -> ProxyPlatform.TIKTOK
+            isBluesky -> ProxyPlatform.BLUESKY
+            isReddit -> ProxyPlatform.REDDIT
+            isYouTube -> ProxyPlatform.YOUTUBE
+            isPinterest -> ProxyPlatform.PINTEREST
+            isThreads -> ProxyPlatform.THREADS
+            else -> null
+        }
         val convertDomains = when (profile) {
             ProcessingProfile.MAIN, ProcessingProfile.SHARE -> when {
-                isInstagram || isFacebook -> preferencesManager.isConvertInstagramEnabled()
+                isInstagram -> preferencesManager.isConvertInstagramEnabled()
+                isFacebook -> preferencesManager.isConvertFacebookEnabled()
                 isTikTok -> preferencesManager.isConvertTikTokEnabled()
                 isBluesky -> preferencesManager.isConvertBlueskyEnabled()
+                isReddit -> preferencesManager.isConvertRedditEnabled()
+                isYouTube -> preferencesManager.isConvertYoutubeEnabled()
+                isPinterest -> preferencesManager.isConvertPinterestEnabled()
+                isThreads -> preferencesManager.isConvertThreadsEnabled()
                 else -> preferencesManager.isConvertTwitterEnabled()
             }
-            ProcessingProfile.BROWSER -> when {
-                isInstagram -> preferencesManager.isBrowserConvertInstagramEnabled()
-                isFacebook -> preferencesManager.isBrowserConvertFacebookEnabled()
-                isTwitter -> preferencesManager.isBrowserConvertTwitterEnabled()
-                isTikTok -> preferencesManager.isBrowserConvertTikTokEnabled()
-                isBluesky -> preferencesManager.isBrowserConvertBlueskyEnabled()
-                else -> false
-            }
+            ProcessingProfile.BROWSER -> BrowserConversionPolicy.shouldConvert(
+                platform = browserPlatform,
+                toggleEnabled = browserPlatform?.let {
+                    preferencesManager.isBrowserPrivacyConversionEnabled(it)
+                } == true,
+                hasActiveTarget = browserPlatform?.let {
+                    preferencesManager.resolveBrowserPrivacyTarget(it)
+                } != null,
+            )
         }
         val result = orchestrator.process(
             rawInput = url,
@@ -271,8 +301,7 @@ class UrlRepositoryImpl @Inject constructor(
                 profile = profile,
                 cleanTracking = cleanTracking,
                 convertDomains = convertDomains,
-                instagramProxy = preferencesManager.getInstagramProxy(),
-                tiktokProxy = preferencesManager.getTikTokProxy(),
+                proxySelections = buildProxySelections(profile),
                 customRulesEnabled = preferencesManager.areCustomRulesEnabled(),
                 persistHistory = persistHistory,
                 useCache = inputFindings.isEmpty()
@@ -330,6 +359,14 @@ class UrlRepositoryImpl @Inject constructor(
 
     override fun isBlueskyUrl(url: String): Boolean = urlProcessor.isBlueskyUrl(url)
 
+    override fun isRedditUrl(url: String): Boolean = urlProcessor.isRedditUrl(url)
+
+    override fun isYouTubeUrl(url: String): Boolean = urlProcessor.isYouTubeUrl(url)
+
+    override fun isPinterestUrl(url: String): Boolean = urlProcessor.isPinterestUrl(url)
+
+    override fun isThreadsUrl(url: String): Boolean = urlProcessor.isThreadsUrl(url)
+
     override fun hasTrackingParameters(url: String): Boolean = urlProcessor.hasTrackingParameters(url)
     
     override fun isInstagramConversionEnabled(): Flow<Boolean> =
@@ -383,6 +420,61 @@ class UrlRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             if (preferencesManager.isConvertBlueskyEnabled() != enabled) {
                 preferencesManager.setConvertBlueskyEnabled(enabled)
+            }
+        }
+    }
+
+    override fun isFacebookConversionEnabled(): Flow<Boolean> =
+        preferencesManager.booleanFlow(PreferencesManager.KEY_CONVERT_FACEBOOK, default = true)
+
+    override suspend fun setFacebookConversionEnabled(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (preferencesManager.isConvertFacebookEnabled() != enabled) {
+                preferencesManager.setConvertFacebookEnabled(enabled)
+            }
+        }
+    }
+
+    override fun isRedditConversionEnabled(): Flow<Boolean> =
+        preferencesManager.booleanFlow(PreferencesManager.KEY_CONVERT_REDDIT, default = false)
+
+    override suspend fun setRedditConversionEnabled(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (preferencesManager.isConvertRedditEnabled() != enabled) {
+                preferencesManager.setConvertRedditEnabled(enabled)
+            }
+        }
+    }
+
+    override fun isYoutubeConversionEnabled(): Flow<Boolean> =
+        preferencesManager.booleanFlow(PreferencesManager.KEY_CONVERT_YOUTUBE, default = false)
+
+    override suspend fun setYoutubeConversionEnabled(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (preferencesManager.isConvertYoutubeEnabled() != enabled) {
+                preferencesManager.setConvertYoutubeEnabled(enabled)
+            }
+        }
+    }
+
+    override fun isPinterestConversionEnabled(): Flow<Boolean> =
+        preferencesManager.booleanFlow(PreferencesManager.KEY_CONVERT_PINTEREST, default = false)
+
+    override suspend fun setPinterestConversionEnabled(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (preferencesManager.isConvertPinterestEnabled() != enabled) {
+                preferencesManager.setConvertPinterestEnabled(enabled)
+            }
+        }
+    }
+
+    override fun isThreadsConversionEnabled(): Flow<Boolean> =
+        preferencesManager.booleanFlow(PreferencesManager.KEY_CONVERT_THREADS, default = false)
+
+    override suspend fun setThreadsConversionEnabled(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (preferencesManager.isConvertThreadsEnabled() != enabled) {
+                preferencesManager.setConvertThreadsEnabled(enabled)
             }
         }
     }

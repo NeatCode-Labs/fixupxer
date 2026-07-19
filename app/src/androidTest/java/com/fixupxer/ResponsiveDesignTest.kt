@@ -68,61 +68,76 @@ class ResponsiveDesignTest {
     
     @Test
     fun testLandscapeOrientation() {
-        val scenario = ActivityScenario.launch(MainActivity::class.java)
-        
-        // Set to landscape
-        scenario.onActivity { activity ->
-            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        }
-        
-        // Give more time for orientation change
-        Thread.sleep(2000)
-        
-        // Verify essential elements are accessible in landscape
-        // The URL input should always be visible
-        onView(withId(R.id.editTextUrl))
-            .check(matches(isDisplayed()))
-        
-        // Process button might need scrolling in landscape
-        try {
-            onView(withId(R.id.buttonProcess))
-                .perform(scrollTo())
+        // use{} + portrait restore: leaking a landscape activity forces a
+        // rotation config change during the NEXT test, killing its dialogs and
+        // window focus (seen as RootViewWithoutFocusException in SettingsTest).
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            // Set to landscape
+            scenario.onActivity { activity ->
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            }
+
+            // Give more time for orientation change
+            Thread.sleep(2000)
+
+            // Verify essential elements are accessible in landscape
+            // The URL input should always be visible
+            onView(withId(R.id.editTextUrl))
                 .check(matches(isDisplayed()))
-        } catch (e: Exception) {
-            // If scrollTo fails, just verify it exists
-            onView(withId(R.id.buttonProcess))
-                .check(matches(isEnabled()))
+
+            // Process button might need scrolling in landscape
+            try {
+                onView(withId(R.id.buttonProcess))
+                    .perform(scrollTo())
+                    .check(matches(isDisplayed()))
+            } catch (e: Exception) {
+                // If scrollTo fails, just verify it exists
+                onView(withId(R.id.buttonProcess))
+                    .check(matches(isEnabled()))
+            }
+
+            // Other buttons like copy/share may require scrolling in landscape mode
+            // which is acceptable UX behavior
+
+            restorePortrait(scenario)
         }
-        
-        // Other buttons like copy/share may require scrolling in landscape mode
-        // which is acceptable UX behavior
     }
     
     @Test
     fun testOrientationChange() {
-        val scenario = ActivityScenario.launch(MainActivity::class.java)
-        
-        // Start in portrait
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            // Start in portrait
+            scenario.onActivity { activity ->
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            }
+
+            Thread.sleep(500)
+
+            // Type some text
+            onView(withId(R.id.editTextUrl))
+                .perform(androidx.test.espresso.action.ViewActions.typeText("https://example.com"), closeSoftKeyboard())
+
+            // Switch to landscape
+            scenario.onActivity { activity ->
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            }
+
+            Thread.sleep(1000)
+
+            // Verify text is preserved after orientation change
+            onView(withId(R.id.editTextUrl))
+                .check(matches(withText("https://example.com")))
+
+            restorePortrait(scenario)
+        }
+    }
+
+    /** Rotate back to portrait before closing so no landscape state leaks. */
+    private fun restorePortrait(scenario: ActivityScenario<MainActivity>) {
         scenario.onActivity { activity ->
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
-        
-        Thread.sleep(500)
-        
-        // Type some text
-        onView(withId(R.id.editTextUrl))
-            .perform(androidx.test.espresso.action.ViewActions.typeText("https://example.com"))
-        
-        // Switch to landscape
-        scenario.onActivity { activity ->
-            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        }
-        
         Thread.sleep(1000)
-        
-        // Verify text is preserved after orientation change
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText("https://example.com")))
     }
     
     @Test

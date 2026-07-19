@@ -109,6 +109,64 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- App Layout Section -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/padding_medium"
+                app:cardCornerRadius="@dimen/flow_card_radius">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/padding_large">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/app_layout"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textColor="?attr/colorPrimary" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/padding_small"
+                        android:layout_marginBottom="@dimen/padding_medium"
+                        android:text="@string/app_layout_description"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/handToggleGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonHandRight"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/dominant_hand_right" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonHandLeft"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/dominant_hand_left" />
+
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- Custom URL rules -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -180,6 +238,22 @@
                         android:textColor="?attr/colorPrimary"
                         android:layout_marginBottom="@dimen/padding_small" />
 
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/browser_integration_description"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/padding_small"
+                        android:layout_marginBottom="@dimen/padding_small"
+                        android:text="@string/browser_integration_setup"
+                        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
                     <com.google.android.material.materialswitch.MaterialSwitch
                         android:id="@+id/switchBrowserMode"
                         android:layout_width="match_parent"
@@ -193,6 +267,26 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/padding_medium"
                         android:text="@string/how_to_use"
+                        style="@style/Widget.Material3.Button.TextButton" />
+
+                    <com.google.android.material.divider.MaterialDivider
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/padding_medium"
+                        android:layout_marginBottom="@dimen/padding_medium" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonConversionDefaults"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/conversion_defaults"
+                        style="@style/Widget.Material3.Button.TextButton" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonConfigurationStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/configuration_status"
                         style="@style/Widget.Material3.Button.TextButton" />
 
                 </LinearLayout>
@@ -240,19 +334,6 @@
                             android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
 
                     </RadioGroup>
-                    
-                    <com.google.android.material.divider.MaterialDivider
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/padding_medium"
-                        android:layout_marginBottom="@dimen/padding_medium" />
-                    
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/buttonConversionDefaults"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/conversion_defaults"
-                        style="@style/Widget.Material3.Button.TextButton" />
 
                 </LinearLayout>
 

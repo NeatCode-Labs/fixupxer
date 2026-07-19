@@ -28,6 +28,11 @@ internal class TestUrlRepository : UrlRepository {
     val twitterFlow = MutableStateFlow(true)
     val tikTokFlow = MutableStateFlow(true)
     val blueskyFlow = MutableStateFlow(true)
+    val facebookFlow = MutableStateFlow(true)
+    val redditFlow = MutableStateFlow(false)
+    val youtubeFlow = MutableStateFlow(false)
+    val pinterestFlow = MutableStateFlow(false)
+    val threadsFlow = MutableStateFlow(false)
     val trackingFlow = MutableStateFlow(true)
 
     var processResult: ProcessedUrlResult = ProcessedUrlResult("", false)
@@ -58,15 +63,33 @@ internal class TestUrlRepository : UrlRepository {
 
     override suspend fun cleanUrl(url: String): String = url
 
-    override fun isInstagramUrl(url: String): Boolean = false
+    var detectInstagram: Boolean = false
+    var detectTwitter: Boolean = false
+    var detectFacebook: Boolean = false
+    var detectTikTok: Boolean = false
+    var detectBluesky: Boolean = false
+    var detectReddit: Boolean = false
+    var detectYouTube: Boolean = false
+    var detectPinterest: Boolean = false
+    var detectThreads: Boolean = false
 
-    override fun isFacebookUrl(url: String): Boolean = false
+    override fun isInstagramUrl(url: String): Boolean = detectInstagram
 
-    override fun isTwitterUrl(url: String): Boolean = false
+    override fun isFacebookUrl(url: String): Boolean = detectFacebook
 
-    override fun isTikTokUrl(url: String): Boolean = false
+    override fun isTwitterUrl(url: String): Boolean = detectTwitter
 
-    override fun isBlueskyUrl(url: String): Boolean = false
+    override fun isTikTokUrl(url: String): Boolean = detectTikTok
+
+    override fun isBlueskyUrl(url: String): Boolean = detectBluesky
+
+    override fun isRedditUrl(url: String): Boolean = detectReddit
+
+    override fun isYouTubeUrl(url: String): Boolean = detectYouTube
+
+    override fun isPinterestUrl(url: String): Boolean = detectPinterest
+
+    override fun isThreadsUrl(url: String): Boolean = detectThreads
 
     override fun hasTrackingParameters(url: String): Boolean = false
 
@@ -98,6 +121,36 @@ internal class TestUrlRepository : UrlRepository {
 
     override suspend fun setBlueskyConversionEnabled(enabled: Boolean) {
         blueskyFlow.value = enabled
+    }
+
+    override fun isFacebookConversionEnabled() = facebookFlow
+
+    override suspend fun setFacebookConversionEnabled(enabled: Boolean) {
+        facebookFlow.value = enabled
+    }
+
+    override fun isRedditConversionEnabled() = redditFlow
+
+    override suspend fun setRedditConversionEnabled(enabled: Boolean) {
+        redditFlow.value = enabled
+    }
+
+    override fun isYoutubeConversionEnabled() = youtubeFlow
+
+    override suspend fun setYoutubeConversionEnabled(enabled: Boolean) {
+        youtubeFlow.value = enabled
+    }
+
+    override fun isPinterestConversionEnabled() = pinterestFlow
+
+    override suspend fun setPinterestConversionEnabled(enabled: Boolean) {
+        pinterestFlow.value = enabled
+    }
+
+    override fun isThreadsConversionEnabled() = threadsFlow
+
+    override suspend fun setThreadsConversionEnabled(enabled: Boolean) {
+        threadsFlow.value = enabled
     }
 
     override suspend fun processUrlForBrowser(url: String): ProcessedUrlResult =

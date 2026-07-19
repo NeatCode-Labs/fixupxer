@@ -19,10 +19,20 @@
 
 package com.fixupxer.utils
 
+import android.app.role.RoleManager
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import timber.log.Timber
+
+enum class DefaultBrowserStatus {
+    FIXUPXER,
+    OTHER_OR_UNSET,
+    UNKNOWN,
+}
 
 /**
  * Utility functions for browser mode functionality
@@ -60,6 +70,44 @@ object BrowserModeUtils {
         } catch (e: Exception) {
             Timber.e(e, "Failed to check browser alias state")
             false
+        }
+    }
+
+    /**
+     * Read-only check of whether FixupXer appears to be the default browser.
+     * Does not launch intents or use the network.
+     */
+    fun getDefaultBrowserStatus(context: Context): DefaultBrowserStatus {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val roleManager = context.getSystemService(RoleManager::class.java)
+                if (roleManager == null || !roleManager.isRoleAvailable(RoleManager.ROLE_BROWSER)) {
+                    DefaultBrowserStatus.UNKNOWN
+                } else if (roleManager.isRoleHeld(RoleManager.ROLE_BROWSER)) {
+                    DefaultBrowserStatus.FIXUPXER
+                } else {
+                    DefaultBrowserStatus.OTHER_OR_UNSET
+                }
+            } else {
+                val pm = context.packageManager
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.BROWSER_PROBE_URL))
+                    .addCategory(Intent.CATEGORY_BROWSABLE)
+                val resolveInfo = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                if (resolveInfo == null) {
+                    DefaultBrowserStatus.UNKNOWN
+                } else {
+                    val resolvedPackage = resolveInfo.activityInfo?.packageName
+                    when {
+                        resolvedPackage == context.packageName -> DefaultBrowserStatus.FIXUPXER
+                        resolvedPackage == "android" || resolveInfo.activityInfo == null ->
+                            DefaultBrowserStatus.UNKNOWN
+                        else -> DefaultBrowserStatus.OTHER_OR_UNSET
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to determine default browser status")
+            DefaultBrowserStatus.UNKNOWN
         }
     }
 } 

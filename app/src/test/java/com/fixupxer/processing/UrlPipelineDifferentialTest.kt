@@ -106,8 +106,7 @@ class UrlPipelineDifferentialTest {
                     profile = ProcessingProfile.MAIN,
                     cleanTracking = fixture.cleanTracking,
                     convertDomains = fixture.convertDomains,
-                    instagramProxy = "toinstagram.com",
-                    tiktokProxy = "tnktok.com",
+                    proxySelections = ProxySelections.DEFAULT,
                     customRulesEnabled = false
                 )
             )
@@ -140,8 +139,7 @@ class UrlPipelineDifferentialTest {
                 profile = ProcessingProfile.MAIN,
                 cleanTracking = false,
                 convertDomains = false,
-                instagramProxy = "toinstagram.com",
-                tiktokProxy = "tnktok.com",
+                proxySelections = ProxySelections.DEFAULT,
                 customRulesEnabled = true,
                 traceEnabled = true
             )

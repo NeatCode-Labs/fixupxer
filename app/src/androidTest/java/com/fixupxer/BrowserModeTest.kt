@@ -34,6 +34,8 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiSelector
 import com.fixupxer.ui.SettingsActivity
 import com.fixupxer.utils.BrowserModeUtils
+import com.fixupxer.utils.Constants
+import com.fixupxer.utils.ProxyPlatform
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -59,6 +61,14 @@ class BrowserModeTest {
         // Ensure browser mode is disabled at start
         preferencesManager.setBrowserModeEnabled(false)
         BrowserModeUtils.setBrowserAliasEnabled(context, false)
+
+        // Other tests (e.g. the Settings picker flow) persist explicit browser
+        // privacy targets; drop them so resolver tests see catalog defaults.
+        val editor = context.getSharedPreferences("FixupXerPrefs", android.content.Context.MODE_PRIVATE).edit()
+        ProxyPlatform.entries.forEach { platform ->
+            editor.remove("browser_privacy_target_${platform.name.lowercase()}")
+        }
+        editor.commit()
     }
     
     @After
@@ -151,7 +161,7 @@ class BrowserModeTest {
         
         // Select "Follow priority list" option
         onView(withId(R.id.radioFollowPriority))
-            .perform(click())
+            .perform(nestedScrollTo(), click())
         
         // Verify action priority section becomes visible
         onView(withId(R.id.actionPrioritySection))
@@ -163,7 +173,7 @@ class BrowserModeTest {
         
         // Select "Ask every time" option
         onView(withId(R.id.radioAskEveryTime))
-            .perform(click())
+            .perform(nestedScrollTo(), click())
         
         // Verify action priority section is hidden
         onView(withId(R.id.actionPrioritySection))
@@ -205,22 +215,54 @@ class BrowserModeTest {
     
     @Test
     fun testBrowserModeConversionDefaults() {
-        // Test browser-specific conversion settings
-        
-        // Given - set browser mode conversion preferences
         preferencesManager.setBrowserConvertTwitterEnabled(false)
-        preferencesManager.setBrowserConvertInstagramEnabled(true)
-        preferencesManager.setBrowserConvertFacebookEnabled(false)
+        preferencesManager.setBrowserConvertBlueskyEnabled(true)
+        preferencesManager.setBrowserConvertRedditEnabled(false)
+        preferencesManager.setBrowserConvertPinterestEnabled(true)
         
-        // Then - verify they are set correctly
         assertFalse(preferencesManager.isBrowserConvertTwitterEnabled())
-        assertTrue(preferencesManager.isBrowserConvertInstagramEnabled())
-        assertFalse(preferencesManager.isBrowserConvertFacebookEnabled())
+        assertTrue(preferencesManager.isBrowserConvertBlueskyEnabled())
+        assertFalse(preferencesManager.isBrowserConvertRedditEnabled())
+        assertTrue(preferencesManager.isBrowserConvertPinterestEnabled())
         
-        // Verify they are independent from main app settings
         preferencesManager.setConvertTwitterEnabled(true)
         assertTrue(preferencesManager.isConvertTwitterEnabled())
         assertFalse(preferencesManager.isBrowserConvertTwitterEnabled())
+    }
+
+    @Test
+    fun testBrowserPrivacyTargetResolverDefaultsToReaderFrontend() {
+        preferencesManager.setSelectedProxyDomain(ProxyPlatform.X, Constants.FIXUPX_DOMAIN)
+
+        val target = preferencesManager.resolveBrowserPrivacyTarget(ProxyPlatform.X)
+
+        assertNotNull(target)
+        assertEquals(Constants.XCANCEL_DOMAIN, target!!.domain)
+    }
+
+    @Test
+    fun testBrowserPrivacyTargetIgnoresMainEmbedProxySelection() {
+        preferencesManager.setSelectedProxyDomain(ProxyPlatform.X, Constants.FIXUPX_DOMAIN)
+        assertEquals(
+            Constants.XCANCEL_DOMAIN,
+            preferencesManager.resolveBrowserPrivacyTarget(ProxyPlatform.X)?.domain,
+        )
+
+        preferencesManager.setBrowserPrivacyTargetId(ProxyPlatform.X, "x_nitter_net")
+        assertEquals(
+            Constants.NITTER_NET_DOMAIN,
+            preferencesManager.resolveBrowserPrivacyTarget(ProxyPlatform.X)?.domain,
+        )
+
+        preferencesManager.setSelectedProxyDomain(ProxyPlatform.X, Constants.FIXUPX_DOMAIN)
+        assertEquals(
+            Constants.NITTER_NET_DOMAIN,
+            preferencesManager.resolveBrowserPrivacyTarget(ProxyPlatform.X)?.domain,
+        )
+        assertEquals(
+            Constants.FIXUPX_DOMAIN,
+            preferencesManager.getSelectedProxyDomain(ProxyPlatform.X),
+        )
     }
     
     @Test
@@ -244,6 +286,25 @@ class BrowserModeTest {
         assertTrue(preferencesManager.isBrowserConvertTwitterEnabled())
     }
     
+    /** The Settings screen scrolls inside a NestedScrollView, which plain scrollTo() cannot handle. */
+    private fun nestedScrollTo(): androidx.test.espresso.ViewAction {
+        return object : androidx.test.espresso.ViewAction {
+            override fun getConstraints(): org.hamcrest.Matcher<android.view.View> =
+                isAssignableFrom(android.view.View::class.java)
+            override fun getDescription() = "Scroll enclosing NestedScrollView to target view"
+            override fun perform(uiController: androidx.test.espresso.UiController, view: android.view.View) {
+                var y = view.top
+                var parent: android.view.ViewParent? = view.parent
+                while (parent is android.view.View && parent !is androidx.core.widget.NestedScrollView) {
+                    y += parent.top
+                    parent = (parent as android.view.View).parent
+                }
+                (parent as? androidx.core.widget.NestedScrollView)?.scrollTo(0, y)
+                uiController.loopMainThreadUntilIdle()
+            }
+        }
+    }
+
     @Test
     fun testActionPriorityWithNativeApp() {
         // Test action priority settings

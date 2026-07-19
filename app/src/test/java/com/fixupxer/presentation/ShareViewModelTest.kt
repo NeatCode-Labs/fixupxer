@@ -24,7 +24,9 @@ import com.fixupxer.R
 import com.fixupxer.UrlProcessor
 import com.fixupxer.domain.model.ProcessedUrlResult
 import com.fixupxer.domain.model.ResultStatus
+import com.fixupxer.presentation.share.ShareUiState
 import com.fixupxer.presentation.share.ShareViewModel
+import com.fixupxer.utils.ProxyPlatform
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -34,17 +36,18 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = Config.NONE, sdk = [33])
@@ -191,7 +194,7 @@ class ShareViewModelTest {
     @Test
     fun `reprocessAfterProxyChange reprocesses instagram share`() = runTest(testDispatcher) {
         whenever(urlProcessor.isInstagramUrl(any())).thenReturn(true)
-        val urlRepository = TestUrlRepository()
+        val urlRepository = TestUrlRepository().also { it.detectInstagram = true }
         val first = "https://toinstagram.com/p/abc/"
         val second = "https://kkinstagram.com/p/abc/"
         urlRepository.processHandler = { _, _, previous ->
@@ -223,6 +226,43 @@ class ShareViewModelTest {
     }
 
     @Test
+    fun `invalid shared text clears every platform flag`() = runTest(testDispatcher) {
+        whenever(urlProcessor.isRedditUrl(any())).thenReturn(true)
+        val urlRepository = TestUrlRepository().also { it.detectReddit = true }
+        val url = "https://reddit.com/r/test"
+        urlRepository.processResult = ProcessedUrlResult(url, true)
+        val viewModel = createViewModel(urlRepository)
+
+        viewModel.processSharedText(url)
+        advanceUntilIdle()
+        assertEquals(ProxyPlatform.REDDIT, viewModel.uiState.value.detectedPlatform)
+
+        viewModel.processSharedText("plain text")
+        advanceUntilIdle()
+
+        assertPlatformStateCleared(viewModel.uiState.value)
+    }
+
+    @Test
+    fun `explicit share resets clear every platform flag`() = runTest(testDispatcher) {
+        whenever(urlProcessor.isRedditUrl(any())).thenReturn(true)
+        val urlRepository = TestUrlRepository().also { it.detectReddit = true }
+        val url = "https://reddit.com/r/test"
+        urlRepository.processResult = ProcessedUrlResult(url, true)
+        val viewModel = createViewModel(urlRepository)
+
+        viewModel.processSharedText(url)
+        advanceUntilIdle()
+        viewModel.setNoSharedText()
+        assertPlatformStateCleared(viewModel.uiState.value)
+
+        viewModel.processSharedText(url)
+        advanceUntilIdle()
+        viewModel.clearState()
+        assertPlatformStateCleared(viewModel.uiState.value)
+    }
+
+    @Test
     fun `pref flow updates tiktok toggle state`() = runTest(testDispatcher) {
         val urlRepository = TestUrlRepository()
         val viewModel = createViewModel(urlRepository)
@@ -233,5 +273,18 @@ class ShareViewModelTest {
         advanceUntilIdle()
 
         assertEquals(false, viewModel.uiState.value.isTikTokConversionEnabled)
+    }
+
+    private fun assertPlatformStateCleared(state: ShareUiState) {
+        assertFalse(state.isInstagramUrl)
+        assertFalse(state.isFacebookUrl)
+        assertFalse(state.isTwitterUrl)
+        assertFalse(state.isTikTokUrl)
+        assertFalse(state.isBlueskyUrl)
+        assertFalse(state.isRedditUrl)
+        assertFalse(state.isYouTubeUrl)
+        assertFalse(state.isPinterestUrl)
+        assertFalse(state.isThreadsUrl)
+        assertNull(state.detectedPlatform)
     }
 }

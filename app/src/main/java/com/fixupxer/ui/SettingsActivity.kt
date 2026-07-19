@@ -44,8 +44,12 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import com.fixupxer.ui.helpers.BrowserConversionDefaultsHelper
+import com.fixupxer.ui.helpers.ConfigurationStatusDialogHelper
 import com.fixupxer.ui.helpers.SnackbarHelper
 import com.fixupxer.ui.helpers.UrlActionHelper
+import com.fixupxer.ui.dialogs.ProxyPickerDialogHelper
+import com.fixupxer.utils.ProxyPlatform
 
 /**
  * Settings activity for configuring browser mode and other app preferences
@@ -56,6 +60,7 @@ class SettingsActivity : BaseActivity() {
     private lateinit var binding: ActivitySettingsBinding
     private lateinit var actionPriorityAdapter: ActionPriorityAdapter
     private val customRulesViewModel: CustomRulesViewModel by viewModels()
+    private var conversionDefaultsDialog: androidx.appcompat.app.AlertDialog? = null
     
     @Inject
     lateinit var preferencesManager: PreferencesManager
@@ -99,6 +104,19 @@ class SettingsActivity : BaseActivity() {
             Timber.d("Theme mode changed to: $mode")
         }
 
+        binding.handToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val hand = when (checkedId) {
+                R.id.buttonHandLeft -> PreferencesManager.DOMINANT_HAND_LEFT
+                else -> PreferencesManager.DOMINANT_HAND_RIGHT
+            }
+            if (hand == preferencesManager.getDominantHand()) {
+                return@addOnButtonCheckedListener
+            }
+            preferencesManager.setDominantHand(hand)
+            Timber.d("Dominant hand changed to: $hand")
+        }
+
         // Browser mode switch
         binding.switchBrowserMode.setOnCheckedChangeListener { _, isChecked ->
             preferencesManager.setBrowserModeEnabled(isChecked)
@@ -131,6 +149,19 @@ class SettingsActivity : BaseActivity() {
             showConversionDefaultsDialog()
         }
 
+        binding.buttonConfigurationStatus.setOnClickListener {
+            lifecycleScope.launch {
+                val enabledRulesCount = customRulesViewModel.getRulesSnapshot().count { it.enabled }
+                ConfigurationStatusDialogHelper.show(
+                    context = this@SettingsActivity,
+                    layoutInflater = layoutInflater,
+                    preferencesManager = preferencesManager,
+                    customRulesEnabled = customRulesViewModel.enabled.value,
+                    enabledRulesCount = enabledRulesCount,
+                )
+            }
+        }
+
         binding.buttonCustomRules.setOnClickListener {
             startActivity(Intent(this, CustomRulesActivity::class.java))
         }
@@ -150,6 +181,12 @@ class SettingsActivity : BaseActivity() {
             else -> R.id.buttonThemeSystem
         }
         binding.themeToggleGroup.check(themeButtonId)
+
+        val handButtonId = when (preferencesManager.getDominantHand()) {
+            PreferencesManager.DOMINANT_HAND_LEFT -> R.id.buttonHandLeft
+            else -> R.id.buttonHandRight
+        }
+        binding.handToggleGroup.check(handButtonId)
 
         // Load browser mode state
         val browserModeEnabled = preferencesManager.isBrowserModeEnabled()
@@ -242,40 +279,87 @@ class SettingsActivity : BaseActivity() {
         binding.actionPrioritySection.visibility = if (isPriorityMode) View.VISIBLE else View.GONE
     }
     
+    override fun onDestroy() {
+        // Dismissing fires the dialog's dismiss listener, which rolls back any
+        // unsaved in-dialog roster restore before the activity goes away.
+        conversionDefaultsDialog?.dismiss()
+        conversionDefaultsDialog = null
+        super.onDestroy()
+    }
+
     private fun showConversionDefaultsDialog() {
         val dialogBinding = DialogConversionDefaultsBinding.inflate(layoutInflater)
-        
-        // Load current settings
-        dialogBinding.switchBrowserTwitter.isChecked = preferencesManager.isBrowserConvertTwitterEnabled()
-        dialogBinding.switchBrowserBluesky.isChecked = preferencesManager.isBrowserConvertBlueskyEnabled()
-        dialogBinding.switchBrowserInstagram.isChecked = preferencesManager.isBrowserConvertInstagramEnabled()
-        dialogBinding.switchBrowserFacebook.isChecked = preferencesManager.isBrowserConvertFacebookEnabled()
-        dialogBinding.switchBrowserTikTok.isChecked = preferencesManager.isBrowserConvertTikTokEnabled()
-        
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferencesManager)
+
+        lateinit var rows: List<BrowserConversionDefaultsHelper.BrowserPrivacyRow>
+        rows = BrowserConversionDefaultsHelper.populateContainer(
+            context = this,
+            layoutInflater = layoutInflater,
+            container = dialogBinding.browserPlatformTogglesContainer,
+            draft = draft,
+            onChangePrivacyTarget = { platform ->
+                openBrowserPrivacyTargetPicker(platform, draft, rows)
+            },
+        )
+
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.conversion_defaults_title)
             .setView(dialogBinding.root)
             .setCancelable(true)
             .create()
-        
-        // Set up button click listeners
+
+        var saved = false
         dialogBinding.btnSave.setOnClickListener {
-            // Save the settings
-            preferencesManager.setBrowserConvertTwitterEnabled(dialogBinding.switchBrowserTwitter.isChecked)
-            preferencesManager.setBrowserConvertBlueskyEnabled(dialogBinding.switchBrowserBluesky.isChecked)
-            preferencesManager.setBrowserConvertInstagramEnabled(dialogBinding.switchBrowserInstagram.isChecked)
-            preferencesManager.setBrowserConvertFacebookEnabled(dialogBinding.switchBrowserFacebook.isChecked)
-            preferencesManager.setBrowserConvertTikTokEnabled(dialogBinding.switchBrowserTikTok.isChecked)
-            
+            draft.apply(preferencesManager)
+            saved = true
             SnackbarHelper.showShort(binding.root, getString(R.string.browser_conversion_settings_saved))
-            Timber.d("Browser conversion settings saved - Twitter: ${dialogBinding.switchBrowserTwitter.isChecked}, Bluesky: ${dialogBinding.switchBrowserBluesky.isChecked}, Instagram: ${dialogBinding.switchBrowserInstagram.isChecked}, Facebook: ${dialogBinding.switchBrowserFacebook.isChecked}, TikTok: ${dialogBinding.switchBrowserTikTok.isChecked}")
+            Timber.d("Browser privacy conversion settings saved for ${rows.size} platforms")
             dialog.dismiss()
         }
-        
+
         dialogBinding.btnCancel.setOnClickListener {
             dialog.dismiss()
         }
-        
+
+        // Cancel, Back, outside touch and activity teardown all funnel through
+        // this single dismiss listener, so the rollback runs exactly once.
+        dialog.setOnDismissListener {
+            conversionDefaultsDialog = null
+            if (!saved) {
+                draft.discardRosterChanges()
+            }
+        }
+
+        conversionDefaultsDialog = dialog
         dialog.show()
     }
-} 
+
+    private fun openBrowserPrivacyTargetPicker(
+        platform: ProxyPlatform,
+        draft: BrowserConversionDefaultsHelper.DraftState,
+        rows: List<BrowserConversionDefaultsHelper.BrowserPrivacyRow>,
+    ) {
+        fun refreshOuterRows() {
+            BrowserConversionDefaultsHelper.refreshRows(
+                context = this,
+                rows = rows,
+                draft = draft,
+                onChangePrivacyTarget = { selectedPlatform ->
+                    openBrowserPrivacyTargetPicker(selectedPlatform, draft, rows)
+                },
+            )
+        }
+
+        ProxyPickerDialogHelper.showPrivacySelection(
+            context = this,
+            layoutInflater = layoutInflater,
+            platform = platform,
+            preferencesManager = preferencesManager,
+            selectedTargetId = draft.draftTargetIds[platform],
+            onRosterRestored = { refreshOuterRows() },
+        ) { target ->
+            draft.updateDraftTarget(platform, target)
+            refreshOuterRows()
+        }
+    }
+}

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-        Persistent IDs that are referenced from Kotlin code (R.id.xxx) but not
-        declared in any layout XML. Defining them here keeps the IDs available
-        regardless of which layouts include them at runtime.
+        Persistent IDs referenced from Kotlin code but not declared in static layout XML.
     -->
     <item name="instagramProxyInfoIcon" type="id" />
     <item name="tiktokProxyInfoIcon" type="id" />
+    <item name="switchBrowserTwitter" type="id" />
+    <item name="switchBrowserBluesky" type="id" />
+    <item name="switchBrowserReddit" type="id" />
+    <item name="switchBrowserPinterest" type="id" />
 </resources>

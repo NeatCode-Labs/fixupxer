@@ -246,8 +246,7 @@ class ChangeOperationTraceTest {
         profile = ProcessingProfile.MAIN,
         cleanTracking = cleanTracking,
         convertDomains = convertDomains,
-        instagramProxy = "toinstagram.com",
-        tiktokProxy = "tnktok.com",
+        proxySelections = ProxySelections.DEFAULT,
         customRulesEnabled = false
     )
 

@@ -40,6 +40,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import com.fixupxer.ui.helpers.PlatformToggleHelper
+import com.fixupxer.utils.ProxyPlatform
 import javax.inject.Inject
 
 /**
@@ -100,29 +102,76 @@ class MainViewModel @Inject constructor(
                 _uiState.update { it.copy(isBlueskyConversionEnabled = enabled) }
             }
         }
+        viewModelScope.launch {
+            urlRepository.isFacebookConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isFacebookConversionEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            urlRepository.isRedditConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isRedditConversionEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            urlRepository.isYoutubeConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isYoutubeConversionEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            urlRepository.isPinterestConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isPinterestConversionEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            urlRepository.isThreadsConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isThreadsConversionEnabled = enabled) }
+            }
+        }
     }
     
-    fun onUrlChanged(url: String) {
+    private fun detectPlatformFlags(url: String): PlatformDetection {
         val isInstagram = url.isNotEmpty() && urlRepository.isInstagramUrl(url)
         val isFacebook = url.isNotEmpty() && urlRepository.isFacebookUrl(url)
-        val showTwitterToggle = url.isNotEmpty() && urlRepository.isTwitterUrl(url)
+        val isTwitter = url.isNotEmpty() && urlRepository.isTwitterUrl(url)
         val isTikTok = url.isNotEmpty() && urlRepository.isTikTokUrl(url)
         val isBluesky = url.isNotEmpty() && urlRepository.isBlueskyUrl(url)
+        val isReddit = url.isNotEmpty() && urlRepository.isRedditUrl(url)
+        val isYouTube = url.isNotEmpty() && urlRepository.isYouTubeUrl(url)
+        val isPinterest = url.isNotEmpty() && urlRepository.isPinterestUrl(url)
+        val isThreads = url.isNotEmpty() && urlRepository.isThreadsUrl(url)
+        val detectedPlatform = PlatformToggleHelper.detectPlatform(url, urlRepository)
+        return PlatformDetection(
+            isInstagramUrl = isInstagram,
+            isFacebookUrl = isFacebook,
+            isTwitterUrl = isTwitter,
+            isTikTokUrl = isTikTok,
+            isBlueskyUrl = isBluesky,
+            isRedditUrl = isReddit,
+            isYouTubeUrl = isYouTube,
+            isPinterestUrl = isPinterest,
+            isThreadsUrl = isThreads,
+            detectedPlatform = detectedPlatform,
+        )
+    }
+
+    fun onUrlChanged(url: String) {
+        val detection = detectPlatformFlags(url)
 
         _uiState.update {
-            // A result belongs to the exact input snapshot that produced it
-            // (processedInputUrl). As soon as the text differs, the old result,
-            // status chip and action URL are stale — clear them so the buttons
-            // and the result card never act on the previous URL.
             val keepResult = it.processedInputUrl.isNotEmpty() &&
                 url.trim() == it.processedInputUrl
             it.copy(
                 inputUrl = url,
-                isInstagramUrl = isInstagram,
-                isFacebookUrl = isFacebook,
-                isTwitterUrl = showTwitterToggle,
-                isTikTokUrl = isTikTok,
-                isBlueskyUrl = isBluesky,
+                isInstagramUrl = detection.isInstagramUrl,
+                isFacebookUrl = detection.isFacebookUrl,
+                isTwitterUrl = detection.isTwitterUrl,
+                isTikTokUrl = detection.isTikTokUrl,
+                isBlueskyUrl = detection.isBlueskyUrl,
+                isRedditUrl = detection.isRedditUrl,
+                isYouTubeUrl = detection.isYouTubeUrl,
+                isPinterestUrl = detection.isPinterestUrl,
+                isThreadsUrl = detection.isThreadsUrl,
+                detectedPlatform = detection.detectedPlatform,
                 processedUrl = if (keepResult) it.processedUrl else "",
                 actionUrl = if (keepResult) it.actionUrl else "",
                 processedInputUrl = if (keepResult) it.processedInputUrl else "",
@@ -168,6 +217,69 @@ class MainViewModel @Inject constructor(
             _uiState.update { it.copy(isBlueskyConversionEnabled = enabled) }
             reprocessIfResultExists()
         }
+    }
+
+    fun onFacebookConversionToggled(enabled: Boolean) {
+        if (_uiState.value.isFacebookConversionEnabled == enabled) return
+        viewModelScope.launch {
+            urlRepository.setFacebookConversionEnabled(enabled)
+            _uiState.update { it.copy(isFacebookConversionEnabled = enabled) }
+            reprocessIfResultExists()
+        }
+    }
+
+    fun onRedditConversionToggled(enabled: Boolean) {
+        if (_uiState.value.isRedditConversionEnabled == enabled) return
+        viewModelScope.launch {
+            urlRepository.setRedditConversionEnabled(enabled)
+            _uiState.update { it.copy(isRedditConversionEnabled = enabled) }
+            reprocessIfResultExists()
+        }
+    }
+
+    fun onYoutubeConversionToggled(enabled: Boolean) {
+        if (_uiState.value.isYoutubeConversionEnabled == enabled) return
+        viewModelScope.launch {
+            urlRepository.setYoutubeConversionEnabled(enabled)
+            _uiState.update { it.copy(isYoutubeConversionEnabled = enabled) }
+            reprocessIfResultExists()
+        }
+    }
+
+    fun onPinterestConversionToggled(enabled: Boolean) {
+        if (_uiState.value.isPinterestConversionEnabled == enabled) return
+        viewModelScope.launch {
+            urlRepository.setPinterestConversionEnabled(enabled)
+            _uiState.update { it.copy(isPinterestConversionEnabled = enabled) }
+            reprocessIfResultExists()
+        }
+    }
+
+    fun onThreadsConversionToggled(enabled: Boolean) {
+        if (_uiState.value.isThreadsConversionEnabled == enabled) return
+        viewModelScope.launch {
+            urlRepository.setThreadsConversionEnabled(enabled)
+            _uiState.update { it.copy(isThreadsConversionEnabled = enabled) }
+            reprocessIfResultExists()
+        }
+    }
+
+    fun onPlatformConversionToggled(platform: ProxyPlatform, enabled: Boolean) {
+        when (platform) {
+            ProxyPlatform.INSTAGRAM -> onInstagramConversionToggled(enabled)
+            ProxyPlatform.X -> onTwitterConversionToggled(enabled)
+            ProxyPlatform.FACEBOOK -> onFacebookConversionToggled(enabled)
+            ProxyPlatform.TIKTOK -> onTikTokConversionToggled(enabled)
+            ProxyPlatform.BLUESKY -> onBlueskyConversionToggled(enabled)
+            ProxyPlatform.REDDIT -> onRedditConversionToggled(enabled)
+            ProxyPlatform.YOUTUBE -> onYoutubeConversionToggled(enabled)
+            ProxyPlatform.PINTEREST -> onPinterestConversionToggled(enabled)
+            ProxyPlatform.THREADS -> onThreadsConversionToggled(enabled)
+        }
+    }
+
+    fun notifyProxySelectionChanged() {
+        _uiState.update { it.copy(proxySelectionRevision = it.proxySelectionRevision + 1) }
     }
     
     fun processUrl() {
@@ -237,8 +349,7 @@ class MainViewModel @Inject constructor(
      * processed URL to the repository so history snapshots are not duplicated.
      */
     fun reprocessAfterProxyChange() {
-        val state = _uiState.value
-        if (!state.isInstagramUrl && !state.isTikTokUrl) return
+        if (_uiState.value.detectedPlatform == null) return
         reprocessIfResultExists()
     }
 
@@ -309,6 +420,11 @@ class MainViewModel @Inject constructor(
                 isTwitterUrl = false,
                 isTikTokUrl = false,
                 isBlueskyUrl = false,
+                isRedditUrl = false,
+                isYouTubeUrl = false,
+                isPinterestUrl = false,
+                isThreadsUrl = false,
+                detectedPlatform = null,
                 error = null
             )
         }
@@ -334,6 +450,11 @@ class MainViewModel @Inject constructor(
                 isTwitterUrl = false,
                 isTikTokUrl = false,
                 isBlueskyUrl = false,
+                isRedditUrl = false,
+                isYouTubeUrl = false,
+                isPinterestUrl = false,
+                isThreadsUrl = false,
+                detectedPlatform = null,
                 resultStatus = null,
                 leakFindings = emptyList(),
                 error = getApplication<Application>().getString(messageRes)
@@ -423,11 +544,35 @@ data class MainUiState(
     val isInstagramUrl: Boolean = false,
     val isFacebookUrl: Boolean = false,
     val isInstagramConversionEnabled: Boolean = true,
+    val isFacebookConversionEnabled: Boolean = true,
     val isTwitterUrl: Boolean = false,
     val isTwitterConversionEnabled: Boolean = true,
     val isTikTokUrl: Boolean = false,
     val isTikTokConversionEnabled: Boolean = true,
     val isBlueskyUrl: Boolean = false,
     val isBlueskyConversionEnabled: Boolean = true,
+    val isRedditUrl: Boolean = false,
+    val isRedditConversionEnabled: Boolean = false,
+    val isYouTubeUrl: Boolean = false,
+    val isYoutubeConversionEnabled: Boolean = false,
+    val isPinterestUrl: Boolean = false,
+    val isPinterestConversionEnabled: Boolean = false,
+    val isThreadsUrl: Boolean = false,
+    val isThreadsConversionEnabled: Boolean = false,
+    val detectedPlatform: ProxyPlatform? = null,
+    val proxySelectionRevision: Int = 0,
     val error: String? = null
+)
+
+private data class PlatformDetection(
+    val isInstagramUrl: Boolean,
+    val isFacebookUrl: Boolean,
+    val isTwitterUrl: Boolean,
+    val isTikTokUrl: Boolean,
+    val isBlueskyUrl: Boolean,
+    val isRedditUrl: Boolean,
+    val isYouTubeUrl: Boolean,
+    val isPinterestUrl: Boolean,
+    val isThreadsUrl: Boolean,
+    val detectedPlatform: ProxyPlatform?,
 ) 

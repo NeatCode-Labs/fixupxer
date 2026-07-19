@@ -19,6 +19,7 @@
 
 package com.fixupxer.processing
 
+import com.fixupxer.cleaners.CleanerRegistry
 import com.fixupxer.cleaners.impl.FacebookCleaner
 import com.fixupxer.cleaners.impl.InstagramCleaner
 import com.fixupxer.cleaners.impl.TikTokCleaner
@@ -63,6 +64,19 @@ class HostBoundaryRegressionTest {
         assertFalse(TwitterCleaner.matches("https://examplex.com/post"))
         assertTrue(TwitterCleaner.matches("https://x.com/post"))
         assertTrue(TwitterCleaner.matches("https://www.x.com/post"))
+    }
+
+    @Test
+    fun `farside matches twitter only on nitter path`() {
+        val registry = CleanerRegistry().apply { register(TwitterCleaner) }
+
+        assertFalse(TwitterCleaner.matches("https://farside.link/other/page?s=20"))
+        assertTrue(TwitterCleaner.matches("https://farside.link/nitter/user/status/1?s=20"))
+        assertFalse(registry.getCleanersFor("https://farside.link/other/page?s=20").contains(TwitterCleaner))
+        assertEquals(
+            "https://farside.link/other/page?s=20",
+            TwitterCleaner.clean("https://farside.link/other/page?s=20"),
+        )
     }
 
     @Test

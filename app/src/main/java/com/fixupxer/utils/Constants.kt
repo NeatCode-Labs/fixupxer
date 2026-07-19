@@ -40,6 +40,7 @@ object Constants {
     val BUG_REPORT_EMAIL = "$BUG_REPORT_EMAIL_LOCAL_PART@$BUG_REPORT_EMAIL_DOMAIN"
     const val BROWSER_MODE_GUIDE_URL =
         "$GITHUB_REPOSITORY_URL/blob/main/docs/BROWSER_MODE_GUIDE.md"
+    const val BROWSER_PROBE_URL = "http://example.com"
     const val CUSTOM_RULES_GUIDE_URL =
         "$GITHUB_REPOSITORY_URL/blob/main/docs/CUSTOM_URL_RULES_GUIDE.md"
     
@@ -127,6 +128,47 @@ object Constants {
     const val ALIEXPRESS_DOMAIN = "aliexpress.com"
     const val BILIBILI_DOMAIN = "bilibili.com"
     const val GEORIOT_TARGET_DOMAIN = "target.georiot.com"
+
+    // X / Twitter alternative frontends (catalog v2)
+    const val XCANCEL_DOMAIN = "xcancel.com"
+    const val NITTER_NET_DOMAIN = "nitter.net"
+    const val TWITTERVIEWER_DOMAIN = "twitterviewer.net"
+    const val NITTER_CATSARCH_DOMAIN = "nitter.catsarch.com"
+    const val NITTER_TIEKOETTER_DOMAIN = "nitter.tiekoetter.com"
+    const val NITTER_KAREEM_DOMAIN = "nitter.kareem.one"
+    const val NITTER_PRIVACYREDIRECT_DOMAIN = "nitter.privacyredirect.com"
+    const val NUKU_TRABUN_DOMAIN = "nuku.trabun.org"
+    const val TWIIIT_DOMAIN = "twiiit.com"
+    const val FARSIDE_DOMAIN = "farside.link"
+
+    // Instagram Kittygram experimental readers (catalog v2)
+    const val KITTYGRAM_DOMAIN = "kittygr.am"
+    const val KG_MEOWING_DOMAIN = "kg.meowing.de"
+    const val KITTYGRAM_KAREEM_DOMAIN = "kittygram.kareem.one"
+
+    // Bluesky alternative frontends (catalog v2)
+    const val SKYLIB_COFFEE_DOMAIN = "skylib.coffee"
+    const val SKYLIB_CATSARCH_DOMAIN = "skylib.catsarch.com"
+
+    // Reddit alternative frontends (catalog v2)
+    const val REDLIB_CATSARCH_DOMAIN = "redlib.catsarch.com"
+    const val REDLIB_PRIVACYREDIRECT_DOMAIN = "redlib.privacyredirect.com"
+    const val REDLIB_NADEKO_DOMAIN = "redlib.nadeko.net"
+    const val REDLIB_PRIVADENCY_DOMAIN = "redlib.privadency.com"
+    const val SAFEREDDIT_DOMAIN = "safereddit.com"
+    const val RED_ARTEMISLENA_DOMAIN = "red.artemislena.eu"
+    const val REDLIB_R4FO_DOMAIN = "redlib.r4fo.com"
+    const val REDLIB_COW_DOMAIN = "redlib.cow.rip"
+
+    // YouTube alternative frontends (catalog v2)
+    const val INV_NADEKO_DOMAIN = "inv.nadeko.net"
+    const val INVIDIOUS_NERDVPN_DOMAIN = "invidious.nerdvpn.de"
+
+    // Pinterest alternative frontends (catalog v2)
+    const val PINTEREST_BUNK_DOMAIN = "pinterest.bunk.im"
+
+    // Threads alternative frontends (catalog v2)
+    const val SHOELACE_MINT_DOMAIN = "shoelace.mint.lgbt"
     const val LINKSYNERGY_CLICK_DOMAIN = "click.linksynergy.com"
     
     // URL path identifiers

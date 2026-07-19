@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stable app attr for status-row attention tint (maps to theme colorError). -->
+    <attr name="configuration_status_attention_tint" format="color|reference" />
+</resources>

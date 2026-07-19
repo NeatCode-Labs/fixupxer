@@ -16,8 +16,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fixupxer.PreferencesManager
 import com.fixupxer.domain.repository.UrlRepository
+import com.fixupxer.processing.BrowserConversionPolicy
 import com.fixupxer.processing.ProcessingOptions
 import com.fixupxer.processing.ProcessingProfile
+import com.fixupxer.processing.ProxySelections
+import com.fixupxer.utils.ProxyPlatform
 import com.fixupxer.processing.UrlProcessingOrchestrator
 import com.fixupxer.rules.CustomRuleRepository
 import com.fixupxer.rules.CustomUrlRule
@@ -47,6 +50,8 @@ class CustomRulesViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), repository.isEnabled())
 
     fun setEnabled(enabled: Boolean) = repository.setEnabled(enabled)
+
+    suspend fun getRulesSnapshot(): List<CustomUrlRule> = repository.getRules()
 
     suspend fun setRuleEnabled(rule: CustomUrlRule, enabled: Boolean) =
         repository.save(rule.copy(enabled = enabled))
@@ -139,8 +144,14 @@ class RuleEditorViewModel @Inject constructor(
             profile = profile,
             cleanTracking = urlRepository.isInstagramUrl(url) || preferences.isCleanTrackingEnabled(),
             convertDomains = shouldConvertDomains(url, profile),
-            instagramProxy = preferences.getInstagramProxy(),
-            tiktokProxy = preferences.getTikTokProxy(),
+            proxySelections = when (profile) {
+                ProcessingProfile.BROWSER ->
+                    ProxySelections(preferences.resolveBrowserPrivacySelections())
+                ProcessingProfile.MAIN, ProcessingProfile.SHARE ->
+                    ProxySelections(
+                        ProxyPlatform.entries.associateWith { preferences.getSelectedProxyDomain(it) },
+                    )
+            },
             customRulesEnabled = customRulesEnabled,
             persistHistory = false,
             useCache = false,
@@ -155,21 +166,43 @@ class RuleEditorViewModel @Inject constructor(
         val isTwitter = urlRepository.isTwitterUrl(url)
         val isTikTok = urlRepository.isTikTokUrl(url)
         val isBluesky = urlRepository.isBlueskyUrl(url)
+        val isReddit = urlRepository.isRedditUrl(url)
+        val isYouTube = urlRepository.isYouTubeUrl(url)
+        val isPinterest = urlRepository.isPinterestUrl(url)
+        val isThreads = urlRepository.isThreadsUrl(url)
+        val browserPlatform = when {
+            isInstagram -> ProxyPlatform.INSTAGRAM
+            isFacebook -> ProxyPlatform.FACEBOOK
+            isTwitter -> ProxyPlatform.X
+            isTikTok -> ProxyPlatform.TIKTOK
+            isBluesky -> ProxyPlatform.BLUESKY
+            isReddit -> ProxyPlatform.REDDIT
+            isYouTube -> ProxyPlatform.YOUTUBE
+            isPinterest -> ProxyPlatform.PINTEREST
+            isThreads -> ProxyPlatform.THREADS
+            else -> null
+        }
         return when (profile) {
             ProcessingProfile.MAIN, ProcessingProfile.SHARE -> when {
-                isInstagram || isFacebook -> preferences.isConvertInstagramEnabled()
+                isInstagram -> preferences.isConvertInstagramEnabled()
+                isFacebook -> preferences.isConvertFacebookEnabled()
                 isTikTok -> preferences.isConvertTikTokEnabled()
                 isBluesky -> preferences.isConvertBlueskyEnabled()
+                isReddit -> preferences.isConvertRedditEnabled()
+                isYouTube -> preferences.isConvertYoutubeEnabled()
+                isPinterest -> preferences.isConvertPinterestEnabled()
+                isThreads -> preferences.isConvertThreadsEnabled()
                 else -> preferences.isConvertTwitterEnabled()
             }
-            ProcessingProfile.BROWSER -> when {
-                isInstagram -> preferences.isBrowserConvertInstagramEnabled()
-                isFacebook -> preferences.isBrowserConvertFacebookEnabled()
-                isTwitter -> preferences.isBrowserConvertTwitterEnabled()
-                isTikTok -> preferences.isBrowserConvertTikTokEnabled()
-                isBluesky -> preferences.isBrowserConvertBlueskyEnabled()
-                else -> false
-            }
+            ProcessingProfile.BROWSER -> BrowserConversionPolicy.shouldConvert(
+                platform = browserPlatform,
+                toggleEnabled = browserPlatform?.let {
+                    preferences.isBrowserPrivacyConversionEnabled(it)
+                } == true,
+                hasActiveTarget = browserPlatform?.let {
+                    preferences.resolveBrowserPrivacyTarget(it)
+                } != null,
+            )
         }
     }
 }

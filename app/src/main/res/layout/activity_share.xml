@@ -183,8 +183,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
 
-                <!-- Action row: Open / Copy / Share — Share rightmost so it is
-                     easiest to reach for right-handed users -->
+                <!-- Action row: runtime helper applies the selected physical hand layout. -->
                 <LinearLayout
                     android:id="@+id/actionRow"
                     android:layout_width="0dp"
@@ -284,21 +283,32 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- History pinned bottom-right, anchored ABOVE the footer so it never
-             covers the link and never scrolls away. Flat (no elevation) so OEM
-             shadow rendering can't draw a gray box. SmartFooterHelper re-anchors
-             it to the parent bottom when the footer joins the scroll content. -->
-        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        <!-- Secondary icon-only History action. DominantHandLayoutHelper anchors
+             it to the requested physical edge; SmartFooterHelper controls only
+             its vertical footer relationship. Zeroed insets keep the tonal
+             background at the full 48dp touch target; gravity=center plus
+             symmetric padding keep the icon optically centered. -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonHistory"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/margin_medium"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="@dimen/min_touch_target_size"
+            android:layout_height="@dimen/min_touch_target_size"
             android:layout_marginBottom="@dimen/margin_small"
+            android:contentDescription="@string/history_title"
+            android:gravity="center"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="@dimen/icon_button_padding"
             android:stateListAnimator="@null"
-            android:text="@string/history"
             app:elevation="0dp"
             app:icon="@drawable/ic_history"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
             app:layout_constraintBottom_toTopOf="@id/footerTextView"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintLeft_toLeftOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

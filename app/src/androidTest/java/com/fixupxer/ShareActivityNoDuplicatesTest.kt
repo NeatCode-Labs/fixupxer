@@ -54,7 +54,7 @@ class ShareActivityNoDuplicatesTest {
         Thread.sleep(3000)
         
         // Then verify the activity launched and shows the Twitter toggle
-        onView(withId(R.id.switchTwitter))
+        onView(withId(R.id.switchPlatform))
             .check(matches(isDisplayed()))
         
         // Verify the processed URL is displayed (not checking exact text due to toggle state)
@@ -78,7 +78,7 @@ class ShareActivityNoDuplicatesTest {
         // Toggle the switch multiple times to verify no crashes or errors
         for (i in 1..3) {
             // Toggle the Twitter conversion switch
-            onView(withId(R.id.switchTwitter))
+            onView(withId(R.id.switchPlatform))
                 .check(matches(isDisplayed()))
                 .perform(click())
             
@@ -105,11 +105,11 @@ class ShareActivityNoDuplicatesTest {
         Thread.sleep(3000)
         
         // Verify Instagram toggle is shown
-        onView(withId(R.id.switchInstagram))
+        onView(withId(R.id.switchPlatform))
             .check(matches(isDisplayed()))
         
         // Toggle it once
-        onView(withId(R.id.switchInstagram))
+        onView(withId(R.id.switchPlatform))
             .perform(click())
         
         Thread.sleep(2000)
@@ -133,7 +133,7 @@ class ShareActivityNoDuplicatesTest {
         Thread.sleep(3000)
         
         // Verify the Facebook toggle is shown (shares the convert_instagram pref)
-        onView(withId(R.id.switchFacebook))
+        onView(withId(R.id.switchPlatform))
             .check(matches(isDisplayed()))
         
         // Verify the processed URL is displayed

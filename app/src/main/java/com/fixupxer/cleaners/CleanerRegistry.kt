@@ -23,6 +23,8 @@ package com.fixupxer.cleaners
 import com.fixupxer.cleaners.impl.CatalogParameterCleaner
 import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.utils.ProxyRoster
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -120,6 +122,9 @@ class CleanerRegistry @Inject constructor() {
                 addDomainAssociation(Constants.YOUTUBE_SHORT_DOMAIN, cleaner)
                 addDomainAssociation("m.${Constants.YOUTUBE_DOMAIN}", cleaner)
                 addDomainAssociation("youtube-nocookie.com", cleaner)
+                ProxyRoster.allKnownDomains(ProxyPlatform.YOUTUBE).forEach {
+                    addDomainAssociation(it, cleaner)
+                }
             }
             "facebook" -> {
                 addDomainAssociation(Constants.FACEBOOK_DOMAIN, cleaner)
@@ -132,29 +137,28 @@ class CleanerRegistry @Inject constructor() {
                 addDomainAssociation("old.${Constants.REDDIT_DOMAIN}", cleaner)
                 addDomainAssociation("new.${Constants.REDDIT_DOMAIN}", cleaner)
                 addDomainAssociation(Constants.REDDIT_SHORT_DOMAIN, cleaner)
+                ProxyRoster.allKnownDomains(ProxyPlatform.REDDIT).forEach {
+                    addDomainAssociation(it, cleaner)
+                }
             }
             "twitter" -> {
                 addDomainAssociation(Constants.TWITTER_DOMAIN, cleaner)
                 addDomainAssociation(Constants.X_DOMAIN, cleaner)
-                Constants.TWITTER_PROXY_DOMAINS.forEach { addDomainAssociation(it, cleaner) }
+                ProxyRoster.allKnownDomains(ProxyPlatform.X).forEach { addDomainAssociation(it, cleaner) }
             }
             "instagram" -> {
-                // Fixed proxies only — custom proxies are added at runtime, and
-                // getCleanersFor() falls back to a full matches() scan for domains
-                // not present in this map, so they are still handled correctly.
                 addDomainAssociation(Constants.INSTAGRAM_DOMAIN, cleaner)
-                Constants.INSTAGRAM_PROXY_DOMAINS.forEach { addDomainAssociation(it, cleaner) }
-                Constants.INSTAGRAM_LEGACY_PROXIES.forEach { addDomainAssociation(it, cleaner) }
+                ProxyRoster.allKnownDomains(ProxyPlatform.INSTAGRAM).forEach {
+                    addDomainAssociation(it, cleaner)
+                }
             }
             "tiktok" -> {
-                // Fixed proxies only — custom proxies are added at runtime, and
-                // getCleanersFor() falls back to a full matches() scan for domains
-                // not present in this map, so they are still handled correctly.
                 addDomainAssociation(Constants.TIKTOK_DOMAIN, cleaner)
                 addDomainAssociation("vm.${Constants.TIKTOK_DOMAIN}", cleaner)
                 addDomainAssociation("m.${Constants.TIKTOK_DOMAIN}", cleaner)
-                Constants.TIKTOK_PROXY_DOMAINS.forEach { addDomainAssociation(it, cleaner) }
-                Constants.TIKTOK_LEGACY_PROXIES.forEach { addDomainAssociation(it, cleaner) }
+                ProxyRoster.allKnownDomains(ProxyPlatform.TIKTOK).forEach {
+                    addDomainAssociation(it, cleaner)
+                }
             }
             "linkedin" -> {
                 addDomainAssociation(Constants.LINKEDIN_DOMAIN, cleaner)

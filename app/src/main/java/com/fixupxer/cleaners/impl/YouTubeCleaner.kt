@@ -23,6 +23,9 @@ package com.fixupxer.cleaners.impl
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
 import com.fixupxer.processing.UrlNormalizer
+import com.fixupxer.utils.Constants
+import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.utils.ProxyRoster
 
 /**
  * Cleaner for YouTube URLs - comprehensive tracking removal
@@ -127,7 +130,12 @@ object YouTubeCleaner : UrlCleaner {
     override fun matches(url: String): Boolean {
         return UrlNormalizer.urlMatchesAnyDomain(
             url,
-            listOf("youtube.com", "youtu.be", "youtube-nocookie.com")
+            listOf(
+                Constants.YOUTUBE_DOMAIN,
+                Constants.YOUTUBE_SHORT_DOMAIN,
+                "youtube-nocookie.com",
+                "m.${Constants.YOUTUBE_DOMAIN}",
+            ) + ProxyRoster.allKnownDomains(ProxyPlatform.YOUTUBE),
         )
     }
     

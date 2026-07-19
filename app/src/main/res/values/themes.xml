@@ -25,6 +25,7 @@
         <item name="colorOnError">@color/md_theme_onError</item>
         <item name="colorErrorContainer">@color/md_theme_errorContainer</item>
         <item name="colorOnErrorContainer">@color/md_theme_onErrorContainer</item>
+        <item name="configuration_status_attention_tint">?attr/colorError</item>
 
         <!-- Background & surface -->
         <item name="android:colorBackground">@color/md_theme_background</item>

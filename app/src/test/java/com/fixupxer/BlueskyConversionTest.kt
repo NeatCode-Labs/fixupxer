@@ -76,16 +76,19 @@ class BlueskyConversionTest {
     }
 
     @Test
-    fun `does not convert profiles or other Bluesky subdomains`() {
+    fun `profiles are detected but fxbsky embed converts posts only`() {
         val profile = "https://bsky.app/profile/alice.bsky.social"
         val proxyProfile = "https://fxbsky.app/profile/alice.bsky.social"
         val redirect = "https://go.bsky.app/redirect?u=https%3A%2F%2Fexample.com"
 
-        assertFalse(urlProcessor.isBlueskyUrl(profile))
-        assertFalse(urlProcessor.isBlueskyUrl(proxyProfile))
+        assertTrue(urlProcessor.isBlueskyUrl(profile))
+        assertTrue(urlProcessor.isBlueskyUrl(proxyProfile))
         assertFalse(urlProcessor.isBlueskyUrl(redirect))
         assertEquals(profile, urlProcessor.applyDomainConversions(profile, convertToAlternative = true))
-        assertEquals(proxyProfile, urlProcessor.applyDomainConversions(proxyProfile, convertToAlternative = false))
+        assertEquals(
+            "https://bsky.app/profile/alice.bsky.social",
+            urlProcessor.applyDomainConversions(proxyProfile, convertToAlternative = false),
+        )
         assertEquals("https://example.com", cleanerService.deepClean(redirect))
     }
 
@@ -132,11 +135,14 @@ class BlueskyConversionTest {
         whenever(processor.isBlueskyUrl(POST_URL)).thenReturn(true)
         whenever(preferences.isCleanTrackingEnabled()).thenReturn(false)
         whenever(preferences.isConvertBlueskyEnabled()).thenReturn(mainEnabled)
-        whenever(preferences.isBrowserConvertBlueskyEnabled()).thenReturn(browserEnabled)
+        whenever(preferences.isBrowserPrivacyConversionEnabled(com.fixupxer.utils.ProxyPlatform.BLUESKY))
+            .thenReturn(browserEnabled)
         whenever(preferences.getInstagramProxy()).thenReturn("toinstagram.com")
         whenever(preferences.getTikTokProxy()).thenReturn("tnktok.com")
         whenever(preferences.areCustomRulesEnabled()).thenReturn(false)
         whenever(preferences.isHistoryEnabled()).thenReturn(false)
+        whenever(preferences.resolveBrowserPrivacySelections()).thenReturn(emptyMap())
+        whenever(preferences.resolveBrowserPrivacyTarget(any())).thenReturn(null)
         runBlocking {
             whenever(orchestrator.process(any(), any(), isNull())).thenReturn(
                 PipelineProcessingResult(

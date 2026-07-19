@@ -163,6 +163,12 @@ At least one context must be selected. For example, a rule that should affect
 automatically opened links but not manually pasted URLs can be limited to
 **Browser mode**.
 
+The Browser context does not intercept links by itself. It applies only after
+Android routes an eligible HTTP(S) link to FixupXer through Browser mode.
+Verified App Links and in-app browsers can bypass that route. See the
+[Browser Mode Guide](BROWSER_MODE_GUIDE.md) for setup and Android routing
+controls.
+
 Common choices:
 
 - Select all three contexts when the same cleanup should always happen.
@@ -464,6 +470,12 @@ matches and URLs that must remain unchanged.
 Test Lab runs the complete FixupXer pipeline with the unsaved draft inserted
 among your saved rules. The final result can therefore include built-in
 cleaning and changes from other enabled custom rules.
+
+The **Browser** Test Lab profile simulates Browser pipeline processing with the
+current Browser privacy Reader settings; it does not assign the Android default
+browser role, test verified App Link dispatch, or run the configured
+after-clean handoff. A successful preview proves rule/pipeline behavior, not
+that Android will route a real link through FixupXer.
 
 ### Teach from example
 

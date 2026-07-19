@@ -40,6 +40,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
+import com.fixupxer.ui.helpers.PlatformToggleHelper
+import com.fixupxer.utils.ProxyPlatform
 import javax.inject.Inject
 import timber.log.Timber
 
@@ -86,7 +88,71 @@ class ShareViewModel @Inject constructor(
                 _uiState.update { it.copy(isBlueskyConversionEnabled = enabled) }
             }
         }
+        viewModelScope.launch {
+            urlRepository.isFacebookConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isFacebookConversionEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            urlRepository.isRedditConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isRedditConversionEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            urlRepository.isYoutubeConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isYoutubeConversionEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            urlRepository.isPinterestConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isPinterestConversionEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            urlRepository.isThreadsConversionEnabled().collect { enabled ->
+                _uiState.update { it.copy(isThreadsConversionEnabled = enabled) }
+            }
+        }
     }
+
+    private fun detectPlatformFlags(url: String): SharePlatformDetection {
+        val isInstagram = urlProcessor.isInstagramUrl(url)
+        val isTwitter = urlProcessor.isTwitterUrl(url)
+        val isFacebook = urlProcessor.isFacebookUrl(url)
+        val isTikTok = urlProcessor.isTikTokUrl(url)
+        val isBluesky = urlProcessor.isBlueskyUrl(url)
+        val isReddit = urlProcessor.isRedditUrl(url)
+        val isYouTube = urlProcessor.isYouTubeUrl(url)
+        val isPinterest = urlProcessor.isPinterestUrl(url)
+        val isThreads = urlProcessor.isThreadsUrl(url)
+        val detectedPlatform = PlatformToggleHelper.detectPlatform(url, urlRepository)
+        return SharePlatformDetection(
+            isInstagramUrl = isInstagram,
+            isFacebookUrl = isFacebook,
+            isTwitterUrl = isTwitter,
+            isTikTokUrl = isTikTok,
+            isBlueskyUrl = isBluesky,
+            isRedditUrl = isReddit,
+            isYouTubeUrl = isYouTube,
+            isPinterestUrl = isPinterest,
+            isThreadsUrl = isThreads,
+            detectedPlatform = detectedPlatform,
+        )
+    }
+
+    private fun clearPlatformFlags(state: ShareUiState): ShareUiState =
+        state.copy(
+            isInstagramUrl = false,
+            isFacebookUrl = false,
+            isTwitterUrl = false,
+            isTikTokUrl = false,
+            isBlueskyUrl = false,
+            isRedditUrl = false,
+            isYouTubeUrl = false,
+            isPinterestUrl = false,
+            isThreadsUrl = false,
+            detectedPlatform = null,
+        )
     
     fun processSharedText(sharedText: String) {
         // Guard against re-delivery of the same intent (e.g. the activity being
@@ -101,7 +167,7 @@ class ShareViewModel @Inject constructor(
         }
         
         _uiState.update {
-            it.copy(
+            clearPlatformFlags(it).copy(
                 sharedText = sharedText,
                 isLoading = true,
                 leakFindings = emptyList(),
@@ -121,17 +187,12 @@ class ShareViewModel @Inject constructor(
                             InputValidator.InvalidReason.OTHER -> R.string.error_invalid_input
                         }
                         _uiState.update {
-                            it.copy(
+                            clearPlatformFlags(it).copy(
                                 processedUrl = "",
                                 actionUrl = "",
                                 resultStatus = null,
                                 leakFindings = emptyList(),
                                 isLoading = false,
-                                isInstagramUrl = false,
-                                isFacebookUrl = false,
-                                isTwitterUrl = false,
-                                isTikTokUrl = false,
-                                isBlueskyUrl = false,
                                 error = getApplication<Application>().getString(messageRes)
                             )
                         }
@@ -144,18 +205,13 @@ class ShareViewModel @Inject constructor(
                     val url = UrlProcessor.findFirstValidUrl(validated)
 
                     if (url == null) {
-                        _uiState.update { 
-                            it.copy(
+                        _uiState.update {
+                            clearPlatformFlags(it).copy(
                                 processedUrl = "",
                                 actionUrl = "",
                                 resultStatus = null,
                                 leakFindings = emptyList(),
                                 isLoading = false,
-                                isInstagramUrl = false,
-                                isFacebookUrl = false,
-                                isTwitterUrl = false,
-                                isTikTokUrl = false,
-                                isBlueskyUrl = false,
                                 error = getApplication<Application>().getString(R.string.error_no_url_found_in_shared_text)
                             )
                         }
@@ -163,20 +219,20 @@ class ShareViewModel @Inject constructor(
                     }
                     
                     // Check URL type to determine toggle visibility
-                    val isInstagram = urlProcessor.isInstagramUrl(url)
-                    val isTwitter = urlProcessor.isTwitterUrl(url)
-                    // Facebook URLs use the Instagram toggle
-                    val isFacebook = urlProcessor.isFacebookUrl(url)
-                    val isTikTok = urlProcessor.isTikTokUrl(url)
-                    val isBluesky = urlProcessor.isBlueskyUrl(url)
+                    val detection = detectPlatformFlags(url)
                     
                     _uiState.update { 
                         it.copy(
-                            isInstagramUrl = isInstagram,
-                            isFacebookUrl = isFacebook,
-                            isTwitterUrl = isTwitter,
-                            isTikTokUrl = isTikTok,
-                            isBlueskyUrl = isBluesky
+                            isInstagramUrl = detection.isInstagramUrl,
+                            isFacebookUrl = detection.isFacebookUrl,
+                            isTwitterUrl = detection.isTwitterUrl,
+                            isTikTokUrl = detection.isTikTokUrl,
+                            isBlueskyUrl = detection.isBlueskyUrl,
+                            isRedditUrl = detection.isRedditUrl,
+                            isYouTubeUrl = detection.isYouTubeUrl,
+                            isPinterestUrl = detection.isPinterestUrl,
+                            isThreadsUrl = detection.isThreadsUrl,
+                            detectedPlatform = detection.detectedPlatform,
                         ) 
                     }
                     
@@ -185,8 +241,8 @@ class ShareViewModel @Inject constructor(
                 }
             } catch (e: TimeoutCancellationException) {
                 Timber.w("Share processing timed out")
-                _uiState.update { 
-                    it.copy(
+                _uiState.update {
+                    clearPlatformFlags(it).copy(
                         processedUrl = "",
                         actionUrl = "",
                         resultStatus = null,
@@ -197,8 +253,8 @@ class ShareViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error processing shared text")
-                _uiState.update { 
-                    it.copy(
+                _uiState.update {
+                    clearPlatformFlags(it).copy(
                         processedUrl = "",
                         actionUrl = "",
                         resultStatus = null,
@@ -224,8 +280,8 @@ class ShareViewModel @Inject constructor(
             applyProcessResult(url, result)
         } catch (e: Exception) {
             Timber.e(e, "Error processing URL")
-            _uiState.update { 
-                it.copy(
+            _uiState.update {
+                clearPlatformFlags(it).copy(
                     processedUrl = "",
                     actionUrl = "",
                     resultStatus = null,
@@ -276,6 +332,74 @@ class ShareViewModel @Inject constructor(
             }
         }
     }
+
+    fun onFacebookConversionToggled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (_uiState.value.isFacebookConversionEnabled != enabled) {
+                urlRepository.setFacebookConversionEnabled(enabled)
+                _uiState.update { it.copy(isFacebookConversionEnabled = enabled) }
+                requestReprocess()
+            }
+        }
+    }
+
+    fun onRedditConversionToggled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (_uiState.value.isRedditConversionEnabled != enabled) {
+                urlRepository.setRedditConversionEnabled(enabled)
+                _uiState.update { it.copy(isRedditConversionEnabled = enabled) }
+                requestReprocess()
+            }
+        }
+    }
+
+    fun onYoutubeConversionToggled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (_uiState.value.isYoutubeConversionEnabled != enabled) {
+                urlRepository.setYoutubeConversionEnabled(enabled)
+                _uiState.update { it.copy(isYoutubeConversionEnabled = enabled) }
+                requestReprocess()
+            }
+        }
+    }
+
+    fun onPinterestConversionToggled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (_uiState.value.isPinterestConversionEnabled != enabled) {
+                urlRepository.setPinterestConversionEnabled(enabled)
+                _uiState.update { it.copy(isPinterestConversionEnabled = enabled) }
+                requestReprocess()
+            }
+        }
+    }
+
+    fun onThreadsConversionToggled(enabled: Boolean) {
+        viewModelScope.launch {
+            if (_uiState.value.isThreadsConversionEnabled != enabled) {
+                urlRepository.setThreadsConversionEnabled(enabled)
+                _uiState.update { it.copy(isThreadsConversionEnabled = enabled) }
+                requestReprocess()
+            }
+        }
+    }
+
+    fun onPlatformConversionToggled(platform: ProxyPlatform, enabled: Boolean) {
+        when (platform) {
+            ProxyPlatform.INSTAGRAM -> onInstagramConversionToggled(enabled)
+            ProxyPlatform.X -> onTwitterConversionToggled(enabled)
+            ProxyPlatform.FACEBOOK -> onFacebookConversionToggled(enabled)
+            ProxyPlatform.TIKTOK -> onTikTokConversionToggled(enabled)
+            ProxyPlatform.BLUESKY -> onBlueskyConversionToggled(enabled)
+            ProxyPlatform.REDDIT -> onRedditConversionToggled(enabled)
+            ProxyPlatform.YOUTUBE -> onYoutubeConversionToggled(enabled)
+            ProxyPlatform.PINTEREST -> onPinterestConversionToggled(enabled)
+            ProxyPlatform.THREADS -> onThreadsConversionToggled(enabled)
+        }
+    }
+
+    fun notifyProxySelectionChanged() {
+        _uiState.update { it.copy(proxySelectionRevision = it.proxySelectionRevision + 1) }
+    }
     
     /**
      * Re-process the shared URL after the user picks a different Instagram or
@@ -284,8 +408,7 @@ class ShareViewModel @Inject constructor(
      * `MainViewModel.reprocessAfterProxyChange()`.
      */
     fun reprocessAfterProxyChange() {
-        val state = _uiState.value
-        if (!state.isInstagramUrl && !state.isTikTokUrl) return
+        if (_uiState.value.detectedPlatform == null) return
         requestReprocess()
     }
     
@@ -330,7 +453,7 @@ class ShareViewModel @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Error reprocessing URL locally")
             _uiState.update {
-                it.copy(
+                clearPlatformFlags(it).copy(
                     processedUrl = "",
                     actionUrl = "",
                     resultStatus = null,
@@ -348,37 +471,27 @@ class ShareViewModel @Inject constructor(
      */
     fun setNoSharedText() {
         _uiState.update {
-            it.copy(
+            clearPlatformFlags(it).copy(
                 sharedText = "",
                 processedUrl = "",
                 actionUrl = "",
                 resultStatus = null,
                 leakFindings = emptyList(),
                 isLoading = false,
-                isInstagramUrl = false,
-                isFacebookUrl = false,
-                isTwitterUrl = false,
-                isTikTokUrl = false,
-                isBlueskyUrl = false,
                 error = getApplication<Application>().getString(R.string.error_no_url_found_in_shared_text)
             )
         }
     }
     
     fun clearState() {
-        _uiState.update { 
-            it.copy(
+        _uiState.update {
+            clearPlatformFlags(it).copy(
                 sharedText = "",
                 processedUrl = "",
                 actionUrl = "",
                 resultStatus = null,
                 leakFindings = emptyList(),
                 isLoading = false,
-                isInstagramUrl = false,
-                isFacebookUrl = false,
-                isTwitterUrl = false,
-                isTikTokUrl = false,
-                isBlueskyUrl = false,
                 error = null
             )
         }
@@ -462,11 +575,35 @@ data class ShareUiState(
     val isInstagramUrl: Boolean = false,
     val isFacebookUrl: Boolean = false,
     val isInstagramConversionEnabled: Boolean = true,
+    val isFacebookConversionEnabled: Boolean = true,
     val isTwitterUrl: Boolean = false,
     val isTwitterConversionEnabled: Boolean = true,
     val isTikTokUrl: Boolean = false,
     val isTikTokConversionEnabled: Boolean = true,
     val isBlueskyUrl: Boolean = false,
     val isBlueskyConversionEnabled: Boolean = true,
+    val isRedditUrl: Boolean = false,
+    val isRedditConversionEnabled: Boolean = false,
+    val isYouTubeUrl: Boolean = false,
+    val isYoutubeConversionEnabled: Boolean = false,
+    val isPinterestUrl: Boolean = false,
+    val isPinterestConversionEnabled: Boolean = false,
+    val isThreadsUrl: Boolean = false,
+    val isThreadsConversionEnabled: Boolean = false,
+    val detectedPlatform: ProxyPlatform? = null,
+    val proxySelectionRevision: Int = 0,
     val error: String? = null
+)
+
+private data class SharePlatformDetection(
+    val isInstagramUrl: Boolean,
+    val isFacebookUrl: Boolean,
+    val isTwitterUrl: Boolean,
+    val isTikTokUrl: Boolean,
+    val isBlueskyUrl: Boolean,
+    val isRedditUrl: Boolean,
+    val isYouTubeUrl: Boolean,
+    val isPinterestUrl: Boolean,
+    val isThreadsUrl: Boolean,
+    val detectedPlatform: ProxyPlatform?,
 ) 

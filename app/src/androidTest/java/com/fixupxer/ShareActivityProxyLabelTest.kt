@@ -90,9 +90,9 @@ class ShareActivityProxyLabelTest {
         ActivityScenario.launch<ShareActivity>(shareIntent("https://instagram.com/p/abc")).use {
             onView(isRoot()).perform(waitFor(1500))
 
-            onView(withId(R.id.instagramProxyRow))
+            onView(withId(R.id.platformProxyRow))
                 .check(matches(isDisplayed()))
-            onView(withId(R.id.textViewInstagramProxyStatus))
+            onView(withId(R.id.textViewPlatformProxyStatus))
                 .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
         }
     }
@@ -106,7 +106,7 @@ class ShareActivityProxyLabelTest {
         ActivityScenario.launch<ShareActivity>(shareIntent("https://instagram.com/p/abc")).use {
             onView(isRoot()).perform(waitFor(1500))
 
-            onView(withId(R.id.textViewInstagramProxyStatus))
+            onView(withId(R.id.textViewPlatformProxyStatus))
                 .check(matches(withText("Active: ${Constants.ADAMLIKES_DOMAIN}.")))
         }
     }
@@ -127,7 +127,7 @@ class ShareActivityProxyLabelTest {
             onView(isRoot()).perform(waitFor(1500))
 
             // Default proxy should be toinstagram.com (v1.4.8)
-            onView(withId(R.id.textViewInstagramProxyStatus))
+            onView(withId(R.id.textViewPlatformProxyStatus))
                 .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
 
             // Click the "Change." link -> dialog must appear (in-activity, not Settings)
@@ -141,9 +141,9 @@ class ShareActivityProxyLabelTest {
             onView(isRoot()).perform(waitFor(500))
 
             // Share screen must still be alive and the label must reflect the new proxy
-            onView(withId(R.id.textViewInstagramProxyStatus))
+            onView(withId(R.id.textViewPlatformProxyStatus))
                 .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
-            onView(withId(R.id.instagramToggleContainer))
+            onView(withId(R.id.platformToggleContainer))
                 .check(matches(isDisplayed()))
         }
     }

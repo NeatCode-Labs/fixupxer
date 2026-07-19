@@ -21,8 +21,10 @@ package com.fixupxer
 
 import android.content.Context
 import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.click
@@ -30,7 +32,9 @@ import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.matcher.RootMatchers.isDialog
+import androidx.test.espresso.matcher.ViewMatchers.hasDescendant
 import androidx.test.espresso.matcher.ViewMatchers.hasSibling
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.isRoot
@@ -39,6 +43,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.ProxyRoster
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.After
@@ -47,8 +52,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Instrumentation tests for the custom Instagram proxy add/delete flow in the
- * proxy chooser dialog (v1.6.0), exercised through MainActivity.
+ * Instrumentation tests for the custom proxy add/delete flow in the shared
+ * proxy picker bottom sheet, exercised through MainActivity.
  */
 @RunWith(AndroidJUnit4::class)
 class CustomProxyDialogTest {
@@ -71,10 +76,11 @@ class CustomProxyDialogTest {
             .edit()
             .remove("instagram_proxy_domain")
             .remove("custom_instagram_proxies")
+            .remove("disabled_builtin_proxies_instagram")
             .putBoolean("convert_instagram", true)
             .commit()
-        // Keep the process-wide store in sync with the wiped prefs.
         com.fixupxer.utils.InstagramProxyStore.reset()
+        ProxyRoster.reset()
     }
 
     private fun waitFor(millis: Long): ViewAction = object : ViewAction {
@@ -85,7 +91,7 @@ class CustomProxyDialogTest {
         }
     }
 
-    private fun openProxyDialog() {
+    private fun openProxyPicker() {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText("https://instagram.com/p/abc"), closeSoftKeyboard())
         onView(isRoot()).perform(waitFor(1500))
@@ -93,22 +99,34 @@ class CustomProxyDialogTest {
         onView(isRoot()).perform(waitFor(500))
     }
 
+    /** Scroll the picker list until the row whose item view matches is laid out. */
+    private fun scrollPickerTo(itemMatcher: org.hamcrest.Matcher<View>) {
+        onView(withId(R.id.recyclerViewProxyPicker))
+            .perform(RecyclerViewActions.scrollTo<RecyclerView.ViewHolder>(itemMatcher))
+        onView(isRoot()).perform(waitFor(300))
+    }
+
+    private fun openAddCustomDialog() {
+        // The hidden empty-state button shares the same text; require a
+        // displayed match and scroll the action row into view first.
+        scrollPickerTo(withText(R.string.proxy_action_add_custom))
+        onView(allOf(withText(R.string.proxy_action_add_custom), isDisplayed()))
+            .perform(click())
+        onView(isRoot()).perform(waitFor(500))
+    }
+
     @Test
-    fun dialogListsAllFixedProxiesAndAddRow() {
+    fun dialogListsFixedProxiesAndAddAction() {
         ActivityScenario.launch(MainActivity::class.java).use {
-            openProxyDialog()
+            openProxyPicker()
 
             for (domain in Constants.INSTAGRAM_PROXY_DOMAINS) {
-                onView(withText(containsString(domain)))
-                    .inRoot(isDialog())
+                scrollPickerTo(hasDescendant(withText(containsString(domain))))
+                onView(allOf(withText(containsString(domain)), isDisplayed()))
                     .check(matches(isDisplayed()))
             }
-            // kkinstagram.com must be present again as an active backup proxy
-            onView(withText(containsString(Constants.KKINSTAGRAM_DOMAIN)))
-                .inRoot(isDialog())
-                .check(matches(isDisplayed()))
-            onView(withText("Add custom proxy…"))
-                .inRoot(isDialog())
+            scrollPickerTo(withText(R.string.proxy_action_add_custom))
+            onView(allOf(withText(R.string.proxy_action_add_custom), isDisplayed()))
                 .check(matches(isDisplayed()))
         }
     }
@@ -116,14 +134,14 @@ class CustomProxyDialogTest {
     @Test
     fun selectingKkinstagramUpdatesLabel() {
         ActivityScenario.launch(MainActivity::class.java).use {
-            openProxyDialog()
+            openProxyPicker()
 
-            onView(withText(containsString(Constants.KKINSTAGRAM_DOMAIN)))
-                .inRoot(isDialog())
+            scrollPickerTo(hasDescendant(withText(containsString(Constants.KKINSTAGRAM_DOMAIN))))
+            onView(allOf(withText(containsString(Constants.KKINSTAGRAM_DOMAIN)), isDisplayed()))
                 .perform(click())
             onView(isRoot()).perform(waitFor(500))
 
-            onView(withId(R.id.textViewInstagramProxyStatus))
+            onView(withId(R.id.textViewPlatformProxyStatus))
                 .check(matches(withText("Active: ${Constants.KKINSTAGRAM_DOMAIN}.")))
         }
     }
@@ -131,12 +149,8 @@ class CustomProxyDialogTest {
     @Test
     fun invalidCustomProxyShowsInlineErrorAndKeepsDialogOpen() {
         ActivityScenario.launch(MainActivity::class.java).use {
-            openProxyDialog()
-
-            onView(withText("Add custom proxy…"))
-                .inRoot(isDialog())
-                .perform(click())
-            onView(isRoot()).perform(waitFor(500))
+            openProxyPicker()
+            openAddCustomDialog()
 
             onView(withId(R.id.customProxyInput))
                 .inRoot(isDialog())
@@ -146,11 +160,10 @@ class CustomProxyDialogTest {
                 .perform(click())
             onView(isRoot()).perform(waitFor(500))
 
-            // Input dialog stays open and shows the inline error
             onView(withId(R.id.customProxyInput))
                 .inRoot(isDialog())
                 .check(matches(isDisplayed()))
-            onView(withText("Enter a valid domain, e.g. myproxy.com"))
+            onView(withText(R.string.proxy_error_invalid_domain))
                 .inRoot(isDialog())
                 .check(matches(isDisplayed()))
         }
@@ -159,12 +172,8 @@ class CustomProxyDialogTest {
     @Test
     fun reservedDomainIsRejected() {
         ActivityScenario.launch(MainActivity::class.java).use {
-            openProxyDialog()
-
-            onView(withText("Add custom proxy…"))
-                .inRoot(isDialog())
-                .perform(click())
-            onView(isRoot()).perform(waitFor(500))
+            openProxyPicker()
+            openAddCustomDialog()
 
             onView(withId(R.id.customProxyInput))
                 .inRoot(isDialog())
@@ -174,7 +183,7 @@ class CustomProxyDialogTest {
                 .perform(click())
             onView(isRoot()).perform(waitFor(500))
 
-            onView(withText("This domain is already known to the app and can't be used as a custom proxy"))
+            onView(withText(R.string.proxy_error_reserved_domain))
                 .inRoot(isDialog())
                 .check(matches(isDisplayed()))
         }
@@ -183,15 +192,9 @@ class CustomProxyDialogTest {
     @Test
     fun addSelectAndDeleteCustomProxyFlow() {
         ActivityScenario.launch(MainActivity::class.java).use {
-            openProxyDialog()
+            openProxyPicker()
+            openAddCustomDialog()
 
-            // --- Add ---
-            onView(withText("Add custom proxy…"))
-                .inRoot(isDialog())
-                .perform(click())
-            onView(isRoot()).perform(waitFor(500))
-
-            // Input accepts a full URL and normalizes it to the bare domain
             onView(withId(R.id.customProxyInput))
                 .inRoot(isDialog())
                 .perform(replaceText("https://www.$customProxy/some/path"), closeSoftKeyboard())
@@ -200,47 +203,41 @@ class CustomProxyDialogTest {
                 .perform(click())
             onView(isRoot()).perform(waitFor(500))
 
-            // New row is listed in the chooser
-            onView(withText(containsString(customProxy)))
-                .inRoot(isDialog())
+            scrollPickerTo(hasDescendant(withText(containsString(customProxy))))
+            onView(allOf(withText(containsString(customProxy)), isDisplayed()))
                 .check(matches(isDisplayed()))
 
-            // --- Select ---
-            onView(withText(containsString(customProxy)))
-                .inRoot(isDialog())
+            onView(allOf(withText(containsString(customProxy)), isDisplayed()))
                 .perform(click())
             onView(isRoot()).perform(waitFor(500))
 
-            onView(withId(R.id.textViewInstagramProxyStatus))
+            onView(withId(R.id.textViewPlatformProxyStatus))
                 .check(matches(withText("Active: $customProxy.")))
 
-            // --- Delete ---
             onView(withId(R.id.textViewChangeProxy)).perform(click())
             onView(isRoot()).perform(waitFor(500))
+            scrollPickerTo(withText(R.string.proxy_action_edit))
+            onView(allOf(withText(R.string.proxy_action_edit), isDisplayed())).perform(click())
+            onView(isRoot()).perform(waitFor(300))
 
+            scrollPickerTo(hasDescendant(withText(containsString(customProxy))))
             onView(
                 allOf(
                     withId(R.id.proxyDeleteButton),
-                    hasSibling(withText(containsString(customProxy)))
+                    hasSibling(hasDescendant(withText(containsString(customProxy)))),
+                    isDisplayed(),
                 )
-            )
-                .inRoot(isDialog())
-                .perform(click())
+            ).perform(click())
             onView(isRoot()).perform(waitFor(500))
 
-            // Row is gone from the chooser
             onView(withText(containsString(customProxy)))
-                .inRoot(isDialog())
                 .check(doesNotExist())
 
-            // Close the dialog; selection fell back to the default proxy
-            onView(withText("Cancel"))
-                .inRoot(isDialog())
-                .perform(click())
+            pressBack()
             onView(isRoot()).perform(waitFor(500))
 
-            onView(withId(R.id.textViewInstagramProxyStatus))
-                .check(matches(withText("Active: ${Constants.INSTAGRAM_DEFAULT_PROXY}.")))
+            onView(withId(R.id.textViewPlatformProxyStatus))
+                .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
         }
     }
 }

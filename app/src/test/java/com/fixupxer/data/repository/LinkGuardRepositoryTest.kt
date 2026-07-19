@@ -120,6 +120,16 @@ class LinkGuardRepositoryTest {
         verify(fixture.history, never()).trimHistory(any())
     }
 
+    @Test
+    fun `sharing leaves instagram unchanged when no target is selected`() = runTest {
+        val fixture = fixture()
+        val input = "https://instagram.com/p/abc"
+
+        val result = fixture.repository.processUrlForSharing(input)
+
+        assertEquals(input, result)
+    }
+
     private suspend fun fixture(customRuleSnapshot: RuleSnapshot? = null): Fixture {
         val cache = CleanerCache()
         val registry = CleanerRegistry().apply {

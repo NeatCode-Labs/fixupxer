@@ -12,6 +12,8 @@
 package com.fixupxer.processing
 
 import com.fixupxer.rules.RuleTraceStep
+import com.fixupxer.utils.AlternativeFrontendCatalog
+import com.fixupxer.utils.ProxyPlatform
 
 enum class ProcessingProfile {
     MAIN,
@@ -19,12 +21,38 @@ enum class ProcessingProfile {
     BROWSER
 }
 
+object BrowserConversionPolicy {
+    fun shouldConvert(
+        platform: ProxyPlatform?,
+        toggleEnabled: Boolean,
+        hasActiveTarget: Boolean,
+    ): Boolean =
+        platform != null &&
+            platform in AlternativeFrontendCatalog.privacyCapablePlatforms() &&
+            toggleEnabled &&
+            hasActiveTarget
+}
+
+data class ProxySelections(val byPlatform: Map<ProxyPlatform, String?>) {
+    fun domainFor(platform: ProxyPlatform): String? = byPlatform[platform]
+
+    companion object {
+        val EMPTY = ProxySelections(emptyMap())
+
+        /** Catalog defaults — used by legacy [com.fixupxer.UrlProcessor] test helpers. */
+        val DEFAULT: ProxySelections = ProxySelections(
+            ProxyPlatform.entries.associateWith { platform ->
+                AlternativeFrontendCatalog.defaultTarget(platform)?.domain
+            }
+        )
+    }
+}
+
 data class ProcessingOptions(
     val profile: ProcessingProfile,
     val cleanTracking: Boolean,
     val convertDomains: Boolean,
-    val instagramProxy: String,
-    val tiktokProxy: String,
+    val proxySelections: ProxySelections,
     val customRulesEnabled: Boolean,
     val persistHistory: Boolean = true,
     val useCache: Boolean = true,

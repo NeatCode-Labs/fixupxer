@@ -38,10 +38,11 @@ import com.fixupxer.presentation.share.ShareViewModel
 import com.fixupxer.utils.Constants
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.ui.dialogs.HistoryDialogHelper
-import com.fixupxer.ui.dialogs.InstagramProxyDialogHelper
 import com.fixupxer.ui.dialogs.LinkGuardDialogHelper
-import com.fixupxer.ui.dialogs.TikTokProxyDialogHelper
+import com.fixupxer.ui.dialogs.ProxyPickerDialogHelper
+import com.fixupxer.ui.helpers.PlatformToggleHelper
 import com.fixupxer.PreferencesManager
+import com.fixupxer.ui.helpers.DominantHandLayoutHelper
 import com.fixupxer.ui.helpers.ResultStatusHelper
 import com.fixupxer.ui.helpers.SmartFooterHelper
 import com.fixupxer.ui.helpers.SnackbarHelper
@@ -78,6 +79,7 @@ class ShareActivity : BaseActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         
         initializeViews()
+        applyDominantHandLayout()
         setupListeners()
         observeViewModel()
         setupSmartFooter()
@@ -156,7 +158,21 @@ class ShareActivity : BaseActivity() {
             context = this,
             rootView = binding.root,
             scrollView = binding.mainScrollView,
-            footer = binding.footerTextView
+            footer = binding.footerTextView,
+            historyAnchor = binding.buttonHistory,
+        )
+    }
+
+    private fun applyDominantHandLayout() {
+        DominantHandLayoutHelper.apply(
+            actionRow = binding.actionRow,
+            openButton = binding.buttonOpen,
+            copyButton = binding.buttonCopy,
+            shareButton = binding.buttonShare,
+            historyButton = binding.buttonHistory,
+            hand = preferencesManager.getDominantHand(),
+            actionGapPx = resources.getDimensionPixelSize(R.dimen.margin_small),
+            historyEdgeMarginPx = resources.getDimensionPixelSize(R.dimen.margin_medium),
         )
     }
     
@@ -192,10 +208,6 @@ class ShareActivity : BaseActivity() {
         binding.togglesInclude.textViewChangeProxy.setOnClickListener {
             onChangeProxyClick()
         }
-
-        binding.togglesInclude.textViewChangeTikTokProxy.setOnClickListener {
-            onChangeTikTokProxyClick()
-        }
         
         binding.footerTextView.setOnClickListener {
             try {
@@ -220,50 +232,38 @@ class ShareActivity : BaseActivity() {
                         UrlDiffHelper.strikeRemovedParams(state.sharedText, state.actionUrl)
                     }
                     
-                    binding.togglesInclude.instagramToggleContainer.isVisible = state.isInstagramUrl
-                    binding.togglesInclude.facebookToggleContainer.isVisible = state.isFacebookUrl
-                    binding.togglesInclude.instagramProxyRow.isVisible = state.isInstagramUrl
-                    if (state.isInstagramUrl) {
-                        refreshProxyLabel()
-                    }
-                    
-                    binding.togglesInclude.switchInstagram.setOnCheckedChangeListener(null)
-                    binding.togglesInclude.switchInstagram.isChecked = state.isInstagramConversionEnabled
-                    binding.togglesInclude.switchInstagram.setOnCheckedChangeListener { _, isChecked ->
-                        viewModel.onInstagramConversionToggled(isChecked)
-                    }
-
-                    binding.togglesInclude.switchFacebook.setOnCheckedChangeListener(null)
-                    binding.togglesInclude.switchFacebook.isChecked = state.isInstagramConversionEnabled
-                    binding.togglesInclude.switchFacebook.setOnCheckedChangeListener { _, isChecked ->
-                        viewModel.onInstagramConversionToggled(isChecked)
-                    }
-                    
-                    binding.togglesInclude.twitterToggleContainer.isVisible = state.isTwitterUrl
-                    
-                    binding.togglesInclude.switchTwitter.setOnCheckedChangeListener(null)
-                    binding.togglesInclude.switchTwitter.isChecked = state.isTwitterConversionEnabled
-                    binding.togglesInclude.switchTwitter.setOnCheckedChangeListener { _, isChecked ->
-                        viewModel.onTwitterConversionToggled(isChecked)
-                    }
-
-                    binding.togglesInclude.blueskyToggleContainer.isVisible = state.isBlueskyUrl
-                    binding.togglesInclude.switchBluesky.setOnCheckedChangeListener(null)
-                    binding.togglesInclude.switchBluesky.isChecked = state.isBlueskyConversionEnabled
-                    binding.togglesInclude.switchBluesky.setOnCheckedChangeListener { _, isChecked ->
-                        viewModel.onBlueskyConversionToggled(isChecked)
-                    }
-
-                    binding.togglesInclude.tiktokToggleContainer.isVisible = state.isTikTokUrl
-                    if (state.isTikTokUrl) {
-                        refreshTikTokProxyLabel()
-                    }
-                    
-                    binding.togglesInclude.switchTikTok.setOnCheckedChangeListener(null)
-                    binding.togglesInclude.switchTikTok.isChecked = state.isTikTokConversionEnabled
-                    binding.togglesInclude.switchTikTok.setOnCheckedChangeListener { _, isChecked ->
-                        viewModel.onTikTokConversionToggled(isChecked)
-                    }
+                    val toggles = binding.togglesInclude
+                    PlatformToggleHelper.bindPlatformToggle(
+                        context = this@ShareActivity,
+                        container = toggles.platformToggleContainer,
+                        monogram = toggles.platformMonogram,
+                        title = toggles.platformTitle,
+                        proxyRow = toggles.platformProxyRow,
+                        proxyStatus = toggles.textViewPlatformProxyStatus,
+                        changeProxy = toggles.textViewChangeProxy,
+                        platformSwitch = toggles.switchPlatform,
+                        platform = state.detectedPlatform,
+                        preferencesManager = preferencesManager,
+                        conversionEnabled = PlatformToggleHelper.isConversionEnabled(
+                            platform = state.detectedPlatform,
+                            isInstagramConversionEnabled = state.isInstagramConversionEnabled,
+                            isTwitterConversionEnabled = state.isTwitterConversionEnabled,
+                            isFacebookConversionEnabled = state.isFacebookConversionEnabled,
+                            isTikTokConversionEnabled = state.isTikTokConversionEnabled,
+                            isBlueskyConversionEnabled = state.isBlueskyConversionEnabled,
+                            isRedditConversionEnabled = state.isRedditConversionEnabled,
+                            isYoutubeConversionEnabled = state.isYoutubeConversionEnabled,
+                            isPinterestConversionEnabled = state.isPinterestConversionEnabled,
+                            isThreadsConversionEnabled = state.isThreadsConversionEnabled,
+                        ),
+                        proxySelectionRevision = state.proxySelectionRevision,
+                        onToggle = { enabled ->
+                            state.detectedPlatform?.let { platform ->
+                                viewModel.onPlatformConversionToggled(platform, enabled)
+                            }
+                        },
+                        onChangeProxy = { onChangeProxyClick() },
+                    )
                     
                     binding.progressIndicator.visibility =
                         if (state.isLoading) View.VISIBLE else View.INVISIBLE
@@ -341,34 +341,15 @@ class ShareActivity : BaseActivity() {
     }
 
     private fun onChangeProxyClick() {
-        // ShareActivity is marked android:noHistory="true" in the manifest, which makes
-        // the system call finish() automatically whenever it loses focus. Launching
-        // Settings would therefore destroy the share context. Show the proxy chooser
-        // inline as a dialog and re-process the shared URL so the preview updates
-        // immediately — no app restart required.
-        InstagramProxyDialogHelper.show(this, preferencesManager) {
-            refreshProxyLabel()
-            // Trigger a local re-process so the "Processed URL" field reflects
-            // the freshly selected proxy (the toggle value itself is unchanged).
+        val platform = viewModel.uiState.value.detectedPlatform ?: return
+        ProxyPickerDialogHelper.show(
+            context = this,
+            layoutInflater = layoutInflater,
+            platform = platform,
+            preferencesManager = preferencesManager,
+        ) {
+            viewModel.notifyProxySelectionChanged()
             viewModel.reprocessAfterProxyChange()
         }
-    }
-
-    private fun onChangeTikTokProxyClick() {
-        // Same inline-dialog contract as onChangeProxyClick(), but for the TikTok roster.
-        TikTokProxyDialogHelper.show(this, preferencesManager) {
-            refreshTikTokProxyLabel()
-            viewModel.reprocessAfterProxyChange()
-        }
-    }
-
-    private fun refreshProxyLabel() {
-        binding.togglesInclude.textViewInstagramProxyStatus.text =
-            getString(R.string.currently_using_proxy, preferencesManager.getInstagramProxy())
-    }
-
-    private fun refreshTikTokProxyLabel() {
-        binding.togglesInclude.textViewTikTokProxyStatus.text =
-            getString(R.string.currently_using_proxy, preferencesManager.getTikTokProxy())
     }
 } 

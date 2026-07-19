@@ -99,6 +99,14 @@ interface UrlRepository {
      */
     fun isBlueskyUrl(url: String): Boolean
 
+    fun isRedditUrl(url: String): Boolean
+
+    fun isYouTubeUrl(url: String): Boolean
+
+    fun isPinterestUrl(url: String): Boolean
+
+    fun isThreadsUrl(url: String): Boolean
+
     /**
      * Check if a URL contains tracking parameters
      */
@@ -153,6 +161,26 @@ interface UrlRepository {
      * Set Bluesky conversion preference.
      */
     suspend fun setBlueskyConversionEnabled(enabled: Boolean)
+
+    fun isFacebookConversionEnabled(): Flow<Boolean>
+
+    suspend fun setFacebookConversionEnabled(enabled: Boolean)
+
+    fun isRedditConversionEnabled(): Flow<Boolean>
+
+    suspend fun setRedditConversionEnabled(enabled: Boolean)
+
+    fun isYoutubeConversionEnabled(): Flow<Boolean>
+
+    suspend fun setYoutubeConversionEnabled(enabled: Boolean)
+
+    fun isPinterestConversionEnabled(): Flow<Boolean>
+
+    suspend fun setPinterestConversionEnabled(enabled: Boolean)
+
+    fun isThreadsConversionEnabled(): Flow<Boolean>
+
+    suspend fun setThreadsConversionEnabled(enabled: Boolean)
 
     /**
      * Process URL for browser mode with browser-specific conversion settings

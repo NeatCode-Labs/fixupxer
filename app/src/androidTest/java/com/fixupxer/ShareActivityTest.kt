@@ -40,6 +40,8 @@ import android.view.View
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import com.fixupxer.PreferencesManager
+import com.fixupxer.utils.Constants
+import com.fixupxer.utils.ProxyPlatform
 import org.junit.Before
 import androidx.preference.PreferenceManager
 import org.junit.Assert.*
@@ -130,8 +132,8 @@ class ShareActivityTest {
     @Test
     fun testFacebookUrlConversionWithToggleOn() {
         runBlocking {
-            // Set preferences to enable Instagram conversion (Facebook uses same toggle)
-            preferencesManager.setConvertInstagramEnabled(true)
+            // v2.4.0: Facebook has a dedicated toggle
+            preferencesManager.setConvertFacebookEnabled(true)
             delay(100)
             
             launchShareActivityWithText("https://m.facebook.com/story.php?story_fbid=123&id=456&_rdr")
@@ -148,8 +150,8 @@ class ShareActivityTest {
     @Test
     fun testNothingToDoMessageForCleanUrl() {
         runBlocking {
-            // Set preferences to enable Instagram/Facebook conversion
-            preferencesManager.setConvertInstagramEnabled(true)
+            // v2.4.0: Facebook has a dedicated toggle
+            preferencesManager.setConvertFacebookEnabled(true)
             delay(100)
             
             // Share a clean facebookez.com URL with toggle ON
@@ -169,8 +171,8 @@ class ShareActivityTest {
     @Test
     fun testDirtyFacebookezUrlWithToggleOn() {
         runBlocking {
-            // Set preferences to enable Instagram/Facebook conversion
-            preferencesManager.setConvertInstagramEnabled(true)
+            // v2.4.0: Facebook has a dedicated toggle
+            preferencesManager.setConvertFacebookEnabled(true)
             delay(100)
             
             // Share a dirty facebookez.com URL
@@ -188,8 +190,8 @@ class ShareActivityTest {
     @Test
     fun testDirtyFacebookUrlWithToggleOff() {
         runBlocking {
-            // Set preferences to enable Instagram/Facebook conversion initially
-            preferencesManager.setConvertInstagramEnabled(true)
+            // v2.4.0: Facebook has a dedicated toggle; enable it initially
+            preferencesManager.setConvertFacebookEnabled(true)
             delay(100)
             
             // Share a dirty facebook.com URL (fbclid is a known tracking key;
@@ -199,8 +201,8 @@ class ShareActivityTest {
             // Wait for initial processing
             onView(isRoot()).perform(waitFor(2000))
             
-            // Toggle Facebook conversion off (shares the convert_instagram pref)
-            onView(withId(R.id.switchFacebook)).perform(click())
+            // Toggle Facebook conversion off (dedicated convert_facebook pref)
+            onView(withId(R.id.switchPlatform)).perform(click())
             
             // Wait for reprocessing
             onView(isRoot()).perform(waitFor(1500))
@@ -252,17 +254,17 @@ class ShareActivityTest {
             
             launchShareActivityWithText("https://www.instagram.com/p/test/")
             onView(isRoot()).perform(waitFor(1500))
-            onView(withId(R.id.switchInstagram)).check(matches(isDisplayed()))
+            onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
             
             // Test Twitter URL - should show Twitter toggle
             launchShareActivityWithText("https://x.com/user/status/123")
             onView(isRoot()).perform(waitFor(1500))
-            onView(withId(R.id.switchTwitter)).check(matches(isDisplayed()))
+            onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
             
             // Test Facebook URL - should show Facebook toggle (uses convert_instagram pref)
             launchShareActivityWithText("https://www.facebook.com/test")
             onView(isRoot()).perform(waitFor(1500))
-            onView(withId(R.id.switchFacebook)).check(matches(isDisplayed()))
+            onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
         }
     }
     
@@ -347,21 +349,34 @@ class ShareActivityTest {
     }
     
     @Test
-    fun testBrowserConversionDefaults() {
+    fun testBrowserConversionDefaultsDoNotAffectShareFlow() {
         runBlocking {
-            // Set browser mode conversion preferences
             val context = InstrumentationRegistry.getInstrumentation().targetContext
-            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-            prefs.edit()
-                .putBoolean("browser_convert_instagram", false)
-                .putBoolean("convert_instagram", true)  // Main app setting
+            context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+                .edit()
+                .clear()
                 .commit()
-            
-            // This test verifies that browser conversion settings are separate
-            // In a real browser mode test, we'd launch via BrowserAlias
-            // Here we just verify the preferences are independent
-            assertTrue(prefs.getBoolean("convert_instagram", true))
-            assertFalse(prefs.getBoolean("browser_convert_instagram", true))
+
+            preferencesManager.setConvertTwitterEnabled(true)
+            preferencesManager.setBrowserConvertTwitterEnabled(true)
+            preferencesManager.setSelectedProxyDomain(ProxyPlatform.X, Constants.FIXUPX_DOMAIN)
+
+            assertEquals(
+                Constants.XCANCEL_DOMAIN,
+                preferencesManager.resolveBrowserPrivacyTarget(ProxyPlatform.X)?.domain,
+            )
+
+            delay(200)
+
+            launchShareActivityWithText("https://x.com/user/status/123456789")
+
+            onView(isRoot()).perform(waitFor(2000))
+
+            // Share uses main embed proxy (fixupx), not browser privacy reader (xcancel).
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText("https://fixupx.com/user/status/123456789")))
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(not(withText(containsString(Constants.XCANCEL_DOMAIN)))))
         }
     }
     

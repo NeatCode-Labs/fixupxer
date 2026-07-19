@@ -85,7 +85,9 @@ class CustomInstagramProxyTest {
     fun `activeProxies is fixed roster plus custom entries`() {
         InstagramProxyStore.setCustomProxies(listOf(customProxy))
         val active = InstagramProxyStore.activeProxies()
-        assertEquals(Constants.INSTAGRAM_PROXY_DOMAINS + customProxy, active)
+        assertTrue(active.containsAll(Constants.INSTAGRAM_PROXY_DOMAINS))
+        assertTrue(active.contains(Constants.KITTYGRAM_DOMAIN))
+        assertTrue(active.contains(customProxy))
     }
 
     @Test
@@ -152,10 +154,14 @@ class CustomInstagramProxyTest {
         assertTrue(InstagramProxyStore.isReservedDomain(Constants.FACEBOOK_DOMAIN))
         assertTrue(InstagramProxyStore.isReservedDomain(Constants.FB_SHORT_DOMAIN))
         assertTrue(InstagramProxyStore.isReservedDomain(Constants.FACEBOOKEZ_DOMAIN))
-        // Substring collisions in either direction are also rejected because
-        // all platform detection is substring-based.
+        // Subdomains of reserved hosts are rejected via host-boundary matching.
         assertTrue(InstagramProxyStore.isReservedDomain("my.fixupx.com"))
-        assertTrue(InstagramProxyStore.isReservedDomain("prefix-instagram.com"))
+    }
+
+    @Test
+    fun `lookalike domains without host relationship are not reserved`() {
+        // Host-boundary validation is stricter than old substring checks — safer.
+        assertFalse(InstagramProxyStore.isReservedDomain("prefix-instagram.com"))
     }
 
     @Test

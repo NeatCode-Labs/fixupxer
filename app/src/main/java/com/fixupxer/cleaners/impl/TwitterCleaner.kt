@@ -22,8 +22,7 @@ package com.fixupxer.cleaners.impl
 
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
-import com.fixupxer.processing.UrlNormalizer
-import com.fixupxer.utils.Constants
+import com.fixupxer.processing.PlatformDomainConverter
 
 /**
  * Cleaner for Twitter/X URLs - comprehensive tracking removal
@@ -113,18 +112,7 @@ object TwitterCleaner : UrlCleaner {
         "include_can_dm" // DM permissions
     )
     
-    override fun matches(url: String): Boolean {
-        return UrlNormalizer.urlMatchesAnyDomain(
-            url,
-            listOf(
-                Constants.TWITTER_DOMAIN,
-                Constants.X_DOMAIN,
-                Constants.FIXUPX_DOMAIN,
-                Constants.FXTWITTER_DOMAIN,
-                Constants.VXTWITTER_DOMAIN
-            )
-        )
-    }
+    override fun matches(url: String): Boolean = PlatformDomainConverter.isKnownXUrl(url)
     
     override fun clean(url: String): String {
         if (!matches(url)) return url

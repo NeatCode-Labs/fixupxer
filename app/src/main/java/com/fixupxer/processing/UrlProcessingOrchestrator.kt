@@ -110,8 +110,7 @@ class UrlProcessingOrchestrator @Inject constructor(
             val converted = domainConversionService.convert(
                 current,
                 options.convertDomains,
-                options.instagramProxy,
-                options.tiktokProxy
+                options.proxySelections,
             )
             domainChanged = domainChanged || converted != current
             if (converted != beforeConversion) {

@@ -16,7 +16,7 @@ FixupXer does not collect, store, or share any personal user data. The app opera
 
 ### Local Storage
 The app only stores the following data locally on your device:
-- Preferences: whether to clean tracking parameters, whether to convert Twitter/X, Instagram, Facebook, and TikTok URLs, the selected Instagram and TikTok embed proxies, any custom proxy domains you add yourself, browser-mode settings (enabled state, post-clean action mode and priority order, per-platform conversion defaults), and history settings (enabled state, maximum entries)
+- Preferences: whether to clean tracking parameters, social-link conversion choices, selected built-in or custom embed proxies, Browser-mode settings (enabled state, post-clean action mode and priority order, X/Bluesky/Reddit/Pinterest Reader choices), app layout, and history settings (enabled state, maximum entries)
 - Conversion history (optional, on by default, can be disabled or cleared at any time): the original URL, the cleaned URL, a timestamp, and the kind of change made — stored in a local database on your device only
 - Custom URL rules (optional): names, domains, patterns, replacements, templates, test URLs, ordering, and local rollback snapshots. Rules are stored in the local Room database and are not included in automatic cloud backup.
 
@@ -27,19 +27,30 @@ Custom rules can be exported or imported only when you explicitly use Android's 
 
 ### URL Processing
 - All URL processing happens locally on your device
-- URLs are not sent to any external servers
-- No data is transmitted to third parties
+- During processing, FixupXer does not send URLs to external servers
 - No tracking or analytics are performed
 - Link conversions (e.g. to fixupx.com, facebookez.com, or an Instagram/TikTok embed proxy — built-in or custom) are pure text replacements; the app never contacts those domains
 
+When processing finishes, Android may pass the resulting URL to the browser,
+native app, share target, or privacy Reader selected by you or by your
+after-clean configuration. Any network request happens in that external
+recipient, whose privacy policy then applies. Copying a URL places it in the
+Android clipboard.
+
 ### Browser Mode (optional)
-If you enable Browser mode and set FixupXer as your default browser, links you open are cleaned locally and then forwarded to the app or browser you choose. FixupXer itself has no network permission and never loads the links.
+Browser mode requires enabling FixupXer's browser alias and separately selecting
+FixupXer as Android's default browser. FixupXer processes only eligible HTTP(S)
+links that Android routes to it; verified App Links and in-app browsers may
+bypass the default browser. Processing remains local, and FixupXer never renders
+or loads a page. It then hands the result to the configured external action.
+Optional Browser privacy conversions use built-in Reader targets for X,
+Bluesky, Reddit, and Pinterest and are separate from Main/Share embed targets.
 
 ### External Help Links
 The **How to Use** buttons open FixupXer documentation hosted on GitHub through an external browser. This happens only when you tap a help link. FixupXer does not load the page itself; the selected browser and GitHub apply their own privacy policies.
 
 ## Third-Party Services
-FixupXer does not integrate with any third-party services that collect user data. The app only uses standard Android system services for:
+FixupXer does not connect to third-party services itself. It uses standard Android system services for:
 - Sharing URLs
 - Opening URLs in a browser
 - Opening user-requested documentation links

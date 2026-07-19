@@ -24,6 +24,8 @@ import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
 import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.utils.ProxyRoster
 import java.net.URLDecoder
 
 /**
@@ -115,7 +117,8 @@ object RedditCleaner : UrlCleaner {
     override fun matches(url: String): Boolean {
         return UrlNormalizer.urlMatchesAnyDomain(
             url,
-            listOf(Constants.REDDIT_DOMAIN, Constants.REDDIT_SHORT_DOMAIN)
+            listOf(Constants.REDDIT_DOMAIN, Constants.REDDIT_SHORT_DOMAIN) +
+                ProxyRoster.allKnownDomains(ProxyPlatform.REDDIT),
         )
     }
     

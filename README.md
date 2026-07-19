@@ -29,8 +29,10 @@
 
 FixupXer is a free, open-source Android URL cleaner. It removes known tracking
 parameters, optionally converts social links to embed-friendly domains, and lets
-you build ordered custom processing rules. Everything runs locally: the app
-declares no permissions and never sends your links anywhere.
+you build ordered custom processing rules. Processing runs locally: the app
+declares no permissions and makes no network requests. When you choose an
+Open/Share action, Android hands the resulting URL to the external app you
+selected.
 
 ## Highlights
 
@@ -45,14 +47,14 @@ declares no permissions and never sends your links anywhere.
 - **Better social previews** — optional conversions for Instagram, Facebook,
   Twitter/X, Bluesky posts, and TikTok, including user-selectable and custom
   proxy domains.
-- **Browser Mode** — route web links through FixupXer before opening a browser
-  or native app.
+- **Browser Mode** — clean eligible HTTP(S) links that Android routes through
+  FixupXer before handing them to a browser, native app, share menu, or clipboard.
 - **Process Text** — select a link in any app and choose “Clean link” to clean
   it in place, entirely offline.
 - **Local history** — revisit, copy, share, or delete processed links; history
   is optional and remains on the device.
 - **Modern Android UI** — Material 3 before/after flow, light and dark themes,
-  responsive layouts, and accessible controls.
+  responsive layouts, handed action placement, and accessible controls.
 
 ## Screenshots
 
@@ -85,10 +87,14 @@ declares no permissions and never sends your links anywhere.
 
 ### Use Browser Mode
 
-Enable Browser Mode in Settings and select FixupXer as the system browser.
-FixupXer can then clean each web link before handing it to your preferred
-browser or native app. Setup, action priority, conversion defaults, and loop
-protection are covered in the **[Browser Mode Guide](docs/BROWSER_MODE_GUIDE.md)**.
+Enable **FixupXer as browser** in the app, then select FixupXer under Android
+**Default apps > Browser app**. FixupXer does not render pages: it locally
+processes eligible HTTP(S) links Android sends to it, then hands the result to
+your selected external action. Verified App Links may bypass the default
+browser. Browser-only privacy Reader conversions support X, Bluesky, Reddit,
+and Pinterest and are separate from Main/Share embed targets. Setup, action
+priority, conversions, and troubleshooting are in the
+**[Browser Mode Guide](docs/BROWSER_MODE_GUIDE.md)**.
 
 ## Custom URL rules
 
@@ -143,6 +149,9 @@ domains, and migration from known legacy proxies. Full domain rosters and
 platform behavior are documented in
 **[Supported Platforms](docs/SUPPORTED_PLATFORMS.md)**.
 
+If you open a converted URL, the receiving browser, native app, or third-party
+frontend performs the network request and applies its own privacy policy.
+
 > Third-party conversion services are not operated by NeatCode Labs and may
 > change or stop working. Conversion is optional and can be disabled per link.
 
@@ -166,6 +175,9 @@ Conversion History is optional and stored only on the device.
   rollback snapshots remain on the device.
 - **Explicit exports** — rule bundles leave the app only when you choose a
   destination through Android's system file picker.
+- **Explicit handoff** — FixupXer processes URLs offline; a browser, native app,
+  share target, or privacy reader receives the result only after your selected
+  action or Android Browser Mode routing.
 - **Bounded processing** — input length, rule count, regex complexity, redirect
   hops, traces, and import sizes are limited.
 - **Safe user regex** — custom patterns use linear-time RE2/J and never fall

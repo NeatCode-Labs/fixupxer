@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  SPDX-License-Identifier: GPL-3.0-or-later
-  Row for the Instagram proxy chooser dialog:
-  radio + domain (with badge) + optional delete icon for custom proxies.
-  descendantFocusability="blocksDescendants" keeps the ListView row clickable
-  even though the delete ImageButton is itself clickable.
--->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="?android:attr/listPreferredItemHeightSmall"
+    android:minHeight="@dimen/min_touch_target_size"
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:descendantFocusability="blocksDescendants"
@@ -24,25 +18,41 @@
         android:focusable="false"
         android:importantForAccessibility="no" />
 
-    <TextView
-        android:id="@+id/proxyDomainText"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_marginStart="@dimen/proxy_option_text_margin_start"
-        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-        android:textColor="?attr/colorOnSurface"
-        android:ellipsize="end"
-        android:maxLines="2" />
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/proxyDomainText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+            android:textColor="?attr/colorOnSurface"
+            android:ellipsize="end"
+            android:maxLines="2"
+            tools:text="toinstagram.com" />
+
+        <TextView
+            android:id="@+id/proxySubtitleText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="May be unstable"
+            tools:visibility="visible" />
+    </LinearLayout>
 
     <ImageButton
         android:id="@+id/proxyDeleteButton"
-        android:layout_width="@dimen/proxy_option_icon_size"
-        android:layout_height="@dimen/proxy_option_icon_size"
+        android:layout_width="@dimen/min_touch_target_size"
+        android:layout_height="@dimen/min_touch_target_size"
         android:src="@drawable/ic_delete"
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/delete_proxy_button_desc"
         android:tint="?attr/colorError"
         android:visibility="gone" />
-
 </LinearLayout>

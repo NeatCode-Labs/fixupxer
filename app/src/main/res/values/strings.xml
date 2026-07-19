@@ -16,9 +16,23 @@
     <string name="platform_monogram_twitter" translatable="false">X</string>
     <string name="platform_monogram_bluesky" translatable="false">BS</string>
     <string name="platform_monogram_tiktok" translatable="false">TT</string>
-    <string name="via_facebookez">via facebookez.com</string>
-    <string name="via_fixupx">via fixupx.com</string>
-    <string name="via_fxbsky">via fxbsky.app</string>
+    <string name="platform_monogram_reddit" translatable="false">R</string>
+    <string name="platform_monogram_youtube" translatable="false">YT</string>
+    <string name="platform_monogram_pinterest" translatable="false">P</string>
+    <string name="platform_monogram_threads" translatable="false">@</string>
+
+    <string name="platform_name_x">X / Twitter</string>
+    <string name="platform_name_instagram">Instagram</string>
+    <string name="platform_name_tiktok">TikTok</string>
+    <string name="platform_name_facebook">Facebook</string>
+    <string name="platform_name_bluesky">Bluesky</string>
+    <string name="platform_name_reddit">Reddit</string>
+    <string name="platform_name_youtube">YouTube</string>
+    <string name="platform_name_pinterest">Pinterest</string>
+    <string name="platform_name_threads">Threads</string>
+
+    <string name="read_without_account">Read without an account</string>
+    <string name="no_proxy_available">No proxies available — tap Change</string>
     <string name="enter_url_to_process">Enter URL to process</string>
     <string name="cleaned_url">Processed URL</string>
     <string name="process_url">Process URL</string>
@@ -52,24 +66,68 @@
     <!-- Instagram conversion toggle -->
     <string name="convert_instagram_toggle">Embed?</string>
     <string name="convert_facebook_toggle">Embed?</string>
-    <string name="convert_facebook_toggle_desc">When enabled, Facebook links will be converted to facebookez.com for better embedding</string>
-    <string name="convert_instagram_toggle_desc">When enabled, Instagram, Facebook, and X/Twitter links will be converted to an Instagram proxy (adamlikes.men, toinstagram.com, instagram7.com, kkinstagram.com, or a custom proxy you add yourself), facebookez.com, and fixupx.com for better embedding</string>
-    <string name="convert_twitter_toggle">Embed?</string>
-    <string name="convert_twitter_toggle_desc">When enabled, X/Twitter links will be converted to fixupx.com for better embedding</string>
-    <string name="convert_bluesky_toggle">Embed?</string>
-    <string name="convert_bluesky_toggle_desc">When enabled, Bluesky post links will be converted to fxbsky.app for better embedding</string>
+    <string name="convert_facebook_toggle_desc">When enabled, Facebook links are converted to your selected alternative frontend for better embedding or account-free reading. Manage frontends via the Change link.</string>
+    <string name="convert_instagram_toggle_desc">When enabled, Instagram links are converted to your selected alternative frontend for better embedding or account-free reading. Manage frontends via the Change link.</string>
+    <string name="convert_twitter_toggle_desc">When enabled, X/Twitter links are converted to your selected alternative frontend for better embedding or account-free reading. Manage frontends via the Change link.</string>
+    <string name="convert_bluesky_toggle_desc">When enabled, Bluesky post links are converted to your selected alternative frontend for better embedding or account-free reading. Manage frontends via the Change link.</string>
+    <string name="convert_tiktok_toggle">Embed?</string>
+    <string name="convert_tiktok_toggle_desc">When enabled, TikTok links are converted to your selected alternative frontend for better embedding or account-free reading. Manage frontends via the Change link.</string>
+    <string name="convert_reddit_toggle">Convert?</string>
+    <string name="convert_reddit_toggle_desc">When enabled, Reddit links open in your selected reader frontend without an account (off by default). Manage frontends via the Change link.</string>
+    <string name="convert_youtube_toggle">Convert?</string>
+    <string name="convert_youtube_toggle_desc">When enabled, YouTube links open in your selected reader frontend without an account (off by default). Manage frontends via the Change link.</string>
+    <string name="convert_pinterest_toggle">Convert?</string>
+    <string name="convert_pinterest_toggle_desc">When enabled, Pinterest links open in your selected reader frontend without an account (off by default). Manage frontends via the Change link.</string>
+    <string name="convert_threads_toggle">Convert?</string>
+    <string name="convert_threads_toggle_desc">When enabled, Threads links open in your selected reader frontend without an account (off by default). Manage frontends via the Change link.</string>
 
-    <!-- Instagram proxy selection -->
+    <!-- Legacy Instagram proxy strings (still referenced by older tests/docs) -->
     <string name="currently_using_proxy">Active: %1$s.</string>
     <string name="change_proxy_link">Change.</string>
-    <string name="change_proxy_link_desc">Change Instagram embed proxy</string>
+    <string name="change_proxy_link_desc">Change %1$s alternative frontend</string>
+
+    <!-- Generic proxy picker -->
+    <string name="proxy_picker_title">Choose %1$s frontend</string>
+    <string name="privacy_picker_title">Choose %1$s privacy frontend</string>
+    <string name="proxy_section_embed">Embed frontends</string>
+    <string name="proxy_section_embed_subtitle">Better previews in chat apps. Payload passes through the proxy service.</string>
+    <string name="proxy_section_privacy">Privacy frontends</string>
+    <string name="proxy_section_privacy_subtitle">Read without an account. These do not improve embeds.</string>
+    <string name="proxy_group_recommended">Recommended readers</string>
+    <string name="proxy_group_automatic">Automatic picker</string>
+    <string name="proxy_group_community">Community instances</string>
+    <string name="proxy_group_experimental">Experimental</string>
+    <string name="proxy_group_custom">Your proxies</string>
+    <string name="proxy_action_add_custom">Add custom proxy</string>
+    <string name="proxy_action_edit">Edit</string>
+    <string name="proxy_action_done_editing">Done editing</string>
+    <string name="proxy_action_restore_builtins">Restore built-in proxies</string>
+    <string name="proxy_empty_message">No alternative frontends available. Add a custom proxy or restore built-ins.</string>
+    <string name="proxy_delete_last_title">Remove last frontend?</string>
+    <string name="proxy_delete_last_message">This is the only remaining option. Conversion will have no target until you add or restore one.</string>
+    <string name="proxy_error_invalid_domain">Enter a valid domain, e.g. myproxy.com</string>
+    <string name="proxy_error_reserved_domain">This domain is already known to the app and can\'t be used as a custom proxy</string>
+    <string name="proxy_error_duplicate">This proxy is already in the list</string>
+    <string name="proxy_sfw_only_suffix">%1$s (SFW only)</string>
+    <string name="proxy_experimental_warning">May be unstable</string>
+    <string name="proxy_picker_info_title">About alternative frontends</string>
+    <string name="proxy_picker_info_content_desc">More info about alternative frontends</string>
+    <string name="proxy_picker_info_generic"><![CDATA[FixupXer only rewrites the URL offline on your device. The third-party service you open will see your IP address like any website. These services work only for public content; their availability is not guaranteed.<br/><br/><b>Embed friendly</b> targets improve previews in chat apps. <b>Reader</b> targets open content without an account.]]></string>
+    <string name="proxy_picker_info_intro_x">Pick how X / Twitter links are rewritten.</string>
+    <string name="proxy_picker_info_intro_instagram">Pick how Instagram links are rewritten.</string>
+    <string name="proxy_picker_info_intro_tiktok">Pick how TikTok links are rewritten.</string>
+    <string name="proxy_picker_info_intro_facebook">Pick how Facebook links are rewritten.</string>
+    <string name="proxy_picker_info_intro_bluesky">Pick how Bluesky links are rewritten.</string>
+    <string name="proxy_picker_info_intro_reddit">Pick how Reddit links are rewritten.</string>
+    <string name="proxy_picker_info_intro_youtube">Pick how YouTube links are rewritten.</string>
+    <string name="proxy_picker_info_intro_pinterest">Pick how Pinterest links are rewritten.</string>
+    <string name="proxy_picker_info_intro_threads">Pick how Threads links are rewritten.</string>
+    <string name="proxy_add_dialog_title">Add custom proxy</string>
+    <string name="proxy_undo_disabled">Removed %1$s</string>
     <string name="instagram_proxy_primary_label">Primary</string>
     <string name="instagram_proxy_backup_label">Backup</string>
     <string name="instagram_proxy_custom_label">Custom</string>
     <string name="instagram_proxy_dialog_title">Choose Instagram proxy</string>
-    <string name="instagram_proxy_info_title">About these proxies</string>
-    <string name="instagram_proxy_info_text"><![CDATA[<b>Primary</b> — toinstagram.com, adamlikes.men<br/>Embed media <i>and</i> the post / reel title and description.<br/><br/><b>Backup</b> — instagram7.com, kkinstagram.com<br/>Embed media only (no title or description).<br/><br/><b>Custom</b> — proxies you add yourself<br/>Any Instagram embed proxy domain you enter is used as-is for the domain swap; the app never contacts it. What gets embedded depends on that proxy.<br/><br/>Use a backup if both primary proxies stop responding. Converted links are sent without the <tt>www.</tt> prefix because these proxies render best that way.]]></string>
-    <string name="instagram_proxy_info_content_desc">More info about Instagram proxies</string>
     <string name="instagram_proxy_add_custom">Add custom proxy…</string>
     <string name="instagram_proxy_add_dialog_title">Add custom proxy</string>
     <string name="instagram_proxy_add_hint">Proxy domain</string>
@@ -80,17 +138,9 @@
     <string name="instagram_proxy_delete_content_desc">Delete custom proxy %1$s</string>
     <string name="add">Add</string>
 
-    <!-- TikTok conversion toggle -->
-    <string name="convert_tiktok_toggle">Embed?</string>
-    <string name="convert_tiktok_toggle_desc">When enabled, TikTok links will be converted to a TikTok proxy (tnktok.com, tfxktok.com, tiktokez.com, kktiktok.com, or a custom proxy you add yourself) for better embedding</string>
-
-    <!-- TikTok proxy selection (shares the generic picker strings with Instagram:
-         currently_using_proxy, change_proxy_link, primary/backup/custom labels,
-         add-custom dialog + validation errors) -->
+    <!-- TikTok proxy selection (legacy strings) -->
     <string name="change_tiktok_proxy_link_desc">Change TikTok embed proxy</string>
     <string name="tiktok_proxy_dialog_title">Choose TikTok proxy</string>
-    <string name="tiktok_proxy_info_text"><![CDATA[<b>Primary</b> — tnktok.com, tfxktok.com<br/>Embed videos <i>and</i> multi-image slideshows, with like / comment / share counts.<br/><br/><b>Backup</b> — tiktokez.com, kktiktok.com<br/>tiktokez.com embeds media like the primaries; kktiktok.com embeds the video only (no slideshows, no stats).<br/><br/><b>Custom</b> — proxies you add yourself<br/>Any TikTok embed proxy domain you enter is used as-is for the domain swap; the app never contacts it. What gets embedded depends on that proxy.<br/><br/>Use a backup if both primary proxies stop responding. Converted links keep their original host prefix (<tt>vm.</tt>, <tt>www.</tt>, …) because TikTok share links live on subdomains and the proxies mirror them.]]></string>
-    <string name="tiktok_proxy_info_content_desc">More info about TikTok proxies</string>
     
 
     
@@ -147,7 +197,7 @@
     <string name="license_info">This app is free software licensed under the GNU General Public License v3.0 or later. You can view the source code at https://github.com/NeatCode-Labs/fixupxer</string>
     <string name="bug_report_subject">FixupXer Bug Report</string>
     <string name="disclaimer_dialog_title">Disclaimer</string>
-    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not transmit any user data or URLs to external servers. If history is enabled, processed URLs are stored locally on your device only and can be cleared at any time.<br/><br/> <b>History Feature</b><br/> The optional history feature stores your URL conversions locally on your device. This data never leaves your device and can be disabled or cleared at any time through the History settings.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Proxy services such as facebookez.com, fixupx.com, fxbsky.app, adamlikes.men, toinstagram.com, instagram7.com, kkinstagram.com, tnktok.com, tfxktok.com, tiktokez.com and kktiktok.com are not owned or maintained by us and may stop working at any given time. The same applies to any custom proxy domains you add yourself.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses usage of third-party proxy services such as facebookez.com, fixupx.com, fxbsky.app, adamlikes.men, toinstagram.com, instagram7.com, kkinstagram.com, tnktok.com, tfxktok.com, tiktokez.com and kktiktok.com, nor of any custom proxy services you configure yourself. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram, TikTok and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.<br/><br/> <b>License</b><br/> FixupXer is free software licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). You have the freedom to use, modify, and distribute this software under the terms of the GPL. Source code is available at https://github.com/NeatCode-Labs/fixupxer]]></string>
+    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not transmit any user data or URLs to external servers. If history is enabled, processed URLs are stored locally on your device only and can be cleared at any time.<br/><br/> <b>History Feature</b><br/> The optional history feature stores your URL conversions locally on your device. This data never leaves your device and can be disabled or cleared at any time through the History settings.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Alternative frontend and proxy services configurable in the app are operated by independent third parties; they receive the request (including your IP address) when you open a converted link, work only for public content, and their availability is not guaranteed.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses any third-party alternative frontend or proxy service you configure in the app, including custom domains you add yourself. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram, TikTok and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.<br/><br/> <b>License</b><br/> FixupXer is free software licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). You have the freedom to use, modify, and distribute this software under the terms of the GPL. Source code is available at https://github.com/NeatCode-Labs/fixupxer]]></string>
     
     <!-- Donate dialog -->
     <string name="donate_message">If you find FixupXer useful, please consider supporting its development. Your donation helps maintain and improve the app.</string>
@@ -183,6 +233,7 @@
     <string name="history_open_action_label">Use this URL</string>
     <string name="history_delete_action_label">Delete entry</string>
     <string name="delete_proxy_button_desc">Delete custom proxy</string>
+    <string name="disable_builtin_button_desc">Disable built-in frontend %1$s</string>
     
     <!-- New string resources from the code block -->
     <string name="hint_enter_url">Enter URL</string>
@@ -228,7 +279,13 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="app_layout">App layout</string>
+    <string name="app_layout_description">Place actions for comfortable use with your dominant hand.</string>
+    <string name="dominant_hand_right">Right hand</string>
+    <string name="dominant_hand_left">Left hand</string>
     <string name="browser_integration">Browser integration</string>
+    <string name="browser_integration_description">Clean eligible web links locally before handing them to another app. FixupXer does not load web pages.</string>
+    <string name="browser_integration_setup">Setup: 1. Enable FixupXer below. 2. Select FixupXer in Android Settings → Default apps → Browser app.</string>
     <string name="enable_browser_mode">Enable FixupXer as browser</string>
     <string name="how_to_use">How to Use</string>
     <string name="after_clean_behavior">After-clean behavior</string>
@@ -243,16 +300,49 @@
     <string name="drag_handle_description">Drag to reorder</string>
     
     <!-- Additional missing strings -->
-    <string name="conversion_defaults">Conversion defaults</string>
-    <string name="conversion_defaults_title">Browser conversion settings</string>
+    <string name="conversion_defaults">Privacy conversions</string>
+    <string name="conversion_defaults_title">Browser privacy conversions</string>
+    <string name="configuration_status">Configuration status</string>
+    <string name="configuration_status_title">Configuration status</string>
+    <string name="status_value_on">On</string>
+    <string name="status_value_off">Off</string>
+    <string name="configuration_status_summary_active_with_conversions">Browser integration is active. Eligible web links you open can be routed through FixupXer and converted to privacy frontends.</string>
+    <string name="configuration_status_summary_active_cleaning_only">Browser integration is active. Eligible links are still cleaned when routed through FixupXer; privacy conversions are optional and none are enabled.</string>
+    <string name="configuration_status_summary_operational_broken">Browser integration is active, but an enabled privacy conversion has no active reader and cannot run until you fix it.</string>
+    <string name="configuration_status_summary_operational_mixed">Browser integration is active, but some enabled privacy conversions are working while others need attention.</string>
+    <string name="configuration_status_summary_alias_on_not_default">Browser integration is on, but FixupXer is not your default browser, so links will not be routed through it.</string>
+    <string name="configuration_status_summary_alias_on_unverified">Browser integration is on. Whether FixupXer is your default browser could not be verified on this device.</string>
+    <string name="configuration_status_summary_alias_off_is_default">FixupXer holds the default browser role, but browser integration is switched off, so links open without processing.</string>
+    <string name="configuration_status_summary_alias_off">Browser integration is off. Links you open in other apps are not routed through FixupXer.</string>
+    <string name="configuration_status_label_browser_integration">Browser integration</string>
+    <string name="configuration_status_label_default_browser">Default browser</string>
+    <string name="configuration_status_detail_browser_on">Browser integration: On (active)</string>
+    <string name="configuration_status_detail_browser_off">Browser integration: Off (optional — links are not routed through FixupXer)</string>
+    <string name="configuration_status_detail_browser_off_conflict">Browser integration: Off, but FixupXer still holds the default browser role — links open without processing</string>
+    <string name="configuration_status_detail_default_fixupxer">Default browser: FixupXer</string>
+    <string name="configuration_status_detail_default_other">Default browser: Other or not selected</string>
+    <string name="configuration_status_detail_default_other_attention">Default browser: Other or not selected — FixupXer is not your default browser, so links will not be routed</string>
+    <string name="configuration_status_detail_default_unknown">Default browser: Unable to verify — check your system default browser settings manually</string>
+    <string name="configuration_status_label_privacy_conversions">Privacy conversions</string>
+    <string name="configuration_status_privacy_none">Privacy conversions: None enabled (optional — eligible links are still cleaned when routed through FixupXer)</string>
+    <string name="configuration_status_privacy_route">Privacy conversions: %1$s → %2$s</string>
+    <string name="configuration_status_privacy_broken">Privacy conversions: %1$s enabled but no active reader — open Browser privacy conversions and choose a reader</string>
+    <string name="configuration_status_privacy_broken_restore">Privacy conversions: %1$s enabled but no active reader — open Browser privacy conversions, tap Restore built-in proxies in the picker, then choose a reader</string>
+    <string name="configuration_status_label_custom_rules">Custom rules</string>
+    <string name="configuration_status_custom_rules_on">Custom rules: On (%1$s)</string>
+    <string name="configuration_status_custom_rules_off">Custom rules: Off (optional)</string>
+    <string name="configuration_status_label_after_clean">After-clean behavior</string>
+    <string name="configuration_status_detail_after_clean">After-clean behavior: %1$s</string>
+    <string name="configuration_status_footnote">Apps with verified App Links may open their links directly, bypassing the default browser. FixupXer processes everything on-device and never connects to the internet.</string>
     <string name="action_priority_instructions">Drag items to reorder action priority. FixupXer will attempt actions from top to bottom until one succeeds.</string>
-    <string name="conversion_defaults_explanation">When acting as a browser, configure which social media platforms should be converted to alternative domains. These settings are separate from the main app conversion toggles.</string>
-    <string name="conversion_defaults_browser_note">These defaults apply only to Browser mode links. For manual cleaning, use the toggles on the main screen.</string>
+    <string name="conversion_defaults_explanation">Choose which platforms Browser mode rewrites into privacy readers (X, Bluesky, Reddit, Pinterest). These targets are separate from the embed-friendly frontends on the main and Share screens.</string>
+    <string name="conversion_defaults_browser_note">Applies only to links opened through Browser mode. Main and Share flows keep their own embed frontend choices.</string>
+    <string name="browser_privacy_frontend_label">Privacy frontend: %1$s</string>
+    <string name="browser_privacy_no_frontend">No active privacy frontend — restore built-ins in the frontend picker.</string>
     <string name="convert_twitter_browser">Convert Twitter/X links</string>
     <string name="convert_bluesky_browser">Convert Bluesky post links</string>
-    <string name="convert_instagram_browser">Convert Instagram links</string>
-    <string name="convert_facebook_browser">Convert Facebook links</string>
-    <string name="convert_tiktok_browser">Convert TikTok links</string>
+    <string name="convert_reddit_browser">Convert Reddit links</string>
+    <string name="convert_pinterest_browser">Convert Pinterest links</string>
     <string name="cancel">Cancel</string>
     <string name="save">Save</string>
 

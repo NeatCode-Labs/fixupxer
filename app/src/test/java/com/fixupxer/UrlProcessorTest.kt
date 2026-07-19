@@ -241,6 +241,18 @@ class UrlProcessorTest {
         val result = urlProcessor.processUrlForSharing(twitterUrl)
         assertEquals(expected, result)
     }
+
+    @Test
+    fun `processUrlForSharing does not restore default for blank instagram selection`() {
+        val instagramUrl = "https://instagram.com/p/ABC123/"
+
+        val result = urlProcessor.processUrlForSharing(
+            url = instagramUrl,
+            instagramProxy = "",
+        )
+
+        assertEquals(instagramUrl, result)
+    }
     
     @Test
     fun `test Instagram subdomain stripped on conversion`() {

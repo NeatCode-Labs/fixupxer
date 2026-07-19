@@ -113,10 +113,13 @@ class CustomTikTokProxyTest {
         assertTrue(TikTokProxyStore.isReservedDomain(Constants.FIXUPX_DOMAIN))
         assertTrue(TikTokProxyStore.isReservedDomain(Constants.X_DOMAIN))
         assertTrue(TikTokProxyStore.isReservedDomain(Constants.FACEBOOK_DOMAIN))
-        // Substring collisions in either direction are also rejected because
-        // all platform detection is substring-based.
+        // Subdomains of reserved hosts are rejected via host-boundary matching.
         assertTrue(TikTokProxyStore.isReservedDomain("my.tnktok.com"))
-        assertTrue(TikTokProxyStore.isReservedDomain("prefix-tiktok.com"))
+    }
+
+    @Test
+    fun `lookalike domains without host relationship are not reserved`() {
+        assertFalse(TikTokProxyStore.isReservedDomain("prefix-tiktok.com"))
     }
 
     @Test

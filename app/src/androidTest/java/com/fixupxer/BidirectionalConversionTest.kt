@@ -242,7 +242,7 @@ class BidirectionalConversionTest {
     fun testCleanFacebookToFacebookezConversion() {
         runBlocking {
             // Clean facebook.com → facebookez.com (toggle ON)
-            preferencesManager.setConvertInstagramEnabled(true) // Facebook uses Instagram toggle
+            preferencesManager.setConvertFacebookEnabled(true) // v2.4.0: dedicated Facebook toggle
             delay(100)
             
             launchShareActivityWithText("https://www.facebook.com/zuck/posts/123456789")
@@ -258,7 +258,7 @@ class BidirectionalConversionTest {
     fun testCleanFacebookezToFacebookConversion() {
         runBlocking {
             // Clean facebookez.com → facebook.com (toggle OFF)
-            preferencesManager.setConvertInstagramEnabled(false) // Facebook uses Instagram toggle
+            preferencesManager.setConvertFacebookEnabled(false) // v2.4.0: dedicated Facebook toggle
             delay(100)
             
             launchShareActivityWithText("https://facebookez.com/zuck/posts/123456789")
@@ -274,7 +274,7 @@ class BidirectionalConversionTest {
     fun testDirtyFacebookezToCleanFacebook() {
         runBlocking {
             // Dirty facebookez.com → Clean facebook.com (toggle OFF)
-            preferencesManager.setConvertInstagramEnabled(false) // Facebook uses Instagram toggle
+            preferencesManager.setConvertFacebookEnabled(false) // v2.4.0: dedicated Facebook toggle
             delay(100)
             
             launchShareActivityWithText("https://facebookez.com/story.php?story_fbid=123&id=456&fbclid=abc")
@@ -290,7 +290,7 @@ class BidirectionalConversionTest {
     fun testWebFacebookPrefixRemoval() {
         runBlocking {
             // web.facebook.com → facebookez.com (prefix removal)
-            preferencesManager.setConvertInstagramEnabled(true) // Facebook uses Instagram toggle
+            preferencesManager.setConvertFacebookEnabled(true) // v2.4.0: dedicated Facebook toggle
             delay(100)
             
             launchShareActivityWithText("https://web.facebook.com/story.php?story_fbid=123&id=456")
@@ -306,7 +306,7 @@ class BidirectionalConversionTest {
     fun testWwwFacebookPrefixRemoval() {
         runBlocking {
             // www.facebook.com → facebookez.com (no www. in result)
-            preferencesManager.setConvertInstagramEnabled(true) // Facebook uses Instagram toggle
+            preferencesManager.setConvertFacebookEnabled(true) // v2.4.0: dedicated Facebook toggle
             delay(100)
             
             launchShareActivityWithText("https://www.facebook.com/zuck/posts/123456789")
@@ -322,7 +322,7 @@ class BidirectionalConversionTest {
     fun testCleanFacebookNothingToDoWithToggleOff() {
         runBlocking {
             // Clean facebook.com with toggle OFF should show URL and "Already clean"
-            preferencesManager.setConvertInstagramEnabled(false) // Facebook uses convert_instagram pref
+            preferencesManager.setConvertFacebookEnabled(false) // v2.4.0: dedicated Facebook toggle
             delay(100)
             
             launchShareActivityWithText("https://www.facebook.com/zuck/posts/123456789")

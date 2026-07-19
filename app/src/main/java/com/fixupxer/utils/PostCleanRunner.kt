@@ -176,66 +176,27 @@ class PostCleanRunner(
      * Try to launch known native apps for cleaned URLs
      */
     private fun tryLaunchKnownNativeApp(uri: Uri): Boolean {
-        val url = uri.toString().lowercase()
-        
-        // For YouTube URLs, try ReVanced YouTube first, then official YouTube
-        if (url.contains(Constants.YOUTUBE_DOMAIN) || url.contains(Constants.YOUTUBE_SHORT_DOMAIN)) {
-            for (packageName in listOf(
-                "app.revanced.android.youtube",
-                "app.morphe.android.youtube",
-                "com.google.android.youtube"
-            )) {
-                val youtubeIntent = Intent(Intent.ACTION_VIEW, uri).apply {
-                    setPackage(packageName)
-                    addCategory(Intent.CATEGORY_BROWSABLE)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                try {
-                    context.startActivity(youtubeIntent)
-                    Timber.d("Launched YouTube package: $packageName")
-                    return true
-                } catch (e2: ActivityNotFoundException) {
-                    Timber.d("YouTube package not found or cannot handle URL: $packageName")
-                }
-            }
-            
-            return false
+        val host = uri.host?.lowercase()
+        for (packageName in NativeAppMapping.packagesFor(uri.toString(), host)) {
+            if (launchPackage(uri, packageName)) return true
         }
-        
-        // Map domains to their native app packages
-        val nativeAppPackage = when {
-            url.contains(Constants.INSTAGRAM_DOMAIN) ||
-                InstagramProxyStore.allKnownProxies().any { url.contains(it) } -> "com.instagram.android"
-            url.contains(Constants.X_DOMAIN) || url.contains(Constants.TWITTER_DOMAIN) ||
-                url.contains(Constants.FIXUPX_DOMAIN) -> "com.twitter.android"
-            url.contains(Constants.FACEBOOK_DOMAIN) || url.contains(Constants.FACEBOOKEZ_DOMAIN) -> "com.facebook.katana"
-            url.contains(Constants.REDDIT_DOMAIN) -> "com.reddit.frontpage"
-            url.contains(Constants.LINKEDIN_DOMAIN) -> "com.linkedin.android"
-            url.contains(Constants.AMAZON_DOMAIN) || url.contains(Constants.AMAZON_SHORT_DOMAIN) -> "com.amazon.mShop.android.shopping"
-            url.contains("${Constants.GOOGLE_DOMAIN}/search") || url.contains("${Constants.GOOGLE_DOMAIN}/url") -> "com.google.android.googlequicksearchbox"
-            url.contains(Constants.TIKTOK_DOMAIN) ||
-                TikTokProxyStore.allKnownProxies().any { url.contains(it) } -> "com.zhiliaoapp.musically"  // Most common TikTok package
-            url.contains(Constants.SUBSTACK_DOMAIN) -> "com.substack.app"
-            else -> null
-        }
-        
-        if (nativeAppPackage != null) {
-            try {
-                // Try to launch the app directly
-                val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-                    setPackage(nativeAppPackage)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                
-                context.startActivity(intent)
-                Timber.d("Launched known native app: $nativeAppPackage")
-                return true
-            } catch (e: ActivityNotFoundException) {
-                Timber.d("Native app not found: $nativeAppPackage")
-            }
-        }
-        
         return false
+    }
+
+    private fun launchPackage(uri: Uri, packageName: String): Boolean {
+        val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+            setPackage(packageName)
+            addCategory(Intent.CATEGORY_BROWSABLE)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        return try {
+            context.startActivity(intent)
+            Timber.d("Launched native app: $packageName")
+            true
+        } catch (e: ActivityNotFoundException) {
+            Timber.d("Native app not found or cannot handle URL: $packageName")
+            false
+        }
     }
     
     /**
@@ -286,54 +247,9 @@ class PostCleanRunner(
                 tryAddManualApp("com.android.chrome", uri, targetIntents, manuallyAddedApps)
             }
             
-            when {
-                url.contains(Constants.YOUTUBE_DOMAIN) || url.contains(Constants.YOUTUBE_SHORT_DOMAIN) -> {
-                    Timber.d("URL contains youtube.com or youtu.be, trying to add YouTube apps")
-                    // Try common YouTube variants first, then official YouTube
-                    tryAddManualApp("app.revanced.android.youtube", uri, targetIntents, manuallyAddedApps)
-                    tryAddManualApp("app.morphe.android.youtube", uri, targetIntents, manuallyAddedApps)
-                    tryAddManualApp("com.google.android.youtube", uri, targetIntents, manuallyAddedApps)
-                }
-                url.contains(Constants.INSTAGRAM_DOMAIN) ||
-                    InstagramProxyStore.allKnownProxies().any { url.contains(it) } -> {
-                    Timber.d("URL contains Instagram or one of its proxies, trying to add Instagram app")
-                    tryAddManualApp("com.instagram.android", uri, targetIntents, manuallyAddedApps)
-                }
-                url.contains(Constants.X_DOMAIN) || url.contains(Constants.TWITTER_DOMAIN) ||
-                    url.contains(Constants.FIXUPX_DOMAIN) -> {
-                    Timber.d("URL contains x.com/twitter.com/fixupx.com, trying to add Twitter app")
-                    tryAddManualApp("com.twitter.android", uri, targetIntents, manuallyAddedApps)
-                }
-                url.contains(Constants.FACEBOOK_DOMAIN) || url.contains(Constants.FACEBOOKEZ_DOMAIN) -> {
-                    Timber.d("URL contains facebook.com or facebookez.com, trying to add Facebook app")
-                    tryAddManualApp("com.facebook.katana", uri, targetIntents, manuallyAddedApps)
-                }
-                url.contains(Constants.REDDIT_DOMAIN) -> {
-                    Timber.d("URL contains reddit.com, trying to add Reddit app")
-                    tryAddManualApp("com.reddit.frontpage", uri, targetIntents, manuallyAddedApps)
-                }
-                url.contains(Constants.LINKEDIN_DOMAIN) -> {
-                    Timber.d("URL contains linkedin.com, trying to add LinkedIn app")
-                    tryAddManualApp("com.linkedin.android", uri, targetIntents, manuallyAddedApps)
-                }
-                url.contains("${Constants.GOOGLE_DOMAIN}/search") || url.contains("${Constants.GOOGLE_DOMAIN}/url") -> {
-                    Timber.d("URL contains google.com search/url, trying to add Google app")
-                    tryAddManualApp("com.google.android.googlequicksearchbox", uri, targetIntents, manuallyAddedApps)
-                }
-                url.contains(Constants.SUBSTACK_DOMAIN) -> {
-                    Timber.d("URL contains substack.com, trying to add Substack app")
-                    tryAddManualApp("com.substack.app", uri, targetIntents, manuallyAddedApps)
-                }
-                url.contains(Constants.TIKTOK_DOMAIN) ||
-                    TikTokProxyStore.allKnownProxies().any { url.contains(it) } -> {
-                    Timber.d("URL contains TikTok or one of its proxies, trying to add TikTok app")
-                    tryAddManualApp("com.zhiliaoapp.musically", uri, targetIntents, manuallyAddedApps)
-                }
-                url.contains(Constants.AMAZON_DOMAIN) || url.contains(Constants.AMAZON_SHORT_DOMAIN) -> {
-                    Timber.d("URL contains amazon.com or amzn.to, trying to add Amazon app")
-                    tryAddManualApp("com.amazon.mShop.android.shopping", uri, targetIntents, manuallyAddedApps)
-                }
-                // Add more apps as needed
+            NativeAppMapping.packagesFor(url, uri.host?.lowercase()).forEach { packageName ->
+                Timber.d("Native app mapping selected $packageName for manual chooser addition")
+                tryAddManualApp(packageName, uri, targetIntents, manuallyAddedApps)
             }
             
             // If no other apps can handle this, return false

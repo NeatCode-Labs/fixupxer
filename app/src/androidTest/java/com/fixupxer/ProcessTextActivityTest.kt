@@ -20,6 +20,7 @@
 package com.fixupxer
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -29,11 +30,23 @@ import com.fixupxer.ui.ProcessTextActivity
 import com.fixupxer.ui.ShareActivity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class ProcessTextActivityTest {
+
+    @Before
+    fun resetProxySelections() {
+        // Other UI tests in the same process may leave a non-default X target
+        // selected (e.g. xcancel.com); these tests expect the fixupx default.
+        InstrumentationRegistry.getInstrumentation().targetContext
+            .getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+            .edit()
+            .remove("proxy_selection_x")
+            .commit()
+    }
 
     private fun processTextIntent(text: String? = null, readonly: Boolean = false): Intent {
         val context = InstrumentationRegistry.getInstrumentation().targetContext

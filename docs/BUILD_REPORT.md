@@ -93,7 +93,7 @@ FixupXer v2.4.0 has passed unit, lint, full emulator instrumentation, signed-bui
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` — 4,362,460 bytes, SHA-256 `723C330EA74268916DFE088E28FB0B467841EDE24BE79500B6C2978F06412BA1`
 - [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` — 5,433,078 bytes, SHA-256 `6A20DBCE1A3490F24A3FCDFE48929546F616DF6E1488530258C0F93B06E15644`; `assets/adi-registration.properties` present
-- [ ] **GITHUB Release APK**: pending — mirror sync, DCO commit, tag `v2.4.0`, reproducible fresh-clone build, and GitHub release will be produced when the maintainer approves the push
+- [x] **GITHUB Release APK**: `FixupXer-v2.4.0-release.apk` — 4,356,999 bytes, SHA-256 `1DA0A214718A7BAEFAD6713BAE1B22870BC4A9BA0699EC3E76F3AC10E8C28B6E`; two fresh-clone tag builds were byte-identical and contained neither `dependencies.pb` nor `adi-registration.properties`
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: 607/607 unit + 228/228 instrumentation, all green
@@ -101,7 +101,8 @@ FixupXer v2.4.0 has passed unit, lint, full emulator instrumentation, signed-bui
 ## GITHUB (F-Droid) Variant Verification
 - [x] Version 2.4.0 applied to the mirror's four version fields
 - [x] F-Droid changelog 38 added and validated under 500 characters; full description refreshed
-- [ ] Full root → mirror source/docs sync, DCO commit, `v2.4.0` tag, reproducible fresh-clone APK, and GitHub release — pending maintainer approval to push
+- [x] Full root → mirror source/docs sync verified by hash comparison; DCO commit pushed
+- [x] `main` and annotated tag `v2.4.0` pushed; reproducible fresh-clone APK published at `https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.4.0`
 
 ## Quality Assurance Verification
 
@@ -125,7 +126,7 @@ FixupXer v2.4.0 has passed unit, lint, full emulator instrumentation, signed-bui
 
 ## Release Recommendation
 
-### **FINAL VERDICT: [x] APPROVED FOR RELEASE (Play artifacts ready; GitHub publication pending push approval)**
+### **FINAL VERDICT: [x] APPROVED FOR RELEASE**
 
 FixupXer v2.4.0 meets all release quality standards:
 
@@ -137,7 +138,7 @@ FixupXer v2.4.0 meets all release quality standards:
 - **Android 15 Ready**: Full compliance with latest platform requirements
 - **Production Quality**: Meets all Google Play Store and F-Droid requirements
 
-The Play AAB and local signed APK are **ready**; the GitHub/F-Droid publication follows once the maintainer approves the push.
+The Play AAB and local signed APK are **ready**, and the GitHub release is **published**; F-Droid picks up the `v2.4.0` tag automatically.
 
 ---
 

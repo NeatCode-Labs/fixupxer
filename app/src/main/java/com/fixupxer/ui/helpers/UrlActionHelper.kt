@@ -23,6 +23,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -30,6 +31,7 @@ import android.os.Build
 import android.view.View
 import androidx.core.net.toUri
 import com.fixupxer.R
+import com.fixupxer.utils.Constants
 import timber.log.Timber
 
 /**
@@ -96,4 +98,103 @@ object UrlActionHelper {
             SnackbarHelper.showShort(anchor, activity.getString(R.string.error_browser))
         }
     }
+
+    /**
+     * Opens an HTTP(S) URL outside FixupXer. Explicit external components prevent
+     * BrowserAlias from intercepting guides or defensive VIEW-intent handoffs.
+     */
+    fun openUrlInExternalBrowser(anchor: View, activity: Activity, url: String): Boolean {
+        if (url.isEmpty()) {
+            SnackbarHelper.showShort(anchor, activity.getString(R.string.no_url_to_open))
+            return false
+        }
+
+        return try {
+            val baseIntent = Intent(Intent.ACTION_VIEW, url.toUri())
+                .addCategory(Intent.CATEGORY_BROWSABLE)
+            val packageManager = activity.packageManager
+            val selectorPackages = packageManager.queryIntentActivities(
+                Intent.makeMainSelectorActivity(
+                    Intent.ACTION_MAIN,
+                    Intent.CATEGORY_APP_BROWSER,
+                ),
+                0,
+            ).mapNotNull { it.activityInfo?.packageName }
+            // Some OEM browsers do not advertise CATEGORY_APP_BROWSER. A neutral
+            // browsable HTTP VIEW probe safely discovers those packages.
+            val actionViewPackages = packageManager.queryIntentActivities(
+                Intent(Intent.ACTION_VIEW, Constants.BROWSER_PROBE_URL.toUri())
+                    .addCategory(Intent.CATEGORY_BROWSABLE),
+                0,
+            ).mapNotNull { it.activityInfo?.packageName }
+            val browserPackages = mergeExternalBrowserPackages(
+                selectorPackages,
+                actionViewPackages,
+                activity.packageName,
+            )
+
+            val directCandidates = packageManager.queryIntentActivities(baseIntent, 0)
+                .mapNotNull { resolveInfo ->
+                    val activityInfo = resolveInfo.activityInfo ?: return@mapNotNull null
+                    if (activityInfo.packageName == activity.packageName) return@mapNotNull null
+                    if (activityInfo.packageName !in browserPackages) return@mapNotNull null
+                    Intent(baseIntent).setComponent(
+                        ComponentName(activityInfo.packageName, activityInfo.name)
+                    )
+                }
+            val packageFallbackCandidates = browserPackages.mapNotNull { packageName ->
+                val fallback = Intent(baseIntent).setPackage(packageName)
+                val activityInfo = packageManager.resolveActivity(fallback, 0)?.activityInfo
+                    ?: return@mapNotNull null
+                if (activityInfo.packageName == activity.packageName ||
+                    activityInfo.packageName !in browserPackages
+                ) {
+                    return@mapNotNull null
+                }
+                Intent(baseIntent).setComponent(
+                    ComponentName(activityInfo.packageName, activityInfo.name)
+                )
+            }
+            val candidates = (directCandidates + packageFallbackCandidates)
+                .distinctBy { it.component }
+
+            if (candidates.isEmpty()) {
+                SnackbarHelper.showShort(anchor, activity.getString(R.string.error_browser))
+                return false
+            }
+
+            val resolvedDefault = packageManager.resolveActivity(baseIntent, 0)
+                ?.activityInfo
+                ?.let { ComponentName(it.packageName, it.name) }
+            val ordered = candidates.sortedByDescending { it.component == resolvedDefault }
+
+            if (ordered.size == 1 || ordered.first().component == resolvedDefault) {
+                activity.startActivity(ordered.first())
+            } else {
+                val chooser = Intent.createChooser(
+                    ordered.first(),
+                    activity.getString(R.string.chooser_open_with_browser),
+                )
+                if (ordered.size > 1) {
+                    chooser.putExtra(
+                        Intent.EXTRA_INITIAL_INTENTS,
+                        ordered.drop(1).toTypedArray(),
+                    )
+                }
+                activity.startActivity(chooser)
+            }
+            true
+        } catch (e: Exception) {
+            Timber.e(e, "Error opening URL in an external browser")
+            SnackbarHelper.showShort(anchor, activity.getString(R.string.error_browser))
+            false
+        }
+    }
+
+    internal fun mergeExternalBrowserPackages(
+        selectorPackages: Collection<String>,
+        actionViewPackages: Collection<String>,
+        ownPackage: String,
+    ): Set<String> = (selectorPackages + actionViewPackages)
+        .filterNotTo(linkedSetOf()) { it == ownPackage }
 }

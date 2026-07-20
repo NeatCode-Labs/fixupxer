@@ -82,6 +82,17 @@ class LinkGuardRepositoryTest {
     }
 
     @Test
+    fun `pending legacy limit trims history to the raw legacy value`() = runTest {
+        val fixture = fixture(pendingLegacyHistoryLimit = 20_000)
+        val input = "https://example.com/?utm_source=tracking"
+
+        val result = fixture.repository.processUrl(input)
+
+        verify(fixture.history).insertHistory(eq(input), eq(result.url), eq("Other"), any())
+        verify(fixture.history).trimHistory(20_000)
+    }
+
+    @Test
     fun `output leak from redirect skips history and evicts cached wrapper`() = runTest {
         val fixture = fixture()
         val destination = "https://example.com/?access_token=abcdef123456"
@@ -130,7 +141,10 @@ class LinkGuardRepositoryTest {
         assertEquals(input, result)
     }
 
-    private suspend fun fixture(customRuleSnapshot: RuleSnapshot? = null): Fixture {
+    private suspend fun fixture(
+        customRuleSnapshot: RuleSnapshot? = null,
+        pendingLegacyHistoryLimit: Int? = null,
+    ): Fixture {
         val cache = CleanerCache()
         val registry = CleanerRegistry().apply {
             registerAll(CleanerCatalog.createBuiltInCleaners())
@@ -148,7 +162,9 @@ class LinkGuardRepositoryTest {
         whenever(preferences.getTikTokProxy()).thenReturn("tnktok.com")
         whenever(preferences.areCustomRulesEnabled()).thenReturn(customRuleSnapshot != null)
         whenever(preferences.isHistoryEnabled()).thenReturn(true)
-        whenever(preferences.getMaxHistoryEntries()).thenReturn(50)
+        whenever(preferences.getMaxHistoryEntries()).thenReturn(pendingLegacyHistoryLimit ?: 50)
+        whenever(preferences.isHistoryLimitMigrationPending())
+            .thenReturn(pendingLegacyHistoryLimit != null)
 
         val customRuleRepository: CustomRuleRepository = mock()
         if (customRuleSnapshot != null) {

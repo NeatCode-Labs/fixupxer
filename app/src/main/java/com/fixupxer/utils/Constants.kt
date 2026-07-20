@@ -190,6 +190,13 @@ object Constants {
     const val MAX_TRACE_STEPS = 1000
     const val MAX_CHANGE_OPERATIONS = 20
     const val MAX_RULE_BUNDLE_BYTES = 1_048_576
+    const val MAX_LOCAL_BACKUP_BYTES = 2_097_152
+    const val RESTORE_ROLLBACK_FILE_NAME = "restore_rollback.json"
+    const val RESTORE_ROLLBACK_FORMAT = "fixupxer-restore-rollback"
+    const val RESTORE_ROLLBACK_SCHEMA_VERSION = 1
+    const val MIN_HISTORY_ENTRIES = 1
+    const val MAX_HISTORY_ENTRIES = 10_000
+    const val MAX_REMEMBERED_ROUTES = 100
     const val MAX_RULE_SNAPSHOTS = 3
 
     // Private Link Guard: high-confidence literal URL leak indicators only.

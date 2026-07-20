@@ -1,17 +1,20 @@
 # FixupXer App - Development Summary
-## Version Progression: v2.3.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.4.0 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 31 (v2.3.0 through v1.2.1)
-**Current Version:** v2.3.0 (versionCode: 37)
-**Development Period:** v1.2.1 (Initial) → v2.3.0 (Current)
+**Total Versions Released:** 32 (v2.4.0 through v1.2.1)
+**Current Version:** v2.4.0 (versionCode: 38)
+**Development Period:** v1.2.1 (Initial) → v2.4.0 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.3.0: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard, curated offline redirect unwrapping, social embed conversion, Process Text, and a tested no-code custom-rule engine — all while retaining the zero-permission offline model.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.4.0: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard, curated offline redirect unwrapping, social embed conversion, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine — all while retaining the zero-permission offline model.
 
 ### Key Achievements:
+- ✅ **Browser Privacy Readers & Saved App Choices** - Dedicated Browser mode settings hub with per-platform privacy reader conversions (X, Bluesky, Reddit, Pinterest), exact-host saved app routing, and a read-only Configuration status overview
+- ✅ **Alternative Frontend Catalog** - Embed/Privacy frontend picker on Main/Share across nine platforms with selectable readers (xcancel, Nitter, SkyLib, Redlib, Invidious, …) and custom domains for every platform
+- ✅ **Local Settings Backup** - Validated JSON export/restore of settings, custom rules, and saved app choices with atomic apply, automatic rollback, and crash-safe recovery
 - ✅ **Private Link Guard** - Offline detection of credentials, e-mails, JWT/auth tokens and precise coordinates left in links; ephemeral (no-history, no-cache) processing of sensitive URLs
 - ✅ **Keep-Unknown Cleaning Contract** - Only known tracking keys are removed; unknown functional parameters survive, host-boundary matching kills lookalike-domain false positives
 - ✅ **Custom URL Rule Engine** - Ordered scopes/actions/phases/contexts, excludes, keep-only, redirects, templates, Test Lab, test vectors with activation gate, Teach-from-example inference and portable bundles
@@ -25,7 +28,7 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 - ✅ **Offline Redirect Unwrapping** - Curated HTTP(S) target extraction with exact host/path checks, strict single decoding and multi-pass destination cleaning
 - ✅ **Efficient Dispatch** - O(1) domain dispatch and bounded smart caching
 - ✅ **International Support** - Full IDN support and zero-width character handling
-- ✅ **Comprehensive Verification** - 581 automated tests plus release lint, REUSE and reproducible-build checks
+- ✅ **Comprehensive Verification** - 835 automated tests plus release lint, REUSE and reproducible-build checks
 - ✅ **Thread-Safe Design** - Immutable processing snapshots and concurrency-safe state
 - ✅ **Security Hardening** - Comprehensive protection against malicious input attacks
 - ✅ **Professional Architecture** - Clean, maintainable, and extensible codebase
@@ -33,6 +36,18 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.3.0 → v2.4.0
+- **Focus:** Browser-mode maturity release — dedicated Browser mode settings hub, alternative reader frontends across nine platforms on Main/Share, privacy-reader conversions decoupled from embed toggles, exact-host saved app choices, read-only Configuration status, local settings backup/restore with crash-safe rollback, and handed action layouts.
+- **Browser mode hub:** New `BrowserSettingsActivity` gathers **Enable Browser mode**, **After processing an opened link** (Ask what to do / Try actions automatically), the reorderable **Action order**, **Saved app choices**, **Configure privacy readers**, and Browser status. Main Settings shows a compact status line via new `BrowserSettingsState`/`BrowserStatusTextHelper` resolvers. Browser alias changes are transactional (`BrowserModeUtils.updateBrowserMode` with verify + rollback), and `reconcileBrowserAlias` aligns the alias with preferences at every app start.
+- **Alternative frontends on Main/Share:** New `utils/AlternativeFrontendCatalog` (EMBED / READER / AUTOMATIC / EXPERIMENTAL roles) + `utils/ProxyRoster` power a unified per-platform conversion row and full picker on Main/Share for nine platforms (X, Instagram, TikTok, Facebook, Bluesky, Reddit, YouTube, Pinterest, Threads). X/Bluesky gain selectable readers (xcancel, nitter.net, community Nitter instances, twiiit/farside automatic pickers, SkyLib); Reddit/YouTube/Pinterest/Threads gain new reader conversions (Redlib roster incl. SafeReddit, Invidious, pinterest.bunk.im, Shoelace — off by default); custom domains supported on every platform via `ProxyRoster`. Conversion executed by `processing/PlatformDomainConverter`.
+- **Privacy readers:** `ProcessingProfile.BROWSER` converts only platforms with built-in READER targets (X/Twitter, Bluesky, Reddit, Pinterest) through per-platform `browser_privacy_target_<platform>` preferences and a saved-if-active → first-active → cleaning-only resolver; decision logic centralized in `processing/BrowserConversionPolicy`. Old inert browser embed toggles removed. Full proxy picker gains Embed/Privacy section headers and a selection-only mode with draft Save/Cancel semantics; **Restore built-in readers** revives platforms whose Readers were all removed.
+- **Saved app choices:** With **Ask what to do**, "Always use app for this host" persists a per-exact-host route (`RememberedRoute`, capped at 100) checked before the action picker; invalid, disabled, or incompatible choices self-heal by deletion with a one-time fallback to the picker. Management UI lists and deletes saved choices; routes stay saved but inactive outside Browser mode + Ask.
+- **Configuration status:** Read-only dialog summarizes cleaning, Custom rules (enabled/disabled counts via `SettingsStatusResolver`), Browser alias, default-browser tri-state (`getDefaultBrowserStatus` incl. *Unable to verify*), active privacy readers (none/active/mixed/broken), after-clean behavior, and App Links caveat.
+- **Local backup:** `LocalBackupCodec`/`LocalBackupManager` export a versioned JSON (settings snapshot, custom rules bundle, saved app choices) through SAF; restore validates everything up front (`SettingsSnapshotValidator`), applies under a mutex with `NonCancellable`, rolls back settings/rules/alias on failure, and persists an fsynced `restore_rollback.json` marker so a process death mid-restore is recovered at next launch. History entries are never exported; retained entries are trimmed to the restored limit. Deterministic post-restore theme application without timers (CAS acknowledgement in `SettingsBackupViewModel`).
+- **History limits:** Supported range 1–10,000 enforced (`MIN/MAX_HISTORY_ENTRIES`); out-of-range legacy limits get a guided migration prefill in the dialog while pending state trims to the raw legacy limit, so history never grows unbounded and never silently loses entries.
+- **Hardening:** Tracking cleaning became a non-optional invariant (preference forced true, repository toggle API removed). New `BrowserViewGate` revision/pause gate invalidates in-flight Browser VIEW work on any routing-relevant settings change (browser mode, action mode/priority, privacy targets, saved routes, custom-rules master switch); `MainActivity` serializes rapid consecutive VIEW intents and dismisses stale Ask dialogs. Manifest `<queries>` expanded for Android 11+ package visibility. Handed action layouts (`DominantHandLayoutHelper`) mirror action buttons for left/right-handed use.
+- **Verification:** 607/607 unit + 228/228 instrumentation tests on `Pixel_API_35_Play`; `lintRelease` clean; zero-permission manifest unchanged. Four-stage subagent review (implementation + two read-only reviews + fixer) with final main-agent verification.
 
 ### v2.2.0 → v2.3.0
 - **Focus:** Expand useful international cleaning and safe affiliate-wrapper extraction without adopting whole-query deletion or adding permissions.

@@ -75,5 +75,7 @@ data class PipelineProcessingResult(
      * custom PRE_CLEAN rules or redirect re-entries can make these differ from
      * [originalUrl].
      */
-    val cleanerCacheKeys: List<String> = emptyList()
+    val cleanerCacheKeys: List<String> = emptyList(),
+    /** ASCII host after cleaning/custom rules, before optional frontend conversion. */
+    val routingHost: String? = null,
 )

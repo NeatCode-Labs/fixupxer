@@ -52,6 +52,8 @@
     <string name="no_history_description">Processed links will appear here when history is enabled.</string>
     <string name="history_disabled_title">History is off</string>
     <string name="history_disabled_description">Enable history above to save processed links on this device.</string>
+    <string name="history_recording_off_banner">Recording off · existing entries are retained and can still be used or deleted.</string>
+    <string name="history_recording_off_empty">No saved entries to show. New links will not be recorded while History is off.</string>
     <string name="history_delete_content_desc">Delete history entry</string>
     <string name="clear_all">Clear all</string>
     <string name="platform_label">• %s</string>
@@ -61,7 +63,9 @@
     <string name="undo">Undo</string>
     <string name="select_max_entries">Select max entries</string>
     <string name="max_entries_hint">Enter max number of entries</string>
-    <string name="invalid_max_entries">Please enter a valid number greater than 0</string>
+    <string name="invalid_max_entries">Enter a number from 1 to 10,000</string>
+    <string name="history_limit_supported_range">Supported range: 1–10,000 entries</string>
+    <string name="history_limit_legacy_migration">Your previous History limit is outside the supported range of 1–10,000 entries. Confirm to change it to %1$d.</string>
     
     <!-- Instagram conversion toggle -->
     <string name="convert_instagram_toggle">Embed?</string>
@@ -85,10 +89,11 @@
     <string name="currently_using_proxy">Active: %1$s.</string>
     <string name="change_proxy_link">Change.</string>
     <string name="change_proxy_link_desc">Change %1$s alternative frontend</string>
+    <string name="change_privacy_reader_desc">Change %1$s privacy reader</string>
 
     <!-- Generic proxy picker -->
     <string name="proxy_picker_title">Choose %1$s frontend</string>
-    <string name="privacy_picker_title">Choose %1$s privacy frontend</string>
+    <string name="privacy_picker_title">Choose %1$s privacy reader</string>
     <string name="proxy_section_embed">Embed frontends</string>
     <string name="proxy_section_embed_subtitle">Better previews in chat apps. Payload passes through the proxy service.</string>
     <string name="proxy_section_privacy">Privacy frontends</string>
@@ -102,7 +107,11 @@
     <string name="proxy_action_edit">Edit</string>
     <string name="proxy_action_done_editing">Done editing</string>
     <string name="proxy_action_restore_builtins">Restore built-in proxies</string>
+    <string name="browser_privacy_restore_readers">Restore built-in readers</string>
     <string name="proxy_empty_message">No alternative frontends available. Add a custom proxy or restore built-ins.</string>
+    <string name="browser_privacy_picker_empty">No privacy readers are available. Restore the built-in readers to continue.</string>
+    <string name="browser_privacy_info_title">About privacy readers</string>
+    <string name="browser_privacy_info_message">A privacy reader is a third-party frontend for reading public content without an account. FixupXer only rewrites the URL offline; the reader receives your IP address like any website, and its availability is not guaranteed.</string>
     <string name="proxy_delete_last_title">Remove last frontend?</string>
     <string name="proxy_delete_last_message">This is the only remaining option. Conversion will have no target until you add or restore one.</string>
     <string name="proxy_error_invalid_domain">Enter a valid domain, e.g. myproxy.com</string>
@@ -184,7 +193,7 @@
     <string name="close">Close</string>
     <string name="chooser_open_with">Open with</string>
     <string name="chooser_open_with_browser">Open with browser</string>
-    <string name="browser_conversion_settings_saved">Browser conversion settings saved</string>
+    <string name="browser_conversion_settings_saved">Privacy reader settings saved</string>
     
     <!-- About and Report Bug -->
     <string name="about">About</string>
@@ -237,7 +246,6 @@
     
     <!-- New string resources from the code block -->
     <string name="hint_enter_url">Enter URL</string>
-    <string name="clean_tracking">Clean Tracking</string>
     <string name="convert_twitter">Convert Twitter</string>
     <string name="back">Back</string>
     
@@ -279,31 +287,55 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
-    <string name="app_layout">App layout</string>
-    <string name="app_layout_description">Place actions for comfortable use with your dominant hand.</string>
+    <string name="app_layout">Action button layout</string>
+    <string name="app_layout_description">Changes the order of Open, Copy, and Share actions and the position of the History control.</string>
     <string name="dominant_hand_right">Right hand</string>
     <string name="dominant_hand_left">Left hand</string>
-    <string name="browser_integration">Browser integration</string>
-    <string name="browser_integration_description">Clean eligible web links locally before handing them to another app. FixupXer does not load web pages.</string>
-    <string name="browser_integration_setup">Setup: 1. Enable FixupXer below. 2. Select FixupXer in Android Settings → Default apps → Browser app.</string>
-    <string name="enable_browser_mode">Enable FixupXer as browser</string>
+    <string name="link_processing">Link processing</string>
+    <string name="browser_integration">Browser mode</string>
+    <string name="configure_browser_mode">Configure Browser mode</string>
+    <string name="browser_mode_navigation_content_description">%1$s. %2$s</string>
+    <string name="browser_settings_title">Browser mode</string>
+    <string name="enable_browser_mode">Enable Browser mode</string>
+    <string name="enable_browser_mode_description">Makes FixupXer available as a browser candidate. FixupXer does not display web pages; you must also choose it as Android’s default browser.</string>
+    <string name="browser_mode_guide">Browser mode guide</string>
+    <string name="browser_mode_status">Browser mode status</string>
+    <string name="browser_status_needs_attention">Needs attention</string>
+    <string name="browser_status_off">Off</string>
+    <string name="browser_status_off_not_verified">Off · Android setup not verified</string>
+    <string name="browser_status_needs_android_setup">Needs Android setup</string>
+    <string name="browser_status_unable_to_verify">Unable to verify Android setup</string>
+    <string name="browser_status_ready">Ready for eligible links</string>
+    <string name="browser_choose_default">Choose default browser</string>
+    <string name="browser_choose_another">Choose another browser</string>
+    <string name="browser_alias_update_failed">Could not change Browser mode. The previous setting was restored.</string>
+    <string name="browser_alias_rollback_failed">Could not restore the previous Browser mode state. Open this screen again and review the status.</string>
+    <string name="browser_default_manual_title">Choose a default browser manually</string>
+    <string name="browser_default_manual_message">Open Android Settings, then Default apps, then Browser app. Choose FixupXer to enable Browser mode, or another browser to stop using FixupXer as the default.</string>
     <string name="how_to_use">How to Use</string>
-    <string name="after_clean_behavior">After-clean behavior</string>
-    <string name="action_mode_ask">Ask every time</string>
-    <string name="action_mode_priority">Follow action order</string>
-    <string name="action_priority">Action priority</string>
+    <string name="after_clean_behavior">After processing an opened link</string>
+    <string name="action_mode_ask">Ask what to do</string>
+    <string name="action_mode_ask_description">Shows the action picker unless a saved choice for that website can be used.</string>
+    <string name="action_mode_priority">Try actions automatically</string>
+    <string name="action_mode_priority_description">Tries the action order below and stops after the first successful action.</string>
+    <string name="action_priority">Action order</string>
     <string name="action_native_app">Open in native app</string>
     <string name="action_browser">Open in browser</string>
     <string name="action_share_menu">Share menu</string>
     <string name="action_clipboard">Copy to clipboard</string>
     <string name="post_clean_action_title">Open cleaned link with</string>
     <string name="drag_handle_description">Drag to reorder</string>
+    <string name="action_move_up">Move action up</string>
+    <string name="action_move_down">Move action down</string>
+    <string name="action_moved_announcement">%1$s moved to position %2$d of %3$d</string>
     
     <!-- Additional missing strings -->
-    <string name="conversion_defaults">Privacy conversions</string>
-    <string name="conversion_defaults_title">Browser privacy conversions</string>
+    <string name="conversion_defaults">Configure privacy readers</string>
+    <string name="conversion_defaults_title">Browser privacy readers</string>
     <string name="configuration_status">Configuration status</string>
     <string name="configuration_status_title">Configuration status</string>
+    <string name="configuration_status_description">Review link cleaning, Custom Rules, Browser mode, and after-clean behavior.</string>
+    <string name="configuration_status_navigation_content_description">Configuration status. Review link cleaning, Custom Rules, Browser mode, and after-clean behavior.</string>
     <string name="status_value_on">On</string>
     <string name="status_value_off">Off</string>
     <string name="configuration_status_summary_active_with_conversions">Browser integration is active. Eligible web links you open can be routed through FixupXer and converted to privacy frontends.</string>
@@ -314,6 +346,7 @@
     <string name="configuration_status_summary_alias_on_unverified">Browser integration is on. Whether FixupXer is your default browser could not be verified on this device.</string>
     <string name="configuration_status_summary_alias_off_is_default">FixupXer holds the default browser role, but browser integration is switched off, so links open without processing.</string>
     <string name="configuration_status_summary_alias_off">Browser integration is off. Links you open in other apps are not routed through FixupXer.</string>
+    <string name="configuration_status_summary_mismatch">The saved Browser mode setting and Android component state do not match. FixupXer will not process links until this is corrected.</string>
     <string name="configuration_status_label_browser_integration">Browser integration</string>
     <string name="configuration_status_label_default_browser">Default browser</string>
     <string name="configuration_status_detail_browser_on">Browser integration: On (active)</string>
@@ -323,22 +356,50 @@
     <string name="configuration_status_detail_default_other">Default browser: Other or not selected</string>
     <string name="configuration_status_detail_default_other_attention">Default browser: Other or not selected — FixupXer is not your default browser, so links will not be routed</string>
     <string name="configuration_status_detail_default_unknown">Default browser: Unable to verify — check your system default browser settings manually</string>
-    <string name="configuration_status_label_privacy_conversions">Privacy conversions</string>
-    <string name="configuration_status_privacy_none">Privacy conversions: None enabled (optional — eligible links are still cleaned when routed through FixupXer)</string>
-    <string name="configuration_status_privacy_route">Privacy conversions: %1$s → %2$s</string>
-    <string name="configuration_status_privacy_broken">Privacy conversions: %1$s enabled but no active reader — open Browser privacy conversions and choose a reader</string>
-    <string name="configuration_status_privacy_broken_restore">Privacy conversions: %1$s enabled but no active reader — open Browser privacy conversions, tap Restore built-in proxies in the picker, then choose a reader</string>
+    <string name="configuration_status_label_privacy_conversions">Privacy readers</string>
+    <string name="configuration_status_privacy_none">Privacy readers: None enabled (optional)</string>
+    <string name="configuration_status_privacy_route">Privacy readers: %1$s → %2$s</string>
+    <string name="configuration_status_privacy_broken">Privacy readers: %1$s is enabled but has no active reader — open Browser privacy readers and choose one</string>
+    <string name="configuration_status_privacy_broken_restore">Privacy readers: %1$s is enabled but has no active reader — open Browser privacy readers, restore built-in readers, then choose one</string>
     <string name="configuration_status_label_custom_rules">Custom rules</string>
     <string name="configuration_status_custom_rules_on">Custom rules: On (%1$s)</string>
     <string name="configuration_status_custom_rules_off">Custom rules: Off (optional)</string>
+    <string name="configuration_status_custom_rules_none">Custom rules: No rules configured (optional)</string>
+    <plurals name="configuration_status_custom_rules_active">
+        <item quantity="one">Custom rules: On (%1$d active rule)</item>
+        <item quantity="other">Custom rules: On (%1$d active rules)</item>
+    </plurals>
+    <plurals name="configuration_status_custom_rules_on_disabled">
+        <item quantity="one">Custom rules: On, but %1$d rule is disabled</item>
+        <item quantity="other">Custom rules: On, but all %1$d rules are disabled</item>
+    </plurals>
+    <plurals name="configuration_status_custom_rules_paused">
+        <item quantity="one">Custom rules: Off (%1$d enabled rule is paused)</item>
+        <item quantity="other">Custom rules: Off (%1$d enabled rules are paused)</item>
+    </plurals>
+    <plurals name="configuration_status_custom_rules_disabled">
+        <item quantity="one">Custom rules: Off (%1$d configured rule is disabled)</item>
+        <item quantity="other">Custom rules: Off (%1$d configured rules are disabled)</item>
+    </plurals>
     <string name="configuration_status_label_after_clean">After-clean behavior</string>
     <string name="configuration_status_detail_after_clean">After-clean behavior: %1$s</string>
-    <string name="configuration_status_footnote">Apps with verified App Links may open their links directly, bypassing the default browser. FixupXer processes everything on-device and never connects to the internet.</string>
-    <string name="action_priority_instructions">Drag items to reorder action priority. FixupXer will attempt actions from top to bottom until one succeeds.</string>
-    <string name="conversion_defaults_explanation">Choose which platforms Browser mode rewrites into privacy readers (X, Bluesky, Reddit, Pinterest). These targets are separate from the embed-friendly frontends on the main and Share screens.</string>
-    <string name="conversion_defaults_browser_note">Applies only to links opened through Browser mode. Main and Share flows keep their own embed frontend choices.</string>
-    <string name="browser_privacy_frontend_label">Privacy frontend: %1$s</string>
-    <string name="browser_privacy_no_frontend">No active privacy frontend — restore built-ins in the frontend picker.</string>
+    <string name="configuration_status_tracking_on">Tracking cleaning: On for eligible links</string>
+    <string name="configuration_status_verified_links_note">Apps with Verified App Links may open eligible links directly and bypass the Android default browser. FixupXer only processes links Android routes to it.</string>
+    <string name="action_priority_instructions">Drag actions or use Move up and Move down. FixupXer tries them from top to bottom and stops after the first success.</string>
+    <string name="conversion_defaults_explanation">Choose which platforms Browser mode rewrites into privacy readers. A reader is a third-party frontend: it receives your IP address like any website, and availability is not guaranteed.</string>
+    <string name="conversion_defaults_browser_note">These Browser-only readers are separate from the embed frontends used on the Main and Share screens.</string>
+    <string name="browser_privacy_frontend_label">Privacy reader: %1$s</string>
+    <string name="browser_privacy_no_frontend">No active privacy reader — restore a built-in reader in the picker.</string>
+    <string name="privacy_readers_summary_none">No privacy readers enabled</string>
+    <plurals name="privacy_readers_summary_active">
+        <item quantity="one">%1$d active</item>
+        <item quantity="other">%1$d active</item>
+    </plurals>
+    <plurals name="privacy_readers_summary_attention">
+        <item quantity="one">%1$d needs attention</item>
+        <item quantity="other">%1$d need attention</item>
+    </plurals>
+    <string name="privacy_readers_summary_mixed">%1$s · %2$s</string>
     <string name="convert_twitter_browser">Convert Twitter/X links</string>
     <string name="convert_bluesky_browser">Convert Bluesky post links</string>
     <string name="convert_reddit_browser">Convert Reddit links</string>
@@ -349,13 +410,31 @@
     <!-- Custom URL rules -->
     <string name="custom_rules_title">Custom URL rules</string>
     <string name="custom_rules_description">Create offline rules for removing parameters and rewriting URLs.</string>
-    <string name="custom_rules_manage">Manage custom rules</string>
+    <string name="custom_rules_manage">Manage rules</string>
+    <string name="custom_rules_guide">Custom rules guide</string>
     <string name="custom_rules_enabled">Enable custom rules</string>
     <plurals name="custom_rules_count">
         <item quantity="one">%1$d enabled rule</item>
         <item quantity="other">%1$d enabled rules</item>
     </plurals>
     <string name="custom_rules_empty">No custom rules yet</string>
+    <string name="custom_rules_status_none">No rules yet</string>
+    <plurals name="custom_rules_status_on_active">
+        <item quantity="one">On · %1$d active rule</item>
+        <item quantity="other">On · %1$d active rules</item>
+    </plurals>
+    <plurals name="custom_rules_status_on_disabled">
+        <item quantity="one">On · no active rules (%1$d disabled)</item>
+        <item quantity="other">On · no active rules (%1$d disabled)</item>
+    </plurals>
+    <plurals name="custom_rules_status_off_paused">
+        <item quantity="one">Off · %1$d enabled rule paused</item>
+        <item quantity="other">Off · %1$d enabled rules paused</item>
+    </plurals>
+    <plurals name="custom_rules_status_off_disabled">
+        <item quantity="one">Off · %1$d disabled rule</item>
+        <item quantity="other">Off · %1$d disabled rules</item>
+    </plurals>
     <string name="custom_rules_empty_description">Create a rule from scratch or start with a ready-made template.</string>
     <string name="custom_rules_library">Your rule library</string>
     <string name="custom_rules_library_description">Rules run offline in the order shown below.</string>
@@ -491,5 +570,76 @@
     <string name="error_rule_file_too_large">The selected rule file is too large</string>
     <string name="error_rule_import">Could not import rules: %1$s</string>
     <string name="error_rule_export">Could not export rules: %1$s</string>
+
+    <!-- Local backup & restore -->
+    <string name="data_and_backup">Data &amp; backup</string>
+    <string name="history_limit_update_failed">Could not update the History limit</string>
+    <string name="local_backup_section">Backup &amp; restore</string>
+    <string name="local_backup_description">Includes app settings, custom rules, frontend and reader choices, and saved app choices. URL history and the Android default-browser role are not included.</string>
+    <string name="local_backup_export">Back up to file</string>
+    <string name="local_backup_restore">Restore from file</string>
+    <string name="local_backup_warning_title">Create unencrypted backup?</string>
+    <string name="local_backup_warning_message">The backup is an unencrypted JSON file. It may contain private domains, test URLs, custom frontend domains, saved hosts, and package names.\n\nIncluded\n• Settings\n• History on/off and limit\n• Custom rules\n• Frontend and reader roster\n• Saved app choices\n\nNot included\n• URL history entries\n• Android default-browser role\n• Installed apps\n• Rule-import rollback snapshots</string>
+    <string name="local_backup_restore_confirm_title">Restore backup?</string>
+    <string name="local_backup_restore_confirm_message">This replaces all backed-up settings, custom rules, and saved app choices on this device.\n\nBackup: v%1$s from %2$s\nCustom rules: %3$d\nSaved app choices: %4$d\nHistory: %5$s · limit %6$d\n\nURL history entries are not restored. Existing entries remain and will be trimmed if the restored limit is lower. The Android default-browser role is not restored.</string>
+    <string name="local_backup_replace_settings">Replace settings</string>
+    <string name="local_backup_history_on">On</string>
+    <string name="local_backup_history_off">Off</string>
+    <string name="local_backup_restoring_title">Restoring settings…</string>
+    <string name="local_backup_restoring_message">Applying and verifying the backup. Keep this screen open until restore finishes.</string>
+    <string name="local_backup_restore_success">Settings restored from backup</string>
+    <string name="local_backup_restore_failed">Could not restore backup</string>
+    <string name="local_backup_export_success">Backup saved</string>
+    <string name="local_backup_export_failed">Could not create backup</string>
+    <string name="local_backup_file_too_large">The selected backup file is too large</string>
+    <string name="local_backup_invalid">The selected file is not a valid FixupXer backup</string>
+    <string name="local_backup_date_unknown">Unknown date</string>
+
+    <!-- Remembered destinations -->
+    <string name="saved_app_choices">Saved app choices</string>
+    <string name="saved_app_choices_description">Remember which app or browser should open each exact website host. Available only with “Ask what to do”; not used for Share or Paste.</string>
+    <string name="saved_app_choices_none">No saved app choices</string>
+    <string name="saved_app_choices_requires_ask">Requires “Ask what to do”</string>
+    <plurals name="saved_app_choices_ready">
+        <item quantity="one">%1$d saved choice · used when asking what to do</item>
+        <item quantity="other">%1$d saved choices · used when asking what to do</item>
+    </plurals>
+    <plurals name="saved_app_choices_browser_off">
+        <item quantity="one">%1$d saved choice · Browser mode is off</item>
+        <item quantity="other">%1$d saved choices · Browser mode is off</item>
+    </plurals>
+    <plurals name="saved_app_choices_setup_incomplete">
+        <item quantity="one">%1$d saved choice · Browser setup is incomplete</item>
+        <item quantity="other">%1$d saved choices · Browser setup is incomplete</item>
+    </plurals>
+    <plurals name="saved_app_choices_automatic">
+        <item quantity="one">%1$d saved choice · requires “Ask what to do”</item>
+        <item quantity="other">%1$d saved choices · require “Ask what to do”</item>
+    </plurals>
+    <string name="remembered_destinations_manage">Saved app choices</string>
+    <string name="remembered_destinations_title">Saved app choices</string>
+    <string name="remembered_destinations_scope">Saved app choices apply only to exact website hosts in Browser mode with “Ask what to do” after-clean behavior. They are not used for Share or Paste.</string>
+    <string name="remembered_destinations_empty">No app choices saved yet. Choose “Always use app for this host” while using “Ask what to do” to save one.</string>
+    <plurals name="remembered_destinations_count">
+        <item quantity="one">%d remembered destination</item>
+        <item quantity="other">%d remembered destinations</item>
+    </plurals>
+    <string name="remembered_route_kind_native">Native app</string>
+    <string name="remembered_route_kind_browser">Browser</string>
+    <string name="saved_app_choice_label_unavailable">App label unavailable</string>
+    <string name="saved_app_choice_not_installed">App not installed on this device</string>
+    <string name="saved_app_choice_delete_content_description">Delete saved app choice for %1$s</string>
+    <string name="remembered_destinations_delete_all">Delete all</string>
+    <string name="remembered_destinations_delete_all_title">Delete all saved app choices?</string>
+    <string name="remembered_destinations_delete_all_message">This removes every host-specific app choice. “Ask what to do” / “Try actions automatically” behavior is unchanged.</string>
+    <string name="remembered_destinations_delete_one_title">Delete saved app choice?</string>
+    <string name="remembered_destinations_delete_one_message">Remove the saved app choice for %1$s?</string>
+    <string name="action_remember_for_host">Always use app for this host</string>
+    <string name="remembered_route_picker_title">Choose app for this host</string>
+    <string name="remembered_route_picker_empty">No compatible native apps or browsers are available for this link.</string>
+    <string name="remembered_route_candidate_label">%1$s (%2$s)</string>
+    <string name="remembered_route_host_invalid">Could not determine a host for this link</string>
+    <string name="remembered_route_save_failed">Could not save destination</string>
+    <string name="remembered_route_launch_failed">Saved destination could not be opened</string>
     
 </resources>

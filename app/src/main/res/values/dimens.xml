@@ -73,6 +73,7 @@
     <dimen name="dialog_min_height">200dp</dimen>
     <dimen name="dialog_empty_state_height">200dp</dimen>
     <dimen name="bottom_sheet_corner_radius">28dp</dimen>
+    <dimen name="settings_content_max_width">720dp</dimen>
     
     <!-- Toggle layout dimensions -->
     <dimen name="toggle_margin_top">12dp</dimen>

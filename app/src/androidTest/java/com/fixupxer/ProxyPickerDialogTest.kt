@@ -98,6 +98,14 @@ class ProxyPickerDialogTest {
     }
 
     @Test
+    fun fullPickerShowsDecorativeDragHandle() {
+        ActivityScenario.launch(MainActivity::class.java).use {
+            openXPicker()
+            onView(withId(R.id.proxyPickerDragHandle)).check(matches(isDisplayed()))
+        }
+    }
+
+    @Test
     fun xGroupsRenderInCatalogOrder() {
         ActivityScenario.launch(MainActivity::class.java).use {
             openXPicker()

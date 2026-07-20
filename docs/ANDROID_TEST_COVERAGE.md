@@ -1,4 +1,36 @@
-# Android Test Coverage for FixupXer v2.3.0
+# Android Test Coverage for FixupXer v2.4.0
+
+## v2.4.0 delta (July 20, 2026)
+
+Current verification is **607 unit / 228 instrumentation tests**, all passing
+on `Pixel_API_35_Play`. Delta vs the v2.3.0 release inventory (380 / 201):
+
+- **Added (unit)**: local-backup codec/manager incl. rollback-marker recovery
+  (`LocalBackupCodecTest`, `LocalBackupManagerTest`), backup ViewModel theme
+  acknowledgement (`SettingsBackupViewModelTest`), Browser alias transaction
+  and reconcile (`BrowserAliasTransactionTest`), view-gate semantics
+  (`BrowserViewGateTest`), settings/browser status resolvers
+  (`SettingsStatusResolverTest`, `BrowserSettingsStateResolverTest`,
+  `BrowserDefaultStatusTest`), remembered-route persistence and invalidation
+  (`RememberedRoutesPreferenceTest`), history limits and legacy migration
+  (`HistoryPreferencesTest`, `HistoryDialogHelperTest`), tracking-cleaning
+  invariant (`TrackingCleaningInvariantTest`), browser privacy targets and
+  recovery (`BrowserPrivacyEndToEndTest`,
+  `BrowserConversionDefaultsRecoveryTest`), bottom-sheet dialog behavior
+  (`AnimatedBottomSheetDialogTest`, `BottomSheetLayoutTest`,
+  `SavedAppChoicesLayoutTest`), configuration status summary
+  (`ConfigurationStatusSummaryTest`), dominant-hand layout helpers
+  (`DominantHandLayoutHelperTest`, `DominantHandPreferenceTest`,
+  `SmartFooterHelperTest`).
+- **Added (instrumentation)**: `SettingsRegressionTest` (backup/restore and
+  Browser navigation surfaces), `DominantHandLayoutInstrumentedTest`; expanded
+  `SettingsTest`, `BrowserModeTest`, and `ProxyPickerDialogTest` for the
+  dedicated Browser mode screen, privacy readers, and saved app choices.
+- **Updated**: repository suites for always-on tracking cleaning and
+  pending-legacy history trimming (`LinkGuardRepositoryTest`,
+  `PostCleanRunnerRouteTest` programmatic dialog dismissal).
+
+The versioned v2.3.0 release inventory remains below.
 
 ## Overview
 This document is the canonical test inventory (unit, instrumentation, and URL conversion matrix) covering all major features through v2.3.0. v2.3.0 adds selective Bilibili and Yahoo/Guce cleaning plus GeoRiot/Geniuslink and LinkSynergy/Rakuten offline redirect unwrapping while retaining the keep-unknown, zero-permission offline model.

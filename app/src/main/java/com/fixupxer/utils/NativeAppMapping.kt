@@ -98,7 +98,11 @@ object NativeAppMapping {
         return false
     }
 
-    private fun isReaderOnlyUrl(url: String, host: String): Boolean {
+    /**
+     * True when the FINAL url points at a reader-only destination, including the
+     * Farside/nitter path form that [isReaderOnlyHost] alone cannot detect.
+     */
+    fun isReaderOnlyUrl(url: String, host: String): Boolean {
         if (UrlNormalizer.hostMatchesDomain(host, Constants.FARSIDE_DOMAIN)) {
             return PlatformDomainConverter.isFarsideNitterUrl(url)
         }

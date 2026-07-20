@@ -13,14 +13,26 @@ FixupXer removes known tracking parameters from URLs using registered, host-boun
 
 ## URL Conversion Platforms
 
-These platforms support both tracking parameter removal AND URL conversion to alternative domains:
+These platforms support both tracking parameter removal AND URL conversion to
+alternative frontends. The in-app picker separates **Embed frontends** (better
+previews in chat apps) from **Privacy frontends** (read without an account;
+grouped as Recommended, Automatic picker, Community instances, or
+Experimental), and every platform accepts user-added custom domains. Each
+platform remembers its own selection; conversion toggles are off by default.
 
 ### Social Media & Communication
 - **Facebook** - Removes known Facebook tracking keys and converts to facebookez.com for better embedding
-- **Instagram** - Removes known Instagram tracking keys and converts to a user-selectable proxy for better embedding: `toinstagram.com` (default, Primary), `adamlikes.men` (Primary), `instagram7.com` / `kkinstagram.com` (Backup), or any user-added custom proxy. Converted links are sent without the `www.` prefix because these proxies render best at the bare hostname. The legacy proxy `eeinstagram.com` is still recognised in pasted URLs and auto-converted to the active proxy.
-- **Twitter/X** - Removes known Twitter/X tracking keys and converts to fixupx.com for better embedding
-- **Bluesky** - Converts supported `bsky.app` post URLs to fxbsky.app for better embedding
+- **Instagram** - Removes known Instagram tracking keys and converts to a user-selectable frontend. Embed proxies: `toinstagram.com` (default), `adamlikes.men`, `instagram7.com`, `kkinstagram.com`, or any user-added custom proxy. Experimental readers: `kittygr.am`, `kg.meowing.de`, `kittygram.kareem.one`. Converted links are sent without the `www.` prefix because these proxies render best at the bare hostname. The legacy proxy `eeinstagram.com` is still recognised in pasted URLs and auto-converted to the active frontend.
+- **Twitter/X** - Removes known Twitter/X tracking keys and converts to a user-selectable frontend. Embed: `fixupx.com` (default). Readers: `xcancel.com`, `nitter.net`, `twitterviewer.net`; automatic instance pickers `twiiit.com` and `farside.link/nitter`; community Nitter instances `nitter.catsarch.com`, `nitter.tiekoetter.com`, `nitter.kareem.one`, `nitter.privacyredirect.com`, `nuku.trabun.org`. The legacy proxies `fxtwitter.com` and `vxtwitter.com` are still recognised and auto-converted to the active frontend.
+- **Bluesky** - Converts supported `bsky.app` post URLs to a user-selectable frontend. Embed: `fxbsky.app` (default). Readers: `skylib.coffee`, `skylib.catsarch.com`.
 - **TikTok** - Removes known TikTok tracking keys and converts to a user-selectable proxy for better embedding: `tnktok.com` (default, Primary), `tfxktok.com` (Primary), `tiktokez.com` / `kktiktok.com` (Backup), or any user-added custom proxy. Subdomains are preserved (`vm.tiktok.com` → `vm.tnktok.com`) so short links keep working. The dead services `vxtiktok.com` and `tiktxk.com` are still recognised in pasted URLs and auto-converted to the active proxy.
+- **Reddit** - Removes known Reddit tracking keys, extracts `out.reddit.com` redirect destinations, and converts to a user-selectable reader: `redlib.catsarch.com` (default), `redlib.privacyredirect.com`, `redlib.nadeko.net`, `redlib.privadency.com`, `safereddit.com` (SFW only); community Redlib instances `red.artemislena.eu`, `redlib.r4fo.com`, `redlib.cow.rip`.
+- **YouTube** - Removes known YouTube tracking keys and converts to experimental Invidious readers: `inv.nadeko.net` (default), `invidious.nerdvpn.de`.
+- **Pinterest** - Removes `e_t`, `e_t_s`, `e_t_cs`, `ouuid`, and `pin_unauth`, and converts to the `pinterest.bunk.im` reader.
+- **Threads** - Removes `igshid` and `xmt`, and converts to the experimental Shoelace reader `shoelace.mint.lgbt`.
+
+Browser mode uses its own separate Reader-only selections for X/Twitter,
+Bluesky, Reddit, and Pinterest — see the Browser Mode Guide.
 
 ## Tracking Parameter Removal Platforms
 
@@ -28,14 +40,10 @@ These registered platforms support host-bound tracking parameter removal:
 
 ### Social Media & Communication
 - **LinkedIn** - Removes known LinkedIn tracking keys
-- **Reddit** - Removes known Reddit tracking keys and extracts `out.reddit.com` redirect destinations
-- **Threads** - Removes `igshid` and `xmt`
-- **Pinterest** - Removes `e_t`, `e_t_s`, `e_t_cs`, `ouuid`, and `pin_unauth`
 - **Snapchat** - Removes `share_id`
 - **WhatsApp** - Removes `link_source` and `link_medium`
 
 ### Video & Streaming
-- **YouTube** - Removes known YouTube tracking keys
 - **Twitch** - Removes `tt_medium` and `tt_content`
 - **Spotify** - Removes `si`, `dl_branch`, and `dl_mobileapp`; keeps `context` and `uri`
 - **Netflix** - Removes `trkid` and `tctx`
@@ -93,11 +101,13 @@ It intentionally preserves non-universal keys such as `ref`, `source`, `si`,
 
 ### URL Conversion Behavior
 - **Facebook URLs** are converted to facebookez.com for better embedding and privacy by user decision (with automatic prefix removal)
-- **Instagram URLs** are converted to a user-selected proxy (toinstagram.com / adamlikes.men / instagram7.com / kkinstagram.com / custom) for better embedding and privacy by user decision
-- **Twitter/X URLs** are converted to fixupx.com for better embedding and privacy by user decision
-- **Bluesky post URLs** are converted to fxbsky.app for better embedding and privacy by user decision
-- **TikTok URLs** are converted to a user-selected proxy (tnktok.com / tfxktok.com / tiktokez.com / kktiktok.com / custom) for better embedding and privacy by user decision
+- **Instagram URLs** are converted to a user-selected embed proxy, experimental reader, or custom domain by user decision
+- **Twitter/X URLs** are converted to the fixupx.com embed frontend, a user-selected reader (xcancel, Nitter instances, automatic pickers), or a custom domain by user decision
+- **Bluesky post URLs** are converted to the fxbsky.app embed frontend, a SkyLib reader, or a custom domain by user decision
+- **TikTok URLs** are converted to a user-selected embed proxy or custom domain by user decision
+- **Reddit, YouTube, Pinterest, and Threads URLs** are converted to user-selected reader frontends or custom domains by user decision (off by default)
 - All other platforms only have tracking parameters removed
+- Conversions are pure local string transformations; FixupXer never contacts any frontend service
 
 ### Parameter Preservation
 The app preserves essential parameters needed for functionality:

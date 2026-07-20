@@ -31,7 +31,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewTreeObserver
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -46,6 +45,9 @@ import com.fixupxer.ui.helpers.SmartFooterHelper
 import com.fixupxer.ui.helpers.SnackbarHelper
 import com.fixupxer.ui.helpers.UrlActionHelper
 import com.fixupxer.ui.helpers.UrlDiffHelper
+import com.fixupxer.utils.BrowserModeUtils
+import com.fixupxer.utils.BrowserViewGate
+import com.fixupxer.utils.BrowserViewHandoffPolicy
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InputValidator
 import com.fixupxer.domain.repository.HistoryRepository
@@ -56,6 +58,7 @@ import com.fixupxer.ui.helpers.PlatformToggleHelper
 import com.fixupxer.utils.PostCleanRunner
 import com.fixupxer.domain.repository.UrlRepository
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -72,6 +75,8 @@ class MainActivity : BaseActivity() {
     private lateinit var urlTextWatcher: TextWatcher
     private var footerLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
     private var textValidationJob: kotlinx.coroutines.Job? = null
+    private var viewIntentJob: Job? = null
+    private var activePostCleanRunner: PostCleanRunner? = null
     
     @Inject
     lateinit var historyRepository: HistoryRepository
@@ -121,6 +126,10 @@ class MainActivity : BaseActivity() {
     
     private fun handleViewIntentIfPresent(intent: Intent?) {
         if (intent?.action == Intent.ACTION_VIEW && intent.data != null) {
+            viewIntentJob?.cancel()
+            activePostCleanRunner?.dismissActiveDialog()
+            activePostCleanRunner = null
+
             val uri = intent.data
             val scheme = uri?.scheme
             
@@ -128,9 +137,21 @@ class MainActivity : BaseActivity() {
             
             // Only handle http and https schemes
             if (scheme == "http" || scheme == "https") {
-                lifecycleScope.launch {
+                val originalUrl = uri.toString()
+                val preferenceEnabled = preferencesManager.isBrowserModeEnabled()
+                val aliasEnabled = BrowserModeUtils.isBrowserAliasEnabled(this)
+                val gateSnapshot = BrowserViewGate.begin(preferenceEnabled, aliasEnabled)
+                if (gateSnapshot == null) {
+                    Timber.w(
+                        "Skipping VIEW processing because Browser mode state is inconsistent " +
+                            "(preference=$preferenceEnabled, alias=$aliasEnabled)"
+                    )
+                    handoffOriginalUrl(originalUrl)
+                    return
+                }
+
+                viewIntentJob = lifecycleScope.launch {
                     try {
-                        val originalUrl = uri.toString()
                         // Gate only: the validator's *output* is URL-decoded, and
                         // UrlProcessor decodes again, so we must pass the ORIGINAL
                         // URI string onward to avoid double-decoding %-encoded URLs.
@@ -139,17 +160,16 @@ class MainActivity : BaseActivity() {
                         }
                         if (validated == null) {
                             Timber.w("VIEW intent URL rejected by validator")
-                            // Toast, not Snackbar: the activity finishes immediately,
-                            // taking any Snackbar down with it.
-                            Toast.makeText(
-                                this@MainActivity,
-                                getString(R.string.error_processing_url),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            finish()
+                            handoffOriginalUrl(originalUrl)
                             return@launch
                         }
-                        
+
+                        if (!isBrowserViewGateValid(gateSnapshot)) {
+                            Timber.w("Browser VIEW gate changed before URL processing")
+                            handoffOriginalUrl(originalUrl)
+                            return@launch
+                        }
+
                         // Clean the URL using browser-specific preferences
                         val result = urlRepository.processUrlForBrowser(originalUrl)
                         val cleanedUri = Uri.parse(result.url)
@@ -158,24 +178,57 @@ class MainActivity : BaseActivity() {
                             "VIEW URL processed (host=${cleanedUri.host ?: "unknown"}, " +
                                 "length=${result.url.length})"
                         )
-                        
+
+                        if (!isBrowserViewGateValid(gateSnapshot)) {
+                            Timber.w("Browser VIEW gate changed before after-clean dispatch")
+                            handoffOriginalUrl(originalUrl)
+                            return@launch
+                        }
+
                         // Run post-clean action
                         val postCleanRunner = PostCleanRunner(this@MainActivity, preferencesManager)
-                        postCleanRunner.run(cleanedUri) {
+                        activePostCleanRunner = postCleanRunner
+                        postCleanRunner.run(cleanedUri, result.routingHost) {
                             // Finish only after the user has made a choice in ask mode.
-                            finish()
+                            if (activePostCleanRunner === postCleanRunner) {
+                                activePostCleanRunner = null
+                                finish()
+                            }
                         }
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to handle VIEW intent")
-                        Toast.makeText(
-                            this@MainActivity,
-                            getString(R.string.error_processing_url),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        finish()
+                        handoffOriginalUrl(originalUrl)
                     }
                 }
             }
+        }
+    }
+
+    private fun isBrowserViewGateValid(
+        snapshot: com.fixupxer.utils.BrowserViewGateSnapshot,
+    ): Boolean = BrowserViewGate.isValid(
+        snapshot = snapshot,
+        preferenceEnabled = preferencesManager.isBrowserModeEnabled(),
+        aliasEnabled = BrowserModeUtils.isBrowserAliasEnabled(this),
+    )
+
+    private fun handoffOriginalUrl(originalUrl: String) {
+        binding.editTextUrl.removeTextChangedListener(urlTextWatcher)
+        binding.editTextUrl.setText(originalUrl)
+        binding.editTextUrl.addTextChangedListener(urlTextWatcher)
+        viewModel.showOriginalForManualFallback(originalUrl)
+
+        val opened = UrlActionHelper.openUrlInExternalBrowser(
+            binding.root,
+            this,
+            originalUrl,
+        )
+        if (BrowserViewHandoffPolicy.shouldFinish(opened)) {
+            finish()
+        } else {
+            Timber.w("External browser handoff failed; keeping original URL available")
         }
     }
     
@@ -259,6 +312,10 @@ class MainActivity : BaseActivity() {
     }
     
     override fun onDestroy() {
+        viewIntentJob?.cancel()
+        viewIntentJob = null
+        activePostCleanRunner?.dismissActiveDialog()
+        activePostCleanRunner = null
         footerLayoutListener?.let {
             binding.mainScrollView.parent?.let { parent ->
                 (parent as? View)?.viewTreeObserver?.removeOnGlobalLayoutListener(it)

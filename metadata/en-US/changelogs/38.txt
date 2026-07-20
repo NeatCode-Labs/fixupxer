@@ -1,0 +1,11 @@
+v2.4.0 - Browser mode hub and local backup
+
+ Dedicated Browser mode settings screen with live status
+ Privacy reader conversions for X, Bluesky, Reddit, Pinterest
+ New reader frontends and custom domains on Main/Share
+ Save which app opens each site host in Ask mode
+ Configuration status overview in Settings
+ Backup and restore settings, custom rules, and app choices
+ Left- or right-handed action layout
+ History limit guided to the supported 1-10,000 range
+ Tracking cleaning is now always on

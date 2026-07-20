@@ -111,6 +111,13 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.BrowserSettingsActivity"
+            android:theme="@style/Theme.FixupXer"
+            android:label="@string/browser_settings_title"
+            android:parentActivityName=".ui.SettingsActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.CustomRulesActivity"
             android:theme="@style/Theme.FixupXer"
             android:label="@string/custom_rules_title"

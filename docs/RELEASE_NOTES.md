@@ -1,3 +1,82 @@
+# FixupXer v2.4.0 - Browser Mode Hub, Privacy Readers & Local Backup
+
+## What's New
+
+### Dedicated Browser Mode Screen
+All Browser-mode settings now live on their own screen under **Settings >
+Configure Browser mode**: the **Enable Browser mode** switch, the **After
+processing an opened link** choice (**Ask what to do** or **Try actions
+automatically** with a reorderable **Action order**), **Saved app choices**,
+and **Configure privacy readers**. The main Settings screen stays compact and
+shows a live status line for the whole Browser feature.
+
+### Alternative Frontends on Main and Share
+The conversion picker on the Main and Share screens now separates **Embed
+frontends** (better previews in chat apps) from **Privacy frontends** (read
+without an account) and covers more platforms. X/Twitter and Bluesky gain
+selectable reader frontends (xcancel, Nitter instances, automatic instance
+pickers, SkyLib) next to their embed defaults, while Reddit, YouTube,
+Pinterest, and Threads gain new reader conversions (Redlib, SafeReddit,
+Invidious, and more — off by default, some marked Experimental). Custom
+domains can now be added for every platform, and each platform remembers its
+own selection.
+
+### Browser Privacy Readers
+Browser mode no longer shares frontend choices with the Main/Share conversion
+toggles. Instead, four platforms — X/Twitter, Bluesky, Reddit, and Pinterest —
+can be converted to privacy-oriented reader frontends through their own
+per-platform switches and Reader pickers. Platforms without an active Reader
+fall back to cleaning only; embed domains are never used in Browser mode.
+
+### Saved App Choices
+While using **Ask what to do**, pick **Always use app for this host** to save
+which native app or browser should open links from an exact website host.
+Saved choices are applied before the action picker, can be reviewed and
+deleted on the Browser mode screen, and stay inactive outside Browser mode.
+
+### Configuration Status
+A read-only **Configuration status** dialog at the top of Settings summarizes
+link cleaning, Custom rules, the Browser alias, the Android default-browser
+role (with an explicit *Unable to verify* state), active privacy readers, and
+after-clean behavior — including attention markers when something needs a fix.
+
+### Local Settings Backup
+**Settings > Backup & restore** exports a versioned JSON file with settings,
+custom rules, and saved app choices through Android's system file picker.
+Restore validates the whole file first, applies everything atomically with
+automatic rollback on failure, and even recovers cleanly if the process is
+killed mid-restore. URL history entries are never included.
+
+### Handed Action Layouts
+A new **Dominant hand** setting mirrors main action buttons and footer
+controls for left- or right-handed use.
+
+### History Limits
+The history size dialog now enforces a supported range of 1–10,000 entries,
+and history is always trimmed to your limit. Users upgrading with an
+out-of-range legacy limit get a guided one-tap migration to the nearest
+supported value.
+
+### Reliability and Privacy Hardening
+- Tracking cleaning is now an invariant: it is always on and no longer
+  exposed as a toggle anywhere in the app.
+- Browser alias changes are transactional with automatic rollback, and the
+  alias is reconciled with preferences at every app start.
+- In-flight Browser VIEW handling is invalidated whenever routing-related
+  settings change, and rapid consecutive links can no longer stack dialogs.
+- Theme restore after a backup import is deterministic — no timers, no
+  duplicate confirmation messages.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 38
+- versionName: 2.4.0
+- Unit tests: 607 / 607 passing. Instrumentation: 228 / 228 passing on
+  `Pixel_API_35_Play`.
+
+---
+
 # FixupXer v2.3.0 - International Cleaning & Affiliate Redirects
 
 ## What's New

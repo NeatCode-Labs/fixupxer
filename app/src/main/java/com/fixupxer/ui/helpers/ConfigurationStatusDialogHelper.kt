@@ -28,9 +28,10 @@ import com.fixupxer.R
 import com.fixupxer.databinding.DialogConfigurationStatusBinding
 import com.fixupxer.databinding.ItemConfigurationStatusRowBinding
 import com.fixupxer.utils.AlternativeFrontendCatalog
-import com.fixupxer.utils.BrowserModeUtils
+import com.fixupxer.utils.CustomRulesEffectiveStatus
 import com.fixupxer.utils.DefaultBrowserStatus
 import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.utils.SettingsStatusResolver
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.R as AppCompatR
@@ -108,7 +109,12 @@ object ConfigurationStatusDialogHelper {
         aliasEnabled: Boolean,
         defaultStatus: DefaultBrowserStatus,
         privacyRouteState: PrivacyRouteState,
+        preferenceEnabled: Boolean = aliasEnabled,
+        aliasOperationFailed: Boolean = false,
     ): Int {
+        if (aliasOperationFailed || preferenceEnabled != aliasEnabled) {
+            return R.string.configuration_status_summary_mismatch
+        }
         return when (resolveIntegrationState(aliasEnabled, defaultStatus)) {
             IntegrationState.ALIAS_ON_NOT_DEFAULT ->
                 R.string.configuration_status_summary_alias_on_not_default
@@ -153,24 +159,31 @@ object ConfigurationStatusDialogHelper {
         preferencesManager: PreferencesManager,
         customRulesEnabled: Boolean,
         enabledRulesCount: Int,
+        disabledRulesCount: Int = 0,
+        aliasOperationFailed: Boolean = false,
     ) {
-        val aliasEnabled = BrowserModeUtils.isBrowserAliasEnabled(context)
-        val defaultStatus = BrowserModeUtils.getDefaultBrowserStatus(context)
-        val privacyRouteState = resolvePrivacyRouteState(preferencesManager)
+        val state = BrowserStatusTextHelper.resolveState(
+            context = context,
+            preferencesManager = preferencesManager,
+            aliasOperationFailed = aliasOperationFailed,
+        )
 
         val binding = DialogConfigurationStatusBinding.inflate(layoutInflater)
         binding.textSummary.setText(
-            summarize(aliasEnabled, defaultStatus, privacyRouteState),
+            BrowserStatusTextHelper.statusTextRes(state.effectiveStatus),
         )
         populateDetails(
             context = context,
             layoutInflater = layoutInflater,
             container = binding.detailsContainer,
-            aliasEnabled = aliasEnabled,
-            defaultStatus = defaultStatus,
+            preferenceEnabled = state.preferenceEnabled,
+            aliasEnabled = state.aliasEnabled,
+            defaultStatus = state.defaultBrowserStatus,
             preferencesManager = preferencesManager,
             customRulesEnabled = customRulesEnabled,
             enabledRulesCount = enabledRulesCount,
+            disabledRulesCount = disabledRulesCount,
+            aliasOperationFailed = aliasOperationFailed,
         )
 
         MaterialAlertDialogBuilder(context)
@@ -184,21 +197,28 @@ object ConfigurationStatusDialogHelper {
         context: Context,
         layoutInflater: LayoutInflater,
         container: LinearLayout,
+        preferenceEnabled: Boolean,
         aliasEnabled: Boolean,
         defaultStatus: DefaultBrowserStatus,
         preferencesManager: PreferencesManager,
         customRulesEnabled: Boolean,
         enabledRulesCount: Int,
+        disabledRulesCount: Int,
+        aliasOperationFailed: Boolean = false,
     ) {
         container.removeAllViews()
-        buildDetails(
+        val details = buildDetails(
             context = context,
+            preferenceEnabled = preferenceEnabled,
             aliasEnabled = aliasEnabled,
             defaultStatus = defaultStatus,
             preferencesManager = preferencesManager,
             customRulesEnabled = customRulesEnabled,
             enabledRulesCount = enabledRulesCount,
-        ).forEach { detail ->
+            disabledRulesCount = disabledRulesCount,
+            aliasOperationFailed = aliasOperationFailed,
+        )
+        details.forEach { detail ->
             val rowBinding = ItemConfigurationStatusRowBinding.inflate(
                 layoutInflater,
                 container,
@@ -222,22 +242,48 @@ object ConfigurationStatusDialogHelper {
         preferencesManager: PreferencesManager,
         customRulesEnabled: Boolean,
         enabledRulesCount: Int,
+        disabledRulesCount: Int = 0,
+        preferenceEnabled: Boolean = aliasEnabled,
+        aliasOperationFailed: Boolean = false,
     ): List<DetailLine> {
         val details = mutableListOf<DetailLine>()
-        details += browserIntegrationDetail(context, aliasEnabled, defaultStatus)
+        details += browserIntegrationDetail(
+            context = context,
+            preferenceEnabled = preferenceEnabled,
+            aliasEnabled = aliasEnabled,
+            defaultStatus = defaultStatus,
+            aliasOperationFailed = aliasOperationFailed,
+        )
         details += defaultBrowserDetail(context, aliasEnabled, defaultStatus)
         details += buildPrivacyConversionDetails(context, preferencesManager)
-        details += customRulesDetail(context, customRulesEnabled, enabledRulesCount)
+        details += customRulesDetail(
+            context,
+            customRulesEnabled,
+            enabledRulesCount,
+            disabledRulesCount,
+        )
+        details += trackingDetail(context)
         details += afterCleanDetail(context, preferencesManager.getActionMode())
+        details += DetailLine(
+            context.getString(R.string.configuration_status_verified_links_note),
+            DetailSemanticType.INFO,
+        )
         return details
     }
 
     private fun browserIntegrationDetail(
         context: Context,
+        preferenceEnabled: Boolean,
         aliasEnabled: Boolean,
         defaultStatus: DefaultBrowserStatus,
+        aliasOperationFailed: Boolean,
     ): DetailLine {
         return when {
+            aliasOperationFailed || preferenceEnabled != aliasEnabled ->
+                DetailLine(
+                    context.getString(R.string.configuration_status_summary_mismatch),
+                    DetailSemanticType.ATTENTION,
+                )
             aliasEnabled ->
                 DetailLine(
                     context.getString(R.string.configuration_status_detail_browser_on),
@@ -365,24 +411,55 @@ object ConfigurationStatusDialogHelper {
         context: Context,
         customRulesEnabled: Boolean,
         enabledRulesCount: Int,
+        disabledRulesCount: Int,
     ): DetailLine {
-        return if (customRulesEnabled) {
-            DetailLine(
-                context.getString(
-                    R.string.configuration_status_custom_rules_on,
+        val status = SettingsStatusResolver.resolveCustomRules(
+            masterEnabled = customRulesEnabled,
+            enabledCount = enabledRulesCount,
+            disabledCount = disabledRulesCount,
+        )
+        return when (status.status) {
+            CustomRulesEffectiveStatus.NO_RULES ->
+                DetailLine(
+                    context.getString(R.string.configuration_status_custom_rules_none),
+                    DetailSemanticType.OPTIONAL_OFF,
+                )
+            CustomRulesEffectiveStatus.ON_WITH_ACTIVE_RULES ->
+                DetailLine(
                     context.resources.getQuantityString(
-                        R.plurals.custom_rules_count,
-                        enabledRulesCount,
-                        enabledRulesCount,
+                        R.plurals.configuration_status_custom_rules_active,
+                        status.enabledCount,
+                        status.enabledCount,
                     ),
-                ),
-                DetailSemanticType.ACTIVE,
-            )
-        } else {
-            DetailLine(
-                context.getString(R.string.configuration_status_custom_rules_off),
-                DetailSemanticType.OPTIONAL_OFF,
-            )
+                    DetailSemanticType.ACTIVE,
+                )
+            CustomRulesEffectiveStatus.ON_WITHOUT_ACTIVE_RULES ->
+                DetailLine(
+                    context.resources.getQuantityString(
+                        R.plurals.configuration_status_custom_rules_on_disabled,
+                        status.disabledCount,
+                        status.disabledCount,
+                    ),
+                    DetailSemanticType.ATTENTION,
+                )
+            CustomRulesEffectiveStatus.OFF_WITH_PAUSED_RULES ->
+                DetailLine(
+                    context.resources.getQuantityString(
+                        R.plurals.configuration_status_custom_rules_paused,
+                        status.enabledCount,
+                        status.enabledCount,
+                    ),
+                    DetailSemanticType.INFO,
+                )
+            CustomRulesEffectiveStatus.OFF_WITH_DISABLED_RULES ->
+                DetailLine(
+                    context.resources.getQuantityString(
+                        R.plurals.configuration_status_custom_rules_disabled,
+                        status.disabledCount,
+                        status.disabledCount,
+                    ),
+                    DetailSemanticType.OPTIONAL_OFF,
+                )
         }
     }
 
@@ -397,4 +474,10 @@ object ConfigurationStatusDialogHelper {
             DetailSemanticType.INFO,
         )
     }
+
+    private fun trackingDetail(context: Context): DetailLine =
+        DetailLine(
+            context.getString(R.string.configuration_status_tracking_on),
+            DetailSemanticType.ACTIVE,
+        )
 }

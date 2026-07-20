@@ -107,6 +107,7 @@ class UrlProcessingOrchestrator @Inject constructor(
             if (post.redirectRequested) continue
 
             val beforeConversion = current
+            val routingHost = UrlNormalizer.extractAsciiHost(beforeConversion)
             val converted = domainConversionService.convert(
                 current,
                 options.convertDomains,
@@ -148,7 +149,8 @@ class UrlProcessingOrchestrator @Inject constructor(
                 rulesRevision = snapshot.revision,
                 trace = trace,
                 operations = operations.toList(),
-                cleanerCacheKeys = cacheKeys.toList()
+                cleanerCacheKeys = cacheKeys.toList(),
+                routingHost = routingHost,
             )
         }
 

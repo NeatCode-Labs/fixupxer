@@ -95,7 +95,7 @@ object BrowserConversionDefaultsHelper {
     ) {
         val draftTargetIds: MutableMap<ProxyPlatform, String?> = mutableMapOf()
         val draftToggles: MutableMap<ProxyPlatform, Boolean> = mutableMapOf()
-        private val initialDisabledBuiltIns: Map<ProxyPlatform, Set<String>>
+        val draftDisabledBuiltIns: MutableMap<ProxyPlatform, Set<String>> = mutableMapOf()
 
         init {
             entries.forEach { entry ->
@@ -105,21 +105,36 @@ object BrowserConversionDefaultsHelper {
                 draftTargetIds[entry.platform] =
                     preferencesManager.resolveBrowserPrivacyTarget(entry.platform)?.id
                 draftToggles[entry.platform] = entry.getter(preferencesManager)
-            }
-            initialDisabledBuiltIns = entries.associate { entry ->
-                entry.platform to preferencesManager.getDisabledBuiltIns(entry.platform)
+                draftDisabledBuiltIns[entry.platform] =
+                    preferencesManager.getDisabledBuiltIns(entry.platform)
             }
         }
 
         fun draftTarget(platform: ProxyPlatform): FrontendTarget? {
             val draftId = draftTargetIds[platform] ?: return null
             val target = AlternativeFrontendCatalog.byId(draftId) ?: return null
-            if (target.id in preferencesManager.getDisabledBuiltIns(platform)) return null
+            if (target.platform != platform || target.id in disabledBuiltIns(platform)) return null
             return target
         }
 
         fun displayTarget(platform: ProxyPlatform): FrontendTarget? =
-            draftTarget(platform) ?: preferencesManager.resolveBrowserPrivacyTarget(platform)
+            draftTarget(platform) ?: activeReaders(platform).firstOrNull()
+
+        fun disabledBuiltIns(platform: ProxyPlatform): Set<String> =
+            draftDisabledBuiltIns[platform].orEmpty()
+
+        fun activeReaders(platform: ProxyPlatform): List<FrontendTarget> =
+            AlternativeFrontendCatalog.builtInReaders(platform)
+                .filterNot { it.id in disabledBuiltIns(platform) }
+
+        fun restoreBuiltInReaders(platform: ProxyPlatform) {
+            val readerIds = AlternativeFrontendCatalog.builtInReaders(platform)
+                .mapTo(mutableSetOf()) { it.id }
+            draftDisabledBuiltIns[platform] = disabledBuiltIns(platform) - readerIds
+            if (draftTarget(platform) == null) {
+                draftTargetIds[platform] = activeReaders(platform).firstOrNull()?.id
+            }
+        }
 
         fun updateDraftTarget(platform: ProxyPlatform, target: FrontendTarget) {
             draftTargetIds[platform] = target.id
@@ -128,6 +143,7 @@ object BrowserConversionDefaultsHelper {
         fun apply(preferencesManager: PreferencesManager) {
             entries.forEach { entry ->
                 val platform = entry.platform
+                preferencesManager.setDisabledBuiltIns(platform, disabledBuiltIns(platform))
                 draftTargetIds[platform]?.let { targetId ->
                     preferencesManager.setBrowserPrivacyTargetId(platform, targetId)
                 }
@@ -135,19 +151,6 @@ object BrowserConversionDefaultsHelper {
                     entry.setter(preferencesManager, draftToggles[platform] == true)
                 } else {
                     entry.setter(preferencesManager, false)
-                }
-            }
-        }
-
-        /**
-         * Rolls back any in-dialog "Restore built-ins" roster change to the state
-         * captured when the draft was created. Called on every non-Save dismissal;
-         * must NOT be called after [apply], which commits the restored roster.
-         */
-        fun discardRosterChanges() {
-            initialDisabledBuiltIns.forEach { (platform, ids) ->
-                if (preferencesManager.getDisabledBuiltIns(platform) != ids) {
-                    preferencesManager.setDisabledBuiltIns(platform, ids)
                 }
             }
         }
@@ -200,7 +203,7 @@ object BrowserConversionDefaultsHelper {
 
         binding.textViewChangePrivacyTarget.isVisible = true
         binding.textViewChangePrivacyTarget.contentDescription = context.getString(
-            R.string.change_proxy_link_desc,
+            R.string.change_privacy_reader_desc,
             context.getString(FrontendDisplayHelper.platformNameRes(platform)),
         )
         binding.textViewChangePrivacyTarget.setOnClickListener {

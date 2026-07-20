@@ -123,16 +123,6 @@ interface UrlRepository {
     suspend fun setInstagramConversionEnabled(enabled: Boolean)
     
     /**
-     * Get the current state of tracking removal preference
-     */
-    fun isTrackingRemovalEnabled(): Flow<Boolean>
-    
-    /**
-     * Set tracking removal preference
-     */
-    suspend fun setTrackingRemovalEnabled(enabled: Boolean)
-    
-    /**
      * Get the current state of Twitter conversion preference
      */
     fun isTwitterConversionEnabled(): Flow<Boolean>

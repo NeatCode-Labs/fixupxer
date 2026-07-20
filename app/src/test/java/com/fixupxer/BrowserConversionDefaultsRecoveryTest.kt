@@ -82,7 +82,7 @@ class BrowserConversionDefaultsRecoveryTest {
             onChangePrivacyTarget = {},
         )
 
-        preferencesManager.restoreBuiltInReaders(ProxyPlatform.X)
+        draft.restoreBuiltInReaders(ProxyPlatform.X)
         val restoredReader = AlternativeFrontendCatalog.builtInReaders(ProxyPlatform.X).first()
         draft.updateDraftTarget(ProxyPlatform.X, restoredReader)
         BrowserConversionDefaultsHelper.refreshRows(
@@ -114,11 +114,12 @@ class BrowserConversionDefaultsRecoveryTest {
         }
 
         val draft = BrowserConversionDefaultsHelper.createDraft(preferencesManager)
-        preferencesManager.restoreBuiltInReaders(ProxyPlatform.X)
+        val initialDisabled = preferencesManager.getDisabledBuiltIns(ProxyPlatform.X)
+        draft.restoreBuiltInReaders(ProxyPlatform.X)
 
-        val disabledAfterRestore = preferencesManager.getDisabledBuiltIns(ProxyPlatform.X)
-        assertEquals(setOf(EMBED_X_ID), disabledAfterRestore)
-        assertEquals(setOf(EMBED_X_ID), ProxyRoster.getDisabledBuiltIns(ProxyPlatform.X))
+        assertEquals(initialDisabled, preferencesManager.getDisabledBuiltIns(ProxyPlatform.X))
+        assertEquals(initialDisabled, ProxyRoster.getDisabledBuiltIns(ProxyPlatform.X))
+        assertEquals(setOf(EMBED_X_ID), draft.disabledBuiltIns(ProxyPlatform.X))
 
         val restoredReader = AlternativeFrontendCatalog.builtInReaders(ProxyPlatform.X).first()
         draft.updateDraftTarget(ProxyPlatform.X, restoredReader)
@@ -129,7 +130,7 @@ class BrowserConversionDefaultsRecoveryTest {
     }
 
     @Test
-    fun `discard rolls an unsaved restore back to the initial disabled set`() {
+    fun `cancelled draft restore never mutates preferences or proxy roster`() {
         preferencesManager.setBrowserConvertTwitterEnabled(true)
         preferencesManager.disableBuiltIn(ProxyPlatform.X, EMBED_X_ID)
         AlternativeFrontendCatalog.builtInReaders(ProxyPlatform.X).forEach { reader ->
@@ -138,25 +139,23 @@ class BrowserConversionDefaultsRecoveryTest {
         val initialDisabled = preferencesManager.getDisabledBuiltIns(ProxyPlatform.X)
 
         val draft = BrowserConversionDefaultsHelper.createDraft(preferencesManager)
-        preferencesManager.restoreBuiltInReaders(ProxyPlatform.X)
-        assertTrue(preferencesManager.getDisabledBuiltIns(ProxyPlatform.X) != initialDisabled)
-
-        draft.discardRosterChanges()
+        draft.restoreBuiltInReaders(ProxyPlatform.X)
 
         assertEquals(initialDisabled, preferencesManager.getDisabledBuiltIns(ProxyPlatform.X))
         assertEquals(initialDisabled, ProxyRoster.getDisabledBuiltIns(ProxyPlatform.X))
+        assertEquals(setOf(EMBED_X_ID), draft.disabledBuiltIns(ProxyPlatform.X))
     }
 
     @Test
-    fun `discard is a no-op when the roster was not touched`() {
+    fun `new draft copies roster without mutating it`() {
         preferencesManager.disableBuiltIn(ProxyPlatform.X, EMBED_X_ID)
         val initialDisabled = preferencesManager.getDisabledBuiltIns(ProxyPlatform.X)
 
         val draft = BrowserConversionDefaultsHelper.createDraft(preferencesManager)
-        draft.discardRosterChanges()
 
         assertEquals(initialDisabled, preferencesManager.getDisabledBuiltIns(ProxyPlatform.X))
         assertEquals(initialDisabled, ProxyRoster.getDisabledBuiltIns(ProxyPlatform.X))
+        assertEquals(initialDisabled, draft.disabledBuiltIns(ProxyPlatform.X))
     }
 
     private companion object {

@@ -1,5 +1,45 @@
 # FixupXer Testing Report
 
+## v2.4.0 verification — July 20, 2026
+
+v2.4.0 splits Browser mode into a dedicated settings screen, adds Browser
+privacy readers with per-platform targets, exact-host saved app choices, a
+read-only Configuration status dialog, crash-safe local settings backup and
+restore, handed action layouts, guided legacy history-limit migration, and an
+always-on tracking-cleaning invariant. Final verification passes:
+
+- **607/607 unit tests** (`./gradlew test`, debug variant; release variant also
+  green)
+- **228/228 instrumentation tests** (`./gradlew connectedAndroidTest`) on
+  `Pixel_API_35_Play` / API 35
+- **Release lint** (`./gradlew lintRelease`)
+
+New coverage includes Browser alias transactions with rollback, view-gate
+revision/pause semantics incl. underflow protection, remembered-route and
+custom-rules invalidation, serialized VIEW intents without stacked dialogs,
+restore rollback-marker recovery (settings, rules, alias, pending legacy
+limit), deterministic post-restore theme acknowledgement, legacy history-limit
+migration UI and raw-limit trimming, tracking-cleaning invariant, settings
+status resolvers, bottom-sheet animation behavior, and saved-app-choices
+layout/regression suites. The verification history below is retained.
+
+## Post-v2.3.0 working-tree verification — July 19, 2026
+
+The current working tree adds versioned local settings backup/restore and
+exact-host remembered Browser-mode destinations. Final verification passes:
+
+- **546/546 unit tests** (`./gradlew test`)
+- **223/223 instrumentation tests** (`./gradlew connectedAndroidTest`) on
+  `Pixel_API_35_Play` / API 35
+- **Release lint** (`./gradlew lintRelease`)
+
+New coverage includes strict backup schema/size/settings/proxy/route validation,
+full custom-rule replacement and rollback, cross-device route persistence,
+IDN/exact-host normalization, Reader-native skip-without-delete, incompatible
+route removal with normal fallback, compatible app filtering, and Settings
+entries for backup and remembered destinations. This is a post-release
+working-tree result; the v2.3.0 release baseline remains recorded below.
+
 ## Test Execution Date
 July 18, 2026
 

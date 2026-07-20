@@ -21,8 +21,13 @@
 package com.fixupxer
 
 import android.app.Application
+import com.fixupxer.backup.LocalBackupManager
 import com.fixupxer.ui.helpers.ThemeHelper
+import com.fixupxer.utils.BrowserModeUtils
+import com.fixupxer.utils.BrowserViewGate
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -38,13 +43,11 @@ class FixupXerApplication : Application() {
     @Inject
     lateinit var preferencesManager: PreferencesManager
 
+    @Inject
+    lateinit var localBackupManager: LocalBackupManager
+
     override fun onCreate() {
         super.onCreate()
-
-        ThemeHelper.apply(preferencesManager.getThemeMode())
-        // Deliberately NOT applying DynamicColors: on Android 12+ wallpaper-based
-        // dynamic colors would override the hand-tuned M3 brand palette
-        // (colors.xml + values-night) that the redesign is built around.
 
         // Initialize Timber for logging
         if (BuildConfig.DEBUG) {
@@ -53,6 +56,29 @@ class FixupXerApplication : Application() {
             // Plant a tree that only logs errors in release builds
             Timber.plant(ReleaseTree())
         }
+
+        if (localBackupManager.hasInterruptedRestore()) {
+            BrowserViewGate.pause()
+            try {
+                // This rare startup-only path must finish before an Activity can read a
+                // partially restored settings/rules pair. Room work stays on IO.
+                runBlocking(Dispatchers.IO) {
+                    localBackupManager.recoverInterruptedRestore()
+                        .onFailure { Timber.e(it, "Interrupted restore recovery failed") }
+                }
+            } finally {
+                BrowserViewGate.resume()
+            }
+        }
+
+        ThemeHelper.apply(preferencesManager.getThemeMode())
+        // Deliberately NOT applying DynamicColors: on Android 12+ wallpaper-based
+        // dynamic colors would override the hand-tuned M3 brand palette
+        // (colors.xml + values-night) that the redesign is built around.
+
+        // Cloud/local preference restore can outlive PackageManager component state.
+        // Reconcile before any Activity can accept a Browser VIEW intent.
+        BrowserModeUtils.reconcileBrowserAlias(this, preferencesManager)
         
         Timber.d("FixupXer Application initialized")
     }

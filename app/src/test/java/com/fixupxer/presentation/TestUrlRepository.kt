@@ -33,8 +33,6 @@ internal class TestUrlRepository : UrlRepository {
     val youtubeFlow = MutableStateFlow(false)
     val pinterestFlow = MutableStateFlow(false)
     val threadsFlow = MutableStateFlow(false)
-    val trackingFlow = MutableStateFlow(true)
-
     var processResult: ProcessedUrlResult = ProcessedUrlResult("", false)
     var processHandler: ((String, Boolean, String?) -> ProcessedUrlResult)? = null
 
@@ -97,12 +95,6 @@ internal class TestUrlRepository : UrlRepository {
 
     override suspend fun setInstagramConversionEnabled(enabled: Boolean) {
         instagramFlow.value = enabled
-    }
-
-    override fun isTrackingRemovalEnabled() = trackingFlow
-
-    override suspend fun setTrackingRemovalEnabled(enabled: Boolean) {
-        trackingFlow.value = enabled
     }
 
     override fun isTwitterConversionEnabled() = twitterFlow

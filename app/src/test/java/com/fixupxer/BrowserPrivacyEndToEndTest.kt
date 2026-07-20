@@ -64,7 +64,6 @@ class BrowserPrivacyEndToEndTest {
         context = RuntimeEnvironment.getApplication()
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().commit()
         preferencesManager = PreferencesManager(context).apply {
-            setCleanTrackingEnabled(false)
             setHistoryEnabled(false)
             setBrowserConvertTwitterEnabled(true)
             setBrowserConvertBlueskyEnabled(true)

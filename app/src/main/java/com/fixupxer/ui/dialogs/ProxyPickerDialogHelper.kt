@@ -46,8 +46,6 @@ import com.fixupxer.utils.FrontendRole
 import com.fixupxer.utils.FrontendTarget
 import com.fixupxer.utils.ProxyPlatform
 import com.fixupxer.utils.ProxyRoster
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -90,7 +88,7 @@ object ProxyPickerDialogHelper {
     ) {
         val binding = DialogProxyPickerBinding.inflate(layoutInflater)
         var editMode = false
-        var dialog: BottomSheetDialog? = null
+        var dialog: AnimatedBottomSheetDialog? = null
 
         lateinit var adapter: ProxyPickerAdapter
 
@@ -133,7 +131,7 @@ object ProxyPickerDialogHelper {
                 if (editMode) return@ProxyPickerAdapter
                 preferencesManager.setSelectedProxyDomain(platform, target.domain)
                 onChanged()
-                dialog?.dismiss()
+                dialog?.dismissAnimated()
             },
             onDeleteClick = { target ->
                 handleDelete(
@@ -190,11 +188,8 @@ object ProxyPickerDialogHelper {
 
         refresh()
 
-        dialog = BottomSheetDialog(context).apply {
+        dialog = AnimatedBottomSheetDialog(context).apply {
             setContentView(binding.root)
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            behavior.skipCollapsed = true
-            behavior.isDraggable = true
             show()
         }
     }
@@ -202,27 +197,25 @@ object ProxyPickerDialogHelper {
     /**
      * Selection-only picker for Browser privacy Reader targets.
      *
-     * The empty-state restore action re-enables only the platform's built-in
-     * READER targets (never embed/automatic ones) and reports it through
-     * [onRosterRestored] so the calling dialog can refresh its rows. The caller
-     * owns draft Save/Cancel semantics and may roll the restore back.
+     * The caller supplies the staged disabled roster. Restore is reported through
+     * [onRestoreReaders] and never mutates preferences from this nested picker.
      */
     fun showPrivacySelection(
         context: Context,
         layoutInflater: LayoutInflater,
         platform: ProxyPlatform,
-        preferencesManager: PreferencesManager,
         selectedTargetId: String?,
-        onRosterRestored: () -> Unit = {},
+        disabledBuiltIns: () -> Set<String>,
+        onRestoreReaders: () -> Unit,
         onSelected: (FrontendTarget) -> Unit,
     ) {
         val binding = DialogProxyPickerBinding.inflate(layoutInflater)
-        var dialog: BottomSheetDialog? = null
+        var dialog: AnimatedBottomSheetDialog? = null
 
         lateinit var adapter: ProxyPickerAdapter
 
         fun refresh() {
-            val disabled = preferencesManager.getDisabledBuiltIns(platform)
+            val disabled = disabledBuiltIns()
             val allReaders = AlternativeFrontendCatalog.builtInReaders(platform)
             val readers = allReaders.filter { it.id !in disabled }
             val showEmpty = readers.isEmpty()
@@ -234,7 +227,7 @@ object ProxyPickerDialogHelper {
 
             if (showEmpty) {
                 binding.textViewProxyEmptyMessage.text =
-                    context.getString(R.string.proxy_empty_message)
+                    context.getString(R.string.browser_privacy_picker_empty)
             } else {
                 adapter.submit(
                     buildPrivacySelectionItems(
@@ -250,13 +243,18 @@ object ProxyPickerDialogHelper {
             context.getString(FrontendDisplayHelper.platformNameRes(platform))
         )
         binding.proxyPickerInfoIcon.setOnClickListener {
-            showInfoDialog(context, platform)
+            MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.browser_privacy_info_title)
+                .setMessage(R.string.browser_privacy_info_message)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
         }
+        binding.buttonEmptyRestoreBuiltIns.setText(R.string.browser_privacy_restore_readers)
 
         adapter = ProxyPickerAdapter(
             onOptionClick = { target ->
                 onSelected(target)
-                dialog?.dismiss()
+                dialog?.dismissAnimated()
             },
             onDeleteClick = { },
             onActionClick = { },
@@ -266,18 +264,14 @@ object ProxyPickerDialogHelper {
         binding.recyclerViewProxyPicker.adapter = adapter
 
         binding.buttonEmptyRestoreBuiltIns.setOnClickListener {
-            preferencesManager.restoreBuiltInReaders(platform)
+            onRestoreReaders()
             refresh()
-            onRosterRestored()
         }
 
         refresh()
 
-        dialog = BottomSheetDialog(context).apply {
+        dialog = AnimatedBottomSheetDialog(context).apply {
             setContentView(binding.root)
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            behavior.skipCollapsed = true
-            behavior.isDraggable = true
             show()
         }
     }

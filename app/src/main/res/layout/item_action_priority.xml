@@ -24,5 +24,25 @@
         android:layout_weight="1"
         android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
         android:textColor="?attr/colorOnSurface" />
-    
+
+    <ImageButton
+        android:id="@+id/buttonMoveUp"
+        android:layout_width="@dimen/min_touch_target_size"
+        android:layout_height="@dimen/min_touch_target_size"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/action_move_up"
+        android:padding="@dimen/icon_button_padding"
+        android:src="@drawable/ic_arrow_up"
+        app:tint="?attr/colorOnSurfaceVariant" />
+
+    <ImageButton
+        android:id="@+id/buttonMoveDown"
+        android:layout_width="@dimen/min_touch_target_size"
+        android:layout_height="@dimen/min_touch_target_size"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/action_move_down"
+        android:padding="@dimen/icon_button_padding"
+        android:src="@drawable/ic_arrow_down"
+        app:tint="?attr/colorOnSurfaceVariant" />
+
 </LinearLayout> 

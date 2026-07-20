@@ -24,26 +24,33 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.fixupxer.utils.AlternativeFrontendCatalog
+import com.fixupxer.utils.BrowserViewGate
 import com.fixupxer.utils.FrontendRole
 import com.fixupxer.utils.FrontendTarget
 import com.fixupxer.utils.InstagramProxyStore
 import com.fixupxer.utils.ProxyPlatform
 import com.fixupxer.utils.ProxyRoster
 import com.fixupxer.utils.TikTokProxyStore
-import timber.log.Timber
+import com.fixupxer.backup.RememberedRoute
+import com.fixupxer.backup.RememberedRouteKind
+import com.fixupxer.backup.RememberedRouteValidator
+import com.fixupxer.backup.SettingsSnapshot
+import com.fixupxer.backup.SettingsSnapshotValidator
+import com.fixupxer.utils.Constants
+import org.json.JSONObject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import timber.log.Timber
 
 /**
  * Manages user preferences for the app
  */
 class PreferencesManager(context: Context) {
     companion object {
-        private const val PREFS_NAME = "FixupXerPrefs"
 
         // Preference keys (internal for reactive Flow consumers in the data layer)
-        internal const val KEY_CLEAN_TRACKING = "clean_tracking"
+        private const val KEY_CLEAN_TRACKING = "clean_tracking"
         internal const val KEY_CONVERT_TWITTER = "convert_twitter"
         internal const val KEY_CONVERT_INSTAGRAM = "convert_instagram"
         internal const val KEY_CONVERT_TIKTOK = "convert_tiktok"
@@ -77,6 +84,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_BROWSER_ENABLED = "browser_enabled"
         private const val KEY_ACTION_MODE = "action_mode"
         private const val KEY_ACTION_PRIORITY = "action_priority"
+        private const val KEY_SHOW_CONFIGURATION_STATUS_WIDGET = "show_configuration_status_widget"
         
         // Browser mode conversion keys
         private const val KEY_BROWSER_CONVERT_TWITTER = "browser_convert_twitter"
@@ -122,9 +130,14 @@ class PreferencesManager(context: Context) {
 
         private fun keyForBrowserPrivacyTarget(platform: ProxyPlatform): String =
             "browser_privacy_target_${platform.name.lowercase()}"
+
+        internal const val KEY_REMEMBERED_ROUTES = "remembered_routes"
+
+        private const val PREFS_NAME = "FixupXerPrefs"
     }
 
-    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val appContext: Context = context.applicationContext
+    private val prefs: SharedPreferences = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     /**
      * Reactive stream for a boolean preference. Emits the current value immediately,
@@ -142,8 +155,15 @@ class PreferencesManager(context: Context) {
     }
 
     init {
+        enforceTrackingCleaningEnabled()
         migrateConvertFacebookIfNeeded()
         seedProxyRosterFromPrefs()
+    }
+
+    private fun enforceTrackingCleaningEnabled() {
+        if (!prefs.getBoolean(KEY_CLEAN_TRACKING, true)) {
+            prefs.edit { putBoolean(KEY_CLEAN_TRACKING, true) }
+        }
     }
 
     private fun migrateConvertFacebookIfNeeded() {
@@ -248,6 +268,7 @@ class PreferencesManager(context: Context) {
                 }
             }
         }
+        BrowserViewGate.invalidate()
     }
 
     fun enableBuiltIn(platform: ProxyPlatform, id: String) {
@@ -262,6 +283,7 @@ class PreferencesManager(context: Context) {
                 putString(keyForDisabledBuiltIns(platform), updated.joinToString(","))
             }
         }
+        BrowserViewGate.invalidate()
     }
 
     fun clearSelectedProxyDomain(platform: ProxyPlatform) {
@@ -271,6 +293,7 @@ class PreferencesManager(context: Context) {
     fun restoreBuiltIns(platform: ProxyPlatform) {
         prefs.edit { remove(keyForDisabledBuiltIns(platform)) }
         ProxyRoster.setDisabledBuiltIns(platform, emptySet())
+        BrowserViewGate.invalidate()
     }
 
     /**
@@ -288,6 +311,7 @@ class PreferencesManager(context: Context) {
      * [ProxyRoster]. Used to roll back an unsaved in-dialog roster restore.
      */
     fun setDisabledBuiltIns(platform: ProxyPlatform, ids: Set<String>) {
+        if (ids == getDisabledBuiltIns(platform)) return
         ProxyRoster.setDisabledBuiltIns(platform, ids)
         prefs.edit {
             if (ids.isEmpty()) {
@@ -296,21 +320,11 @@ class PreferencesManager(context: Context) {
                 putString(keyForDisabledBuiltIns(platform), ids.joinToString(","))
             }
         }
+        BrowserViewGate.invalidate()
     }
 
-    /**
-     * Check if tracking parameter cleaning is enabled
-     */
-    fun isCleanTrackingEnabled(): Boolean {
-        return prefs.getBoolean(KEY_CLEAN_TRACKING, true)
-    }
-
-    /**
-     * Set whether tracking parameter cleaning is enabled
-     */
-    fun setCleanTrackingEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_CLEAN_TRACKING, enabled) }
-    }
+    /** Tracking cleaning is a core app invariant and cannot be disabled. */
+    fun isCleanTrackingEnabled(): Boolean = true
 
     /**
      * Check if Twitter/X URL conversion is enabled
@@ -525,6 +539,7 @@ class PreferencesManager(context: Context) {
 
     fun setCustomRulesEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_CUSTOM_RULES_ENABLED, enabled) }
+        BrowserViewGate.invalidate()
     }
 
     fun customRulesEnabledFlow(): Flow<Boolean> =
@@ -550,11 +565,38 @@ class PreferencesManager(context: Context) {
     fun getMaxHistoryEntries(): Int {
         return prefs.getInt(KEY_MAX_HISTORY_ENTRIES, DEFAULT_MAX_HISTORY_ENTRIES)
     }
+
+    /**
+     * Returns the raw legacy value only when it is outside the currently supported range.
+     * The value remains in preferences until the user explicitly accepts normalization.
+     */
+    fun getPendingLegacyHistoryLimit(): Int? =
+        getMaxHistoryEntries().takeUnless {
+            it in Constants.MIN_HISTORY_ENTRIES..Constants.MAX_HISTORY_ENTRIES
+        }
+
+    fun isHistoryLimitMigrationPending(): Boolean =
+        getPendingLegacyHistoryLimit() != null
+
+    fun getSupportedHistoryLimit(): Int =
+        getMaxHistoryEntries().coerceIn(
+            Constants.MIN_HISTORY_ENTRIES,
+            Constants.MAX_HISTORY_ENTRIES,
+        )
+
+    internal fun restorePendingLegacyHistoryLimitForRollback(limit: Int?): Boolean {
+        if (limit == null) return true
+        require(limit !in Constants.MIN_HISTORY_ENTRIES..Constants.MAX_HISTORY_ENTRIES)
+        return prefs.edit().putInt(KEY_MAX_HISTORY_ENTRIES, limit).commit()
+    }
     
     /**
      * Set maximum number of history entries to keep
      */
     fun setMaxHistoryEntries(maxEntries: Int) {
+        require(maxEntries in Constants.MIN_HISTORY_ENTRIES..Constants.MAX_HISTORY_ENTRIES) {
+            "History limit is outside the supported range"
+        }
         prefs.edit { putInt(KEY_MAX_HISTORY_ENTRIES, maxEntries) }
     }
     
@@ -568,8 +610,18 @@ class PreferencesManager(context: Context) {
     /**
      * Set whether browser mode is enabled
      */
-    fun setBrowserModeEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_BROWSER_ENABLED, enabled) }
+    fun setBrowserModeEnabled(enabled: Boolean): Boolean {
+        val committed = prefs.edit().putBoolean(KEY_BROWSER_ENABLED, enabled).commit()
+        BrowserViewGate.invalidate()
+        return committed
+    }
+
+    fun isConfigurationStatusWidgetEnabled(): Boolean {
+        return prefs.getBoolean(KEY_SHOW_CONFIGURATION_STATUS_WIDGET, true)
+    }
+
+    fun setConfigurationStatusWidgetEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_SHOW_CONFIGURATION_STATUS_WIDGET, enabled) }
     }
     
     /**
@@ -584,6 +636,7 @@ class PreferencesManager(context: Context) {
      */
     fun setActionMode(mode: String) {
         prefs.edit { putString(KEY_ACTION_MODE, mode) }
+        BrowserViewGate.invalidate()
     }
     
     /**
@@ -604,6 +657,7 @@ class PreferencesManager(context: Context) {
      */
     fun setActionPriority(priority: List<String>) {
         prefs.edit { putString(KEY_ACTION_PRIORITY, priority.joinToString(",")) }
+        BrowserViewGate.invalidate()
     }
     
     /**
@@ -618,6 +672,7 @@ class PreferencesManager(context: Context) {
      */
     fun setBrowserConvertTwitterEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_BROWSER_CONVERT_TWITTER, enabled) }
+        BrowserViewGate.invalidate()
     }
     
     /**
@@ -632,6 +687,7 @@ class PreferencesManager(context: Context) {
      */
     fun setBrowserConvertBlueskyEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_BROWSER_CONVERT_BLUESKY, enabled) }
+        BrowserViewGate.invalidate()
     }
 
     fun isBrowserConvertRedditEnabled(): Boolean =
@@ -639,6 +695,7 @@ class PreferencesManager(context: Context) {
 
     fun setBrowserConvertRedditEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_BROWSER_CONVERT_REDDIT, enabled) }
+        BrowserViewGate.invalidate()
     }
 
     fun isBrowserConvertPinterestEnabled(): Boolean =
@@ -646,6 +703,7 @@ class PreferencesManager(context: Context) {
 
     fun setBrowserConvertPinterestEnabled(enabled: Boolean) {
         prefs.edit { putBoolean(KEY_BROWSER_CONVERT_PINTEREST, enabled) }
+        BrowserViewGate.invalidate()
     }
 
     fun isBrowserPrivacyConversionEnabled(platform: ProxyPlatform): Boolean = when (platform) {
@@ -663,6 +721,7 @@ class PreferencesManager(context: Context) {
             return
         }
         prefs.edit { putString(keyForBrowserPrivacyTarget(platform), targetId) }
+        BrowserViewGate.invalidate()
     }
 
     fun getBrowserPrivacyTargetId(platform: ProxyPlatform): String? =
@@ -686,4 +745,195 @@ class PreferencesManager(context: Context) {
 
     fun resolveBrowserPrivacySelections(): Map<ProxyPlatform, String?> =
         ProxyPlatform.entries.associateWith { resolveBrowserPrivacyTarget(it)?.domain }
+
+    fun normalizeRoutingHost(raw: String?): String? = RememberedRouteValidator.normalizeHost(raw)
+
+    fun getRememberedRoutes(): Map<String, RememberedRoute> = readRememberedRoutes()
+
+    fun getRememberedRoute(host: String): RememberedRoute? {
+        val normalizedHost = RememberedRouteValidator.normalizeHost(host) ?: return null
+        return readRememberedRoutes()[normalizedHost]
+    }
+
+    fun getRememberedRouteCount(): Int = readRememberedRoutes().size
+
+    fun setRememberedRoute(host: String, route: RememberedRoute): Boolean {
+        val normalizedHost = RememberedRouteValidator.normalizeHost(host) ?: return false
+        if (!RememberedRouteValidator.canSaveRoute(appContext, route.packageName)) {
+            return false
+        }
+        val current = readRememberedRoutes().toMutableMap()
+        if (normalizedHost !in current && current.size >= Constants.MAX_REMEMBERED_ROUTES) {
+            return false
+        }
+        current[normalizedHost] = route
+        return writeRememberedRoutes(current)
+    }
+
+    fun removeRememberedRoute(host: String) {
+        val normalizedHost = RememberedRouteValidator.normalizeHost(host) ?: return
+        val current = readRememberedRoutes()
+        if (normalizedHost !in current) return
+        writeRememberedRoutes(current - normalizedHost)
+    }
+
+    fun clearRememberedRoutes() {
+        prefs.edit { remove(KEY_REMEMBERED_ROUTES) }
+        BrowserViewGate.invalidate()
+    }
+
+    fun exportSettingsSnapshot(): SettingsSnapshot = SettingsSnapshot(
+        cleanTracking = isCleanTrackingEnabled(),
+        convertTwitter = isConvertTwitterEnabled(),
+        convertInstagram = isConvertInstagramEnabled(),
+        convertTikTok = isConvertTikTokEnabled(),
+        convertBluesky = isConvertBlueskyEnabled(),
+        convertFacebook = isConvertFacebookEnabled(),
+        convertReddit = isConvertRedditEnabled(),
+        convertYoutube = isConvertYoutubeEnabled(),
+        convertPinterest = isConvertPinterestEnabled(),
+        convertThreads = isConvertThreadsEnabled(),
+        customRulesEnabled = areCustomRulesEnabled(),
+        historyEnabled = isHistoryEnabled(),
+        maxHistoryEntries = getSupportedHistoryLimit(),
+        themeMode = getThemeMode(),
+        dominantHand = getDominantHand(),
+        browserEnabled = isBrowserModeEnabled(),
+        showConfigurationStatusWidget = isConfigurationStatusWidgetEnabled(),
+        actionMode = getActionMode(),
+        actionPriority = getActionPriority(),
+        browserConvertTwitter = isBrowserConvertTwitterEnabled(),
+        browserConvertBluesky = isBrowserConvertBlueskyEnabled(),
+        browserConvertReddit = isBrowserConvertRedditEnabled(),
+        browserConvertPinterest = isBrowserConvertPinterestEnabled(),
+        proxySelections = ProxyPlatform.entries.associateWith { getSelectedProxyDomain(it) },
+        customProxies = ProxyPlatform.entries.associateWith { getCustomProxies(it) },
+        disabledBuiltIns = ProxyPlatform.entries.associateWith { getDisabledBuiltIns(it) },
+        browserPrivacyTargetIds = ProxyPlatform.entries.associateWith { getBrowserPrivacyTargetId(it) },
+        rememberedRoutes = getRememberedRoutes(),
+    )
+
+    /**
+     * Replaces all backed-up settings atomically. Validates the whole snapshot
+     * up front (throwing on any semantic problem, including own-package routes)
+     * so an invalid snapshot is never partially written.
+     */
+    fun replaceSettingsSnapshot(snapshot: SettingsSnapshot): Boolean {
+        SettingsSnapshotValidator.validate(snapshot, ownPackageName = appContext.packageName)
+        val editor = prefs.edit()
+        // Retain the backup field for schema compatibility, but never restore
+        // the retired setting that allowed core tracking cleaning to be disabled.
+        editor.putBoolean(KEY_CLEAN_TRACKING, true)
+        editor.putBoolean(KEY_CONVERT_TWITTER, snapshot.convertTwitter)
+        editor.putBoolean(KEY_CONVERT_INSTAGRAM, snapshot.convertInstagram)
+        editor.putBoolean(KEY_CONVERT_TIKTOK, snapshot.convertTikTok)
+        editor.putBoolean(KEY_CONVERT_BLUESKY, snapshot.convertBluesky)
+        editor.putBoolean(KEY_CONVERT_FACEBOOK, snapshot.convertFacebook)
+        editor.putBoolean(KEY_CONVERT_REDDIT, snapshot.convertReddit)
+        editor.putBoolean(KEY_CONVERT_YOUTUBE, snapshot.convertYoutube)
+        editor.putBoolean(KEY_CONVERT_PINTEREST, snapshot.convertPinterest)
+        editor.putBoolean(KEY_CONVERT_THREADS, snapshot.convertThreads)
+        editor.putBoolean(KEY_CUSTOM_RULES_ENABLED, snapshot.customRulesEnabled)
+        editor.putBoolean(KEY_HISTORY_ENABLED, snapshot.historyEnabled)
+        editor.putInt(KEY_MAX_HISTORY_ENTRIES, snapshot.maxHistoryEntries)
+        editor.putString(KEY_THEME_MODE, snapshot.themeMode)
+        editor.putString(KEY_DOMINANT_HAND, snapshot.dominantHand)
+        editor.putBoolean(KEY_BROWSER_ENABLED, snapshot.browserEnabled)
+        editor.putBoolean(
+            KEY_SHOW_CONFIGURATION_STATUS_WIDGET,
+            snapshot.showConfigurationStatusWidget,
+        )
+        editor.putString(KEY_ACTION_MODE, snapshot.actionMode)
+        editor.putString(KEY_ACTION_PRIORITY, snapshot.actionPriority.joinToString(","))
+        editor.putBoolean(KEY_BROWSER_CONVERT_TWITTER, snapshot.browserConvertTwitter)
+        editor.putBoolean(KEY_BROWSER_CONVERT_BLUESKY, snapshot.browserConvertBluesky)
+        editor.putBoolean(KEY_BROWSER_CONVERT_REDDIT, snapshot.browserConvertReddit)
+        editor.putBoolean(KEY_BROWSER_CONVERT_PINTEREST, snapshot.browserConvertPinterest)
+
+        ProxyPlatform.entries.forEach { platform ->
+            val selection = snapshot.proxySelections[platform]
+            if (selection.isNullOrBlank()) {
+                editor.remove(keyForSelection(platform))
+            } else {
+                editor.putString(keyForSelection(platform), selection)
+            }
+            val custom = snapshot.customProxies[platform].orEmpty()
+            if (custom.isEmpty()) {
+                editor.remove(keyForCustomProxies(platform))
+            } else {
+                editor.putString(keyForCustomProxies(platform), custom.joinToString(","))
+            }
+            val disabled = snapshot.disabledBuiltIns[platform].orEmpty()
+            if (disabled.isEmpty()) {
+                editor.remove(keyForDisabledBuiltIns(platform))
+            } else {
+                editor.putString(keyForDisabledBuiltIns(platform), disabled.joinToString(","))
+            }
+            val privacyTarget = snapshot.browserPrivacyTargetIds[platform]
+            if (privacyTarget.isNullOrBlank()) {
+                editor.remove(keyForBrowserPrivacyTarget(platform))
+            } else {
+                editor.putString(keyForBrowserPrivacyTarget(platform), privacyTarget)
+            }
+        }
+
+        val routesJson = JSONObject()
+        snapshot.rememberedRoutes.forEach { (host, route) ->
+            routesJson.put(
+                host,
+                JSONObject()
+                    .put("kind", route.kind.wireName)
+                    .put("packageName", route.packageName)
+            )
+        }
+        editor.putString(KEY_REMEMBERED_ROUTES, routesJson.toString())
+
+        val committed = editor.commit()
+        if (committed) {
+            seedProxyRosterFromPrefs()
+        }
+        BrowserViewGate.invalidate()
+        return committed
+    }
+
+    private fun readRememberedRoutes(): Map<String, RememberedRoute> {
+        val stored = prefs.getString(KEY_REMEMBERED_ROUTES, null) ?: return emptyMap()
+        return runCatching {
+            val root = JSONObject(stored)
+            buildMap {
+                val keys = root.keys()
+                while (keys.hasNext()) {
+                    val host = keys.next()
+                    val item = root.getJSONObject(host)
+                    put(
+                        host,
+                        RememberedRoute(
+                            kind = RememberedRouteKind.fromWire(item.getString("kind")),
+                            packageName = item.getString("packageName"),
+                        )
+                    )
+                }
+            }
+        }.getOrElse {
+            // No throwable: JSON parse messages can embed stored host strings.
+            Timber.w("Failed to parse remembered routes; treating as empty")
+            emptyMap()
+        }
+    }
+
+    private fun writeRememberedRoutes(routes: Map<String, RememberedRoute>): Boolean {
+        val json = JSONObject().apply {
+            routes.forEach { (host, route) ->
+                put(
+                    host,
+                    JSONObject()
+                        .put("kind", route.kind.wireName)
+                        .put("packageName", route.packageName)
+                )
+            }
+        }
+        return prefs.edit().putString(KEY_REMEMBERED_ROUTES, json.toString()).commit().also { saved ->
+            if (saved) BrowserViewGate.invalidate()
+        }
+    }
 }

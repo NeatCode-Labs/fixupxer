@@ -339,7 +339,8 @@ class UrlRepositoryImpl @Inject constructor(
             customRuleApplied = result.customRuleChanged,
             rulesRevision = result.rulesRevision,
             operations = result.operations,
-            leakFindings = outputFindings
+            leakFindings = outputFindings,
+            routingHost = if (profile == ProcessingProfile.BROWSER) result.routingHost else null,
         )
     }
     
@@ -376,17 +377,6 @@ class UrlRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             if (preferencesManager.isConvertInstagramEnabled() != enabled) {
                 preferencesManager.setConvertInstagramEnabled(enabled)
-            }
-        }
-    }
-    
-    override fun isTrackingRemovalEnabled(): Flow<Boolean> =
-        preferencesManager.booleanFlow(PreferencesManager.KEY_CLEAN_TRACKING, default = true)
-    
-    override suspend fun setTrackingRemovalEnabled(enabled: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (preferencesManager.isCleanTrackingEnabled() != enabled) {
-                preferencesManager.setCleanTrackingEnabled(enabled)
             }
         }
     }

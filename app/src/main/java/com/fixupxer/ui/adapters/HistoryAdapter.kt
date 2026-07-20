@@ -43,7 +43,7 @@ import timber.log.Timber
  * Adapter for displaying URL history items
  */
 class HistoryAdapter(
-    private val onItemClick: (UrlHistory) -> Unit,
+    private val onItemClick: ((UrlHistory) -> Unit)?,
     private val onItemDelete: (UrlHistory) -> Unit,
     private val snackbarAnchor: View
 ) : ListAdapter<UrlHistory, HistoryAdapter.HistoryViewHolder>(HistoryDiffCallback()) {
@@ -64,7 +64,7 @@ class HistoryAdapter(
      */
     class HistoryViewHolder(
         private val binding: ItemHistoryBinding,
-        private val onItemClick: (UrlHistory) -> Unit,
+        private val onItemClick: ((UrlHistory) -> Unit)?,
         private val onItemDelete: (UrlHistory) -> Unit,
         private val snackbarAnchor: View
     ) : RecyclerView.ViewHolder(binding.root) {
@@ -125,17 +125,27 @@ class HistoryAdapter(
                 }
                 
                 // Click listener
-                root.setOnClickListener {
-                    onItemClick(item)
-                }
-
-                val openLabel = itemView.context.getString(R.string.history_open_action_label)
-                ViewCompat.replaceAccessibilityAction(
-                    root,
-                    AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CLICK,
-                    openLabel,
-                    null
+                root.setOnClickListener(
+                    onItemClick?.let { callback ->
+                        View.OnClickListener { callback(item) }
+                    }
                 )
+                root.isClickable = onItemClick != null
+
+                if (onItemClick != null) {
+                    val openLabel = itemView.context.getString(R.string.history_open_action_label)
+                    ViewCompat.replaceAccessibilityAction(
+                        root,
+                        AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CLICK,
+                        openLabel,
+                        null
+                    )
+                } else {
+                    ViewCompat.removeAccessibilityAction(
+                        root,
+                        AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_CLICK.id,
+                    )
+                }
 
                 val deleteLabel = itemView.context.getString(R.string.history_delete_action_label)
                 ViewCompat.replaceAccessibilityAction(

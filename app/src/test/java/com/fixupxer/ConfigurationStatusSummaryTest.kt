@@ -118,6 +118,19 @@ class ConfigurationStatusSummaryTest {
     }
 
     @Test
+    fun `preference alias mismatch takes summary priority`() {
+        assertEquals(
+            R.string.configuration_status_summary_mismatch,
+            ConfigurationStatusDialogHelper.summarize(
+                aliasEnabled = true,
+                defaultStatus = DefaultBrowserStatus.FIXUPXER,
+                privacyRouteState = PrivacyRouteState.ACTIVE,
+                preferenceEnabled = false,
+            ),
+        )
+    }
+
+    @Test
     fun `privacy route state resolves optional off active broken and mixed`() {
         assertEquals(
             PrivacyRouteState.OPTIONAL_OFF,
@@ -228,7 +241,7 @@ class ConfigurationStatusSummaryTest {
         val privacyLine = buildDetails().first {
             it.text.contains(context.getString(R.string.platform_name_x))
         }
-        assertTrue(privacyLine.text.contains("Restore built-in proxies"))
+        assertTrue(privacyLine.text.contains("restore built-in readers"))
         assertEquals(DetailSemanticType.ATTENTION, privacyLine.semanticType)
     }
 
@@ -281,31 +294,44 @@ class ConfigurationStatusSummaryTest {
     }
 
     @Test
-    fun `details show custom rules count when on and optional off when disabled`() {
+    fun `details distinguish active paused and disabled custom rules`() {
         listOf(1, 2).forEach { count ->
             val enabledDetails = buildDetails(customRulesEnabled = true, enabledRulesCount = count)
             val enabledLine = enabledDetails.first { it.text.startsWith(context.getString(R.string.configuration_status_label_custom_rules)) }
             assertEquals(
-                context.getString(
-                    R.string.configuration_status_custom_rules_on,
-                    context.resources.getQuantityString(
-                        R.plurals.custom_rules_count,
-                        count,
-                        count,
-                    ),
+                context.resources.getQuantityString(
+                    R.plurals.configuration_status_custom_rules_active,
+                    count,
+                    count,
                 ),
                 enabledLine.text,
             )
             assertEquals(DetailSemanticType.ACTIVE, enabledLine.semanticType)
         }
 
-        val disabledLine = buildDetails(customRulesEnabled = false, enabledRulesCount = 2)
+        val pausedLine = buildDetails(customRulesEnabled = false, enabledRulesCount = 2)
             .first { it.text.startsWith(context.getString(R.string.configuration_status_label_custom_rules)) }
         assertEquals(
-            context.getString(R.string.configuration_status_custom_rules_off),
-            disabledLine.text,
+            context.resources.getQuantityString(
+                R.plurals.configuration_status_custom_rules_paused,
+                2,
+                2,
+            ),
+            pausedLine.text,
         )
+        assertEquals(DetailSemanticType.INFO, pausedLine.semanticType)
+
+        val disabledLine = buildDetails(
+            customRulesEnabled = false,
+            disabledRulesCount = 2,
+        ).first { it.text.startsWith(context.getString(R.string.configuration_status_label_custom_rules)) }
         assertEquals(DetailSemanticType.OPTIONAL_OFF, disabledLine.semanticType)
+
+        val enabledButEmpty = buildDetails(
+            customRulesEnabled = true,
+            disabledRulesCount = 2,
+        ).first { it.text.startsWith(context.getString(R.string.configuration_status_label_custom_rules)) }
+        assertEquals(DetailSemanticType.ATTENTION, enabledButEmpty.semanticType)
     }
 
     @Test
@@ -334,6 +360,22 @@ class ConfigurationStatusSummaryTest {
             priorityLine.text,
         )
         assertEquals(DetailSemanticType.INFO, priorityLine.semanticType)
+    }
+
+    @Test
+    fun `details show tracking cleaning and verified app links limit`() {
+        val details = buildDetails()
+        assertTrue(
+            details.any {
+                it.text == context.getString(R.string.configuration_status_tracking_on) &&
+                    it.semanticType == DetailSemanticType.ACTIVE
+            }
+        )
+        assertTrue(
+            details.any {
+                it.text == context.getString(R.string.configuration_status_verified_links_note)
+            }
+        )
     }
 
     private fun expectedSummary(
@@ -378,6 +420,7 @@ class ConfigurationStatusSummaryTest {
         defaultStatus: DefaultBrowserStatus = DefaultBrowserStatus.OTHER_OR_UNSET,
         customRulesEnabled: Boolean = false,
         enabledRulesCount: Int = 0,
+        disabledRulesCount: Int = 0,
     ): List<ConfigurationStatusDialogHelper.DetailLine> =
         ConfigurationStatusDialogHelper.buildDetails(
             context = context,
@@ -386,6 +429,7 @@ class ConfigurationStatusSummaryTest {
             preferencesManager = preferencesManager,
             customRulesEnabled = customRulesEnabled,
             enabledRulesCount = enabledRulesCount,
+            disabledRulesCount = disabledRulesCount,
         )
 
     private companion object {

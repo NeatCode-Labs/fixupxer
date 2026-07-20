@@ -181,6 +181,32 @@ class MainViewModel @Inject constructor(
             )
         }
     }
+
+    fun showOriginalForManualFallback(url: String) {
+        val detection = detectPlatformFlags(url)
+        _uiState.update {
+            it.copy(
+                inputUrl = url,
+                processedUrl = url,
+                actionUrl = url,
+                processedInputUrl = url,
+                isInstagramUrl = detection.isInstagramUrl,
+                isFacebookUrl = detection.isFacebookUrl,
+                isTwitterUrl = detection.isTwitterUrl,
+                isTikTokUrl = detection.isTikTokUrl,
+                isBlueskyUrl = detection.isBlueskyUrl,
+                isRedditUrl = detection.isRedditUrl,
+                isYouTubeUrl = detection.isYouTubeUrl,
+                isPinterestUrl = detection.isPinterestUrl,
+                isThreadsUrl = detection.isThreadsUrl,
+                detectedPlatform = detection.detectedPlatform,
+                resultStatus = null,
+                leakFindings = emptyList(),
+                error = null,
+                isLoading = false,
+            )
+        }
+    }
     
     fun onInstagramConversionToggled(enabled: Boolean) {
         if (_uiState.value.isInstagramConversionEnabled == enabled) return

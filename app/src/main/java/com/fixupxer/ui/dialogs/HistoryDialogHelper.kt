@@ -21,6 +21,7 @@ package com.fixupxer.ui.dialogs
 
 import android.content.Context
 import android.view.View
+import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -33,9 +34,9 @@ import com.fixupxer.databinding.DialogClearHistoryBinding
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.ui.adapters.HistoryAdapter
 import com.fixupxer.ui.helpers.SnackbarHelper
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.fixupxer.utils.Constants
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -49,10 +50,12 @@ class HistoryDialogHelper(
     private val lifecycleOwner: LifecycleOwner,
     private val historyRepository: HistoryRepository,
     private val preferencesManager: PreferencesManager,
-    private val onEntrySelected: ((UrlHistory) -> Unit)? = null
+    private val onEntrySelected: ((UrlHistory) -> Unit)? = null,
+    private val onSettingsChanged: () -> Unit = {},
+    private val onDismiss: () -> Unit = {},
 ) {
     
-    private var dialog: BottomSheetDialog? = null
+    private var dialog: AnimatedBottomSheetDialog? = null
     private lateinit var binding: DialogHistoryBinding
     private lateinit var adapter: HistoryAdapter
     private var historyCollectJob: Job? = null
@@ -62,18 +65,17 @@ class HistoryDialogHelper(
             (context as androidx.appcompat.app.AppCompatActivity).layoutInflater
         )
         
-        // setupUI() → updateHistoryVisibility() already starts the collector
-        // when history is enabled — starting it here unconditionally would
-        // override the "history disabled" empty state.
         setupUI()
         createDialog()
     }
     
     private fun setupUI() {
         adapter = HistoryAdapter(
-            onItemClick = { item ->
-                onEntrySelected?.invoke(item)
-                dialog?.dismiss()
+            onItemClick = onEntrySelected?.let { callback ->
+                { item ->
+                    callback(item)
+                    dialog?.dismissAnimated()
+                }
             },
             onItemDelete = { item ->
                 deleteHistoryEntry(item)
@@ -90,7 +92,8 @@ class HistoryDialogHelper(
         binding.switchHistoryEnabled.isChecked = preferencesManager.isHistoryEnabled()
         binding.switchHistoryEnabled.setOnCheckedChangeListener { _, isChecked ->
             preferencesManager.setHistoryEnabled(isChecked)
-            updateHistoryVisibility(isChecked)
+            updateRecordingStatus(isChecked)
+            onSettingsChanged()
         }
         
         // Max entries settings
@@ -105,32 +108,27 @@ class HistoryDialogHelper(
         
         // Close button
         binding.btnClose.setOnClickListener {
-            dialog?.dismiss()
+            dialog?.dismissAnimated()
         }
         
-        // Update visibility based on history enabled state
-        updateHistoryVisibility(preferencesManager.isHistoryEnabled())
+        updateRecordingStatus(preferencesManager.isHistoryEnabled())
+        observeHistory()
     }
     
     private fun createDialog() {
-        dialog = BottomSheetDialog(context).apply {
+        dialog = AnimatedBottomSheetDialog(context).apply {
             setContentView(binding.root)
             setOnDismissListener {
                 historyCollectJob?.cancel()
                 historyCollectJob = null
+                onDismiss()
             }
-            // Open fully expanded: the action buttons sit at the bottom of the
-            // sheet and would otherwise be hidden below the collapsed peek.
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            behavior.skipCollapsed = true
-            behavior.isDraggable = true
             show()
         }
     }
     
     private fun observeHistory() {
-        // Called from both showHistoryDialog() and updateHistoryVisibility() —
-        // cancel the previous collector so we never stack duplicates.
+        // Defensive cancellation keeps this safe if the dialog is refreshed later.
         historyCollectJob?.cancel()
         historyCollectJob = lifecycleOwner.lifecycleScope.launch {
             historyRepository.getAllHistory().collectLatest { historyList ->
@@ -141,8 +139,13 @@ class HistoryDialogHelper(
                     binding.recyclerViewHistory.visibility = View.GONE
                     binding.emptyState.visibility = View.VISIBLE
                     binding.textViewEmptyTitle.text = context.getString(R.string.no_history)
-                    binding.textViewEmptyDescription.text =
-                        context.getString(R.string.no_history_description)
+                    binding.textViewEmptyDescription.text = context.getString(
+                        if (preferencesManager.isHistoryEnabled()) {
+                            R.string.no_history_description
+                        } else {
+                            R.string.history_recording_off_empty
+                        }
+                    )
                 } else {
                     binding.recyclerViewHistory.visibility = View.VISIBLE
                     binding.emptyState.visibility = View.GONE
@@ -151,22 +154,16 @@ class HistoryDialogHelper(
         }
     }
     
-    private fun updateHistoryVisibility(enabled: Boolean) {
-        if (!enabled) {
-            // Stop collecting: a later Room emission (delete, undo, …) must not
-            // flip the RecyclerView back to VISIBLE while history is disabled.
-            historyCollectJob?.cancel()
-            historyCollectJob = null
-            binding.recyclerViewHistory.visibility = View.GONE
-            binding.emptyState.visibility = View.VISIBLE
-            binding.textViewEmptyTitle.text = context.getString(R.string.history_disabled_title)
-            binding.textViewEmptyDescription.text =
-                context.getString(R.string.history_disabled_description)
-        } else {
-            binding.textViewEmptyTitle.text = context.getString(R.string.no_history)
-            binding.textViewEmptyDescription.text =
-                context.getString(R.string.no_history_description)
-            observeHistory()
+    private fun updateRecordingStatus(enabled: Boolean) {
+        binding.recordingOffBanner.isVisible = !enabled
+        if (adapter.currentList.isEmpty()) {
+            binding.textViewEmptyDescription.text = context.getString(
+                if (enabled) {
+                    R.string.no_history_description
+                } else {
+                    R.string.history_recording_off_empty
+                }
+            )
         }
     }
     
@@ -175,8 +172,19 @@ class HistoryDialogHelper(
             (context as androidx.appcompat.app.AppCompatActivity).layoutInflater
         )
         
-        // Set current value
-        dialogBinding.editTextMaxEntries.setText(preferencesManager.getMaxHistoryEntries().toString())
+        val migrationPending = preferencesManager.isHistoryLimitMigrationPending()
+        val displayedLimit = if (migrationPending) {
+            preferencesManager.getSupportedHistoryLimit()
+        } else {
+            preferencesManager.getMaxHistoryEntries()
+        }
+        dialogBinding.editTextMaxEntries.setText(displayedLimit.toString())
+        if (migrationPending) {
+            dialogBinding.textInputMaxEntries.helperText = context.getString(
+                R.string.history_limit_legacy_migration,
+                displayedLimit,
+            )
+        }
         
         val maxEntriesDialog = MaterialAlertDialogBuilder(context)
             .setView(dialogBinding.root)
@@ -191,24 +199,41 @@ class HistoryDialogHelper(
             val input = dialogBinding.editTextMaxEntries.text?.toString() ?: ""
             val maxEntries = input.toIntOrNull()
             
-            if (maxEntries != null && maxEntries > 0) {
-                preferencesManager.setMaxHistoryEntries(maxEntries)
-                
-                // Trim history to new max
+            if (maxEntries != null &&
+                maxEntries in Constants.MIN_HISTORY_ENTRIES..Constants.MAX_HISTORY_ENTRIES
+            ) {
+                dialogBinding.textInputMaxEntries.error = null
+                dialogBinding.buttonOk.isEnabled = false
                 lifecycleOwner.lifecycleScope.launch {
-                    historyRepository.trimHistory(maxEntries)
+                    if (commitHistoryLimit(maxEntries)) {
+                        maxEntriesDialog.dismiss()
+                    } else {
+                        dialogBinding.buttonOk.isEnabled = true
+                        dialogBinding.textInputMaxEntries.error =
+                            context.getString(R.string.history_limit_update_failed)
+                    }
                 }
-                maxEntriesDialog.dismiss()
             } else {
-                SnackbarHelper.showShort(
-                    binding.root,
+                dialogBinding.textInputMaxEntries.error =
                     context.getString(R.string.invalid_max_entries)
-                )
             }
         }
         
         maxEntriesDialog.show()
     }
+
+    internal suspend fun commitHistoryLimit(maxEntries: Int): Boolean =
+        try {
+            historyRepository.trimHistory(maxEntries)
+            preferencesManager.setMaxHistoryEntries(maxEntries)
+            onSettingsChanged()
+            true
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Timber.w(error, "Failed to trim history before updating its limit")
+            false
+        }
     
     private fun showClearAllConfirmation() {
         val dialogBinding = DialogClearHistoryBinding.inflate(

@@ -36,9 +36,11 @@ import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import androidx.test.espresso.matcher.ViewMatchers.hasSibling
+import com.fixupxer.ui.BrowserSettingsActivity
 import com.fixupxer.ui.SettingsActivity
 import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.Constants
@@ -47,7 +49,6 @@ import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
 import android.view.View
 import androidx.test.espresso.matcher.RootMatchers.isDialog
-import androidx.preference.PreferenceManager
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.delay
 import androidx.test.espresso.matcher.ViewMatchers.isNotChecked
@@ -63,6 +64,17 @@ class SettingsTest {
     
     private fun launchMainActivity() {
         ActivityScenario.launch(MainActivity::class.java)
+    }
+
+    @Test
+    fun testDominantHandSelectorsMatchScreenSides() {
+        ActivityScenario.launch(SettingsActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val leftHand = activity.findViewById<View>(R.id.buttonHandLeft)
+                val rightHand = activity.findViewById<View>(R.id.buttonHandRight)
+                assertTrue(leftHand.left < rightHand.left)
+            }
+        }
     }
     
     @Test
@@ -237,7 +249,7 @@ class SettingsTest {
     fun testHistoryDisabledStopsRecording() {
         runBlocking {
             val context = InstrumentationRegistry.getInstrumentation().targetContext
-            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+            val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
             
             // Ensure history is disabled
             prefs.edit().putBoolean("history_enabled", false).commit()
@@ -257,8 +269,8 @@ class SettingsTest {
             onView(withId(R.id.buttonHistory))
                 .perform(click())
             
-            // Verify empty state message when history is disabled
-            onView(withText(containsString("Enable history")))
+            // Verify retained-history recording status when history is disabled
+            onView(withText(R.string.history_recording_off_banner))
                 .inRoot(isDialog())
                 .check(matches(isDisplayed()))
         }
@@ -266,7 +278,7 @@ class SettingsTest {
     
     @Test
     fun testConversionDefaultsDialog() {
-        ActivityScenario.launch(SettingsActivity::class.java)
+        ActivityScenario.launch(BrowserSettingsActivity::class.java)
         
         onView(withId(R.id.buttonConversionDefaults))
             .perform(nestedScrollTo(), click())
@@ -274,10 +286,6 @@ class SettingsTest {
         onView(isRoot()).perform(waitFor(1000))
         
         onView(withText(R.string.conversion_defaults_title))
-            .inRoot(isDialog())
-            .check(matches(isDisplayed()))
-        
-        onView(withText(containsString("privacy readers")))
             .inRoot(isDialog())
             .check(matches(isDisplayed()))
         
@@ -289,7 +297,8 @@ class SettingsTest {
             )
         )
             .inRoot(isDialog())
-            .check(matches(allOf(isDisplayed(), withText(containsString("Privacy frontend:")))))
+            .perform(scrollTo())
+            .check(matches(allOf(isDisplayed(), withText(containsString("Privacy reader:")))))
 
         // Exactly four supported platforms (X, Bluesky, Reddit, Pinterest).
         onView(withId(R.id.switchBrowserTwitter))
@@ -314,8 +323,8 @@ class SettingsTest {
     }
 
     @Test
-    fun testConversionDefaultsButtonsVisibleWhenBrowserModeOff() {
-        ActivityScenario.launch(SettingsActivity::class.java)
+    fun testBrowserControlsRemainAvailableWhenBrowserModeOff() {
+        ActivityScenario.launch(BrowserSettingsActivity::class.java)
 
         onView(withId(R.id.switchBrowserMode))
             .check(matches(isNotChecked()))
@@ -324,16 +333,16 @@ class SettingsTest {
             .perform(nestedScrollTo())
             .check(matches(allOf(isDisplayed(), isClickable())))
 
-        onView(withId(R.id.buttonConfigurationStatus))
+        onView(withId(R.id.textBrowserStatus))
             .perform(nestedScrollTo())
-            .check(matches(allOf(isDisplayed(), isClickable())))
+            .check(matches(isDisplayed()))
     }
 
     @Test
     fun testConfigurationStatusDialog() {
         ActivityScenario.launch(SettingsActivity::class.java)
 
-        onView(withId(R.id.buttonConfigurationStatus))
+        onView(withId(R.id.configurationStatusNavigation))
             .perform(nestedScrollTo(), click())
 
         onView(isRoot()).perform(waitFor(1000))
@@ -363,7 +372,7 @@ class SettingsTest {
             delay(100)
         }
 
-        ActivityScenario.launch(SettingsActivity::class.java)
+        ActivityScenario.launch(BrowserSettingsActivity::class.java)
 
         onView(withId(R.id.buttonConversionDefaults))
             .perform(nestedScrollTo(), click())
@@ -381,7 +390,7 @@ class SettingsTest {
 
         onView(isRoot()).perform(waitFor(500))
 
-        onView(allOf(withText(R.string.proxy_action_restore_builtins), isDisplayed()))
+        onView(allOf(withText(R.string.browser_privacy_restore_readers), isDisplayed()))
             .perform(click())
 
         onView(isRoot()).perform(waitFor(500))
@@ -422,7 +431,7 @@ class SettingsTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val initialDisabled = PreferencesManager(context).getDisabledBuiltIns(ProxyPlatform.X)
 
-        ActivityScenario.launch(SettingsActivity::class.java).use {
+        ActivityScenario.launch(BrowserSettingsActivity::class.java).use {
             onView(withId(R.id.buttonConversionDefaults))
                 .perform(nestedScrollTo(), click())
 
@@ -439,7 +448,7 @@ class SettingsTest {
 
             onView(isRoot()).perform(waitFor(500))
 
-            onView(allOf(withText(R.string.proxy_action_restore_builtins), isDisplayed()))
+            onView(allOf(withText(R.string.browser_privacy_restore_readers), isDisplayed()))
                 .perform(click())
 
             onView(isRoot()).perform(waitFor(500))
@@ -475,7 +484,7 @@ class SettingsTest {
             delay(100)
         }
 
-        ActivityScenario.launch(SettingsActivity::class.java)
+        ActivityScenario.launch(BrowserSettingsActivity::class.java)
 
         onView(withId(R.id.buttonConversionDefaults))
             .perform(nestedScrollTo(), click())
@@ -517,6 +526,46 @@ class SettingsTest {
         val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
         assertEquals("x_nitter_net", prefs.getString("browser_privacy_target_x", null))
     }
+
+    @Test
+    fun testPrivacyPickerDragHandleAndBackDismiss() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        instrumentation.targetContext.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .putBoolean("browser_convert_twitter", true)
+            .commit()
+
+        ActivityScenario.launch(BrowserSettingsActivity::class.java).use {
+            onView(withId(R.id.buttonConversionDefaults))
+                .perform(nestedScrollTo(), click())
+            instrumentation.waitForIdleSync()
+
+            onView(
+                allOf(
+                    withId(R.id.textViewChangePrivacyTarget),
+                    hasSibling(withText(R.string.convert_twitter_browser)),
+                )
+            )
+                .inRoot(isDialog())
+                .perform(click())
+            instrumentation.waitForIdleSync()
+
+            onView(withId(R.id.proxyPickerDragHandle)).check(matches(isDisplayed()))
+            onView(withId(R.id.recyclerViewProxyPicker)).check(matches(isDisplayed()))
+
+            pressBack()
+
+            // BottomSheetDialog posts its hide animation asynchronously.
+            Thread.sleep(500)
+            instrumentation.waitForIdleSync()
+
+            onView(withId(R.id.proxyPickerDragHandle)).check(doesNotExist())
+            onView(withId(R.id.btnSave))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+        }
+    }
     
     @Test
     fun testConversionDefaultsToggleSaving() {
@@ -534,7 +583,7 @@ class SettingsTest {
             delay(100)
         }
         
-        ActivityScenario.launch(SettingsActivity::class.java)
+        ActivityScenario.launch(BrowserSettingsActivity::class.java)
         
         // Open conversion defaults dialog
         onView(withId(R.id.buttonConversionDefaults))
@@ -562,7 +611,7 @@ class SettingsTest {
             .perform(click())
         
         // Verify dialog is dismissed
-        onView(withText(R.string.conversion_defaults_title))
+        onView(withId(R.id.btnSave))
             .check(doesNotExist())
         
         // Reopen dialog to verify changes were saved
@@ -601,7 +650,7 @@ class SettingsTest {
             delay(100)
         }
         
-        ActivityScenario.launch(SettingsActivity::class.java)
+        ActivityScenario.launch(BrowserSettingsActivity::class.java)
         
         // Open conversion defaults dialog
         onView(withId(R.id.buttonConversionDefaults))
@@ -620,7 +669,7 @@ class SettingsTest {
             .perform(click())
         
         // Verify dialog is dismissed
-        onView(withText(R.string.conversion_defaults_title))
+        onView(withId(R.id.btnSave))
             .check(doesNotExist())
         
         // Reopen dialog
@@ -660,4 +709,20 @@ class SettingsTest {
             }
         }
     }
-} 
+
+    @Test
+    fun testBackupAndSavedAppChoicesSectionsVisible() {
+        ActivityScenario.launch(SettingsActivity::class.java).use {
+            onView(withId(R.id.buttonBackupSettings))
+                .perform(nestedScrollTo())
+                .check(matches(isDisplayed()))
+            onView(withId(R.id.buttonRestoreSettings))
+                .check(matches(isDisplayed()))
+        }
+        ActivityScenario.launch(BrowserSettingsActivity::class.java).use {
+            onView(withId(R.id.buttonSavedAppChoices))
+                .perform(nestedScrollTo())
+                .check(matches(isDisplayed()))
+        }
+    }
+}

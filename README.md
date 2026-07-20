@@ -7,7 +7,7 @@
 <h3 align="center">Clean tracking from links. Improve social previews. Build your own offline URL rules.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.3.0"><img src="https://img.shields.io/badge/version-2.3.0-blue?style=flat-square" alt="Version 2.3.0"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.4.0"><img src="https://img.shields.io/badge/version-2.4.0-blue?style=flat-square" alt="Version 2.4.0"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>
@@ -36,7 +36,7 @@ selected.
 
 ## Highlights
 
-- **Selective tracking cleanup** — known tracking keys from 25 host-bound
+- **Selective tracking cleanup** — known tracking keys from 26 host-bound
   cleaners and one universal cleaner; unknown functional parameters are kept.
 - **Private Link Guard** — warns when e-mails, tokens, or precise coordinates
   remain visible in a link — fully offline.
@@ -44,15 +44,19 @@ selected.
   context-specific rules without editing raw JSON.
 - **Teach by example** — infer a conservative disabled custom-rule draft from
   one original URL and its exact desired result.
-- **Better social previews** — optional conversions for Instagram, Facebook,
-  Twitter/X, Bluesky posts, and TikTok, including user-selectable and custom
-  proxy domains.
+- **Alternative frontends** — optional per-platform conversions to
+  embed-friendly domains (Instagram, Facebook, Twitter/X, Bluesky posts,
+  TikTok) or account-free reader frontends (Twitter/X, Bluesky, Reddit,
+  Pinterest, plus experimental YouTube, Threads, and Instagram readers), with
+  user-selectable built-in and custom domains.
 - **Browser Mode** — clean eligible HTTP(S) links that Android routes through
   FixupXer before handing them to a browser, native app, share menu, or clipboard.
 - **Process Text** — select a link in any app and choose “Clean link” to clean
   it in place, entirely offline.
 - **Local history** — revisit, copy, share, or delete processed links; history
   is optional and remains on the device.
+- **Manual backup** — export or restore settings, custom rules, and remembered
+  after-clean destinations to a JSON file you choose (history never included).
 - **Modern Android UI** — Material 3 before/after flow, light and dark themes,
   responsive layouts, handed action placement, and accessible controls.
 
@@ -87,13 +91,15 @@ selected.
 
 ### Use Browser Mode
 
-Enable **FixupXer as browser** in the app, then select FixupXer under Android
-**Default apps > Browser app**. FixupXer does not render pages: it locally
-processes eligible HTTP(S) links Android sends to it, then hands the result to
-your selected external action. Verified App Links may bypass the default
-browser. Browser-only privacy Reader conversions support X, Bluesky, Reddit,
-and Pinterest and are separate from Main/Share embed targets. Setup, action
-priority, conversions, and troubleshooting are in the
+Enable **Browser mode** under **Settings > Configure Browser mode**, then
+select FixupXer under Android **Default apps > Browser app**. FixupXer does
+not render pages: it locally processes eligible HTTP(S) links Android sends
+to it, then hands the result to your selected external action. Verified App
+Links may bypass the default browser. Browser-only privacy Reader conversions
+support X, Bluesky, Reddit, and Pinterest and are separate from Main/Share
+embed targets. With **Ask what to do** you can save a per-host app choice
+that is applied automatically on future links. Setup, action order,
+conversions, and troubleshooting are in the
 **[Browser Mode Guide](docs/BROWSER_MODE_GUIDE.md)**.
 
 ## Custom URL rules
@@ -135,17 +141,24 @@ Bluesky `go.bsky.app`, GeoRiot `target.georiot.com/Proxy.ashx`, and LinkSynergy
 `click.linksynergy.com/link` wrappers. Destinations are decoded once and accepted
 only when they are valid HTTP(S) URLs.
 
-When **Embed?** is enabled, FixupXer can locally rewrite:
+When a link from a supported platform is detected, the Main and Share screens
+show a contextual conversion toggle with the active frontend and a **Change**
+link. The picker separates **Embed frontends** (better previews in chat apps)
+from **Privacy frontends** (read without an account) and lets you add custom
+domains for any platform:
 
 - Facebook links to `facebookez.com`
-- Twitter/X links to `fixupx.com`
-- Bluesky post links to `fxbsky.app`
-- Instagram links to a selected fixed or custom proxy
-- TikTok links to a selected fixed or custom proxy
+- Twitter/X links to `fixupx.com` (embed) or readers such as `xcancel.com`,
+  `nitter.net`, community Nitter instances, and automatic instance pickers
+- Bluesky post links to `fxbsky.app` (embed) or SkyLib readers
+- Instagram and TikTok links to selectable built-in or custom proxies
+- Reddit links to Redlib readers or `safereddit.com`
+- Pinterest links to the `pinterest.bunk.im` reader
+- YouTube, Threads, and Instagram reader conversions marked **Experimental**
 
-These are local string transformations; FixupXer never contacts a proxy.
-Instagram and TikTok selectors include multiple Primary/Backup choices, custom
-domains, and migration from known legacy proxies. Full domain rosters and
+These are local string transformations; FixupXer never contacts a frontend.
+Reader conversions are off by default, and each platform remembers its own
+selection with migration from known legacy proxies. Full domain rosters and
 platform behavior are documented in
 **[Supported Platforms](docs/SUPPORTED_PLATFORMS.md)**.
 
@@ -166,15 +179,25 @@ Conversion History is optional and stored only on the device.
   (default: 100).
 - Disable history at any time from the switch at the top of the sheet.
 
+## Backup and restore
+
+Open **Settings > Backup & restore** to save a versioned JSON file through
+Android's system file picker. The file contains whitelisted preferences, custom
+rules, and remembered Browser-mode destinations. Restoring validates the whole
+file first, then replaces those backed-up items; it never imports URL history or
+rule rollback snapshots.
+
 ## Privacy and safety
 
 - **Zero app permissions** — no internet, storage, location, contacts, or
   notification permission.
 - **No telemetry or analytics** — nothing is collected or transmitted.
-- **Local data only** — preferences, history, custom proxies, rules, and
-  rollback snapshots remain on the device.
-- **Explicit exports** — rule bundles leave the app only when you choose a
-  destination through Android's system file picker.
+- **No app-managed sync** — FixupXer never uploads preferences, history,
+  custom proxies, rules, or rollback snapshots. Android may back up the
+  preferences file according to your device/account settings; Room data
+  (including URL history and custom rules) is excluded from automatic backup.
+- **Explicit exports** — rule bundles and manual settings backups leave the app
+  only when you choose a destination through Android's system file picker.
 - **Explicit handoff** — FixupXer processes URLs offline; a browser, native app,
   share target, or privacy reader receives the result only after your selected
   action or Android Browser Mode routing.
@@ -211,8 +234,8 @@ browser.
 <summary><b>What is the difference between cleaning and converting?</b></summary>
 
 Cleaning removes tracking parameters. Conversion optionally changes a social
-domain to an embed-friendly third-party domain. Either feature can be used
-without the other.
+domain to an embed-friendly or account-free reader third-party domain. Either
+feature can be used without the other.
 
 </details>
 
@@ -233,10 +256,11 @@ everything. Rules and preferences are separate from History.
 </details>
 
 <details>
-<summary><b>What happens if an embed proxy stops working?</b></summary>
+<summary><b>What happens if a conversion frontend stops working?</b></summary>
 
-Choose another Primary/Backup proxy from the inline selector or add your own
-custom domain. Disable **Embed?** to keep the original social-media domain.
+Open the **Change** link next to the conversion toggle and choose another
+built-in frontend or add your own custom domain. Disable the toggle to keep
+the original social-media domain.
 
 </details>
 
@@ -251,7 +275,7 @@ custom domain. Disable **Embed?** to keep the original social-media domain.
 - Modular cleaner registry with O(1) domain dispatch
 - Raw-preserving URL processing with immutable per-request rule snapshots
 - RE2/J 1.8 for user-authored regular expressions
-- 581 automated tests: 380 unit + 201 instrumentation
+- 835 automated tests: 607 unit + 228 instrumentation
 - Release lint, zero-permission manifest regression test, and REUSE 3.3
   compliance
 

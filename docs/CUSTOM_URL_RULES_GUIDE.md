@@ -47,7 +47,7 @@ do not need regex for ordinary tracking parameters.
 
 1. Open **FixupXer > Settings > Custom URL rules**.
 2. Enable **Enable custom rules** in Settings.
-3. Select **Manage custom rules**.
+3. Select **Manage rules**.
 4. Select **Add rule**, or install one of the bundled **Templates**.
 
 Custom rules are off by default after a new installation or an update from
@@ -625,6 +625,12 @@ restores the most recent pre-import snapshot.
 Rule bundles can contain private domains, regexes, templates, and test URLs.
 Inspect a bundle before sharing it. FixupXer never uploads or synchronizes
 rules.
+
+For a complete settings transfer, **Settings > Backup & restore** creates a
+separate versioned JSON file containing whitelisted preferences, all custom
+rules, and remembered Browser-mode destinations. Restoring that file replaces
+those items rather than offering the three rule-only merge modes above. URL
+history and rule rollback snapshots are never included.
 
 ## Common beginner mistakes
 

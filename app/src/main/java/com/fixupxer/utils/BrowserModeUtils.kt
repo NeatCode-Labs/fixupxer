@@ -26,12 +26,21 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import com.fixupxer.PreferencesManager
 import timber.log.Timber
 
 enum class DefaultBrowserStatus {
     FIXUPXER,
     OTHER_OR_UNSET,
     UNKNOWN,
+}
+
+data class BrowserAliasUpdateResult(
+    val success: Boolean,
+    val rollbackSucceeded: Boolean = true,
+) {
+    val needsAttention: Boolean
+        get() = !success && !rollbackSucceeded
 }
 
 /**
@@ -42,8 +51,9 @@ object BrowserModeUtils {
     /**
      * Enable or disable the browser alias component
      */
-    fun setBrowserAliasEnabled(context: Context, enable: Boolean) {
-        try {
+    fun setBrowserAliasEnabled(context: Context, enable: Boolean): Boolean {
+        BrowserViewGate.invalidate()
+        return try {
             val pm = context.packageManager
             val cn = ComponentName(context, "${context.packageName}.BrowserAlias")
             val newState = if (enable) {
@@ -52,10 +62,77 @@ object BrowserModeUtils {
                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED
             }
             pm.setComponentEnabledSetting(cn, newState, PackageManager.DONT_KILL_APP)
-            Timber.d("Browser alias enabled: $enable")
+            val verified = isBrowserAliasEnabled(context) == enable
+            if (verified) {
+                Timber.d("Browser alias enabled: $enable")
+            } else {
+                Timber.e("Browser alias state verification failed")
+            }
+            verified
         } catch (e: Exception) {
             Timber.e(e, "Failed to toggle browser alias")
+            false
         }
+    }
+
+    /**
+     * Persists the desired state, applies the component state, verifies both and
+     * rolls both values back if any step fails.
+     */
+    fun updateBrowserMode(
+        context: Context,
+        preferencesManager: PreferencesManager,
+        enable: Boolean,
+    ): BrowserAliasUpdateResult = executeBrowserAliasTransaction(
+        desiredEnabled = enable,
+        readPreference = preferencesManager::isBrowserModeEnabled,
+        writePreference = preferencesManager::setBrowserModeEnabled,
+        readAlias = { isBrowserAliasEnabled(context) },
+        writeAlias = { setBrowserAliasEnabled(context, it) },
+    )
+
+    /**
+     * Reconciles cloud/local preference restore mismatches at process startup.
+     * The preference remains the desired source of truth.
+     */
+    fun reconcileBrowserAlias(
+        context: Context,
+        preferencesManager: PreferencesManager,
+    ): Boolean {
+        val desired = preferencesManager.isBrowserModeEnabled()
+        if (isBrowserAliasEnabled(context) == desired) return true
+        val reconciled = setBrowserAliasEnabled(context, desired)
+        if (!reconciled) {
+            Timber.e("Failed to reconcile browser alias with desired preference")
+        }
+        return reconciled
+    }
+
+    internal fun executeBrowserAliasTransaction(
+        desiredEnabled: Boolean,
+        readPreference: () -> Boolean,
+        writePreference: (Boolean) -> Boolean,
+        readAlias: () -> Boolean,
+        writeAlias: (Boolean) -> Boolean,
+    ): BrowserAliasUpdateResult {
+        val previousPreference = readPreference()
+        val previousAlias = readAlias()
+
+        val preferenceWritten = writePreference(desiredEnabled)
+        val aliasWritten = preferenceWritten && writeAlias(desiredEnabled)
+        val verified = preferenceWritten &&
+            aliasWritten &&
+            readPreference() == desiredEnabled &&
+            readAlias() == desiredEnabled
+        if (verified) return BrowserAliasUpdateResult(success = true)
+
+        val aliasRolledBack = writeAlias(previousAlias) && readAlias() == previousAlias
+        val preferenceRolledBack =
+            writePreference(previousPreference) && readPreference() == previousPreference
+        return BrowserAliasUpdateResult(
+            success = false,
+            rollbackSucceeded = aliasRolledBack && preferenceRolledBack,
+        )
     }
     
     /**

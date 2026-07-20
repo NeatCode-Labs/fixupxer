@@ -21,8 +21,8 @@ each intent, and some links never reach the system default browser.
 
 Both steps are required:
 
-1. Open **FixupXer > Settings > Browser integration** and enable **Enable
-   FixupXer as browser**. This enables the otherwise-disabled browser alias so
+1. Open **FixupXer > Settings > Configure Browser mode** and enable **Enable
+   Browser mode**. This enables the otherwise-disabled browser alias so
    Android can offer FixupXer as a browser candidate.
 2. Open Android **Settings > Apps > Default apps > Browser app** and select
    **FixupXer**. Menu names vary slightly by device.
@@ -65,9 +65,10 @@ Re-enable the setting at any time to restore direct native-app handling.
 
 ## Choose what happens after processing
 
-Open **FixupXer > Settings > After-clean behavior**.
+Open **FixupXer > Settings > Configure Browser mode** and find the **After
+processing an opened link** card.
 
-### Ask every time
+### Ask what to do
 
 FixupXer shows its own action dialog with:
 
@@ -75,26 +76,44 @@ FixupXer shows its own action dialog with:
 2. **Open in browser**
 3. **Share menu**
 4. **Copy to clipboard**
+5. **Always use app for this host** — pick a compatible native app or external
+   browser once; FixupXer saves that choice per normalized host and uses it
+   before the action picker on future Browser-mode links for the same host.
+   Manage or delete them with **Saved app choices** on the Browser mode
+   screen.
+
+The key is the exact cleaned host immediately before an optional Reader
+conversion, so changing Reader instances does not create a different route.
+`example.com` and `www.example.com` are separate keys. A route can be created
+and used only with Browser mode and **Ask what to do**. It remains saved but
+inactive after switching to **Try actions automatically** or disabling Browser
+mode.
 
 Choosing **Open in native app** tries known compatible installed apps. If none
 accepts the URL, FixupXer falls back to an external browser. **Open in browser**
 uses only external browser packages and excludes FixupXer itself.
 
-### Follow action order
+### Try actions automatically
 
 FixupXer tries the configured actions from top to bottom and stops after the
-first success. Reorder them under **Settings > Action priority**. If a native
-app or external browser cannot handle the URL, processing continues to the next
-action; share and clipboard provide later fallbacks when ordered there.
+first success. Reorder them in **Action order** inside the **After processing
+an opened link** card. If a native app or external browser
+cannot handle the URL, processing continues to the next action; share and
+clipboard provide later fallbacks when ordered there.
 
 FixupXer excludes its own package from browser candidates, so handing off a
-cleaned URL cannot select FixupXer again and create a browser loop. Redirect
+cleaned URL cannot select FixupXer again and create a browser loop. In Browser
+mode with **Ask what to do**, saved app choices are checked before the action
+picker; invalid, disabled, or incompatible saved choices are removed and the
+normal flow runs once. Reader-only privacy frontends skip a saved native route
+without deleting it. Redirect
 extraction in the URL pipeline also has cycle detection and a five-hop limit.
 
-## Browser privacy conversions
+## Browser privacy readers
 
-Select **Settings > Browser integration > Privacy conversions**. Browser mode
-supports optional reader conversions for exactly four platforms:
+Open **Settings > Configure Browser mode** and select **Configure privacy
+readers**. The **Browser privacy readers** dialog supports optional reader
+conversions for exactly four platforms:
 
 - X / Twitter
 - Bluesky
@@ -114,10 +133,10 @@ cleaned normally.
 
 If every built-in Reader for a platform was disabled:
 
-1. Open **Privacy conversions**.
+1. Open **Browser privacy readers**.
 2. On the affected platform, select **Change** even though its conversion
    switch is unavailable.
-3. In the empty picker, select **Restore built-in proxies**. This re-enables
+3. In the empty picker, select **Restore built-in readers**. This re-enables
    only the platform's built-in Readers; embed frontends you removed from the
    Main/Share pickers stay removed.
 4. Choose a Reader, return to the conversion dialog, enable the platform if
@@ -131,21 +150,22 @@ Reader as needing attention.
 
 ## Read Configuration status
 
-**Settings > Browser integration > Configuration status** is a read-only
-snapshot:
+The **Configuration status** card at the top of Settings opens a read-only
+dialog with:
 
 - **Browser integration** reports whether the browser alias is on. Off is
   normally optional; it needs attention when FixupXer still holds the default
   browser role.
 - **Default browser** reports FixupXer, another/unset browser, or **Unable to
   verify**. Unable to verify is informational—check Android settings manually.
-- **Privacy conversions** lists active platform → Reader routes. **None
+- **Privacy readers** lists active platform → Reader routes. **None
   enabled** means cleaning-only and is not an error. **Broken** means enabled
   routes have no active Reader; **mixed** means some routes work and some need
   attention.
 - **Custom rules** shows whether the master switch is on and how many rules are
   enabled.
-- **After-clean behavior** shows **Ask every time** or **Follow action order**.
+- **After-clean behavior** shows **Ask what to do** or **Try actions
+  automatically**.
 
 The status cannot predict Android's intent routing. Verified App Links can
 still bypass FixupXer even when the operational settings are correct.
@@ -185,7 +205,8 @@ opened by an external browser.
 ### Clean first, then return to a native app
 
 Disable that app's **Open supported links**, then put **Open in native app**
-first under **Follow action order**. If no compatible native app accepts the
+first in **Action order** with **Try actions automatically** selected. If no
+compatible native app accepts the
 cleaned URL, the next configured action is tried.
 
 ### Open supported social links through privacy readers
@@ -218,7 +239,7 @@ browser only after you request it.
 Complete setup step 2: select FixupXer under Android **Default apps > Browser
 app**. Check **Configuration status** afterward.
 
-### A native app or “Ask every time” bypasses FixupXer
+### A native app or “Ask what to do” bypasses FixupXer
 
 Android probably gave the verified App Link directly to the native app.
 Disable **Open supported links** for that app. FixupXer cannot ask what to do
@@ -232,19 +253,21 @@ rules determine eligibility.
 
 ### A supported social link is cleaned but not converted
 
-Open **Privacy conversions** and verify that the platform is one of X,
-Bluesky, Reddit, or Pinterest, its switch is enabled, and an active Reader is
-selected. Main/Share **Embed?** toggles do not control Browser mode.
+Open **Browser privacy readers** through **Configure privacy readers** and
+verify that the platform is one of X, Bluesky, Reddit, or Pinterest, its switch
+is enabled, and an active Reader is selected. Main/Share conversion toggles do
+not control Browser mode.
 
 ### A conversion says no active privacy frontend
 
-Use **Change > Restore built-in proxies**, select a Reader, then enable the
+Use **Change > Restore built-in readers**, select a Reader, then enable the
 platform and save. Cancelling the dialog instead discards the restore.
 
 ### A cleaned link opens in a browser instead of a native app
 
-No known installed native app accepted it, so **Ask every time** used its
-native-app fallback or **Follow action order** continued to the browser action.
+No known installed native app accepted it, so **Ask what to do** used its
+native-app fallback or **Try actions automatically** continued to the browser
+action.
 
 ### The wrong YouTube app opens
 

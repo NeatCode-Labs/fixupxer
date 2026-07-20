@@ -23,6 +23,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -51,7 +52,9 @@ class ActionPriorityAdapter(
         notifyDataSetChanged()
     }
     
-    fun moveItem(fromPosition: Int, toPosition: Int) {
+    fun moveItem(fromPosition: Int, toPosition: Int): Boolean {
+        if (fromPosition !in items.indices || toPosition !in items.indices) return false
+        if (fromPosition == toPosition) return true
         if (fromPosition < toPosition) {
             for (i in fromPosition until toPosition) {
                 Collections.swap(items, i, i + 1)
@@ -62,7 +65,10 @@ class ActionPriorityAdapter(
             }
         }
         notifyItemMoved(fromPosition, toPosition)
+        notifyItemChanged(fromPosition)
+        notifyItemChanged(toPosition)
         onItemsReordered(items.toList())
+        return true
     }
     
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -89,9 +95,32 @@ class ActionPriorityAdapter(
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val textView: TextView = itemView.findViewById(R.id.textViewActionName)
         val dragHandle: ImageView = itemView.findViewById(R.id.imageViewDragHandle)
+        private val moveUp: ImageButton = itemView.findViewById(R.id.buttonMoveUp)
+        private val moveDown: ImageButton = itemView.findViewById(R.id.buttonMoveDown)
         
         fun bind(actionKey: String) {
             textView.text = getActionLabel(actionKey)
+            val position = bindingAdapterPosition
+            moveUp.isEnabled = position > 0
+            moveDown.isEnabled = position in 0 until items.lastIndex
+            moveUp.setOnClickListener {
+                moveWithAnnouncement(bindingAdapterPosition, bindingAdapterPosition - 1)
+            }
+            moveDown.setOnClickListener {
+                moveWithAnnouncement(bindingAdapterPosition, bindingAdapterPosition + 1)
+            }
+        }
+
+        private fun moveWithAnnouncement(from: Int, to: Int) {
+            if (!moveItem(from, to)) return
+            itemView.announceForAccessibility(
+                itemView.context.getString(
+                    R.string.action_moved_announcement,
+                    textView.text,
+                    to + 1,
+                    items.size,
+                )
+            )
         }
         
         private fun getActionLabel(actionKey: String): String {

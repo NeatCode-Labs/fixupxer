@@ -33,13 +33,37 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /**
- * Guards the icon-only History action styling on Main and Share: a 48dp tonal
- * touch target with an explicitly centered icon (gravity center, textStart
- * icon gravity, zero icon padding) and an accessible description.
+ * Guards action-button ergonomics shared by the Main and Share screens.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class HistoryButtonStyleTest {
+
+    @Test
+    fun `primary action buttons use a prominent 56dp visual container`() {
+        val context = ContextThemeWrapper(
+            RuntimeEnvironment.getApplication(),
+            R.style.Theme_FixupXer,
+        )
+        val expectedHeight =
+            context.resources.getDimensionPixelSize(R.dimen.cta_height)
+        val expectedIconSize =
+            context.resources.getDimensionPixelSize(R.dimen.icon_small_size)
+        val expectedCornerRadius =
+            context.resources.getDimensionPixelSize(R.dimen.button_corner_radius)
+
+        listOf(R.layout.activity_main, R.layout.activity_share).forEach { layoutRes ->
+            val root = LayoutInflater.from(context).inflate(layoutRes, null)
+            listOf(R.id.buttonOpen, R.id.buttonCopy, R.id.buttonShare).forEach { buttonId ->
+                val button = root.findViewById<MaterialButton>(buttonId)
+                assertEquals(expectedHeight, button.layoutParams.height)
+                assertEquals(0, button.insetTop)
+                assertEquals(0, button.insetBottom)
+                assertEquals(expectedIconSize, button.iconSize)
+                assertEquals(expectedCornerRadius, button.cornerRadius)
+            }
+        }
+    }
 
     @Test
     fun `history buttons keep touch target centered icon and description`() {

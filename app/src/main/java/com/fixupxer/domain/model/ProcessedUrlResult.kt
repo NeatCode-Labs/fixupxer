@@ -32,5 +32,6 @@ data class ProcessedUrlResult(
     val customRuleApplied: Boolean = false,
     val rulesRevision: Long = 0,
     val operations: List<ChangeOperation> = emptyList(),
-    val leakFindings: List<LeakFinding> = emptyList()
-) 
+    val leakFindings: List<LeakFinding> = emptyList(),
+    val routingHost: String? = null,
+)

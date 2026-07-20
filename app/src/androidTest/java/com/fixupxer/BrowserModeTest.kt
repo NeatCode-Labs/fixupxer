@@ -32,7 +32,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiSelector
-import com.fixupxer.ui.SettingsActivity
+import com.fixupxer.ui.BrowserSettingsActivity
 import com.fixupxer.utils.BrowserModeUtils
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.ProxyPlatform
@@ -125,14 +125,12 @@ class BrowserModeTest {
     }
     
     @Test
-    fun testSettingsActivityBrowserModeToggle() {
-        ActivityScenario.launch(SettingsActivity::class.java).use {
-            // The Browser integration card can start below the viewport after the
-            // App layout section was added, so scroll before visibility/actions.
+    fun testBrowserSettingsActivityBrowserModeToggle() {
+        ActivityScenario.launch(BrowserSettingsActivity::class.java).use {
             onView(withId(R.id.switchBrowserMode))
                 .perform(nestedScrollTo())
                 .check(matches(isDisplayed()))
-            onView(withId(R.id.buttonReadThis))
+            onView(withId(R.id.buttonBrowserModeGuide))
                 .perform(nestedScrollTo())
                 .check(matches(isDisplayed()))
 
@@ -152,8 +150,7 @@ class BrowserModeTest {
     
     @Test
     fun testActionModeSelection() {
-        // Launch Settings activity
-        val scenario = ActivityScenario.launch(SettingsActivity::class.java)
+        val scenario = ActivityScenario.launch(BrowserSettingsActivity::class.java)
         
         // Select "Follow priority list" option
         onView(withId(R.id.radioFollowPriority))

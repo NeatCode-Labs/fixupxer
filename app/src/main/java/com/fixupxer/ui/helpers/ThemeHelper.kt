@@ -28,11 +28,13 @@ import com.fixupxer.PreferencesManager
 object ThemeHelper {
 
     fun apply(themeMode: String) {
-        val nightMode = when (themeMode) {
+        AppCompatDelegate.setDefaultNightMode(nightModeFor(themeMode))
+    }
+
+    fun nightModeFor(themeMode: String): Int =
+        when (themeMode) {
             PreferencesManager.THEME_MODE_LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
             PreferencesManager.THEME_MODE_DARK -> AppCompatDelegate.MODE_NIGHT_YES
             else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
         }
-        AppCompatDelegate.setDefaultNightMode(nightMode)
-    }
 }

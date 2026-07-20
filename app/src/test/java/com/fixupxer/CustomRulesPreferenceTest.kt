@@ -12,6 +12,7 @@
 package com.fixupxer
 
 import android.content.Context
+import com.fixupxer.utils.BrowserViewGate
 import com.fixupxer.utils.InstagramProxyStore
 import com.fixupxer.utils.TikTokProxyStore
 import kotlinx.coroutines.flow.first
@@ -61,6 +62,15 @@ class CustomRulesPreferenceTest {
 
         preferencesManager.setCustomRulesEnabled(false)
         assertFalse(preferencesManager.areCustomRulesEnabled())
+    }
+
+    @Test
+    fun `custom rules master switch invalidates in-flight browser work`() {
+        val snapshot = BrowserViewGate.begin(true, true)!!
+
+        preferencesManager.setCustomRulesEnabled(true)
+
+        assertFalse(BrowserViewGate.isValid(snapshot, true, true))
     }
 
     @Test

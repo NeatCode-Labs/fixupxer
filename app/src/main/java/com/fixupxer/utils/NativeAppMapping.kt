@@ -51,8 +51,7 @@ object NativeAppMapping {
                 NativeAppDecision("com.instagram.android")
             isTwitterNativeHost(host) ->
                 NativeAppDecision("com.twitter.android")
-            UrlNormalizer.hostMatchesDomain(host, Constants.FACEBOOK_DOMAIN) ||
-                UrlNormalizer.hostMatchesDomain(host, Constants.FACEBOOKEZ_DOMAIN) ->
+            UrlNormalizer.hostMatchesDomain(host, Constants.FACEBOOK_DOMAIN) ->
                 NativeAppDecision("com.facebook.katana")
             isRedditNativeHost(host) ->
                 NativeAppDecision("com.reddit.frontpage")

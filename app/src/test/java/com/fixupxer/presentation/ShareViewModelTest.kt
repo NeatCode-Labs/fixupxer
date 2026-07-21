@@ -196,7 +196,7 @@ class ShareViewModelTest {
         whenever(urlProcessor.isInstagramUrl(any())).thenReturn(true)
         val urlRepository = TestUrlRepository().also { it.detectInstagram = true }
         val first = "https://toinstagram.com/p/abc/"
-        val second = "https://kkinstagram.com/p/abc/"
+        val second = "https://instagram7.com/p/abc/"
         urlRepository.processHandler = { _, _, previous ->
             if (previous == first) ProcessedUrlResult(second, false)
             else ProcessedUrlResult(first, false)

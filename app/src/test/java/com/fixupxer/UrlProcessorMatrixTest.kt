@@ -100,9 +100,9 @@ class UrlProcessorMatrixTest {
             // Clean active default proxy (toinstagram.com): no-op when toggle ON, reverts to instagram when OFF
             Case("toinstagram clean, toggle OFF", "https://toinstagram.com/p/1", true, false, "https://instagram.com/p/1", false, false),
             Case("toinstagram clean, toggle ON", "https://toinstagram.com/p/1", true, true, "https://toinstagram.com/p/1", true, true),
-            // Active backup proxy (kkinstagram) converts to the selected proxy (default toinstagram.com) when toggle ON
-            Case("backup kkinstagram clean, toggle OFF", "https://kkinstagram.com/p/1", true, false, "https://instagram.com/p/1", false, false),
-            Case("backup kkinstagram clean, toggle ON", "https://kkinstagram.com/p/1", true, true, "https://toinstagram.com/p/1", false, false),
+            // Retired kkinstagram.com is no longer detected as Instagram
+            Case("retired kkinstagram clean, toggle OFF", "https://kkinstagram.com/p/1", true, false, "https://kkinstagram.com/p/1", true, true),
+            Case("retired kkinstagram clean, toggle ON", "https://kkinstagram.com/p/1", true, true, "https://kkinstagram.com/p/1", true, true),
             // Legacy proxy auto-migration: eeinstagram converts to default (toinstagram.com) when toggle ON
             Case("legacy eeinstagram clean, toggle OFF", "https://eeinstagram.com/p/1", true, false, "https://instagram.com/p/1", false, false),
             Case("legacy eeinstagram clean, toggle ON", "https://eeinstagram.com/p/1", true, true, "https://toinstagram.com/p/1", false, false),
@@ -152,14 +152,14 @@ class UrlProcessorMatrixTest {
             Case("legacy vxtiktok clean, toggle ON", "https://vxtiktok.com/@user/video/1", true, true, "https://tnktok.com/@user/video/1", false, false),
 
             // === Facebook ===
+            // No built-in Facebook frontend remains; conversion requires a custom target.
             Case("facebook.com clean, toggle OFF", "https://facebook.com/somepage", true, false, "https://facebook.com/somepage", true, true),
-            Case("facebook.com clean, toggle ON", "https://facebook.com/somepage", true, true, "https://facebookez.com/somepage", false, false),
-            // fb.com short domain now routes through the facebookez conversion too
+            Case("facebook.com clean, toggle ON", "https://facebook.com/somepage", true, true, "https://facebook.com/somepage", true, true),
             Case("fb.com clean, toggle OFF", "https://fb.com/somepage", true, false, "https://fb.com/somepage", true, true),
-            Case("fb.com clean, toggle ON", "https://fb.com/somepage", true, true, "https://facebookez.com/somepage", false, false),
-            Case("m.facebook.com clean, toggle ON", "https://m.facebook.com/somepage", true, true, "https://facebookez.com/somepage", false, false),
-            Case("facebookez.com clean, toggle OFF", "https://facebookez.com/somepage", true, false, "https://facebook.com/somepage", false, false),
-            Case("facebookez.com clean, toggle ON", "https://facebookez.com/somepage", true, true, "https://facebookez.com/somepage", true, true)
+            Case("fb.com clean, toggle ON", "https://fb.com/somepage", true, true, "https://fb.com/somepage", true, true),
+            Case("m.facebook.com clean, toggle ON", "https://m.facebook.com/somepage", true, true, "https://m.facebook.com/somepage", true, true),
+            Case("retired facebookez.com clean, toggle OFF", "https://facebookez.com/somepage", true, false, "https://facebookez.com/somepage", true, true),
+            Case("retired facebookez.com clean, toggle ON", "https://facebookez.com/somepage", true, true, "https://facebookez.com/somepage", true, true)
         )
 
         cases.forEach { c ->

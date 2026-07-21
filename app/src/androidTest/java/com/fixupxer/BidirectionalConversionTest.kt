@@ -105,10 +105,8 @@ class BidirectionalConversionTest {
     }
 
     @Test
-    fun testLegacyKkinstagramRevertsToInstagramWhenToggleOff() {
+    fun testRetiredKkinstagramStaysUnchangedWhenToggleOff() {
         runBlocking {
-            // v1.4.8: Reverting a legacy proxy preserves the original www. prefix
-            // (only forward-conversion to an active proxy strips host prefixes).
             preferencesManager.setConvertInstagramEnabled(false)
             delay(100)
 
@@ -116,7 +114,7 @@ class BidirectionalConversionTest {
             onView(isRoot()).perform(waitFor(2000))
 
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.instagram.com/p/test123/")))
+                .check(matches(withText("https://www.kkinstagram.com/p/test123/?igshid=abc")))
         }
     }
     
@@ -239,82 +237,72 @@ class BidirectionalConversionTest {
     // ============ FACEBOOK BIDIRECTIONAL TESTS ============
     
     @Test
-    fun testCleanFacebookToFacebookezConversion() {
+    fun testCleanFacebookStaysUnchangedWithToggleOn() {
         runBlocking {
-            // Clean facebook.com → facebookez.com (toggle ON)
-            preferencesManager.setConvertFacebookEnabled(true) // v2.4.0: dedicated Facebook toggle
+            preferencesManager.setConvertFacebookEnabled(true)
             delay(100)
-            
+
             launchShareActivityWithText("https://www.facebook.com/zuck/posts/123456789")
             onView(isRoot()).perform(waitFor(2000))
-            
-            // Should convert to facebookez with toggle ON
+
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText("https://www.facebook.com/zuck/posts/123456789")))
+        }
+    }
+
+    @Test
+    fun testRetiredFacebookezStaysUnchangedWithToggleOff() {
+        runBlocking {
+            preferencesManager.setConvertFacebookEnabled(false)
+            delay(100)
+
+            launchShareActivityWithText("https://facebookez.com/zuck/posts/123456789")
+            onView(isRoot()).perform(waitFor(2000))
+
             onView(withId(R.id.textViewProcessedUrl))
                 .check(matches(withText("https://facebookez.com/zuck/posts/123456789")))
         }
     }
-    
+
     @Test
-    fun testCleanFacebookezToFacebookConversion() {
+    fun testDirtyRetiredFacebookezTrackingRemovedOnly() {
         runBlocking {
-            // Clean facebookez.com → facebook.com (toggle OFF)
-            preferencesManager.setConvertFacebookEnabled(false) // v2.4.0: dedicated Facebook toggle
+            preferencesManager.setConvertFacebookEnabled(false)
             delay(100)
-            
-            launchShareActivityWithText("https://facebookez.com/zuck/posts/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // Should convert back to facebook.com
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://facebook.com/zuck/posts/123456789")))
-        }
-    }
-    
-    @Test
-    fun testDirtyFacebookezToCleanFacebook() {
-        runBlocking {
-            // Dirty facebookez.com → Clean facebook.com (toggle OFF)
-            preferencesManager.setConvertFacebookEnabled(false) // v2.4.0: dedicated Facebook toggle
-            delay(100)
-            
+
             launchShareActivityWithText("https://facebookez.com/story.php?story_fbid=123&id=456&fbclid=abc")
             onView(isRoot()).perform(waitFor(2000))
-            
-            // Should clean and convert to facebook.com
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://facebook.com/story.php?story_fbid=123&id=456")))
-        }
-    }
-    
-    @Test
-    fun testWebFacebookPrefixRemoval() {
-        runBlocking {
-            // web.facebook.com → facebookez.com (prefix removal)
-            preferencesManager.setConvertFacebookEnabled(true) // v2.4.0: dedicated Facebook toggle
-            delay(100)
-            
-            launchShareActivityWithText("https://web.facebook.com/story.php?story_fbid=123&id=456")
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // Should remove web. prefix and convert to facebookez
+
             onView(withId(R.id.textViewProcessedUrl))
                 .check(matches(withText("https://facebookez.com/story.php?story_fbid=123&id=456")))
         }
     }
-    
+
     @Test
-    fun testWwwFacebookPrefixRemoval() {
+    fun testWebFacebookStaysUnchangedWithToggleOn() {
         runBlocking {
-            // www.facebook.com → facebookez.com (no www. in result)
-            preferencesManager.setConvertFacebookEnabled(true) // v2.4.0: dedicated Facebook toggle
+            preferencesManager.setConvertFacebookEnabled(true)
             delay(100)
-            
+
+            launchShareActivityWithText("https://web.facebook.com/story.php?story_fbid=123&id=456")
+            onView(isRoot()).perform(waitFor(2000))
+
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText("https://web.facebook.com/story.php?story_fbid=123&id=456")))
+        }
+    }
+
+    @Test
+    fun testWwwFacebookStaysUnchangedWithToggleOn() {
+        runBlocking {
+            preferencesManager.setConvertFacebookEnabled(true)
+            delay(100)
+
             launchShareActivityWithText("https://www.facebook.com/zuck/posts/123456789")
             onView(isRoot()).perform(waitFor(2000))
-            
-            // Should convert to facebookez without www
+
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://facebookez.com/zuck/posts/123456789")))
+                .check(matches(withText("https://www.facebook.com/zuck/posts/123456789")))
         }
     }
     

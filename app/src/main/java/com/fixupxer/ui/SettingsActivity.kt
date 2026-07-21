@@ -146,6 +146,9 @@ class SettingsActivity : BaseActivity() {
         binding.buttonCustomRules.setOnClickListener {
             startActivity(Intent(this, CustomRulesActivity::class.java))
         }
+        binding.buttonAlternativeFrontends.setOnClickListener {
+            startActivity(Intent(this, FrontendSettingsActivity::class.java))
+        }
         binding.buttonCustomRulesHowTo.setOnClickListener {
             UrlActionHelper.openUrlInExternalBrowser(
                 binding.root,

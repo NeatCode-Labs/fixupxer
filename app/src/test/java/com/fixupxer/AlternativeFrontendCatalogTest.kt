@@ -67,7 +67,12 @@ class AlternativeFrontendCatalogTest {
     fun `default targets exist and are active built-ins`() {
         ProxyPlatform.entries.forEach { platform ->
             val defaultId = AlternativeFrontendCatalog.defaultTargetId(platform)
-            val target = AlternativeFrontendCatalog.byId(defaultId)
+            if (platform == ProxyPlatform.FACEBOOK) {
+                assertNull(defaultId)
+                assertNull(AlternativeFrontendCatalog.defaultTarget(platform))
+                return@forEach
+            }
+            val target = AlternativeFrontendCatalog.byId(defaultId!!)
             assertNotNull("missing default for $platform", target)
             assertEquals(platform, target!!.platform)
             assertTrue(

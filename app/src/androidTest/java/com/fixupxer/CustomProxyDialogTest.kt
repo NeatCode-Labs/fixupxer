@@ -132,17 +132,17 @@ class CustomProxyDialogTest {
     }
 
     @Test
-    fun selectingKkinstagramUpdatesLabel() {
+    fun selectingInstagram7UpdatesLabel() {
         ActivityScenario.launch(MainActivity::class.java).use {
             openProxyPicker()
 
-            scrollPickerTo(hasDescendant(withText(containsString(Constants.KKINSTAGRAM_DOMAIN))))
-            onView(allOf(withText(containsString(Constants.KKINSTAGRAM_DOMAIN)), isDisplayed()))
+            scrollPickerTo(hasDescendant(withText(containsString(Constants.INSTAGRAM7_DOMAIN))))
+            onView(allOf(withText(containsString(Constants.INSTAGRAM7_DOMAIN)), isDisplayed()))
                 .perform(click())
             onView(isRoot()).perform(waitFor(500))
 
             onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.KKINSTAGRAM_DOMAIN}.")))
+                .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
         }
     }
 
@@ -178,6 +178,46 @@ class CustomProxyDialogTest {
             onView(withId(R.id.customProxyInput))
                 .inRoot(isDialog())
                 .perform(replaceText(Constants.FIXUPX_DOMAIN), closeSoftKeyboard())
+            onView(withText("Add"))
+                .inRoot(isDialog())
+                .perform(click())
+            onView(isRoot()).perform(waitFor(500))
+
+            onView(withText(R.string.proxy_error_reserved_domain))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+        }
+    }
+
+    @Test
+    fun retiredKkinstagramDomainIsRejected() {
+        ActivityScenario.launch(MainActivity::class.java).use {
+            openProxyPicker()
+            openAddCustomDialog()
+
+            onView(withId(R.id.customProxyInput))
+                .inRoot(isDialog())
+                .perform(replaceText(Constants.KKINSTAGRAM_DOMAIN), closeSoftKeyboard())
+            onView(withText("Add"))
+                .inRoot(isDialog())
+                .perform(click())
+            onView(isRoot()).perform(waitFor(500))
+
+            onView(withText(R.string.proxy_error_reserved_domain))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+        }
+    }
+
+    @Test
+    fun retiredFacebookezDomainIsRejected() {
+        ActivityScenario.launch(MainActivity::class.java).use {
+            openProxyPicker()
+            openAddCustomDialog()
+
+            onView(withId(R.id.customProxyInput))
+                .inRoot(isDialog())
+                .perform(replaceText(Constants.FACEBOOKEZ_DOMAIN), closeSoftKeyboard())
             onView(withText("Add"))
                 .inRoot(isDialog())
                 .perform(click())

@@ -132,14 +132,31 @@ class MultiPlatformConversionTest {
     }
 
     @Test
-    fun `facebook built-in retargets to custom frontend`() {
+    fun `facebook custom target converts facebook_com source`() {
         val customDomain = "custom-facebook.example"
         ProxyRoster.setCustomProxies(ProxyPlatform.FACEBOOK, listOf(customDomain))
         val customSel = selections(ProxyPlatform.FACEBOOK to customDomain)
         assertEquals(
             "https://custom-facebook.example/post/1",
-            convert("https://facebookez.com/post/1", true, customSel),
+            convert("https://facebook.com/post/1", true, customSel),
         )
+    }
+
+    @Test
+    fun `facebookez_com is no longer detected or reverse-converted`() {
+        val customDomain = "custom-facebook.example"
+        ProxyRoster.setCustomProxies(ProxyPlatform.FACEBOOK, listOf(customDomain))
+        val customSel = selections(ProxyPlatform.FACEBOOK to customDomain)
+        val facebookez = "https://facebookez.com/post/1"
+        assertFalse(processor.isFacebookUrl(facebookez))
+        assertEquals(facebookez, convert(facebookez, true, customSel))
+        assertEquals(facebookez, convert(facebookez, false, customSel))
+    }
+
+    @Test
+    fun `facebook with no configured target leaves facebook_com unchanged`() {
+        val url = "https://facebook.com/post/1"
+        assertEquals(url, convert(url, true))
     }
 
     @Test
@@ -149,18 +166,19 @@ class MultiPlatformConversionTest {
         val customSel = selections(ProxyPlatform.FACEBOOK to customDomain)
         assertEquals(
             "https://custom-facebook.example/post/1?a=1#frag?tok=x",
-            convert("https://facebookez.com/post/1?a=1#frag?tok=x", true, customSel),
+            convert("https://facebook.com/post/1?a=1#frag?tok=x", true, customSel),
         )
     }
 
     @Test
-    fun `facebook custom retargets to built-in frontend`() {
+    fun `facebook custom retargets to another custom frontend`() {
         val customDomain = "custom-facebook.example"
-        ProxyRoster.setCustomProxies(ProxyPlatform.FACEBOOK, listOf(customDomain))
-        val builtInSel = selections(ProxyPlatform.FACEBOOK to Constants.FACEBOOKEZ_DOMAIN)
+        val otherCustom = "other-facebook.example"
+        ProxyRoster.setCustomProxies(ProxyPlatform.FACEBOOK, listOf(customDomain, otherCustom))
+        val otherSel = selections(ProxyPlatform.FACEBOOK to otherCustom)
         assertEquals(
-            "https://facebookez.com/post/1",
-            convert("https://custom-facebook.example/post/1", true, builtInSel),
+            "https://other-facebook.example/post/1",
+            convert("https://custom-facebook.example/post/1", true, otherSel),
         )
     }
 

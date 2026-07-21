@@ -15,9 +15,12 @@ import com.fixupxer.PreferencesManager
 import com.fixupxer.rules.RuleBundleCodec
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.utils.RetiredFrontendMigration
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -318,6 +321,86 @@ class LocalBackupCodecTest {
     }
 
     @Test
+    fun `decode migrates retired instagram selection to active default`() {
+        val encoded = encodeValidWithRawSettings(
+            proxySelections = proxyStringMap(ProxyPlatform.INSTAGRAM to Constants.KKINSTAGRAM_DOMAIN),
+        )
+        val decoded = codec.decode(encoded)
+        assertEquals(Constants.TOINSTAGRAM_DOMAIN, decoded.settings.proxySelections[ProxyPlatform.INSTAGRAM])
+    }
+
+    @Test
+    fun `decode migrates retired facebook selection and disables convert when no customs`() {
+        val encoded = encodeValidWithRawSettings(
+            proxySelections = proxyStringMap(ProxyPlatform.FACEBOOK to Constants.FACEBOOKEZ_DOMAIN),
+            convertFacebook = true,
+        )
+        val decoded = codec.decode(encoded)
+        assertNull(decoded.settings.proxySelections[ProxyPlatform.FACEBOOK])
+        assertFalse(decoded.settings.convertFacebook)
+    }
+
+    @Test
+    fun `decode preserves facebook conversion without a retired selection`() {
+        val encoded = encodeValidWithRawSettings(convertFacebook = true)
+
+        val decoded = codec.decode(encoded)
+
+        assertTrue(decoded.settings.convertFacebook)
+    }
+
+    @Test
+    fun `decode keeps facebook conversion when retired selection has a custom fallback`() {
+        val encoded = encodeValidWithRawSettings(
+            proxySelections = proxyStringMap(ProxyPlatform.FACEBOOK to Constants.FACEBOOKEZ_DOMAIN),
+            customProxies = proxyListMap(ProxyPlatform.FACEBOOK to listOf("example-proxy.net")),
+            convertFacebook = true,
+        )
+
+        val decoded = codec.decode(encoded)
+
+        assertNull(decoded.settings.proxySelections[ProxyPlatform.FACEBOOK])
+        assertTrue(decoded.settings.convertFacebook)
+    }
+
+    @Test
+    fun `decode strips retired disabled built-in ids`() {
+        val encoded = encodeValidWithRawSettings(
+            disabledBuiltIns = disabledSetMap(
+                ProxyPlatform.INSTAGRAM to setOf(RetiredFrontendMigration.RETIRED_INSTAGRAM_DISABLED_ID),
+                ProxyPlatform.FACEBOOK to setOf(RetiredFrontendMigration.RETIRED_FACEBOOK_DISABLED_ID),
+            ),
+        )
+        val decoded = codec.decode(encoded)
+        assertTrue(decoded.settings.disabledBuiltIns[ProxyPlatform.INSTAGRAM]!!.isEmpty())
+        assertTrue(decoded.settings.disabledBuiltIns[ProxyPlatform.FACEBOOK]!!.isEmpty())
+    }
+
+    @Test
+    fun `backup with retired domain as facebook custom proxy is rejected`() {
+        val encoded = encodeValidWithRawSettings(
+            customProxies = proxyListMap(ProxyPlatform.FACEBOOK to listOf(Constants.FACEBOOKEZ_DOMAIN)),
+        )
+        assertTrue(runCatching { codec.decode(encoded) }.isFailure)
+    }
+
+    @Test
+    fun `backup with retired domain as instagram custom proxy is rejected`() {
+        val encoded = encodeValidWithRawSettings(
+            customProxies = proxyListMap(ProxyPlatform.INSTAGRAM to listOf(Constants.KKINSTAGRAM_DOMAIN)),
+        )
+        assertTrue(runCatching { codec.decode(encoded) }.isFailure)
+    }
+
+    @Test
+    fun `backup with retired subdomain as custom proxy is rejected`() {
+        val encoded = encodeValidWithRawSettings(
+            customProxies = proxyListMap(ProxyPlatform.X to listOf("evil.facebookez.com")),
+        )
+        assertTrue(runCatching { codec.decode(encoded) }.isFailure)
+    }
+
+    @Test
     fun `encoded settings contain only whitelisted keys and no history data`() {
         val encoded = encodeValid()
         val settingsJson = JSONObject(encoded).getJSONObject("settings")
@@ -340,6 +423,45 @@ class LocalBackupCodecTest {
 
     private fun encodeValid(): String =
         codec.encode(validSettings(), ruleCodec.encodeBundle(emptyList()))
+
+    private fun encodeValidWithRawSettings(
+        proxySelections: JSONObject? = null,
+        customProxies: JSONObject? = null,
+        disabledBuiltIns: JSONObject? = null,
+        convertFacebook: Boolean? = null,
+    ): String {
+        val root = JSONObject(encodeValid())
+        val settings = root.getJSONObject("settings")
+        proxySelections?.let { settings.put("proxySelections", it) }
+        customProxies?.let { settings.put("customProxies", it) }
+        disabledBuiltIns?.let { settings.put("disabledBuiltIns", it) }
+        convertFacebook?.let { settings.put("convertFacebook", it) }
+        return root.toString()
+    }
+
+    private fun proxyStringMap(vararg pairs: Pair<ProxyPlatform, String?>): JSONObject =
+        JSONObject().apply {
+            ProxyPlatform.entries.forEach { platform ->
+                put(platform.name.lowercase(), pairs.toMap()[platform])
+            }
+        }
+
+    private fun proxyListMap(vararg pairs: Pair<ProxyPlatform, List<String>>): JSONObject =
+        JSONObject().apply {
+            ProxyPlatform.entries.forEach { platform ->
+                put(platform.name.lowercase(), JSONArray(pairs.toMap()[platform].orEmpty()))
+            }
+        }
+
+    private fun disabledSetMap(vararg pairs: Pair<ProxyPlatform, Set<String>>): JSONObject =
+        JSONObject().apply {
+            ProxyPlatform.entries.forEach { platform ->
+                put(
+                    platform.name.lowercase(),
+                    JSONArray(pairs.toMap()[platform].orEmpty().sorted()),
+                )
+            }
+        }
 
     private fun assertDecodeRejects(settings: SettingsSnapshot) {
         assertTrue(

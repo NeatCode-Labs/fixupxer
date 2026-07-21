@@ -186,6 +186,7 @@ object ProxyRoster {
             entries += AlternativeFrontendCatalog.legacyDomains(platform)
             entries += getCustomProxies(platform)
         }
+        entries += Constants.RETIRED_UNSAFE_FRONTEND_DOMAINS
         return entries.distinct()
     }
 }

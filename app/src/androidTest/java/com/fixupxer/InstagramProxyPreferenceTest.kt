@@ -34,9 +34,10 @@ import org.junit.runner.RunWith
 /**
  * Instrumentation tests for Instagram proxy persistence in [PreferencesManager].
  *
- * Active proxy set (v1.6.0): toinstagram.com, adamlikes.men, instagram7.com,
- * kkinstagram.com + any user-defined custom proxies.
- * Default = toinstagram.com. Legacy proxy (eeinstagram.com) silently migrates.
+ * Active proxy set: toinstagram.com, adamlikes.men, instagram7.com
+ * + any user-defined custom proxies.
+ * Default = toinstagram.com. Legacy proxy (eeinstagram.com) and retired
+ * kkinstagram.com silently migrate to default.
  */
 @RunWith(AndroidJUnit4::class)
 class InstagramProxyPreferenceTest {
@@ -93,10 +94,9 @@ class InstagramProxyPreferenceTest {
     }
 
     @Test
-    fun setKkinstagramPersists() {
-        // kkinstagram.com is an active backup proxy again since v1.6.0
+    fun setRetiredKkinstagramIsIgnored() {
         prefs.setInstagramProxy(Constants.KKINSTAGRAM_DOMAIN)
-        assertEquals(Constants.KKINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
+        assertEquals(Constants.INSTAGRAM_DEFAULT_PROXY, prefs.getInstagramProxy())
     }
 
     @Test
@@ -111,16 +111,14 @@ class InstagramProxyPreferenceTest {
     }
 
     @Test
-    fun kkinstagramStoredValueStaysValid() {
-        // A user upgrading from v1.4.7 may have kkinstagram.com saved —
-        // since v1.6.0 it is an active proxy again, so it must be preserved.
+    fun kkinstagramStoredValueMigratesToDefault() {
         ApplicationProvider.getApplicationContext<Context>()
             .getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
             .edit()
             .putString("instagram_proxy_domain", "kkinstagram.com")
             .commit()
 
-        assertEquals(Constants.KKINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
+        assertEquals(Constants.TOINSTAGRAM_DOMAIN, prefs.getInstagramProxy())
     }
 
     @Test

@@ -30,7 +30,9 @@ import com.fixupxer.utils.FrontendTarget
 import com.fixupxer.utils.InstagramProxyStore
 import com.fixupxer.utils.ProxyPlatform
 import com.fixupxer.utils.ProxyRoster
+import com.fixupxer.utils.RetiredFrontendMigration
 import com.fixupxer.utils.TikTokProxyStore
+import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.backup.RememberedRoute
 import com.fixupxer.backup.RememberedRouteKind
 import com.fixupxer.backup.RememberedRouteValidator
@@ -157,6 +159,7 @@ class PreferencesManager(context: Context) {
     init {
         enforceTrackingCleaningEnabled()
         migrateConvertFacebookIfNeeded()
+        migrateRetiredFrontendsIfNeeded()
         seedProxyRosterFromPrefs()
     }
 
@@ -171,6 +174,81 @@ class PreferencesManager(context: Context) {
             prefs.edit {
                 putBoolean(KEY_CONVERT_FACEBOOK, prefs.getBoolean(KEY_CONVERT_INSTAGRAM, true))
             }
+        }
+    }
+
+    private fun migrateRetiredFrontendsIfNeeded() {
+        val igDisabledKey = keyForDisabledBuiltIns(ProxyPlatform.INSTAGRAM)
+        val fbDisabledKey = keyForDisabledBuiltIns(ProxyPlatform.FACEBOOK)
+        val igDisabled = readCsvSet(igDisabledKey) - RetiredFrontendMigration.RETIRED_INSTAGRAM_DISABLED_ID
+        val fbDisabled = readCsvSet(fbDisabledKey) - RetiredFrontendMigration.RETIRED_FACEBOOK_DISABLED_ID
+
+        val igSelectionKey = keyForSelection(ProxyPlatform.INSTAGRAM)
+        val fbSelectionKey = keyForSelection(ProxyPlatform.FACEBOOK)
+        val igSelection = prefs.getString(igSelectionKey, null)
+        val fbSelection = prefs.getString(fbSelectionKey, null)
+        val storedCustomProxies = ProxyPlatform.entries.associateWith { platform ->
+            readCsvList(keyForCustomProxies(platform))
+        }
+        val migratedCustomProxies = storedCustomProxies.mapValues { (_, domains) ->
+            domains.filterNot(::matchesRetiredFrontendDomain)
+        }
+        val igCustom = migratedCustomProxies[ProxyPlatform.INSTAGRAM].orEmpty()
+        val fbCustom = migratedCustomProxies[ProxyPlatform.FACEBOOK].orEmpty()
+
+        val migratedIgSelection = if (igSelection == Constants.KKINSTAGRAM_DOMAIN) {
+            RetiredFrontendMigration.firstActiveInstagramDomain(igDisabled, igCustom)
+        } else {
+            null
+        }
+        val removeFbSelection = fbSelection == Constants.FACEBOOKEZ_DOMAIN
+        val shouldDisableConvertFacebook = removeFbSelection &&
+            fbCustom.isEmpty() &&
+            prefs.getBoolean(KEY_CONVERT_FACEBOOK, true)
+
+        prefs.edit {
+            writeDisabledBuiltInsCsv(igDisabledKey, igDisabled)
+            writeDisabledBuiltInsCsv(fbDisabledKey, fbDisabled)
+            ProxyPlatform.entries.forEach { platform ->
+                val stored = storedCustomProxies[platform].orEmpty()
+                val migrated = migratedCustomProxies[platform].orEmpty()
+                if (migrated != stored) {
+                    val key = keyForCustomProxies(platform)
+                    if (migrated.isEmpty()) {
+                        remove(key)
+                    } else {
+                        putString(key, migrated.joinToString(","))
+                    }
+                }
+            }
+
+            if (igSelection == Constants.KKINSTAGRAM_DOMAIN) {
+                if (migratedIgSelection != null) {
+                    putString(igSelectionKey, migratedIgSelection)
+                } else {
+                    remove(igSelectionKey)
+                }
+            }
+            if (removeFbSelection) {
+                remove(fbSelectionKey)
+            }
+            if (shouldDisableConvertFacebook) {
+                putBoolean(KEY_CONVERT_FACEBOOK, false)
+            }
+        }
+    }
+
+    private fun matchesRetiredFrontendDomain(domain: String): Boolean =
+        Constants.RETIRED_UNSAFE_FRONTEND_DOMAINS.any { retired ->
+            UrlNormalizer.hostMatchesDomain(domain, retired) ||
+                UrlNormalizer.hostMatchesDomain(retired, domain)
+        }
+
+    private fun SharedPreferences.Editor.writeDisabledBuiltInsCsv(key: String, ids: Set<String>) {
+        if (ids.isEmpty()) {
+            remove(key)
+        } else {
+            putString(key, ids.joinToString(","))
         }
     }
 
@@ -224,6 +302,7 @@ class PreferencesManager(context: Context) {
         readCsvList(keyForCustomProxies(platform))
 
     fun addCustomProxy(platform: ProxyPlatform, domain: String) {
+        if (matchesRetiredFrontendDomain(domain)) return
         val current = getCustomProxies(platform)
         if (domain in current) return
         persistCustomProxies(platform, current + domain)

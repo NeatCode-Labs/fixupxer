@@ -33,6 +33,13 @@
 
     <string name="read_without_account">Read without an account</string>
     <string name="no_proxy_available">No proxies available — tap Change</string>
+    <string name="no_frontend_active_title">No frontend configured</string>
+    <string name="alternative_frontends_title">Alternative frontends</string>
+    <string name="alternative_frontends_settings_description">Choose which frontend each platform converts to</string>
+    <string name="alternative_frontends_intro">These choices apply when processing links on the Main screen and in Share. Browser mode privacy frontends are configured separately under Browser integration.</string>
+    <string name="frontend_not_configured">No frontend configured</string>
+    <string name="frontend_platform_row_desc">%1$s frontend settings. Currently: %2$s</string>
+    <string name="alternative_frontends_row_content_description">Alternative frontends. Choose which frontend each platform converts to.</string>
     <string name="enter_url_to_process">Enter URL to process</string>
     <string name="cleaned_url">Processed URL</string>
     <string name="process_url">Process URL</string>

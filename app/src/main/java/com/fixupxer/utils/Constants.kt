@@ -51,9 +51,8 @@ object Constants {
     const val ADAMLIKES_DOMAIN = "adamlikes.men"
     // Backup proxies — embed media only (no title/description)
     const val INSTAGRAM7_DOMAIN = "instagram7.com"
-    const val KKINSTAGRAM_DOMAIN = "kkinstagram.com"
     val INSTAGRAM_PRIMARY_PROXIES = listOf(TOINSTAGRAM_DOMAIN, ADAMLIKES_DOMAIN)
-    val INSTAGRAM_BACKUP_PROXIES = listOf(INSTAGRAM7_DOMAIN, KKINSTAGRAM_DOMAIN)
+    val INSTAGRAM_BACKUP_PROXIES = listOf(INSTAGRAM7_DOMAIN)
     // Built-in (fixed) proxies offered in the chooser, in UI order.
     // User-defined custom proxies live in InstagramProxyStore, NOT here.
     val INSTAGRAM_PROXY_DOMAINS = INSTAGRAM_PRIMARY_PROXIES + INSTAGRAM_BACKUP_PROXIES
@@ -68,7 +67,14 @@ object Constants {
     val TWITTER_PROXY_DOMAINS = listOf(FIXUPX_DOMAIN, FXTWITTER_DOMAIN, VXTWITTER_DOMAIN)
     const val FACEBOOK_DOMAIN = "facebook.com"
     const val FB_SHORT_DOMAIN = "fb.com"
+    // Domain constants retained for settings migration and custom-proxy rejection.
+    const val KKINSTAGRAM_DOMAIN = "kkinstagram.com"
     const val FACEBOOKEZ_DOMAIN = "facebookez.com"
+    // Retired unsafe frontends (2026-07 security audit): facebookez.com redirects to an
+    // adware network; kkinstagram.com is flagged by multiple reputation services.
+    // They are no longer specially detected or converted and cannot be selected; like any
+    // unknown URL, they receive only generic tracking cleaning.
+    val RETIRED_UNSAFE_FRONTEND_DOMAINS = listOf(FACEBOOKEZ_DOMAIN, KKINSTAGRAM_DOMAIN)
     const val FACEBOOK_LINK_SHIM_DOMAIN = "l.facebook.com"
     const val FACEBOOK_MOBILE_LINK_SHIM_DOMAIN = "lm.facebook.com"
     const val BLUESKY_DOMAIN = "bsky.app"

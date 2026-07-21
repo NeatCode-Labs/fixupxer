@@ -75,7 +75,7 @@ FixupXer builds upon ideas from these excellent projects:
 - fxbsky.app / FxEmbed (https://github.com/FxEmbed/FxEmbed) - Bluesky embed link service
 - InstaFix (https://github.com/Wikidepia/InstaFix) - Instagram embed enhancements
 
-Special thanks to the maintainers of facebookez.com, toinstagram.com, adamlikes.men and instagram7.com for their link enhancement services. (FixupXer also still recognises the earlier proxies kkinstagram.com and eeinstagram.com so legacy URLs continue to work.)
+Special thanks to the maintainers of toinstagram.com, adamlikes.men and instagram7.com for their link enhancement services. (FixupXer also still recognises the earlier proxy eeinstagram.com so legacy URLs continue to work.)
 
 ===============================================================================
 

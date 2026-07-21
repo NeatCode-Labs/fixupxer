@@ -87,6 +87,7 @@ object SettingsSnapshotValidator {
     private fun validateCustomProxies(snapshot: SettingsSnapshot) {
         val catalogDomains = buildList {
             add(Constants.FARSIDE_DOMAIN)
+            addAll(Constants.RETIRED_UNSAFE_FRONTEND_DOMAINS)
             ProxyPlatform.entries.forEach { platform ->
                 addAll(AlternativeFrontendCatalog.sourceDomains(platform))
                 addAll(AlternativeFrontendCatalog.builtIn(platform).map { it.domain })

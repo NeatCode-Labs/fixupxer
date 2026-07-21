@@ -132,7 +132,6 @@ object FacebookCleaner : UrlCleaner {
             url,
             listOf(
                 Constants.FACEBOOK_DOMAIN,
-                Constants.FACEBOOKEZ_DOMAIN,
                 Constants.FB_SHORT_DOMAIN
             )
         )

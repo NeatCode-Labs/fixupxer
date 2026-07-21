@@ -87,9 +87,11 @@ class HostBoundaryRegressionTest {
     }
 
     @Test
-    fun `facebook proxy matching requires a host-label boundary`() {
+    fun `facebook proxy matching requires a host-label boundary and excludes retired facebookez`() {
         assertFalse(FacebookCleaner.matches("https://myfacebookez.com/page"))
+        assertFalse(FacebookCleaner.matches("https://facebookez.com/page"))
         assertFalse(UrlNormalizer.urlMatchesDomain("https://myfacebookez.com/page", Constants.FACEBOOKEZ_DOMAIN))
+        assertTrue(FacebookCleaner.matches("https://facebook.com/page"))
     }
 
     @Test

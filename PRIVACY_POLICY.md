@@ -32,7 +32,7 @@ From **Settings > Backup & restore**, you can export or import a local JSON back
 - All URL processing happens locally on your device
 - During processing, FixupXer does not send URLs to external servers
 - No tracking or analytics are performed
-- Link conversions (e.g. to embed frontends such as fixupx.com or facebookez.com, or to account-free reader frontends such as xcancel.com or a Redlib instance — built-in or custom) are pure text replacements; the app never contacts those domains
+- Link conversions (e.g. to embed frontends such as fixupx.com or toinstagram.com, or to account-free reader frontends such as xcancel.com or a Redlib instance — built-in or custom) are pure text replacements; the app never contacts those domains
 
 When processing finishes, Android may pass the resulting URL to the browser,
 native app, share target, or privacy Reader selected by you or by your

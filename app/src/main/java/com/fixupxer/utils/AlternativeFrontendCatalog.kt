@@ -167,13 +167,6 @@ object AlternativeFrontendCatalog {
             allowNativeApp = true,
         ),
         FrontendTarget(
-            id = "ig_kkinstagram",
-            platform = ProxyPlatform.INSTAGRAM,
-            domain = Constants.KKINSTAGRAM_DOMAIN,
-            role = FrontendRole.EMBED,
-            allowNativeApp = true,
-        ),
-        FrontendTarget(
             id = "ig_kittygram",
             platform = ProxyPlatform.INSTAGRAM,
             domain = Constants.KITTYGRAM_DOMAIN,
@@ -221,15 +214,6 @@ object AlternativeFrontendCatalog {
             id = "tk_kktiktok",
             platform = ProxyPlatform.TIKTOK,
             domain = Constants.KKTIKTOK_DOMAIN,
-            role = FrontendRole.EMBED,
-            allowNativeApp = true,
-        ),
-
-        // ----- Facebook -----
-        FrontendTarget(
-            id = "fb_facebookez",
-            platform = ProxyPlatform.FACEBOOK,
-            domain = Constants.FACEBOOKEZ_DOMAIN,
             role = FrontendRole.EMBED,
             allowNativeApp = true,
         ),
@@ -358,7 +342,6 @@ object AlternativeFrontendCatalog {
         ProxyPlatform.X to "x_fixupx",
         ProxyPlatform.INSTAGRAM to "ig_toinstagram",
         ProxyPlatform.TIKTOK to "tk_tnktok",
-        ProxyPlatform.FACEBOOK to "fb_facebookez",
         ProxyPlatform.BLUESKY to "bs_fxbsky",
         ProxyPlatform.REDDIT to "rd_redlib_catsarch",
         ProxyPlatform.YOUTUBE to "yt_inv_nadeko",
@@ -404,9 +387,10 @@ object AlternativeFrontendCatalog {
     fun byDomain(platform: ProxyPlatform, domain: String): FrontendTarget? =
         builtIn(platform).find { it.domain == domain }
 
-    fun defaultTargetId(platform: ProxyPlatform): String = defaultTargetIds.getValue(platform)
+    fun defaultTargetId(platform: ProxyPlatform): String? = defaultTargetIds[platform]
 
-    fun defaultTarget(platform: ProxyPlatform): FrontendTarget? = byId(defaultTargetId(platform))
+    fun defaultTarget(platform: ProxyPlatform): FrontendTarget? =
+        defaultTargetId(platform)?.let { byId(it) }
 
     fun legacyDomains(platform: ProxyPlatform): List<String> =
         legacyDomainsByPlatform.getValue(platform)

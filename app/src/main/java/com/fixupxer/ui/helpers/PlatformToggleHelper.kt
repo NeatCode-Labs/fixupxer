@@ -82,7 +82,11 @@ object PlatformToggleHelper {
         val selectedTarget = selectedDomain?.let { ProxyRoster.targetByDomain(platform, it) }
             ?: active.firstOrNull()
 
-        title.setText(FrontendDisplayHelper.titleForTarget(selectedTarget))
+        if (active.isEmpty()) {
+            title.setText(R.string.no_frontend_active_title)
+        } else {
+            title.setText(FrontendDisplayHelper.titleForTarget(selectedTarget))
+        }
 
         proxyRow.isVisible = true
         proxyStatus.text = if (active.isEmpty()) {
@@ -102,7 +106,13 @@ object PlatformToggleHelper {
             FrontendDisplayHelper.toggleDescRes(platform)
         )
         platformSwitch.setOnCheckedChangeListener(null)
-        platformSwitch.isChecked = conversionEnabled
+        if (active.isEmpty()) {
+            platformSwitch.isEnabled = false
+            platformSwitch.isChecked = false
+        } else {
+            platformSwitch.isEnabled = true
+            platformSwitch.isChecked = conversionEnabled
+        }
         platformSwitch.setOnCheckedChangeListener { _, isChecked ->
             onToggle(isChecked)
         }

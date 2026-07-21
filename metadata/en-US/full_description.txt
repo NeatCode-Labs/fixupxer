@@ -11,7 +11,7 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 * Fast Processing: Cleans any URL in under 0.1 seconds with advanced caching
 * Offline Operation: Works completely offline - your URLs never leave your device
 * Platform Support: Works with 26 platforms including YouTube, Facebook, Amazon, Twitter/X, Instagram, TikTok, Bluesky, Bilibili, Google Search, Google Maps, LinkedIn, Reddit, Spotify, Wikipedia, and more
-* Smart Conversions: Optional per-platform conversion to embed-friendly alternatives (fixupx.com, facebookez.com, fxbsky.app, selectable Instagram and TikTok proxies) or account-free reader frontends (xcancel, Nitter, SkyLib, Redlib, and more), with custom domains for every platform
+* Smart Conversions: Optional per-platform conversion to embed-friendly alternatives (fixupx.com, fxbsky.app, selectable Instagram and TikTok proxies) or account-free reader frontends (xcancel, Nitter, SkyLib, Redlib, and more), with custom domains for every platform — all pickers reachable anytime from Settings
 * Custom URL Rules: Build ordered offline rules with host or regex scopes, multiple processing phases, Test Lab previews, per-rule test vectors, Teach-from-example drafts, templates, and JSON import/export
 * History Tracking: Keep track of cleaned URLs with optional history feature
 * Configurable Actions: Choose what happens after cleaning - open in app, browser, share, or copy to clipboard

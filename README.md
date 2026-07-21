@@ -23,7 +23,7 @@
 <p align="center">
   <a href="docs/BROWSER_MODE_GUIDE.md">Browser Mode Guide</a> ·
   <a href="docs/CUSTOM_URL_RULES_GUIDE.md">Custom Rules Guide</a> ·
-  <a href="SUPPORTED_PLATFORMS.md">Supported Platforms</a> ·
+  <a href="docs/SUPPORTED_PLATFORMS.md">Supported Platforms</a> ·
   <a href="PRIVACY_POLICY.md">Privacy</a>
 </p>
 
@@ -143,11 +143,14 @@ only when they are valid HTTP(S) URLs.
 
 When a link from a supported platform is detected, the Main and Share screens
 show a contextual conversion toggle with the active frontend and a **Change**
-link. The picker separates **Embed frontends** (better previews in chat apps)
-from **Privacy frontends** (read without an account) and lets you add custom
-domains for any platform:
+link. Every platform's picker is also always reachable from **Settings → Link
+processing → Alternative frontends**. The picker separates **Embed frontends**
+(better previews in chat apps) from **Privacy frontends** (read without an
+account) and lets you add custom domains for any platform:
 
-- Facebook links to `facebookez.com`
+- Facebook links to a user-added custom frontend (no built-in domain is
+  bundled; the former `facebookez.com` was retired after it began redirecting
+  to an advertising network)
 - Twitter/X links to `fixupx.com` (embed) or readers such as `xcancel.com`,
   `nitter.net`, community Nitter instances, and automatic instance pickers
 - Bluesky post links to `fxbsky.app` (embed) or SkyLib readers
@@ -160,7 +163,7 @@ These are local string transformations; FixupXer never contacts a frontend.
 Reader conversions are off by default, and each platform remembers its own
 selection with migration from known legacy proxies. Full domain rosters and
 platform behavior are documented in
-**[Supported Platforms](SUPPORTED_PLATFORMS.md)**.
+**[Supported Platforms](docs/SUPPORTED_PLATFORMS.md)**.
 
 If you open a converted URL, the receiving browser, native app, or third-party
 frontend performs the network request and applies its own privacy policy.

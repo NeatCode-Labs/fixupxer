@@ -130,7 +130,6 @@ class CleanerRegistry @Inject constructor() {
                 addDomainAssociation(Constants.FACEBOOK_DOMAIN, cleaner)
                 addDomainAssociation("m.${Constants.FACEBOOK_DOMAIN}", cleaner)
                 addDomainAssociation(Constants.FB_SHORT_DOMAIN, cleaner)
-                addDomainAssociation(Constants.FACEBOOKEZ_DOMAIN, cleaner)
             }
             "reddit" -> {
                 addDomainAssociation(Constants.REDDIT_DOMAIN, cleaner)

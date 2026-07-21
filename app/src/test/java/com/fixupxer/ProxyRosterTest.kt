@@ -106,6 +106,16 @@ class ProxyRosterTest {
         assertTrue(ProxyRoster.isReservedDomain("sub.fixupx.com"))
         assertTrue(ProxyRoster.isReservedDomain("catsarch.com"))
         assertTrue(ProxyRoster.isReservedDomain("my.tnktok.com"))
+        assertTrue(ProxyRoster.isReservedDomain(Constants.FACEBOOKEZ_DOMAIN))
+        assertTrue(ProxyRoster.isReservedDomain(Constants.KKINSTAGRAM_DOMAIN))
+        assertTrue(ProxyRoster.isReservedDomain("sub.facebookez.com"))
+        assertTrue(ProxyRoster.isReservedDomain("sub.kkinstagram.com"))
+    }
+
+    @Test
+    fun `retired unsafe domains are reserved but not known`() {
+        assertFalse(ProxyRoster.allKnownDomains(ProxyPlatform.INSTAGRAM).contains(Constants.KKINSTAGRAM_DOMAIN))
+        assertFalse(ProxyRoster.allKnownDomains(ProxyPlatform.FACEBOOK).contains(Constants.FACEBOOKEZ_DOMAIN))
     }
 
     @Test

@@ -141,47 +141,39 @@ class ShareActivityTest {
             // Wait for processing
             onView(isRoot()).perform(waitFor(2000))
             
-            // Verify conversion to facebookez.com without m. prefix
+            // Verify URL stays on facebook.com (no built-in frontend to convert to)
             onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://facebookez.com/story.php?story_fbid=123&id=456")))
+                .check(matches(withText("https://m.facebook.com/story.php?story_fbid=123&id=456")))
         }
     }
     
     @Test
-    fun testNothingToDoMessageForCleanUrl() {
+    fun testRetiredFacebookezUrlStaysUnchanged() {
         runBlocking {
-            // v2.4.0: Facebook has a dedicated toggle
             preferencesManager.setConvertFacebookEnabled(true)
             delay(100)
-            
-            // Share a clean facebookez.com URL with toggle ON
+
             launchShareActivityWithText("https://facebookez.com/zuck/posts/10115959821974691")
-            
-            // Wait for processing
+
             onView(isRoot()).perform(waitFor(2000))
-            
-            // Verify URL is shown with "Already clean" status
+
             onView(withId(R.id.textViewProcessedUrl))
                 .check(matches(withText("https://facebookez.com/zuck/posts/10115959821974691")))
             onView(withId(R.id.textViewResultStatus))
                 .check(matches(withText(containsString("Already clean"))))
         }
     }
-    
+
     @Test
-    fun testDirtyFacebookezUrlWithToggleOn() {
+    fun testDirtyRetiredFacebookezUrlTrackingRemoved() {
         runBlocking {
-            // v2.4.0: Facebook has a dedicated toggle
             preferencesManager.setConvertFacebookEnabled(true)
             delay(100)
-            
-            // Share a dirty facebookez.com URL
+
             launchShareActivityWithText("https://facebookez.com/zuck/posts/10115959821974691?utm_source=twitter&utm_medium=social")
-            
-            // Wait for processing
+
             onView(isRoot()).perform(waitFor(2000))
-            
-            // Verify URL is cleaned but stays facebookez.com
+
             onView(withId(R.id.textViewProcessedUrl))
                 .check(matches(withText("https://facebookez.com/zuck/posts/10115959821974691")))
         }

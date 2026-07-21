@@ -186,28 +186,24 @@ class UrlValidationImprovementsTest {
     }
     
     @Test
-    fun testFacebookezDomainRecognized() {
+    fun testFacebookezDomainAcceptedAsPlainUrl() {
         launchMainActivity()
-        
-        // Facebookez.com URLs should be recognized as valid
+
         val facebookezUrl = "https://facebookez.com/zuck/posts/123456789"
-        
+
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(facebookezUrl), closeSoftKeyboard())
-        
+
         onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify URL is not cleared
+
         onView(withId(R.id.editTextUrl))
             .check(matches(withText(facebookezUrl)))
-        
-        // Process it
+
         onView(withId(R.id.buttonProcess)).perform(click())
         onView(isRoot()).perform(waitFor(2000))
-        
-        // Should show processed URL (and status chip) if toggles are in default state
+
         onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(not(withText(""))))
+            .check(matches(withText(facebookezUrl)))
     }
     
     @Test
@@ -227,9 +223,7 @@ class UrlValidationImprovementsTest {
     }
 
     @Test
-    fun testLegacyKkinstagramUrlStillRecognizedAsValid() {
-        // Legacy URLs (v1.4.7 proxies) must still pass URL validation so the app
-        // can detect them and offer to convert them to a current active proxy.
+    fun testRetiredKkinstagramUrlAcceptedButNotConverted() {
         launchMainActivity()
 
         val kkinstagramUrl = "https://www.kkinstagram.com/p/ABC123/"

@@ -21,8 +21,8 @@ Experimental), and every platform accepts user-added custom domains. Each
 platform remembers its own selection; conversion toggles are off by default.
 
 ### Social Media & Communication
-- **Facebook** - Removes known Facebook tracking keys and converts to facebookez.com for better embedding
-- **Instagram** - Removes known Instagram tracking keys and converts to a user-selectable frontend. Embed proxies: `toinstagram.com` (default), `adamlikes.men`, `instagram7.com`, `kkinstagram.com`, or any user-added custom proxy. Experimental readers: `kittygr.am`, `kg.meowing.de`, `kittygram.kareem.one`. Converted links are sent without the `www.` prefix because these proxies render best at the bare hostname. The legacy proxy `eeinstagram.com` is still recognised in pasted URLs and auto-converted to the active frontend.
+- **Facebook** - Removes known Facebook tracking keys. No embed frontend is bundled — the former `facebookez.com` was retired after it began redirecting to an advertising network — but conversion to a user-added custom frontend is supported
+- **Instagram** - Removes known Instagram tracking keys and converts to a user-selectable frontend. Embed proxies: `toinstagram.com` (default), `adamlikes.men`, `instagram7.com`, or any user-added custom proxy. Experimental readers: `kittygr.am`, `kg.meowing.de`, `kittygram.kareem.one`. Converted links are sent without the `www.` prefix because these proxies render best at the bare hostname. The legacy proxy `eeinstagram.com` is still recognised in pasted URLs and auto-converted to the active frontend.
 - **Twitter/X** - Removes known Twitter/X tracking keys and converts to a user-selectable frontend. Embed: `fixupx.com` (default). Readers: `xcancel.com`, `nitter.net`, `twitterviewer.net`; automatic instance pickers `twiiit.com` and `farside.link/nitter`; community Nitter instances `nitter.catsarch.com`, `nitter.tiekoetter.com`, `nitter.kareem.one`, `nitter.privacyredirect.com`, `nuku.trabun.org`. The legacy proxies `fxtwitter.com` and `vxtwitter.com` are still recognised and auto-converted to the active frontend.
 - **Bluesky** - Converts supported `bsky.app` post URLs to a user-selectable frontend. Embed: `fxbsky.app` (default). Readers: `skylib.coffee`, `skylib.catsarch.com`.
 - **TikTok** - Removes known TikTok tracking keys and converts to a user-selectable proxy for better embedding: `tnktok.com` (default, Primary), `tfxktok.com` (Primary), `tiktokez.com` / `kktiktok.com` (Backup), or any user-added custom proxy. Subdomains are preserved (`vm.tiktok.com` → `vm.tnktok.com`) so short links keep working. The dead services `vxtiktok.com` and `tiktxk.com` are still recognised in pasted URLs and auto-converted to the active proxy.
@@ -100,7 +100,7 @@ It intentionally preserves non-universal keys such as `ref`, `source`, `si`,
 ## Important Notes
 
 ### URL Conversion Behavior
-- **Facebook URLs** are converted to facebookez.com for better embedding and privacy by user decision (with automatic prefix removal)
+- **Facebook URLs** are converted only to a user-added custom frontend by user decision (with automatic prefix removal); no built-in Facebook frontend is bundled
 - **Instagram URLs** are converted to a user-selected embed proxy, experimental reader, or custom domain by user decision
 - **Twitter/X URLs** are converted to the fixupx.com embed frontend, a user-selected reader (xcancel, Nitter instances, automatic pickers), or a custom domain by user decision
 - **Bluesky post URLs** are converted to the fxbsky.app embed frontend, a SkyLib reader, or a custom domain by user decision

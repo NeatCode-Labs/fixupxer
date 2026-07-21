@@ -16,6 +16,7 @@ import com.fixupxer.rules.RuleBundle
 import com.fixupxer.rules.RuleBundleCodec
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.utils.RetiredFrontendMigration
 import org.json.JSONArray
 import org.json.JSONObject
 import javax.inject.Inject
@@ -161,9 +162,9 @@ class LocalBackupCodec @Inject constructor(
             browserPrivacyTargetIds = decodePlatformStringMap(json.getJSONObject("browserPrivacyTargets")),
             rememberedRoutes = decodeRememberedRoutes(json.getJSONObject("rememberedRoutes")),
         )
-        // Full semantic validation before anything downstream can act on the snapshot.
-        SettingsSnapshotValidator.validate(snapshot)
-        return snapshot
+        val migrated = RetiredFrontendMigration.migrateSnapshot(snapshot)
+        SettingsSnapshotValidator.validate(migrated)
+        return migrated
     }
 
     private fun encodeRememberedRoutes(routes: Map<String, RememberedRoute>): JSONObject =

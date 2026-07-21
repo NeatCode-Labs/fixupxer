@@ -1,15 +1,15 @@
 # FixupXer App - Development Summary
-## Version Progression: v2.4.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.4.1 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 32 (v2.4.0 through v1.2.1)
-**Current Version:** v2.4.0 (versionCode: 38)
-**Development Period:** v1.2.1 (Initial) → v2.4.0 (Current)
+**Total Versions Released:** 33 (v2.4.1 through v1.2.1)
+**Current Version:** v2.4.1 (versionCode: 39)
+**Development Period:** v1.2.1 (Initial) → v2.4.1 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.4.0: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard, curated offline redirect unwrapping, social embed conversion, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine — all while retaining the zero-permission offline model.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.4.1: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard, curated offline redirect unwrapping, social embed conversion, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine — all while retaining the zero-permission offline model.
 
 ### Key Achievements:
 - ✅ **Browser Privacy Readers & Saved App Choices** - Dedicated Browser mode settings hub with per-platform privacy reader conversions (X, Bluesky, Reddit, Pinterest), exact-host saved app routing, and a read-only Configuration status overview
@@ -36,6 +36,15 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.4.0 → v2.4.1
+- **Focus:** Fast patch release — one privacy fix and three reliability fixes found in a post-v2.4.0 audit, plus the Play-side fix for the intermittent PairIP "Something went wrong" dialog on shares.
+- **Privacy — fragment leak:** `PlatformDomainConverter.extractUrlSuffix` no longer promotes a `?` that lives inside a URL fragment into a real query. Previously `…#client?access_token=…` produced a genuine `?access_token=…` query sent to reader/embed frontends during conversion. The fix covers all conversion paths (X readers forward/reverse, Reddit host swaps, youtu.be, Farside, generic host swaps).
+- **Open self-interception:** `UrlActionHelper.openUrl` resolves the implicit `ACTION_VIEW` first; only when it would land back in FixupXer (app set as default browser) it delegates to the external-browser chooser. Native App Links keep working unchanged.
+- **Facebook retarget:** `convertToFacebookTarget` now recognizes URLs already on any known Facebook frontend (`ProxyRoster.allKnownDomains`) and swaps them to the newly selected built-in/custom target — previously Facebook was the only platform without frontend-to-frontend retargeting.
+- **Browser VIEW dedup:** Browser-mode processing moved into `MainViewModel.viewModelScope` with an in-flight cache keyed by URL, and the completed transaction (original/processed URL + routing host) is stored in `SavedStateHandle`. Activity recreation (rotation, uiMode change, process death) replays the post-clean step from the stored result instead of re-processing and re-inserting a duplicate history row; new VIEW intents invalidate the stored transaction. `BrowserViewGate` checks stay active on the replay path.
+- **Play-side:** the intermittent PairIP/`LicenseActivity` "Something went wrong" dialog on shares was traced to Google Play Automatic protection's installer check (not app code); the installer check was disabled in Play Console.
+- **Verification:** 628/628 unit + 229/229 instrumentation tests on `Pixel_API_35_Play`; `lintRelease` clean (0 errors); zero-permission manifest unchanged. Four-stage subagent review (implementation + two read-only reviews + fixer) with final main-agent verification.
 
 ### v2.3.0 → v2.4.0
 - **Focus:** Browser-mode maturity release — dedicated Browser mode settings hub, alternative reader frontends across nine platforms on Main/Share, privacy-reader conversions decoupled from embed toggles, exact-host saved app choices, read-only Configuration status, local settings backup/restore with crash-safe rollback, and handed action layouts.
@@ -736,11 +745,13 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.0.0 | 34 | Complete UI redesign: before/after flow, M3 DayNight + dark mode, theme picker | ✅ Released |
 | v2.1.0 | 35 | Complete opt-in custom URL rule system with Test Lab, templates and import/export | ✅ Released |
 | v2.2.0 | 36 | Private Link Guard, keep-unknown cleaning, 14 new cleaners, redirect unwrapping, Bluesky, Process Text, test vectors, Teach from example | ✅ Released |
-| v2.3.0 | 37 | Bilibili cleaning, Yahoo referrer keys, GeoRiot/LinkSynergy offline unwrapping and redirect validation hardening | ✅ Current |
+| v2.3.0 | 37 | Bilibili cleaning, Yahoo referrer keys, GeoRiot/LinkSynergy offline unwrapping and redirect validation hardening | ✅ Released |
+| v2.4.0 | 38 | Browser mode hub, privacy readers, saved app choices, local backup/restore, alternative frontend catalog | ✅ Released |
+| v2.4.1 | 39 | Privacy fix (fragment query leak) + Open self-interception, Facebook retarget, Browser VIEW history dedup | ✅ Current |
 
-### Build Artifacts (v2.3.0):
+### Build Artifacts (v2.4.1):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk`
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
-- **GITHUB / F-Droid APK:** `FixupXer-v2.3.0-release.apk` built from a fresh clone of the `v2.3.0` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+- **GITHUB / F-Droid APK:** `FixupXer-v2.4.1-release.apk` built from a fresh clone of the `v2.4.1` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

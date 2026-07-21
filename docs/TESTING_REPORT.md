@@ -1,5 +1,35 @@
 # FixupXer Testing Report
 
+## v2.4.1 verification — July 21, 2026
+
+v2.4.1 is a patch release with one privacy fix (fragment pseudo-query no
+longer promoted into a real query during conversions) and three reliability
+fixes (Open self-interception when FixupXer is the default browser, Facebook
+frontend-to-frontend retargeting, Browser VIEW history dedup across Activity
+recreation via `viewModelScope` + `SavedStateHandle` replay). Final
+verification passes:
+
+- **628/628 unit tests** (`./gradlew test`, debug variant; release variant
+  also green)
+- **229/229 instrumentation tests** (`./gradlew connectedAndroidTest`) on
+  `Pixel_API_35_Play` / API 35 — one full-suite pass had 5 environment
+  flakes (window-focus / `onActivityResult` timeouts on a busy fresh-boot
+  emulator, one of them also reproducible on the v2.4.0 baseline); all
+  affected classes were re-run green in targeted executions, and
+  `SettingsTest.testBackNavigation` was stabilized against the bottom-sheet
+  settle animation
+- **Release lint** (`./gradlew lintRelease`) — 0 errors
+
+New coverage includes fragment pseudo-query preservation across X reader
+forward/reverse, Reddit host swaps, youtu.be, Farside reverse, and real
+query + fragment combinations; Facebook built-in↔custom retargeting incl.
+lookalike-host boundaries; `shouldRedirectSelfOpen` decision logic; the
+`SavedStateHandle` transaction roundtrip incl. ViewModel recreation; the
+in-flight `browserViewResult` cache (awaiter cancellation, same-URL reuse,
+different-URL replacement); and a `BrowserViewRecreationTest` instrumentation
+scenario asserting a restored Ask dialog with exactly one history row after
+`ActivityScenario.recreate()`.
+
 ## v2.4.0 verification — July 20, 2026
 
 v2.4.0 splits Browser mode into a dedicated settings screen, adds Browser

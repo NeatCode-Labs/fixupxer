@@ -22,6 +22,7 @@ package com.fixupxer.presentation.main
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.fixupxer.R
 import com.fixupxer.domain.model.ProcessedUrlResult
@@ -33,12 +34,17 @@ import com.fixupxer.processing.LinkLeakAnalyzer
 import com.fixupxer.rules.CustomRuleRepository
 import com.fixupxer.utils.InputValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import com.fixupxer.ui.helpers.PlatformToggleHelper
 import com.fixupxer.utils.ProxyPlatform
@@ -51,7 +57,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val urlRepository: UrlRepository,
     application: Application,
-    private val customRuleRepository: CustomRuleRepository? = null
+    private val customRuleRepository: CustomRuleRepository? = null,
+    private val savedStateHandle: SavedStateHandle,
 ) : AndroidViewModel(application) {
     
     private val _uiState = MutableStateFlow(MainUiState())
@@ -61,10 +68,76 @@ class MainViewModel @Inject constructor(
     // extra synchronization is needed.
     private var isProcessing = false
     private var pendingReprocess = false
+    private var inflightViewJob: Pair<String, Deferred<BrowserViewProcessingResult>>? = null
     
     init {
         loadPreferences()
         observeCustomRuleChanges()
+    }
+
+    fun getCompletedViewTransaction(originalUrl: String): CompletedViewTransaction? {
+        val storedOriginal = savedStateHandle.get<String>(KEY_VIEW_TX_ORIGINAL) ?: return null
+        if (storedOriginal != originalUrl) return null
+        val processedUrl = savedStateHandle.get<String>(KEY_VIEW_TX_PROCESSED) ?: return null
+        val routingHost = savedStateHandle.get<String>(KEY_VIEW_TX_ROUTING_HOST)
+        return CompletedViewTransaction(storedOriginal, processedUrl, routingHost)
+    }
+
+    fun storeCompletedViewTransaction(
+        originalUrl: String,
+        processedUrl: String,
+        routingHost: String?,
+    ) {
+        savedStateHandle[KEY_VIEW_TX_ORIGINAL] = originalUrl
+        savedStateHandle[KEY_VIEW_TX_PROCESSED] = processedUrl
+        if (routingHost != null) {
+            savedStateHandle[KEY_VIEW_TX_ROUTING_HOST] = routingHost
+        } else {
+            savedStateHandle.remove<String>(KEY_VIEW_TX_ROUTING_HOST)
+        }
+    }
+
+    fun clearCompletedViewTransaction() {
+        savedStateHandle.remove<String>(KEY_VIEW_TX_ORIGINAL)
+        savedStateHandle.remove<String>(KEY_VIEW_TX_PROCESSED)
+        savedStateHandle.remove<String>(KEY_VIEW_TX_ROUTING_HOST)
+    }
+
+    fun browserViewResult(originalUrl: String): Deferred<BrowserViewProcessingResult> {
+        inflightViewJob?.let { (inflightUrl, deferred) ->
+            // A completed (non-cancelled) deferred is reused too: awaiting it again
+            // replays the cached result. Recreating it would reprocess the URL and
+            // write a duplicate history row when the job finishes between the
+            // Activity's transaction lookup and its coroutine dispatch.
+            if (inflightUrl == originalUrl && !deferred.isCancelled) return deferred
+            deferred.cancel()
+        }
+
+        return viewModelScope.async(start = CoroutineStart.DEFAULT) {
+            // Validation is a gate only. Its output is URL-decoded, while the
+            // processing pipeline decodes again, so process the original string.
+            val validated = withContext(Dispatchers.Default) {
+                InputValidator.validateAndSanitizeInput(originalUrl)
+            }
+            if (validated == null) {
+                BrowserViewProcessingResult.ValidationRejected
+            } else {
+                val result = urlRepository.processUrlForBrowser(originalUrl)
+                storeCompletedViewTransaction(
+                    originalUrl = originalUrl,
+                    processedUrl = result.url,
+                    routingHost = result.routingHost,
+                )
+                BrowserViewProcessingResult.Success(result)
+            }
+        }.also { deferred ->
+            inflightViewJob = originalUrl to deferred
+        }
+    }
+
+    fun cancelInflightViewProcessing() {
+        inflightViewJob?.second?.cancel()
+        inflightViewJob = null
     }
 
     private fun observeCustomRuleChanges() {
@@ -547,6 +620,23 @@ class MainViewModel @Inject constructor(
             "$prefix?${remainingTokens.joinToString("&")}$suffix"
         }
     }
+
+    private companion object {
+        private const val KEY_VIEW_TX_ORIGINAL = "view_tx_original"
+        private const val KEY_VIEW_TX_PROCESSED = "view_tx_processed"
+        private const val KEY_VIEW_TX_ROUTING_HOST = "view_tx_routing_host"
+    }
+}
+
+data class CompletedViewTransaction(
+    val originalUrl: String,
+    val processedUrl: String,
+    val routingHost: String?,
+)
+
+sealed interface BrowserViewProcessingResult {
+    data class Success(val result: ProcessedUrlResult) : BrowserViewProcessingResult
+    data object ValidationRejected : BrowserViewProcessingResult
 }
 
 /**

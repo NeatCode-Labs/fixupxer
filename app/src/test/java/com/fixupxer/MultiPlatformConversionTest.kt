@@ -21,6 +21,7 @@ import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InstagramProxyStore
 import com.fixupxer.utils.NativeAppMapping
 import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.utils.ProxyRoster
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -36,6 +37,7 @@ class MultiPlatformConversionTest {
     @Before
     fun setup() {
         InstagramProxyStore.reset()
+        ProxyRoster.reset()
         val registry = CleanerRegistry().apply { registerAll(CleanerCatalog.createBuiltInCleaners()) }
         processor = UrlProcessor(CleanerService(registry, CleanerCache()))
     }
@@ -43,6 +45,7 @@ class MultiPlatformConversionTest {
     @After
     fun tearDown() {
         InstagramProxyStore.reset()
+        ProxyRoster.reset()
     }
 
     private fun convert(
@@ -58,6 +61,139 @@ class MultiPlatformConversionTest {
     }
 
     @Test
+    fun `fragment pseudo query is not promoted to real query on x reader forward`() {
+        val input = "https://x.com/user/status/1#client?access_token=abcdefghijkl"
+        val readerSel = selections(ProxyPlatform.X to Constants.XCANCEL_DOMAIN)
+        assertEquals(
+            "https://xcancel.com/user/status/1#client?access_token=abcdefghijkl",
+            convert(input, true, readerSel),
+        )
+    }
+
+    @Test
+    fun `fragment pseudo query is not promoted to real query on x reverse`() {
+        val input = "https://xcancel.com/user/status/1#client?access_token=abcdefghijkl"
+        val readerSel = selections(ProxyPlatform.X to Constants.XCANCEL_DOMAIN)
+        assertEquals(
+            "https://x.com/user/status/1#client?access_token=abcdefghijkl",
+            convert(input, false, readerSel),
+        )
+    }
+
+    @Test
+    fun `fixupx conversion preserves fragment pseudo query from reader input`() {
+        val input = "https://xcancel.com/user/status/123#frag?token=abc"
+        assertEquals(
+            "https://fixupx.com/user/status/123#frag?token=abc",
+            convert(input, true),
+        )
+    }
+
+    @Test
+    fun `x reader conversion preserves real query before fragment pseudo query`() {
+        val input = "https://x.com/user/status/1?s=20#client?access_token=abc"
+        val readerSel = selections(ProxyPlatform.X to Constants.XCANCEL_DOMAIN)
+        assertEquals(
+            "https://xcancel.com/user/status/1?s=20#client?access_token=abc",
+            convert(input, true, readerSel),
+        )
+    }
+
+    @Test
+    fun `x reader conversion preserves trailing fragment marker`() {
+        val input = "https://x.com/user/status/1#"
+        val readerSel = selections(ProxyPlatform.X to Constants.XCANCEL_DOMAIN)
+        assertEquals(
+            "https://xcancel.com/user/status/1#",
+            convert(input, true, readerSel),
+        )
+    }
+
+    @Test
+    fun `fragment pseudo query is not promoted to real query on reddit host swap`() {
+        val input = "https://www.reddit.com/r/test/comments/1#client?access_token=abcdefghijkl"
+        val redditSel = selections(ProxyPlatform.REDDIT to Constants.REDLIB_CATSARCH_DOMAIN)
+        assertEquals(
+            "https://redlib.catsarch.com/r/test/comments/1#client?access_token=abcdefghijkl",
+            convert(input, true, redditSel),
+        )
+    }
+
+    @Test
+    fun `fragment pseudo query is not promoted on youtu be conversion`() {
+        val input = "https://youtu.be/dQw4w9WgXcQ#t?access_token=abcdefghijkl"
+        val ytSel = selections(ProxyPlatform.YOUTUBE to Constants.INV_NADEKO_DOMAIN)
+        val result = convert(input, true, ytSel)
+        assertEquals(
+            "https://inv.nadeko.net/watch?v=dQw4w9WgXcQ#t?access_token=abcdefghijkl",
+            result,
+        )
+        assertFalse(result.substringBefore('#').contains("?access_token"))
+    }
+
+    @Test
+    fun `facebook built-in retargets to custom frontend`() {
+        val customDomain = "custom-facebook.example"
+        ProxyRoster.setCustomProxies(ProxyPlatform.FACEBOOK, listOf(customDomain))
+        val customSel = selections(ProxyPlatform.FACEBOOK to customDomain)
+        assertEquals(
+            "https://custom-facebook.example/post/1",
+            convert("https://facebookez.com/post/1", true, customSel),
+        )
+    }
+
+    @Test
+    fun `facebook retarget preserves query and fragment pseudo query`() {
+        val customDomain = "custom-facebook.example"
+        ProxyRoster.setCustomProxies(ProxyPlatform.FACEBOOK, listOf(customDomain))
+        val customSel = selections(ProxyPlatform.FACEBOOK to customDomain)
+        assertEquals(
+            "https://custom-facebook.example/post/1?a=1#frag?tok=x",
+            convert("https://facebookez.com/post/1?a=1#frag?tok=x", true, customSel),
+        )
+    }
+
+    @Test
+    fun `facebook custom retargets to built-in frontend`() {
+        val customDomain = "custom-facebook.example"
+        ProxyRoster.setCustomProxies(ProxyPlatform.FACEBOOK, listOf(customDomain))
+        val builtInSel = selections(ProxyPlatform.FACEBOOK to Constants.FACEBOOKEZ_DOMAIN)
+        assertEquals(
+            "https://facebookez.com/post/1",
+            convert("https://custom-facebook.example/post/1", true, builtInSel),
+        )
+    }
+
+    @Test
+    fun `facebook already on selected target is unchanged`() {
+        val customDomain = "custom-facebook.example"
+        ProxyRoster.setCustomProxies(ProxyPlatform.FACEBOOK, listOf(customDomain))
+        val customSel = selections(ProxyPlatform.FACEBOOK to customDomain)
+        val url = "https://custom-facebook.example/post/1"
+        assertEquals(url, convert(url, true, customSel))
+    }
+
+    @Test
+    fun `facebook lookalike host is not retargeted`() {
+        val customDomain = "custom-facebook.example"
+        ProxyRoster.setCustomProxies(ProxyPlatform.FACEBOOK, listOf(customDomain))
+        val customSel = selections(ProxyPlatform.FACEBOOK to customDomain)
+        val lookalike = "https://myfacebookez.com/page"
+        assertEquals(lookalike, convert(lookalike, true, customSel))
+    }
+
+    @Test
+    fun `facebook custom reverse works with conversion off`() {
+        val customDomain = "custom-facebook.example"
+        ProxyRoster.setCustomProxies(ProxyPlatform.FACEBOOK, listOf(customDomain))
+        val customSel = selections(ProxyPlatform.FACEBOOK to customDomain)
+        assertEquals(
+            "https://facebook.com/post/1",
+            convert("https://custom-facebook.example/post/1", false, customSel),
+        )
+    }
+
+    @Test
     fun `farside forward and reverse preserve path query fragment`() {
         val input = "https://x.com/user/status/1?s=20#frag"
         val farsideSel = selections(ProxyPlatform.X to Constants.FARSIDE_DOMAIN)
@@ -68,6 +204,15 @@ class MultiPlatformConversionTest {
         assertEquals(
             "https://x.com/user/status/1?s=20#frag",
             convert("https://farside.link/nitter/user/status/1?s=20#frag", false, farsideSel),
+        )
+    }
+
+    @Test
+    fun `farside reverse preserves fragment pseudo query`() {
+        val farsideSel = selections(ProxyPlatform.X to Constants.FARSIDE_DOMAIN)
+        assertEquals(
+            "https://x.com/user/status/1#f?token=abc",
+            convert("https://farside.link/nitter/user/status/1#f?token=abc", false, farsideSel),
         )
     }
 

@@ -1,4 +1,26 @@
-# Android Test Coverage for FixupXer v2.4.0
+# Android Test Coverage for FixupXer v2.4.1
+
+## v2.4.1 delta (July 21, 2026)
+
+Current verification is **628 unit / 229 instrumentation tests**, all passing
+on `Pixel_API_35_Play`. Delta vs the v2.4.0 release inventory (607 / 228):
+
+- **Added (unit)**: fragment pseudo-query preservation across conversion
+  paths (X reader forward/reverse, fixupx normalization, Reddit host swap,
+  youtu.be, Farside reverse, real query + fragment, trailing `#`) and
+  Facebook frontend retargeting incl. lookalike-host boundary
+  (`MultiPlatformConversionTest`); Open self-interception predicate
+  (`BrowserViewGateTest.shouldRedirectSelfOpen`); `CompletedViewTransaction`
+  SavedStateHandle roundtrip/recreation plus in-flight `browserViewResult`
+  cache semantics — awaiter cancellation, same-URL reuse, different-URL
+  replacement (`MainViewModelTest`, extended `TestUrlRepository`).
+- **Added (instrumentation)**: `BrowserViewRecreationTest` — Browser VIEW
+  intent + `ActivityScenario.recreate()` restores the Ask dialog and keeps
+  exactly one history row.
+- **Updated**: `SettingsTest.testBackNavigation` stabilized against the
+  bottom-sheet settle exit animation.
+
+The versioned v2.4.0 release inventory remains below.
 
 ## v2.4.0 delta (July 20, 2026)
 

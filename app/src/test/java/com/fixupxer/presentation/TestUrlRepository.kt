@@ -35,6 +35,8 @@ internal class TestUrlRepository : UrlRepository {
     val threadsFlow = MutableStateFlow(false)
     var processResult: ProcessedUrlResult = ProcessedUrlResult("", false)
     var processHandler: ((String, Boolean, String?) -> ProcessedUrlResult)? = null
+    var browserProcessCalls: Int = 0
+    var browserProcessHandler: (suspend (String) -> ProcessedUrlResult)? = null
 
     override suspend fun processUrl(url: String): ProcessedUrlResult =
         processUrl(url, false)
@@ -145,6 +147,8 @@ internal class TestUrlRepository : UrlRepository {
         threadsFlow.value = enabled
     }
 
-    override suspend fun processUrlForBrowser(url: String): ProcessedUrlResult =
-        processUrl(url, false)
+    override suspend fun processUrlForBrowser(url: String): ProcessedUrlResult {
+        browserProcessCalls++
+        return browserProcessHandler?.invoke(url) ?: processUrl(url, false)
+    }
 }

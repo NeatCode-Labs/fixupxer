@@ -1,3 +1,52 @@
+# FixupXer v2.4.1 - Privacy & Reliability Patch
+
+## What's Fixed
+
+### Privacy: Fragment Data No Longer Leaks Into Queries
+URL fragments (the part after `#`) stay on your device — servers never see
+them. When a link such as `…/status/1#section?access_token=…` was converted
+to an alternative frontend, the `?…` inside the fragment could be promoted
+into a real query and sent to the destination server. Conversions now keep
+fragment content strictly inside the fragment for all platforms (X/Twitter
+readers, Reddit, youtu.be, Farside links, and host swaps).
+
+### Open Button No Longer Reopens FixupXer
+When FixupXer is set as the default browser, tapping **Open** on the Main or
+Share screen could route the link straight back into FixupXer instead of
+handing it out. The Open action now detects this self-interception and opens
+the link in your real external browser, while links that belong to native
+apps (App Links) keep opening in those apps.
+
+### Facebook Frontend Retargeting
+Selecting a different Facebook frontend now also converts links that are
+already on another known Facebook frontend (for example `facebookez.com` →
+your custom domain), matching how every other platform behaves. Path, query,
+and fragment are preserved.
+
+### No More Duplicate History From Browser Mode
+Opening a link through Browser mode and then rotating the screen (or any
+other configuration change, including mid-processing) no longer records the
+same conversion twice in History. Processing now survives screen recreation
+and the post-clean dialog is restored from the completed result instead of
+re-running the conversion.
+
+### Play Store Note
+The intermittent "Something went wrong — check that Google Play is enabled"
+message some Google Play users saw when sharing into FixupXer was caused by
+Google Play's Automatic integrity protection (installer check), not by the
+app itself. The installer check has been disabled in the Play Console for
+this and future releases.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 39
+- versionName: 2.4.1
+- Unit tests: 628 / 628 passing. Instrumentation: 229 / 229 passing on
+  `Pixel_API_35_Play`.
+
+---
+
 # FixupXer v2.4.0 - Browser Mode Hub, Privacy Readers & Local Backup
 
 ## What's New

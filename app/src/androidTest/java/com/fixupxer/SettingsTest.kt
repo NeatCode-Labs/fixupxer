@@ -180,6 +180,10 @@ class SettingsTest {
             .inRoot(isDialog())
             .perform(click())
         
+        // Wait out the bottom sheet settle exit animation, which ignores
+        // the animator duration scale, before asserting the activity root.
+        onView(isRoot()).perform(waitFor(1000))
+        
         // Verify we're back to main activity
         onView(withId(R.id.buttonProcess))
             .check(matches(isDisplayed()))

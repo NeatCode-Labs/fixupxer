@@ -1,0 +1,6 @@
+v2.4.1 - Privacy and reliability patch
+
+  Fragment content no longer leaks into the query during conversions
+  Open button no longer reopens FixupXer when set as default browser
+  Facebook frontend switch now retargets links already on another frontend
+  Browser mode no longer duplicates History entries after screen rotation

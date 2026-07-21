@@ -37,6 +37,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.fixupxer.databinding.ActivityMainBinding
+import com.fixupxer.presentation.main.BrowserViewProcessingResult
 import com.fixupxer.presentation.main.MainViewModel
 import com.fixupxer.ui.BaseActivity
 import com.fixupxer.ui.helpers.DominantHandLayoutHelper
@@ -56,7 +57,6 @@ import com.fixupxer.ui.dialogs.LinkGuardDialogHelper
 import com.fixupxer.ui.dialogs.ProxyPickerDialogHelper
 import com.fixupxer.ui.helpers.PlatformToggleHelper
 import com.fixupxer.utils.PostCleanRunner
-import com.fixupxer.domain.repository.UrlRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -84,9 +84,6 @@ class MainActivity : BaseActivity() {
     @Inject
     lateinit var preferencesManager: PreferencesManager
     
-    @Inject
-    lateinit var urlRepository: UrlRepository
-    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Timber.d("MainActivity onCreate started")
@@ -105,6 +102,10 @@ class MainActivity : BaseActivity() {
         observeViewModel()
         setupSmartFooter()
         
+        if (intent?.action != Intent.ACTION_VIEW) {
+            viewModel.clearCompletedViewTransaction()
+        }
+
         // Handle VIEW intent if present (browser mode)
         handleViewIntentIfPresent(intent)
 
@@ -121,6 +122,8 @@ class MainActivity : BaseActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        viewModel.cancelInflightViewProcessing()
+        viewModel.clearCompletedViewTransaction()
         handleViewIntentIfPresent(intent)
     }
     
@@ -150,28 +153,33 @@ class MainActivity : BaseActivity() {
                     return
                 }
 
+                val completedTransaction = viewModel.getCompletedViewTransaction(originalUrl)
+
                 viewIntentJob = lifecycleScope.launch {
                     try {
-                        // Gate only: the validator's *output* is URL-decoded, and
-                        // UrlProcessor decodes again, so we must pass the ORIGINAL
-                        // URI string onward to avoid double-decoding %-encoded URLs.
-                        val validated = withContext(Dispatchers.Default) {
-                            InputValidator.validateAndSanitizeInput(originalUrl)
-                        }
-                        if (validated == null) {
-                            Timber.w("VIEW intent URL rejected by validator")
-                            handoffOriginalUrl(originalUrl)
-                            return@launch
-                        }
-
                         if (!isBrowserViewGateValid(gateSnapshot)) {
                             Timber.w("Browser VIEW gate changed before URL processing")
                             handoffOriginalUrl(originalUrl)
                             return@launch
                         }
 
-                        // Clean the URL using browser-specific preferences
-                        val result = urlRepository.processUrlForBrowser(originalUrl)
+                        if (completedTransaction != null) {
+                            Timber.d("Replaying completed VIEW transaction after recreation")
+                            dispatchBrowserPostClean(
+                                processedUrl = completedTransaction.processedUrl,
+                                routingHost = completedTransaction.routingHost,
+                            )
+                            return@launch
+                        }
+
+                        val processingResult = viewModel.browserViewResult(originalUrl).await()
+                        if (processingResult is BrowserViewProcessingResult.ValidationRejected) {
+                            Timber.w("VIEW intent URL rejected by validator")
+                            handoffOriginalUrl(originalUrl)
+                            return@launch
+                        }
+
+                        val result = (processingResult as BrowserViewProcessingResult.Success).result
                         val cleanedUri = Uri.parse(result.url)
                         
                         Timber.d(
@@ -185,16 +193,10 @@ class MainActivity : BaseActivity() {
                             return@launch
                         }
 
-                        // Run post-clean action
-                        val postCleanRunner = PostCleanRunner(this@MainActivity, preferencesManager)
-                        activePostCleanRunner = postCleanRunner
-                        postCleanRunner.run(cleanedUri, result.routingHost) {
-                            // Finish only after the user has made a choice in ask mode.
-                            if (activePostCleanRunner === postCleanRunner) {
-                                activePostCleanRunner = null
-                                finish()
-                            }
-                        }
+                        dispatchBrowserPostClean(
+                            processedUrl = result.url,
+                            routingHost = result.routingHost,
+                        )
                     } catch (e: kotlinx.coroutines.CancellationException) {
                         throw e
                     } catch (e: Exception) {
@@ -202,6 +204,20 @@ class MainActivity : BaseActivity() {
                         handoffOriginalUrl(originalUrl)
                     }
                 }
+            }
+        }
+    }
+
+    private fun dispatchBrowserPostClean(processedUrl: String, routingHost: String?) {
+        val postCleanRunner = PostCleanRunner(this, preferencesManager)
+        activePostCleanRunner = postCleanRunner
+        postCleanRunner.run(Uri.parse(processedUrl), routingHost) {
+            // Finish only after the user has made a choice in ask mode. A stale
+            // runner's late callback must not clear a newer intent's transaction.
+            if (activePostCleanRunner === postCleanRunner) {
+                viewModel.clearCompletedViewTransaction()
+                activePostCleanRunner = null
+                finish()
             }
         }
     }
@@ -215,6 +231,7 @@ class MainActivity : BaseActivity() {
     )
 
     private fun handoffOriginalUrl(originalUrl: String) {
+        viewModel.clearCompletedViewTransaction()
         binding.editTextUrl.removeTextChangedListener(urlTextWatcher)
         binding.editTextUrl.setText(originalUrl)
         binding.editTextUrl.addTextChangedListener(urlTextWatcher)

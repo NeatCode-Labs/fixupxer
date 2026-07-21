@@ -419,12 +419,15 @@ object PlatformDomainConverter {
             "^(https?://)(?:www\\.)?(?:[a-z]+\\.)?(?:facebook|fb)\\.com(?=[/:?#]|$)",
             RegexOption.IGNORE_CASE,
         )
-        return if (regex.containsMatchIn(url)) {
-            url.replace(regex, "$1$target")
-        } else {
-            replaceHostDomain(url, Constants.FACEBOOK_DOMAIN, target)
-                .let { if (it != url) it else replaceHostDomain(url, Constants.FB_SHORT_DOMAIN, target) }
+        if (regex.containsMatchIn(url)) {
+            return url.replace(regex, "$1$target")
         }
+        val host = UrlNormalizer.extractAsciiHost(url)
+        if (isFacebookProxyHost(host)) {
+            return swapBareHost(url, target)
+        }
+        return replaceHostDomain(url, Constants.FACEBOOK_DOMAIN, target)
+            .let { if (it != url) it else replaceHostDomain(url, Constants.FB_SHORT_DOMAIN, target) }
     }
 
     private fun convertFromFacebookTarget(url: String): String {
@@ -652,10 +655,12 @@ object PlatformDomainConverter {
         if (stripFarsidePrefix) {
             path = stripFarsidePathPrefix(path)
         }
-        val queryStart = url.indexOf('?', pathStart).takeIf { it >= 0 }
         val fragmentStart = url.indexOf('#', pathStart).takeIf { it >= 0 }
+        val queryStart = url.indexOf('?', pathStart).takeIf {
+            it >= 0 && (fragmentStart == null || it < fragmentStart)
+        }
         val query = queryStart?.let { start ->
-            val end = fragmentStart?.takeIf { it > start } ?: url.length
+            val end = fragmentStart ?: url.length
             url.substring(start, end)
         }
         val fragment = fragmentStart?.let { url.substring(it) }

@@ -20,16 +20,21 @@
 package com.fixupxer.presentation
 
 import android.app.Application
+import androidx.lifecycle.SavedStateHandle
 import com.fixupxer.R
 import com.fixupxer.domain.model.ProcessedUrlResult
 import com.fixupxer.domain.model.ResultStatus
 import com.fixupxer.domain.model.resolveResultStatus
+import com.fixupxer.presentation.main.CompletedViewTransaction
 import com.fixupxer.presentation.main.MainViewModel
 import com.fixupxer.processing.LeakCategory
 import com.fixupxer.processing.LeakComponent
 import com.fixupxer.processing.LeakFinding
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -37,7 +42,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -72,10 +79,170 @@ class MainViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel(urlRepository: TestUrlRepository = TestUrlRepository()): MainViewModel {
+    private fun createViewModel(
+        urlRepository: TestUrlRepository = TestUrlRepository(),
+        savedStateHandle: SavedStateHandle = SavedStateHandle(),
+    ): MainViewModel {
         Dispatchers.setMain(testDispatcher)
-        return MainViewModel(urlRepository, application)
+        return MainViewModel(urlRepository, application, savedStateHandle = savedStateHandle)
     }
+
+    @Test
+    fun `completed view transaction store get and clear roundtrip`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.storeCompletedViewTransaction(
+            originalUrl = "https://example.com/a",
+            processedUrl = "https://example.com/b",
+            routingHost = "example.com",
+        )
+
+        assertEquals(
+            CompletedViewTransaction(
+                originalUrl = "https://example.com/a",
+                processedUrl = "https://example.com/b",
+                routingHost = "example.com",
+            ),
+            viewModel.getCompletedViewTransaction("https://example.com/a"),
+        )
+
+        viewModel.clearCompletedViewTransaction()
+        assertNull(viewModel.getCompletedViewTransaction("https://example.com/a"))
+    }
+
+    @Test
+    fun `completed view transaction returns null for mismatched original url`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.storeCompletedViewTransaction(
+            originalUrl = "https://example.com/a",
+            processedUrl = "https://example.com/b",
+            routingHost = null,
+        )
+
+        assertNull(viewModel.getCompletedViewTransaction("https://example.com/other"))
+    }
+
+    @Test
+    fun `completed view transaction survives SavedStateHandle recreation`() = runTest(testDispatcher) {
+        val savedStateHandle = SavedStateHandle()
+        val firstViewModel = createViewModel(savedStateHandle = savedStateHandle)
+        advanceUntilIdle()
+
+        firstViewModel.storeCompletedViewTransaction(
+            originalUrl = "https://instagram.com/p/ABC/?igsh=xyz",
+            processedUrl = "https://toinstagram.com/p/ABC/",
+            routingHost = "instagram.com",
+        )
+
+        val restoredViewModel = createViewModel(savedStateHandle = savedStateHandle)
+        advanceUntilIdle()
+
+        assertEquals(
+            CompletedViewTransaction(
+                originalUrl = "https://instagram.com/p/ABC/?igsh=xyz",
+                processedUrl = "https://toinstagram.com/p/ABC/",
+                routingHost = "instagram.com",
+            ),
+            restoredViewModel.getCompletedViewTransaction("https://instagram.com/p/ABC/?igsh=xyz"),
+        )
+    }
+
+    @Test
+    fun `browser view processing completes after activity awaiter is cancelled`() =
+        runTest(testDispatcher) {
+            val originalUrl = "https://x.com/user/status/1?s=20"
+            val processedResult = ProcessedUrlResult(
+                url = "https://fixupx.com/user/status/1",
+                wasAlreadyClean = false,
+                routingHost = "x.com",
+            )
+            val processingStarted = CompletableDeferred<Unit>()
+            val finishProcessing = CompletableDeferred<ProcessedUrlResult>()
+            val urlRepository = TestUrlRepository().apply {
+                browserProcessHandler = {
+                    processingStarted.complete(Unit)
+                    finishProcessing.await()
+                }
+            }
+            val viewModel = createViewModel(urlRepository)
+            advanceUntilIdle()
+
+            val deferred = viewModel.browserViewResult(originalUrl)
+            val activityAwaiter = launch { deferred.await() }
+            processingStarted.await()
+            activityAwaiter.cancel()
+            activityAwaiter.join()
+
+            finishProcessing.complete(processedResult)
+            deferred.await()
+
+            assertEquals(1, urlRepository.browserProcessCalls)
+            assertEquals(
+                CompletedViewTransaction(
+                    originalUrl = originalUrl,
+                    processedUrl = processedResult.url,
+                    routingHost = processedResult.routingHost,
+                ),
+                viewModel.getCompletedViewTransaction(originalUrl),
+            )
+        }
+
+    @Test
+    fun `same browser view url reuses active deferred`() = runTest(testDispatcher) {
+        val originalUrl = "https://x.com/user/status/1"
+        val finishProcessing = CompletableDeferred<ProcessedUrlResult>()
+        val urlRepository = TestUrlRepository().apply {
+            browserProcessHandler = { finishProcessing.await() }
+        }
+        val viewModel = createViewModel(urlRepository)
+        advanceUntilIdle()
+
+        val first = viewModel.browserViewResult(originalUrl)
+        val second = viewModel.browserViewResult(originalUrl)
+
+        assertSame(first, second)
+        finishProcessing.complete(ProcessedUrlResult(originalUrl, true))
+        first.await()
+        assertEquals(1, urlRepository.browserProcessCalls)
+    }
+
+    @Test
+    fun `different browser view url cancels and replaces active deferred`() =
+        runTest(testDispatcher) {
+            val firstUrl = "https://x.com/user/status/1"
+            val secondUrl = "https://x.com/user/status/2"
+            val firstStarted = CompletableDeferred<Unit>()
+            val firstCancelled = CompletableDeferred<Unit>()
+            val urlRepository = TestUrlRepository().apply {
+                browserProcessHandler = { url ->
+                    if (url == firstUrl) {
+                        firstStarted.complete(Unit)
+                        try {
+                            awaitCancellation()
+                        } finally {
+                            firstCancelled.complete(Unit)
+                        }
+                    } else {
+                        ProcessedUrlResult(url, true)
+                    }
+                }
+            }
+            val viewModel = createViewModel(urlRepository)
+            advanceUntilIdle()
+
+            val first = viewModel.browserViewResult(firstUrl)
+            firstStarted.await()
+            val second = viewModel.browserViewResult(secondUrl)
+
+            firstCancelled.await()
+            second.await()
+            assertTrue(first.isCancelled)
+            assertEquals(2, urlRepository.browserProcessCalls)
+            assertEquals(secondUrl, viewModel.getCompletedViewTransaction(secondUrl)?.processedUrl)
+        }
 
     @Test
     fun `resolveResultStatus maps cleaned converted and already clean URLs`() {

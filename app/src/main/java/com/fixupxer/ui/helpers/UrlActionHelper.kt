@@ -26,6 +26,7 @@ import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.view.View
@@ -92,6 +93,20 @@ object UrlActionHelper {
         }
         try {
             val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+            val resolveInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                activity.packageManager.resolveActivity(
+                    intent,
+                    PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong()),
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                activity.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+            }
+            val resolvedPackage = resolveInfo?.activityInfo?.packageName
+            if (shouldRedirectSelfOpen(resolvedPackage, activity.packageName)) {
+                openUrlInExternalBrowser(anchor, activity, url)
+                return
+            }
             activity.startActivity(intent)
         } catch (e: Exception) {
             Timber.e(e, "Error opening URL")
@@ -190,6 +205,9 @@ object UrlActionHelper {
             false
         }
     }
+
+    internal fun shouldRedirectSelfOpen(resolvedPackage: String?, ownPackage: String): Boolean =
+        resolvedPackage != null && resolvedPackage == ownPackage
 
     internal fun mergeExternalBrowserPackages(
         selectorPackages: Collection<String>,

@@ -93,4 +93,11 @@ class BrowserViewGateTest {
             ),
         )
     }
+
+    @Test
+    fun `shouldRedirectSelfOpen is true only for own package`() {
+        assertTrue(UrlActionHelper.shouldRedirectSelfOpen("com.fixupxer", "com.fixupxer"))
+        assertFalse(UrlActionHelper.shouldRedirectSelfOpen("org.chromium.chrome", "com.fixupxer"))
+        assertFalse(UrlActionHelper.shouldRedirectSelfOpen(null, "com.fixupxer"))
+    }
 }

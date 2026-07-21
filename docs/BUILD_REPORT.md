@@ -92,16 +92,16 @@ FixupXer v2.4.1 has passed unit, lint, full emulator instrumentation, signed-bui
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` — 4,364,178 bytes, SHA-256 `A1E4AE1EFDFD51D15674F40BFA7BAAB7547EF0005BD5AFBA04D8A48216586B6E`
 - [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` — 5,438,200 bytes, SHA-256 `2BD5AFC2BABD6B8E9C73590CDBEA64B522D56105F00D26AF09E4DC7DF81FB3DE`; `assets/adi-registration.properties` present
-- [ ] **GITHUB Release APK**: `FixupXer-v2.4.1-release.apk` — built from a fresh clone of the `v2.4.1` tag (see GITHUB variant section)
+- [x] **GITHUB Release APK**: `FixupXer-v2.4.1-release.apk` — 4,359,078 bytes, SHA-256 `4944AA5649F15CE5BAF5F45F52E166C3CF4566FB6FE73DCC0E6001B76708C809`; built from a fresh clone of the `v2.4.1` tag and verified free of `dependencies.pb` and `adi-registration.properties`
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: 628/628 unit + 229/229 instrumentation, all green
 
 ## GITHUB (F-Droid) Variant Verification
 - [x] Version 2.4.1 applied to the mirror's four version fields
-- [ ] F-Droid changelog 39 added and validated under 500 characters
-- [ ] Full root → mirror source/docs sync verified; DCO commit pushed
-- [ ] `main` and annotated tag `v2.4.1` pushed; reproducible fresh-clone APK published
+- [x] F-Droid changelog 39 added and validated under 500 characters (327)
+- [x] Full root → mirror source/docs sync completed; DCO commit pushed
+- [x] `main` and annotated tag `v2.4.1` pushed; reproducible fresh-clone APK published at `https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.4.1`
 
 ## Quality Assurance Verification
 

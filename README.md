@@ -7,7 +7,7 @@
 <h3 align="center">Clean tracking from links. Improve social previews. Build your own offline URL rules.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.5.0"><img src="https://img.shields.io/badge/version-2.5.0-blue?style=flat-square" alt="Version 2.5.0"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.5.1"><img src="https://img.shields.io/badge/version-2.5.1-blue?style=flat-square" alt="Version 2.5.1"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>
@@ -23,7 +23,7 @@
 <p align="center">
   <a href="docs/BROWSER_MODE_GUIDE.md">Browser Mode Guide</a> ·
   <a href="docs/CUSTOM_URL_RULES_GUIDE.md">Custom Rules Guide</a> ·
-  <a href="docs/SUPPORTED_PLATFORMS.md">Supported Platforms</a> ·
+  <a href="SUPPORTED_PLATFORMS.md">Supported Platforms</a> ·
   <a href="PRIVACY_POLICY.md">Privacy</a>
 </p>
 
@@ -163,7 +163,7 @@ These are local string transformations; FixupXer never contacts a frontend.
 Reader conversions are off by default, and each platform remembers its own
 selection with migration from known legacy proxies. Full domain rosters and
 platform behavior are documented in
-**[Supported Platforms](docs/SUPPORTED_PLATFORMS.md)**.
+**[Supported Platforms](SUPPORTED_PLATFORMS.md)**.
 
 If you open a converted URL, the receiving browser, native app, or third-party
 frontend performs the network request and applies its own privacy policy.

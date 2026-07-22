@@ -1,3 +1,28 @@
+# FixupXer v2.5.1 - Android 16 Target Compliance
+
+## What's New
+
+### Google Play Target API Compliance
+FixupXer now targets **Android 16 (API level 36)** to comply with Google Play
+target API requirements (deadline Aug 31, 2026). Edge-to-edge display and
+predictive back support was already in place, so this release required no
+related app-code changes.
+
+### Build Tooling
+Android Gradle Plugin updated **8.3.2 → 8.9.3** (minimum AGP line for API 36
+support). Gradle wrapper and JDK 17 are unchanged.
+
+There are **no user-facing feature changes** in this release. The app remains
+100% offline with zero permissions.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 41
+- versionName: 2.5.1
+
+---
+
 # FixupXer v2.5.0 - Frontend Safety & Settings Access
 
 ## What's New

@@ -1,15 +1,15 @@
 # FixupXer App - Development Summary
-## Version Progression: v2.5.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.5.1 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 34 (v2.5.0 through v1.2.1)
-**Current Version:** v2.5.0 (versionCode: 40)
-**Development Period:** v1.2.1 (Initial) → v2.5.0 (Current)
+**Total Versions Released:** 35 (v2.5.1 through v1.2.1)
+**Current Version:** v2.5.1 (versionCode: 41)
+**Development Period:** v1.2.1 (Initial) → v2.5.1 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.5.0: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard, curated offline redirect unwrapping, social embed conversion with a vetted frontend catalog reachable from Settings, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine — all while retaining the zero-permission offline model.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.5.1: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard, curated offline redirect unwrapping, social embed conversion with a vetted frontend catalog reachable from Settings, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine — all while retaining the zero-permission offline model.
 
 ### Key Achievements:
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
@@ -37,6 +37,13 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.5.0 → v2.5.1
+- **Focus:** Google Play compliance release — raise `targetSdk`/`compileSdk` to Android 16 (API 36) before the Aug 31, 2026 deadline; no user-facing feature or behavior changes.
+- **Target API:** `compileSdk` and `targetSdk` bumped 35 → 36; `tools:targetApi` in the manifest updated to match.
+- **Build tooling:** Android Gradle Plugin 8.3.2 → 8.9.3 (official API 36 support line); removed obsolete `android.suppressUnsupportedCompileSdk=35` from `gradle.properties`. Gradle wrapper 8.11.1 and JDK 17 unchanged.
+- **Tests:** new `robolectric.properties` pins default emulated SDK to 35 because Robolectric 4.14.1 has no SDK 36 runtime (upgrade deferred).
+- **Runtime:** edge-to-edge (`enableEdgeToEdge` in `BaseActivity`) and predictive back (`enableOnBackInvokedCallback` + `OnBackInvokedCallback`) were already in place — no Kotlin changes required.
 
 ### v2.4.1 → v2.5.0
 - **Focus:** Frontend safety release — two bundled frontend domains retired after a security review (community report on Mastodon/PieFed), plus a new Settings screen that makes every platform's frontend picker reachable without pasting or sharing a link.
@@ -756,11 +763,12 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.3.0 | 37 | Bilibili cleaning, Yahoo referrer keys, GeoRiot/LinkSynergy offline unwrapping and redirect validation hardening | ✅ Released |
 | v2.4.0 | 38 | Browser mode hub, privacy readers, saved app choices, local backup/restore, alternative frontend catalog | ✅ Released |
 | v2.4.1 | 39 | Privacy fix (fragment query leak) + Open self-interception, Facebook retarget, Browser VIEW history dedup | ✅ Released |
-| v2.5.0 | 40 | Retired unsafe frontends (facebookez.com, kkinstagram.com) with automatic migration; Alternative frontends screen in Settings | ✅ Current |
+| v2.5.0 | 40 | Retired unsafe frontends (facebookez.com, kkinstagram.com) with automatic migration; Alternative frontends screen in Settings | ✅ Released |
+| v2.5.1 | 41 | Android 16 (API 36) target compliance; AGP 8.9.3; no user-facing changes | ✅ Current |
 
-### Build Artifacts (v2.5.0):
+### Build Artifacts (v2.5.1):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk`
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
-- **GITHUB / F-Droid APK:** `FixupXer-v2.5.0-release.apk` built from a fresh clone of the `v2.5.0` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+- **GITHUB / F-Droid APK:** `FixupXer-v2.5.1-release.apk`
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

@@ -1,5 +1,25 @@
 # FixupXer Testing Report
 
+## v2.5.1 verification — July 22, 2026
+
+v2.5.1 is a Google Play compliance release: `targetSdk`/`compileSdk` raised to
+Android 16 (API 36) with Android Gradle Plugin 8.3.2 → 8.9.3 (Gradle 8.11.1
+and JDK 17 unchanged). No app-code changes; a new
+`app/src/test/resources/robolectric.properties` pins the default emulated SDK
+to 35 because Robolectric 4.14.1 has no SDK 36 runtime (explicit
+`@Config(sdk = ...)` annotations keep precedence). Final verification passes
+with the new toolchain:
+
+- **642/642 unit tests** (`./gradlew test`, debug variant; release variant
+  also green)
+- **235/235 instrumentation tests** (`./gradlew connectedAndroidTest`) on
+  `Pixel_API_35_Play` / API 35, zero failures in a single full-suite pass
+- **Release lint** (`./gradlew lintRelease`) — 0 errors with the newer lint
+  bundled in AGP 8.9.3
+
+No new tests were added — the suite is unchanged from v2.5.0 and re-validated
+end-to-end against compileSdk 36 and the upgraded build toolchain.
+
 ## v2.5.0 verification — July 22, 2026
 
 v2.5.0 retires two unsafe built-in frontend domains (`facebookez.com`,

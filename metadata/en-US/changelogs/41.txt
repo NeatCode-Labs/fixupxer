@@ -1,0 +1,5 @@
+v2.5.1 - Android 16 target compliance
+
+  App now targets Android 16 (API level 36) per Google Play requirements
+  Android Gradle Plugin updated 8.3.2 → 8.9.3
+  No user-facing feature or behavior changes

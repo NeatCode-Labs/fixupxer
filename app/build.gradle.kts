@@ -17,20 +17,20 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.fixupxer"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.fixupxer"
         minSdk = 21
-        targetSdk = 35
-        versionCode = 40
-        versionName = "2.5.0"
+        targetSdk = 36
+        versionCode = 41
+        versionName = "2.5.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         // Add build config fields
-        buildConfigField("String", "VERSION_NAME", "\"2.5.0\"")
-        buildConfigField("int", "VERSION_CODE", "40")
+        buildConfigField("String", "VERSION_NAME", "\"2.5.1\"")
+        buildConfigField("int", "VERSION_CODE", "41")
     }
 
     signingConfigs {

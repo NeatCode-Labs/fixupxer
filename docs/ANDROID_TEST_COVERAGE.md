@@ -1,4 +1,13 @@
-# Android Test Coverage for FixupXer v2.5.0
+# Android Test Coverage for FixupXer v2.5.1
+
+## v2.5.1 delta (July 22, 2026)
+
+No test additions or removals — v2.5.1 only raises `targetSdk`/`compileSdk`
+to 36 (Android 16) and upgrades AGP to 8.9.3. The full inventory below
+(642 unit / 235 instrumentation) was re-run green on the new toolchain.
+Infrastructure note: `app/src/test/resources/robolectric.properties` now pins
+the default Robolectric SDK to 35 (Robolectric 4.14.1 has no SDK 36 runtime);
+classes with explicit `@Config(sdk = ...)` are unaffected.
 
 ## v2.5.0 delta (July 22, 2026)
 

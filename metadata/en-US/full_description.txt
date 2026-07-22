@@ -37,7 +37,7 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 * Modular architecture with 26 host-bound domain cleaners, one universal cleaner, and curated offline redirect unwrapping
 * Thread-safe design optimized for modern Android devices
 * Redesigned Material Design 3 interface with full dark mode and a System/Light/Dark theme picker
-* Full Android 15 compliance with edge-to-edge display support
+* Targets Android 16 (API 36) with edge-to-edge display support
 * Comprehensive test suite with browser-mode and URL-processing regression coverage
 
 Perfect for privacy-conscious users who want cleaner, safer links without the tracking.

@@ -55,7 +55,7 @@
         android:hardwareAccelerated="true"
         android:largeHeap="false"
         android:enableOnBackInvokedCallback="true"
-        tools:targetApi="35">
+        tools:targetApi="36">
         
         <activity
             android:name=".MainActivity"

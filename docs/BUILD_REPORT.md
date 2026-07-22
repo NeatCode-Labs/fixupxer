@@ -90,7 +90,7 @@ FixupXer v2.5.1 has passed unit, lint, full emulator instrumentation, signed-bui
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` — 4,346,799 bytes, SHA-256 `998964988578E3A941B8638F77316563495521B5C45DB00F5FE584CB6D76E284`
 - [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` — 5,508,889 bytes, SHA-256 `D8B803FE68A565C5C1932EB53D579EEB66CD6D7B21A7A8675D77BB549456453D`; `assets/adi-registration.properties` present
-- [ ] **GITHUB Release APK**: `FixupXer-v2.5.1-release.apk` — built from a fresh clone of the `v2.5.1` tag (pending; finalized after tag push and reproducible build)
+- [x] **GITHUB Release APK**: `FixupXer-v2.5.1-release.apk` — 4,342,440 bytes, SHA-256 `395DB24B5A3CBDFB9AABC759C4E9917B2B5176FA0E5777CDB5EF541CBC8301F3`; built from a fresh clone of the `v2.5.1` tag and verified free of `dependencies.pb` and `adi-registration.properties`
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: 642/642 unit + 235/235 instrumentation, all green
@@ -98,8 +98,8 @@ FixupXer v2.5.1 has passed unit, lint, full emulator instrumentation, signed-bui
 ## GITHUB (F-Droid) Variant Verification
 - [x] Version 2.5.1 applied to the mirror's four version fields (+ compileSdk/targetSdk 36, AGP 8.9.3)
 - [x] F-Droid changelog 41 added and validated under 500 characters (203)
-- [ ] Full root → mirror source/docs sync completed; DCO commit pushed (in progress)
-- [ ] `main` and annotated tag `v2.5.1` pushed; reproducible fresh-clone APK published (pending)
+- [x] Full root → mirror source/docs sync completed; DCO commit pushed
+- [x] `main` and annotated tag `v2.5.1` pushed; reproducible fresh-clone APK published at `https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.5.1`
 
 ## Quality Assurance Verification
 

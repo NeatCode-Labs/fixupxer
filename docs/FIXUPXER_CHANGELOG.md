@@ -769,6 +769,6 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 ### Build Artifacts (v2.5.1):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk`
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
-- **GITHUB / F-Droid APK:** `FixupXer-v2.5.1-release.apk`
+- **GITHUB / F-Droid APK:** `FixupXer-v2.5.1-release.apk` built from a fresh clone of the `v2.5.1` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

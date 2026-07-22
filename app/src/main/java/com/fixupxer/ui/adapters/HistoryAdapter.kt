@@ -37,6 +37,7 @@ import com.fixupxer.R
 import com.fixupxer.databinding.ItemHistoryBinding
 import com.fixupxer.domain.model.UrlHistory
 import com.fixupxer.ui.helpers.SnackbarHelper
+import com.fixupxer.utils.Constants
 import timber.log.Timber
 
 /**
@@ -71,15 +72,21 @@ class HistoryAdapter(
         
         fun bind(item: UrlHistory) {
             binding.apply {
-                // Original URL
-                textViewOriginalUrl.text = item.originalUrl
-                
+                if (item.conversionType == Constants.HISTORY_CONVERSION_INPUT_REDACTED) {
+                    textViewOriginalUrlLabel.setText(R.string.history_sensitive_input_label)
+                    textViewOriginalUrl.setText(R.string.history_original_url_not_saved)
+                    textViewConversionType.setText(R.string.history_input_redacted_badge)
+                } else {
+                    textViewOriginalUrlLabel.setText(R.string.original_url)
+                    textViewOriginalUrl.text = item.originalUrl
+                    textViewConversionType.text = item.conversionType
+                }
+
                 // Processed URL (cleaned URL)
                 textViewProcessedUrl.text = item.cleanedUrl
                 
                 // Timestamp
                 textViewTimestamp.text = item.timeAgo
-                textViewConversionType.text = item.conversionType
                 
                 // Platform - show if available
                 if (item.platform != "Other") {

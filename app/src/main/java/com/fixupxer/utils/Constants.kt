@@ -258,6 +258,9 @@ object Constants {
      */
     val LEAK_LATITUDE_PARAM_NAMES = setOf("lat", "latitude")
     val LEAK_LONGITUDE_PARAM_NAMES = setOf("lon", "lng", "longitude")
+
+    // Persisted in Room as conversionType — must never change or be localized.
+    const val HISTORY_CONVERSION_INPUT_REDACTED = "Input redacted"
     
     // Tag for logging
     const val LOG_TAG = "FixupXer"

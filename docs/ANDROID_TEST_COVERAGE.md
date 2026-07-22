@@ -1,4 +1,24 @@
-# Android Test Coverage for FixupXer v2.5.1
+# Android Test Coverage for FixupXer v2.6.0
+
+## v2.6.0 delta (July 22, 2026)
+
+Current verification is **652 unit / 235 instrumentation tests**, all passing
+on `Pixel_API_35_Play`. Delta vs the v2.5.1 release inventory (642 / 235):
+
+- **Added (unit)**: redacted-history coverage in `LinkGuardRepositoryTest` —
+  Reddit `out.reddit.com` token wrapper, Google Ads `pagead/aclk` sig
+  wrapper, Substack JWT strip, and a custom `RemoveParams` rule each save
+  exactly one redacted entry (safe final URL in both URL fields, sentinel
+  conversion type, no token/wrapper-host bytes in captured arguments, cleaner
+  cache stays empty); SHARE and BROWSER profile smokes; `previousProcessedUrl`
+  dedupe; unchanged-sensitive-URL guard; invalid-final-URL guard through a
+  mocked orchestrator. New Robolectric `HistoryAdapterTest` verifies redacted
+  labels ("Sensitive input" / "Original URL was not saved" / "Input redacted
+  for privacy") and full ViewHolder reset when a normal item recycles the
+  holder. One rename: `sensitive input skips history and cleaner cache` →
+  `sensitive input and output skip history and cleaner cache`.
+- **Instrumentation**: no additions — the existing suite re-ran green with
+  the new history behavior.
 
 ## v2.5.1 delta (July 22, 2026)
 

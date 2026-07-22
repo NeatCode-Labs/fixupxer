@@ -107,6 +107,7 @@ class BrowserPrivacyEndToEndTest {
             preferencesManager,
             mock<HistoryRepository>(),
             orchestrator,
+            normalizer,
         )
     }
 

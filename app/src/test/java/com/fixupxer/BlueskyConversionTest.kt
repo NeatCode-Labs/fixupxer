@@ -27,6 +27,7 @@ import com.fixupxer.data.repository.UrlRepositoryImpl
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.processing.PipelineProcessingResult
 import com.fixupxer.processing.ProcessingOptions
+import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.processing.UrlProcessingOrchestrator
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -159,7 +160,7 @@ class BlueskyConversionTest {
             )
         }
         return RepositoryFixture(
-            UrlRepositoryImpl(processor, preferences, history, orchestrator),
+            UrlRepositoryImpl(processor, preferences, history, orchestrator, UrlNormalizer()),
             orchestrator
         )
     }

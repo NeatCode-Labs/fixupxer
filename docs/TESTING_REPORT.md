@@ -1,5 +1,30 @@
 # FixupXer Testing Report
 
+## v2.6.0 verification — July 22, 2026
+
+v2.6.0 fixes Private Link Guard history suppression for fully cleaned
+sensitive inputs: redirect wrappers (Reddit `out.reddit.com` `token=`, Google
+Ads `pagead/aclk` `sig=`) and cleaner/custom-rule token strips now leave a
+redacted history entry holding only the safe final URL. Cache rules are
+unchanged. Final verification passes:
+
+- **652/652 unit tests** (`./gradlew test`, debug variant; release variant
+  also green) — 10 new tests
+- **235/235 instrumentation tests** (`./gradlew connectedAndroidTest`) on
+  `Pixel_API_35_Play` / API 35, zero failures in a single full-suite pass
+- **Release lint** (`./gradlew lintRelease`) — 0 errors
+
+New coverage: `LinkGuardRepositoryTest` gains redacted-entry assertions for
+the Reddit token wrapper, Google Ads sig wrapper, Substack JWT strip and a
+custom `RemoveParams` rule (each verifying the raw token/wrapper host never
+reaches `insertHistory` and the cleaner cache stays empty), SHARE and BROWSER
+profile smokes, `previousProcessedUrl` dedupe, an unchanged-sensitive-URL
+guard, and an invalid-final-URL guard via a mocked orchestrator. New
+Robolectric `HistoryAdapterTest` verifies redacted labels and full ViewHolder
+reset on recycling. On-device verification on the emulator confirmed redacted
+Room rows with a binary scan proving no token/sig/wrapper-host bytes were
+persisted.
+
 ## v2.5.1 verification — July 22, 2026
 
 v2.5.1 is a Google Play compliance release: `targetSdk`/`compileSdk` raised to

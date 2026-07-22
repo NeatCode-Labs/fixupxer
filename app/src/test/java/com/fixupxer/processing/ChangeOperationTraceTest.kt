@@ -210,7 +210,7 @@ class ChangeOperationTraceTest {
                 operations = operations
             )
         )
-        val repository = UrlRepositoryImpl(processor, preferences, history, pipeline)
+        val repository = UrlRepositoryImpl(processor, preferences, history, pipeline, UrlNormalizer())
 
         val result = repository.processUrl(input)
 

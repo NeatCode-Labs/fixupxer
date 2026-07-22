@@ -2,7 +2,7 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 
 <b>Key Features</b>
 
-* Private Link Guard: Warns when e-mail addresses, auth tokens, or precise coordinates remain visible in a link — sensitive links stay out of history and cache
+* Private Link Guard: Warns when e-mail addresses, auth tokens, or precise coordinates remain visible in a link — sensitive originals stay out of history and cache, fully cleaned results are kept as redacted entries
 * Browser Mode: Set FixupXer as your default browser for automatic system-wide URL cleaning, with optional privacy reader conversions for X, Bluesky, Reddit, and Pinterest and per-host saved app choices
 * Direct Sharing: Share your links directly to FixupXer, no need to open the main app
 * Clean Link from Selection: Select a URL in any app and choose "Clean link" to clean it in place

@@ -67,6 +67,9 @@
     <string name="clear_history_confirm">Clear all history?</string>
     <string name="history_cleared">History cleared</string>
     <string name="history_entry_deleted">Entry deleted</string>
+    <string name="history_sensitive_input_label">Sensitive input</string>
+    <string name="history_original_url_not_saved">Original URL was not saved</string>
+    <string name="history_input_redacted_badge">Input redacted for privacy</string>
     <string name="undo">Undo</string>
     <string name="select_max_entries">Select max entries</string>
     <string name="max_entries_hint">Enter max number of entries</string>

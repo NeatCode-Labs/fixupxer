@@ -50,7 +50,8 @@ class UrlRepositoryImpl @Inject constructor(
     private val urlProcessor: UrlProcessor,
     private val preferencesManager: PreferencesManager,
     private val historyRepository: HistoryRepository,
-    private val orchestrator: UrlProcessingOrchestrator
+    private val orchestrator: UrlProcessingOrchestrator,
+    private val urlNormalizer: UrlNormalizer,
 ) : UrlRepository {
 
     companion object {
@@ -186,6 +187,20 @@ class UrlRepositoryImpl @Inject constructor(
             Timber.e(e, "Failed to save history entry")
         }
     }
+
+    private suspend fun saveRedactedHistoryEntry(finalUrl: String) {
+        try {
+            historyRepository.insertHistory(
+                originalUrl = finalUrl,
+                cleanedUrl = finalUrl,
+                platform = detectPlatform(finalUrl),
+                conversionType = Constants.HISTORY_CONVERSION_INPUT_REDACTED,
+            )
+            historyRepository.trimHistory(preferencesManager.getMaxHistoryEntries())
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save redacted history entry")
+        }
+    }
     
     override suspend fun processUrl(url: String): ProcessedUrlResult = processUrl(url, false)
     
@@ -308,7 +323,6 @@ class UrlRepositoryImpl @Inject constructor(
             )
         )
         val outputFindings = LinkLeakAnalyzer.analyze(result.url)
-        val containsSensitiveData = inputFindings.isNotEmpty() || outputFindings.isNotEmpty()
         if (outputFindings.isNotEmpty()) {
             // Purge every cleaner-cache entry this run created: custom PRE_CLEAN
             // rules or redirect re-entries can key entries by URLs that differ
@@ -316,22 +330,30 @@ class UrlRepositoryImpl @Inject constructor(
             result.cleanerCacheKeys.forEach(orchestrator::evictFromCleanerCache)
         }
 
-        val shouldSaveHistory = persistHistory &&
+        val historyGatesPass = persistHistory &&
             preferencesManager.isHistoryEnabled() &&
-            !containsSensitiveData &&
             if (previousProcessedUrl != null) {
                 result.url != previousProcessedUrl
             } else {
                 result.url != result.originalUrl
             }
-        if (shouldSaveHistory) {
-            saveHistoryEntry(
-                result.originalUrl,
-                result.url,
-                detectPlatform(result.originalUrl),
-                result.wasAlreadyClean,
-                result.customRuleChanged
-            )
+        if (historyGatesPass) {
+            when {
+                inputFindings.isEmpty() && outputFindings.isEmpty() -> {
+                    saveHistoryEntry(
+                        result.originalUrl,
+                        result.url,
+                        detectPlatform(result.originalUrl),
+                        result.wasAlreadyClean,
+                        result.customRuleChanged
+                    )
+                }
+                inputFindings.isNotEmpty() &&
+                    outputFindings.isEmpty() &&
+                    urlNormalizer.isValidHttpUrl(result.url) -> {
+                    saveRedactedHistoryEntry(result.url)
+                }
+            }
         }
         return ProcessedUrlResult(
             url = result.url,

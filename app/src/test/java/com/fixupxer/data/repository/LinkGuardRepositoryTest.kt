@@ -27,6 +27,7 @@ import com.fixupxer.cleaners.CleanerService
 import com.fixupxer.cleaners.cache.CleanerCache
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.processing.DomainConversionService
+import com.fixupxer.processing.PipelineProcessingResult
 import com.fixupxer.processing.RawUrlExtractor
 import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.processing.UrlProcessingOrchestrator
@@ -39,6 +40,7 @@ import com.fixupxer.rules.RuleCompiler
 import com.fixupxer.rules.RuleMatcher
 import com.fixupxer.rules.RulePhase
 import com.fixupxer.rules.RuleSnapshot
+import com.fixupxer.utils.Constants
 import java.net.URLEncoder
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -46,7 +48,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
@@ -55,7 +59,7 @@ import org.mockito.kotlin.whenever
 class LinkGuardRepositoryTest {
 
     @Test
-    fun `sensitive input skips history and cleaner cache`() = runTest {
+    fun `sensitive input and output skip history and cleaner cache`() = runTest {
         val fixture = fixture()
         val input = "https://example.com/?access_token=abcdef123456&utm_source=tracking"
 
@@ -63,6 +67,50 @@ class LinkGuardRepositoryTest {
 
         assertTrue(result.leakFindings.isNotEmpty())
         assertEquals(0, fixture.cache.getStats().size)
+        verify(fixture.history, never()).insertHistory(any(), any(), any(), any())
+        verify(fixture.history, never()).trimHistory(any())
+    }
+
+    @Test
+    fun `sensitive unchanged URL stays out of history`() = runTest {
+        val fixture = fixture()
+        val input = "https://unknown-example.org/page?access_token=abcdef123456"
+
+        val result = fixture.repository.processUrl(input)
+
+        assertEquals(input, result.url)
+        assertTrue(result.leakFindings.isNotEmpty())
+        assertEquals(0, fixture.cache.getStats().size)
+        // Both the output-finding rule and the unchanged-URL dedupe independently block history.
+        verify(fixture.history, never()).insertHistory(any(), any(), any(), any())
+        verify(fixture.history, never()).trimHistory(any())
+    }
+
+    @Test
+    fun `invalid cleaned URL stays out of redacted history`() = runTest {
+        val input = "https://example.com/page?access_token=abcdef123456"
+        val invalidUrl = "not a url"
+        val orchestrator: UrlProcessingOrchestrator = mock()
+        whenever(orchestrator.process(any(), any(), isNull())).thenReturn(
+            PipelineProcessingResult(
+                originalUrl = input,
+                url = invalidUrl,
+                wasAlreadyClean = false,
+                builtinChanged = true,
+                domainConverted = false,
+                customRuleChanged = false,
+                rulesRevision = 0,
+                trace = emptyList(),
+                operations = emptyList(),
+                cleanerCacheKeys = emptyList(),
+            ),
+        )
+        val fixture = fixture(orchestratorOverride = orchestrator)
+
+        val result = fixture.repository.processUrl(input)
+
+        assertEquals(invalidUrl, result.url)
+        assertTrue(result.leakFindings.isEmpty())
         verify(fixture.history, never()).insertHistory(any(), any(), any(), any())
         verify(fixture.history, never()).trimHistory(any())
     }
@@ -141,9 +189,155 @@ class LinkGuardRepositoryTest {
         assertEquals(input, result)
     }
 
+    @Test
+    fun `reddit wrapper saves redacted history without sensitive input`() = runTest {
+        val fixture = fixture()
+        val token = "AQAAsomelongtokenvalue"
+        val expectedUrl = "https://example.com/news/article"
+        val input =
+            "https://out.reddit.com/t3_abc123?url=${URLEncoder.encode(expectedUrl, "UTF-8")}" +
+                "&token=$token&app_name=android"
+
+        val result = fixture.repository.processUrl(input)
+
+        assertEquals(expectedUrl, result.url)
+        assertTrue(result.leakFindings.isEmpty())
+        assertEquals(0, fixture.cache.getStats().size)
+        assertRedactedHistory(fixture, expectedUrl, token, "out.reddit.com")
+    }
+
+    @Test
+    fun `reddit wrapper saves redacted history for share profile`() = runTest {
+        val fixture = fixture()
+        val token = "AQAAsomelongtokenvalue"
+        val expectedUrl = "https://example.com/news/article"
+        val input =
+            "https://out.reddit.com/t3_abc123?url=${URLEncoder.encode(expectedUrl, "UTF-8")}" +
+                "&token=$token&app_name=android"
+
+        val result = fixture.repository.processSharedUrl(input, null)
+
+        assertEquals(expectedUrl, result.url)
+        assertTrue(result.leakFindings.isEmpty())
+        assertRedactedHistory(fixture, expectedUrl, token, "out.reddit.com")
+    }
+
+    @Test
+    fun `reddit wrapper saves redacted history for browser profile`() = runTest {
+        val fixture = fixture()
+        val token = "AQAAsomelongtokenvalue"
+        val expectedUrl = "https://example.com/news/article"
+        val input =
+            "https://out.reddit.com/t3_abc123?url=${URLEncoder.encode(expectedUrl, "UTF-8")}" +
+                "&token=$token&app_name=android"
+
+        val result = fixture.repository.processUrlForBrowser(input)
+
+        assertEquals(expectedUrl, result.url)
+        assertTrue(result.leakFindings.isEmpty())
+        assertRedactedHistory(fixture, expectedUrl, token, "out.reddit.com")
+    }
+
+    @Test
+    fun `google ads wrapper saves redacted history without sensitive input`() = runTest {
+        val fixture = fixture()
+        val sig = "AOD64_3abcdefgh"
+        val expectedUrl = "https://example.com/product"
+        val input =
+            "https://www.googleadservices.com/pagead/aclk?sa=L&sig=$sig" +
+                "&adurl=${URLEncoder.encode(expectedUrl, "UTF-8")}"
+
+        val result = fixture.repository.processUrl(input)
+
+        assertEquals(expectedUrl, result.url)
+        assertTrue(result.leakFindings.isEmpty())
+        assertEquals(0, fixture.cache.getStats().size)
+        assertRedactedHistory(fixture, expectedUrl, sig, "googleadservices")
+    }
+
+    @Test
+    fun `substack jwt token param saves redacted history`() = runTest {
+        val fixture = fixture()
+        val input =
+            """https://substack.com/app-link/post?publication_id=806546&post_id=165696748""" +
+                """&utm_source=post-email-title&utm_campaign=email-post-title&isFreemail=true&r=1ez2n3""" +
+                """&token=eyJ1c2VyX2lkIjo4NTYxNzE4MywicG9zdF9pZCI6MTY1Njk2NzQ4LCJpYXQiOjE3NDk2NDAzNjAsImV4cCI6MTc1MjIzMjM2MCwiaXNzIjoicHViLTgwNjU0NiIsInN1YiI6InBvc3QtcmVhY3Rpb24ifQ.CR78H3BGztpRqBf1lnnDlafH_popPsMlwvTLQvQC9l8"""
+        val expectedUrl =
+            "https://substack.com/app-link/post?publication_id=806546&post_id=165696748"
+
+        val result = fixture.repository.processUrl(input)
+
+        assertEquals(expectedUrl, result.url)
+        assertTrue(result.leakFindings.isEmpty())
+        assertEquals(0, fixture.cache.getStats().size)
+        assertRedactedHistory(fixture, expectedUrl)
+    }
+
+    @Test
+    fun `custom rule removing token param saves redacted history`() = runTest {
+        val token = "abcdefgh12345"
+        val rule = CustomUrlRule(
+            name = "Strip token",
+            phase = RulePhase.PRE_CLEAN,
+            action = RuleAction.RemoveParams(listOf("token")),
+        )
+        val snapshot = RuleSnapshot(listOf(RuleCompiler().compile(rule)), revision = 1)
+        val fixture = fixture(customRuleSnapshot = snapshot)
+        val input = "https://example.com/page?token=$token"
+        val expectedUrl = "https://example.com/page"
+
+        val result = fixture.repository.processUrl(input)
+
+        assertEquals(expectedUrl, result.url)
+        assertTrue(result.leakFindings.isEmpty())
+        assertEquals(0, fixture.cache.getStats().size)
+        assertRedactedHistory(fixture, expectedUrl, token)
+    }
+
+    @Test
+    fun `redacted entry dedupe skips insert when previous processed url matches final url`() = runTest {
+        val fixture = fixture()
+        val expectedUrl = "https://example.com/news/article"
+        val input =
+            "https://out.reddit.com/t3_abc123?url=${URLEncoder.encode(expectedUrl, "UTF-8")}" +
+                "&token=AQAAsomelongtokenvalue&app_name=android"
+
+        fixture.repository.processUrl(input, false, expectedUrl)
+
+        verify(fixture.history, never()).insertHistory(any(), any(), any(), any())
+        verify(fixture.history, never()).trimHistory(any())
+    }
+
+    private suspend fun assertRedactedHistory(
+        fixture: Fixture,
+        expectedUrl: String,
+        vararg forbiddenFragments: String,
+    ) {
+        val originalCaptor = argumentCaptor<String>()
+        val cleanedCaptor = argumentCaptor<String>()
+        val platformCaptor = argumentCaptor<String>()
+        val conversionCaptor = argumentCaptor<String>()
+        verify(fixture.history).insertHistory(
+            originalCaptor.capture(),
+            cleanedCaptor.capture(),
+            platformCaptor.capture(),
+            conversionCaptor.capture(),
+        )
+        verify(fixture.history).trimHistory(50)
+        assertEquals(expectedUrl, originalCaptor.firstValue)
+        assertEquals(expectedUrl, cleanedCaptor.firstValue)
+        assertEquals("Other", platformCaptor.firstValue)
+        assertEquals(Constants.HISTORY_CONVERSION_INPUT_REDACTED, conversionCaptor.firstValue)
+        forbiddenFragments.forEach { fragment ->
+            assertFalse(originalCaptor.firstValue.contains(fragment))
+            assertFalse(cleanedCaptor.firstValue.contains(fragment))
+        }
+    }
+
     private suspend fun fixture(
         customRuleSnapshot: RuleSnapshot? = null,
         pendingLegacyHistoryLimit: Int? = null,
+        orchestratorOverride: UrlProcessingOrchestrator? = null,
     ): Fixture {
         val cache = CleanerCache()
         val registry = CleanerRegistry().apply {
@@ -165,6 +359,7 @@ class LinkGuardRepositoryTest {
         whenever(preferences.getMaxHistoryEntries()).thenReturn(pendingLegacyHistoryLimit ?: 50)
         whenever(preferences.isHistoryLimitMigrationPending())
             .thenReturn(pendingLegacyHistoryLimit != null)
+        whenever(preferences.resolveBrowserPrivacySelections()).thenReturn(emptyMap())
 
         val customRuleRepository: CustomRuleRepository = mock()
         if (customRuleSnapshot != null) {
@@ -172,7 +367,7 @@ class LinkGuardRepositoryTest {
         }
 
         val normalizer = UrlNormalizer()
-        val orchestrator = UrlProcessingOrchestrator(
+        val orchestrator = orchestratorOverride ?: UrlProcessingOrchestrator(
             extractor = RawUrlExtractor(),
             normalizer = normalizer,
             cleanerService = cleanerService,
@@ -184,7 +379,7 @@ class LinkGuardRepositoryTest {
             customRuleRepository = customRuleRepository
         )
         return Fixture(
-            repository = UrlRepositoryImpl(processor, preferences, history, orchestrator),
+            repository = UrlRepositoryImpl(processor, preferences, history, orchestrator, normalizer),
             history = history,
             cache = cache
         )

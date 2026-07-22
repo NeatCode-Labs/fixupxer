@@ -1,3 +1,39 @@
+# FixupXer v2.6.0 - Redacted History for Sensitive Links
+
+## What's New
+
+### History entries for fully cleaned sensitive links
+Previously, any link whose **input** contained sensitive-looking data (auth
+tokens, e-mail addresses, JWTs, precise coordinates) was kept out of history
+entirely — even when cleaning removed every sensitive part. This silently
+dropped common redirect wrappers such as Reddit's `out.reddit.com` links
+(whose functional `token=` parameter trips the Private Link Guard) and Google
+Ads `sig=` wrappers, so clicking an external article from Reddit in Browser
+mode left no history trace.
+
+Now, when the Private Link Guard flags the input but the **final cleaned URL
+is verifiably safe** (no remaining findings, structurally valid HTTP(S)),
+FixupXer saves a **redacted history entry**:
+
+- Only the safe final URL is stored — the original wrapper, its token, and
+  its host are never written to the database.
+- The history card shows **"Sensitive input" / "Original URL was not saved"**
+  with an **"Input redacted for privacy"** badge instead of the original URL.
+- Copy, Share, open, and delete work on the safe final URL as usual.
+
+Nothing changes for links whose cleaned result **still** contains sensitive
+data: they continue to stay out of history and the cleaner cache completely.
+Sensitive inputs also still never enter the cleaner cache. The Room database
+schema is unchanged — no migration required.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 42
+- versionName: 2.6.0
+
+---
+
 # FixupXer v2.5.1 - Android 16 Target Compliance
 
 ## What's New

@@ -24,6 +24,7 @@ import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.processing.PipelineProcessingResult
 import com.fixupxer.processing.ProcessingOptions
 import com.fixupxer.processing.ProcessingProfile
+import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.processing.UrlProcessingOrchestrator
 import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.Constants
@@ -177,7 +178,7 @@ class BrowserPrivacySelectionsTest {
             )
         }
         return RepositoryFixture(
-            repository = UrlRepositoryImpl(processor, preferences, history, orchestrator),
+            repository = UrlRepositoryImpl(processor, preferences, history, orchestrator, UrlNormalizer()),
             orchestrator = orchestrator,
             preferences = preferences,
         )

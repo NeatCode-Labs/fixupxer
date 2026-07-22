@@ -1,22 +1,22 @@
 # FixupXer App - Development Summary
-## Version Progression: v2.5.1 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.6.0 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 35 (v2.5.1 through v1.2.1)
-**Current Version:** v2.5.1 (versionCode: 41)
-**Development Period:** v1.2.1 (Initial) → v2.5.1 (Current)
+**Total Versions Released:** 36 (v2.6.0 through v1.2.1)
+**Current Version:** v2.6.0 (versionCode: 42)
+**Development Period:** v1.2.1 (Initial) → v2.6.0 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.5.1: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard, curated offline redirect unwrapping, social embed conversion with a vetted frontend catalog reachable from Settings, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine — all while retaining the zero-permission offline model.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.6.0: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard with redacted history for fully cleaned sensitive links, curated offline redirect unwrapping, social embed conversion with a vetted frontend catalog reachable from Settings, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine — all while retaining the zero-permission offline model.
 
 ### Key Achievements:
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
 - ✅ **Browser Privacy Readers & Saved App Choices** - Dedicated Browser mode settings hub with per-platform privacy reader conversions (X, Bluesky, Reddit, Pinterest), exact-host saved app routing, and a read-only Configuration status overview
 - ✅ **Alternative Frontend Catalog** - Embed/Privacy frontend picker on Main/Share across nine platforms with selectable readers (xcancel, Nitter, SkyLib, Redlib, Invidious, …) and custom domains for every platform
 - ✅ **Local Settings Backup** - Validated JSON export/restore of settings, custom rules, and saved app choices with atomic apply, automatic rollback, and crash-safe recovery
-- ✅ **Private Link Guard** - Offline detection of credentials, e-mails, JWT/auth tokens and precise coordinates left in links; ephemeral (no-history, no-cache) processing of sensitive URLs
+- ✅ **Private Link Guard** - Offline detection of credentials, e-mails, JWT/auth tokens and precise coordinates left in links; sensitive originals never enter history or cache, while fully cleaned results are kept as clearly marked redacted entries
 - ✅ **Keep-Unknown Cleaning Contract** - Only known tracking keys are removed; unknown functional parameters survive, host-boundary matching kills lookalike-domain false positives
 - ✅ **Custom URL Rule Engine** - Ordered scopes/actions/phases/contexts, excludes, keep-only, redirects, templates, Test Lab, test vectors with activation gate, Teach-from-example inference and portable bundles
 - ✅ **TikTok Conversion Support** - Dedicated Embed? toggle + full proxy picker (tnktok.com, tfxktok.com, tiktokez.com, kktiktok.com + custom), subdomain-preserving conversion
@@ -37,6 +37,14 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.5.1 → v2.6.0
+- **Focus:** History fix for Private Link Guard false positives — links whose sensitive input is fully cleaned to a safe result now leave a redacted history entry instead of vanishing from history entirely. Reported in the field: an external article opened from Reddit through Browser mode (out.reddit.com wrapper with a functional `token=` parameter) never appeared in Conversion History.
+- **Scope confirmed beyond Reddit:** the same input-level suppression hit Google Ads `pagead/aclk` wrappers (`sig=` is on the Link Guard's sensitive-parameter list), Substack links carrying JWT `token` parameters that `SubstackCleaner` strips, and any custom rule removing a sensitive parameter. Fix is general — no per-domain exceptions or whitelists.
+- **New history decision in `UrlRepositoryImpl.processWithProfile`:** cache rules unchanged (sensitive input never enters the cleaner cache; sensitive output additionally evicts every cache key created by the run and blocks history). New third path: input findings present + zero output findings + standard gates (history enabled, dedupe) + structurally valid HTTP(S) final URL (explicit `UrlNormalizer.isValidHttpUrl` check, since `LinkLeakAnalyzer` returns no findings for unparseable strings) → `saveRedactedHistoryEntry` stores the safe final URL as both `originalUrl` and `cleanedUrl`, platform derived from the final URL only, and the new non-localized Room sentinel `Constants.HISTORY_CONVERSION_INPUT_REDACTED` ("Input redacted"). The raw input never reaches `HistoryRepository`. Room schema stays v2 — no migration.
+- **UI:** history cards branch on the sentinel — redacted entries show localized "Sensitive input" / "Original URL was not saved" and an "Input redacted for privacy" badge; both branches fully reset the recycled ViewHolder. Copy/Share/open/Undo keep operating on the safe final URL.
+- **Tests:** +10 (652 unit total): Reddit token wrapper, Google Ads sig wrapper, Substack JWT strip, custom-rule removal, SHARE/BROWSER profile smokes, dedupe via previousProcessedUrl, unchanged-sensitive-URL guard, invalid-final-URL guard (mocked orchestrator), and a Robolectric HistoryAdapter recycling test. On-device verification: redacted entries confirmed in the Room DB with binary scan proving no token/sig/wrapper-host bytes persisted.
+- **Verification:** four-stage subagent review (implementation + two read-only reviews + fixer) with final main-agent verification; both reviewers approved with no production-code findings.
 
 ### v2.5.0 → v2.5.1
 - **Focus:** Google Play compliance release — raise `targetSdk`/`compileSdk` to Android 16 (API 36) before the Aug 31, 2026 deadline; no user-facing feature or behavior changes.
@@ -764,11 +772,12 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.4.0 | 38 | Browser mode hub, privacy readers, saved app choices, local backup/restore, alternative frontend catalog | ✅ Released |
 | v2.4.1 | 39 | Privacy fix (fragment query leak) + Open self-interception, Facebook retarget, Browser VIEW history dedup | ✅ Released |
 | v2.5.0 | 40 | Retired unsafe frontends (facebookez.com, kkinstagram.com) with automatic migration; Alternative frontends screen in Settings | ✅ Released |
-| v2.5.1 | 41 | Android 16 (API 36) target compliance; AGP 8.9.3; no user-facing changes | ✅ Current |
+| v2.5.1 | 41 | Android 16 (API 36) target compliance; AGP 8.9.3; no user-facing changes | ✅ Released |
+| v2.6.0 | 42 | Redacted history entries for fully cleaned sensitive links (Reddit/Google Ads wrappers etc.) | ✅ Current |
 
-### Build Artifacts (v2.5.1):
+### Build Artifacts (v2.6.0):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk`
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
-- **GITHUB / F-Droid APK:** `FixupXer-v2.5.1-release.apk` built from a fresh clone of the `v2.5.1` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+- **GITHUB / F-Droid APK:** `FixupXer-v2.6.0-release.apk` built from a fresh clone of the `v2.6.0` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

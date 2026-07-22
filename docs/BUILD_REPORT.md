@@ -91,7 +91,7 @@ FixupXer v2.6.0 has passed unit, lint, full emulator instrumentation, signed-bui
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` — 4,349,232 bytes, SHA-256 `939F59217A3649F4022F98B976D0B635170D688E59727D8C7604D57F21958233`
 - [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` — 5,503,030 bytes, SHA-256 `974CD44B512AE44D0A4E55CD5851D0F7CBF4F52DAFFC6CED8E03E159D1689957`; `assets/adi-registration.properties` present (verified)
-- [ ] **GITHUB Release APK**: `FixupXer-v2.6.0-release.apk` — pending — built from a fresh clone of the `v2.6.0` tag after push
+- [x] **GITHUB Release APK**: `FixupXer-v2.6.0-release.apk` — 4,344,451 bytes, SHA-256 `C4AA46227273BC413A4396F0B581A125A98D8D9071B7589DD9CEC70947E013F9`; built from a fresh clone of the `v2.6.0` tag and verified free of `dependencies.pb` and `adi-registration.properties`; signing fingerprint matches canonical
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F` (verified with apksigner)
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: 652/652 unit + 235/235 instrumentation, all green
@@ -99,8 +99,8 @@ FixupXer v2.6.0 has passed unit, lint, full emulator instrumentation, signed-bui
 ## GITHUB (F-Droid) Variant Verification
 - [x] Version 2.6.0 applied to the mirror's four version fields (+ compileSdk/targetSdk 36, AGP 8.9.3)
 - [x] F-Droid changelog 42 added and validated under 500 characters (423) — `metadata/en-US/changelogs/42.txt`
-- [ ] Full root → mirror source/docs sync completed; DCO commit pushed — pending GitHub release pipeline
-- [ ] `main` and annotated tag `v2.6.0` pushed; reproducible fresh-clone APK published — pending after push
+- [x] Full root → mirror source/docs sync completed; DCO commit `5eb0bf6` pushed
+- [x] `main` and annotated tag `v2.6.0` pushed; reproducible fresh-clone APK published at https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.6.0
 
 ## Quality Assurance Verification
 

@@ -1,4 +1,33 @@
-# Android Test Coverage for FixupXer v2.4.1
+# Android Test Coverage for FixupXer v2.5.0
+
+## v2.5.0 delta (July 22, 2026)
+
+Current verification is **642 unit / 235 instrumentation tests**, all passing
+on `Pixel_API_35_Play`. Delta vs the v2.4.1 release inventory (628 / 229):
+
+- **Added (unit)**: retired-frontend preference migration — kkinstagram
+  selection moves to the first active Instagram proxy, `convert_facebook`
+  forced off only when a retired facebookez selection was actually removed
+  without custom replacements, custom-proxy CSV purge, disabled-built-in
+  cleanup, idempotency (`RetiredFrontendMigrationPreferenceTest`); backup
+  snapshot migration before validation and legacy custom-proxy acceptance
+  (`LocalBackupCodecTest`); catalog exclusions and nullable Facebook default
+  (`AlternativeFrontendCatalogTest`); reserved/denylisted retired domains and
+  roster exclusion (`ProxyRosterTest`); `PlatformToggleHelper` empty-state
+  (`PlatformToggleHelperTest`); updated conversion/matrix/share expectations
+  for retired domains (`InstagramProxySelectionTest`,
+  `MultiPlatformConversionTest`, `UrlProcessorMatrixTest`,
+  `HostBoundaryRegressionTest`, `ShareViewModelTest`).
+- **Added (instrumentation)**: `FrontendSettingsActivityTest` — Settings >
+  Alternative frontends screen: nine platform rows with live state, picker
+  dialog launch, selection persistence, browser-privacy preference isolation.
+- **Updated (instrumentation)**: retired-domain expectations — old
+  facebookez/kkinstagram links receive generic tracking cleaning only and are
+  no longer platform-detected (`BidirectionalConversionTest`,
+  `ShareActivityTest`, `UrlValidationImprovementsTest`,
+  `InstagramProxyPreferenceTest`, `CustomProxyDialogTest`).
+
+The versioned v2.4.1 release inventory remains below.
 
 ## v2.4.1 delta (July 21, 2026)
 

@@ -1,3 +1,49 @@
+# FixupXer v2.5.0 - Frontend Safety & Settings Access
+
+## What's New
+
+### Alternative Frontends in Settings
+Every platform's frontend picker is now always reachable from **Settings >
+Link processing > Alternative frontends**. The new screen lists all nine
+platforms (X/Twitter, Instagram, TikTok, Facebook, Bluesky, Reddit, YouTube,
+Pinterest, Threads) with their active frontend and conversion state, and each
+row opens the familiar full picker — no need to paste or share a link first.
+
+## What's Fixed
+
+### Unsafe Frontends Retired
+Two bundled frontend domains were retired after a security review prompted by
+a community report:
+
+- **`facebookez.com`** (Facebook embed) now redirects visitors to an
+  advertising network and is blocked by security DNS providers and ad-block
+  filter lists.
+- **`kkinstagram.com`** (Instagram backup proxy) is flagged as potentially
+  malicious by multiple reputation services.
+
+Both domains are removed from the built-in catalog and can no longer be added
+as custom frontends. Existing selections migrate automatically: Instagram
+users on kkinstagram move to the first active proxy, and Facebook conversion
+turns off unless a custom frontend is configured. Old links on these domains
+still get generic tracking cleaning but are no longer generated or specially
+handled. Settings backups referencing the retired domains restore cleanly with
+the same migration.
+
+Facebook currently ships with **no built-in frontend** — conversion works when
+you add your own custom domain in the picker. Platform toggles without any
+active frontend now show a neutral label and stay disabled instead of
+referencing a missing domain.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 15 (API 35)
+- Version Code: 40
+- versionName: 2.5.0
+- Unit tests: 642 / 642 passing. Instrumentation: 235 / 235 passing on
+  `Pixel_API_35_Play`.
+
+---
+
 # FixupXer v2.4.1 - Privacy & Reliability Patch
 
 ## What's Fixed

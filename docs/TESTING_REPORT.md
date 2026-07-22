@@ -1,5 +1,33 @@
 # FixupXer Testing Report
 
+## v2.5.0 verification — July 22, 2026
+
+v2.5.0 retires two unsafe built-in frontend domains (`facebookez.com`,
+`kkinstagram.com`) with automatic preference/backup migration and a custom-
+proxy denylist, and adds the **Settings > Link processing > Alternative
+frontends** screen with per-platform pickers. Final verification passes:
+
+- **642/642 unit tests** (`./gradlew test`, debug variant; release variant
+  also green)
+- **235/235 instrumentation tests** (`./gradlew connectedAndroidTest`) on
+  `Pixel_API_35_Play` / API 35 — earlier full-suite passes hit environment
+  flakes traced to the emulator itself (a `-wipe-data` boot with GMS
+  self-update churn, animations re-enabled by the wipe, a `system_server`
+  crash, and a guest kernel-time storm); after a clean reboot with network
+  off and animations disabled the full suite passed 235/235 with zero
+  failures
+- **Release lint** (`./gradlew lintRelease`) — 0 errors
+
+New coverage includes retired-domain catalog/roster exclusions and reserved-
+domain enforcement, preference migration (kkinstagram → first active proxy,
+facebookez → conversion off only when actually migrated, custom-proxy CSV
+purge, idempotency), backup snapshot migration and validator acceptance of
+legacy custom proxies, `PlatformToggleHelper` empty-state (neutral title,
+switch off and disabled), the new `FrontendSettingsActivity` (nine platform
+rows, picker launch, state refresh), and updated bidirectional-conversion
+expectations for retired domains (generic tracking cleaning only, no
+platform-specific handling).
+
 ## v2.4.1 verification — July 21, 2026
 
 v2.4.1 is a patch release with one privacy fix (fragment pseudo-query no

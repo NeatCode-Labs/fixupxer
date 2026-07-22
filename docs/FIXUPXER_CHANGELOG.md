@@ -1,17 +1,18 @@
 # FixupXer App - Development Summary
-## Version Progression: v2.4.1 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.5.0 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 33 (v2.4.1 through v1.2.1)
-**Current Version:** v2.4.1 (versionCode: 39)
-**Development Period:** v1.2.1 (Initial) → v2.4.1 (Current)
+**Total Versions Released:** 34 (v2.5.0 through v1.2.1)
+**Current Version:** v2.5.0 (versionCode: 40)
+**Development Period:** v1.2.1 (Initial) → v2.5.0 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.4.1: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard, curated offline redirect unwrapping, social embed conversion, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine — all while retaining the zero-permission offline model.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.5.0: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard, curated offline redirect unwrapping, social embed conversion with a vetted frontend catalog reachable from Settings, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine — all while retaining the zero-permission offline model.
 
 ### Key Achievements:
+- ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
 - ✅ **Browser Privacy Readers & Saved App Choices** - Dedicated Browser mode settings hub with per-platform privacy reader conversions (X, Bluesky, Reddit, Pinterest), exact-host saved app routing, and a read-only Configuration status overview
 - ✅ **Alternative Frontend Catalog** - Embed/Privacy frontend picker on Main/Share across nine platforms with selectable readers (xcancel, Nitter, SkyLib, Redlib, Invidious, …) and custom domains for every platform
 - ✅ **Local Settings Backup** - Validated JSON export/restore of settings, custom rules, and saved app choices with atomic apply, automatic rollback, and crash-safe recovery
@@ -28,7 +29,7 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 - ✅ **Offline Redirect Unwrapping** - Curated HTTP(S) target extraction with exact host/path checks, strict single decoding and multi-pass destination cleaning
 - ✅ **Efficient Dispatch** - O(1) domain dispatch and bounded smart caching
 - ✅ **International Support** - Full IDN support and zero-width character handling
-- ✅ **Comprehensive Verification** - 835 automated tests plus release lint, REUSE and reproducible-build checks
+- ✅ **Comprehensive Verification** - 877 automated tests plus release lint, REUSE and reproducible-build checks
 - ✅ **Thread-Safe Design** - Immutable processing snapshots and concurrency-safe state
 - ✅ **Security Hardening** - Comprehensive protection against malicious input attacks
 - ✅ **Professional Architecture** - Clean, maintainable, and extensible codebase
@@ -36,6 +37,13 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.4.1 → v2.5.0
+- **Focus:** Frontend safety release — two bundled frontend domains retired after a security review (community report on Mastodon/PieFed), plus a new Settings screen that makes every platform's frontend picker reachable without pasting or sharing a link.
+- **Retired frontends:** `facebookez.com` (redirects to an advertising network; blocked by Quad9/security DNS and ad-block lists) and `kkinstagram.com` (flagged by multiple reputation services) removed from `AlternativeFrontendCatalog`; Facebook now ships with no built-in target (`defaultTargetId` nullable). Both domains live in `Constants.RETIRED_UNSAFE_FRONTEND_DOMAINS` — a denylist enforced in the picker UI, `PreferencesManager.addCustomProxy`, `ProxyRoster` reserved domains, and backup validation, so they cannot return as custom frontends. Retired domains intentionally keep receiving generic tracking cleaning (treated as ordinary unknown hosts) but are no longer generated, detected as platform URLs, or offered anywhere.
+- **Migration:** new `utils/RetiredFrontendMigration` shared by `PreferencesManager` (init, idempotent) and `LocalBackupCodec` (snapshot decode before validation): kkinstagram selections move to the first active Instagram proxy, retired custom-proxy CSV entries are purged, retired disabled-built-in markers dropped, and `convert_facebook` is forced off only when a retired facebookez selection was actually removed with no custom Facebook proxies remaining.
+- **Alternative frontends in Settings:** new `FrontendSettingsActivity` under Settings > Link processing lists all nine platforms with live frontend/conversion state (`FrontendDisplayHelper`) and opens the existing `ProxyPickerDialogHelper` per platform. `PlatformToggleHelper` gains an empty-state: platforms with zero active frontends show a neutral title with the switch off and disabled.
+- **Verification:** 642/642 unit + 235/235 instrumentation tests on `Pixel_API_35_Play`; `lintRelease` clean; zero-permission manifest unchanged. Four-stage subagent review (implementation + two read-only reviews + fixer) with final main-agent verification; emulator environment issues (wipe-data GMS churn, kernel-time storm) diagnosed and excluded from code findings.
 
 ### v2.4.0 → v2.4.1
 - **Focus:** Fast patch release — one privacy fix and three reliability fixes found in a post-v2.4.0 audit, plus the Play-side fix for the intermittent PairIP "Something went wrong" dialog on shares.
@@ -747,11 +755,12 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.2.0 | 36 | Private Link Guard, keep-unknown cleaning, 14 new cleaners, redirect unwrapping, Bluesky, Process Text, test vectors, Teach from example | ✅ Released |
 | v2.3.0 | 37 | Bilibili cleaning, Yahoo referrer keys, GeoRiot/LinkSynergy offline unwrapping and redirect validation hardening | ✅ Released |
 | v2.4.0 | 38 | Browser mode hub, privacy readers, saved app choices, local backup/restore, alternative frontend catalog | ✅ Released |
-| v2.4.1 | 39 | Privacy fix (fragment query leak) + Open self-interception, Facebook retarget, Browser VIEW history dedup | ✅ Current |
+| v2.4.1 | 39 | Privacy fix (fragment query leak) + Open self-interception, Facebook retarget, Browser VIEW history dedup | ✅ Released |
+| v2.5.0 | 40 | Retired unsafe frontends (facebookez.com, kkinstagram.com) with automatic migration; Alternative frontends screen in Settings | ✅ Current |
 
-### Build Artifacts (v2.4.1):
+### Build Artifacts (v2.5.0):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk`
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
-- **GITHUB / F-Droid APK:** `FixupXer-v2.4.1-release.apk` built from a fresh clone of the `v2.4.1` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+- **GITHUB / F-Droid APK:** `FixupXer-v2.5.0-release.apk` built from a fresh clone of the `v2.5.0` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

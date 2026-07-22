@@ -1,0 +1,5 @@
+v2.5.0 - Frontend safety and Settings access
+
+  Retired unsafe frontends facebookez.com and kkinstagram.com after a security review; existing selections migrate automatically and the domains are blocked from returning as custom entries
+  New Settings > Alternative frontends screen with pickers for all nine platforms
+  Facebook conversion now requires a user-added custom frontend

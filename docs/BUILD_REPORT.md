@@ -91,16 +91,16 @@ FixupXer v2.6.1 has passed unit, lint, full emulator instrumentation, signed-bui
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` — 4,349,691 bytes, SHA-256 `EFB4A3660AAE6E5811ADDC2BE8961135CED73008AA6C0E3AB7C34B505E992194`
 - [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` — 5,510,788 bytes, SHA-256 `2207A45B011B704D000A4619F9DB5F356D34DB7A7AB890E4CDA422944EF7FFCC`; `base/assets/adi-registration.properties` present (verified)
-- [ ] **GITHUB Release APK**: `FixupXer-v2.6.1-release.apk` — pending; built from a fresh clone of the `v2.6.1` tag after the mirror push
+- [x] **GITHUB Release APK**: `FixupXer-v2.6.1-release.apk` — 4,344,878 bytes, SHA-256 `434C7EF9E0096EFAB514BD32892A5770DA6486F1FD9F5DA92A8B2E52513B7605`; built from a fresh clone of the `v2.6.1` tag and verified free of `dependencies.pb` and `adi-registration.properties`; signing fingerprint matches canonical
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F` (verified with apksigner)
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: 659/659 unit + 235/235 instrumentation, all green
 
 ## GITHUB (F-Droid) Variant Verification
-- [x] Version 2.6.1 applied to the mirror's four version fields
-- [ ] F-Droid changelog 43 — `metadata/en-US/changelogs/43.txt`
-- [ ] Full root → mirror source/docs sync + DCO commit pushed
-- [ ] `main` and annotated tag `v2.6.1` pushed; reproducible fresh-clone APK published
+- [x] Version 2.6.1 applied to the mirror's four version fields (plus `animationsDisabled` in `testOptions`; `dependenciesInfo` stays `false`)
+- [x] F-Droid changelog 43 added and validated under 500 characters (417) — `metadata/en-US/changelogs/43.txt`
+- [x] Full root → mirror source/docs sync completed; DCO commit `35ab46d` pushed
+- [x] `main` and annotated tag `v2.6.1` pushed; reproducible fresh-clone APK published at https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.6.1
 
 ## Quality Assurance Verification
 

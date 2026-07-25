@@ -1,4 +1,30 @@
-# Android Test Coverage for FixupXer v2.6.0
+# Android Test Coverage for FixupXer v2.6.1
+
+## v2.6.1 delta (July 25, 2026)
+
+Current verification is **659 unit / 235 instrumentation tests**, all passing
+on `Pixel_API_35_Play`. Delta vs the v2.6.0 release inventory (652 / 235):
+
+- **Added (unit)**: `CatalogParameterCleanerTest` pins the exact URL from the
+  bug report — `pdp_npi` and `spm` removed while `gatewayAdapt`, `pdp_ext_f`
+  and `pvid` survive byte for byte, with a second cleaning pass asserted
+  idempotent. `UrlProcessorTest` covers `findFirstValidUrl` percent-encoding
+  spaces in a query tail, and still returning null for whitespace before the
+  query so the host cannot shift to another domain.
+- **Instrumentation**: no additions, but the suite was reworked. Fixed sleeps
+  were replaced with the shared `EspressoSupport.awaitAssertion` poller,
+  per-class duplicate `waitFor`/`nestedScrollTo` helpers were removed in favour
+  of the shared ones, and `animationsDisabled` was enabled in `testOptions`.
+  `ReleaseTestSuite.kt` was renamed to `SmokeTest.kt` (it was never a JUnit
+  `@Suite`), and a new `@Smoke` annotation marks a 52-test subset for
+  development runs. Full-suite runtime went from about 19 minutes to about 10,
+  and `SettingsTest.testMaxEntriesValidation` is no longer flaky.
+- **Polling caveats learned here**: `awaitAssertion` may only contain
+  assertions, never actions, since the lambda re-runs on every poll. Negative
+  assertions need a positive anchor first, `ShareActivity` parks a
+  "Processing…" placeholder in the result field so weak "not empty" checks pass
+  before processing ends (use `awaitProcessedUrl`), and checks that prove a
+  value *stays* put keep a bounded fixed wait instead.
 
 ## v2.6.0 delta (July 22, 2026)
 
@@ -378,8 +404,8 @@ Tests API compatibility:
 - [x] Material Design components
 - [x] Theme compatibility
 
-### 15. **ReleaseTestSuite.kt** [x] ACTIVE
-Tests release build functionality:
+### 15. **SmokeTest.kt** [x] ACTIVE
+Tests core app functionality:
 - [x] App launches successfully
 - [x] Core URL processing
 - [x] Release configuration

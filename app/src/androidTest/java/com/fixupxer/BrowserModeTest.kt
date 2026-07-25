@@ -45,6 +45,7 @@ import org.junit.runner.RunWith
 /**
  * Instrumented tests for browser mode functionality
  */
+@Smoke
 @RunWith(AndroidJUnit4::class)
 class BrowserModeTest {
     
@@ -279,25 +280,6 @@ class BrowserModeTest {
         assertTrue(preferencesManager.isBrowserConvertTwitterEnabled())
     }
     
-    /** The Settings screen scrolls inside a NestedScrollView, which plain scrollTo() cannot handle. */
-    private fun nestedScrollTo(): androidx.test.espresso.ViewAction {
-        return object : androidx.test.espresso.ViewAction {
-            override fun getConstraints(): org.hamcrest.Matcher<android.view.View> =
-                isAssignableFrom(android.view.View::class.java)
-            override fun getDescription() = "Scroll enclosing NestedScrollView to target view"
-            override fun perform(uiController: androidx.test.espresso.UiController, view: android.view.View) {
-                var y = view.top
-                var parent: android.view.ViewParent? = view.parent
-                while (parent is android.view.View && parent !is androidx.core.widget.NestedScrollView) {
-                    y += parent.top
-                    parent = (parent as android.view.View).parent
-                }
-                (parent as? androidx.core.widget.NestedScrollView)?.scrollTo(0, y)
-                uiController.loopMainThreadUntilIdle()
-            }
-        }
-    }
-
     @Test
     fun testActionPriorityWithNativeApp() {
         // Test action priority settings

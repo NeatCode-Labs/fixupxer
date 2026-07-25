@@ -1,5 +1,39 @@
 # FixupXer Testing Report
 
+## v2.6.1 verification — July 25, 2026
+
+v2.6.1 fixes a field report about AliExpress links: `pdp_npi` and 15 further
+tracking keys are now stripped, wildcard `text/*` share intents are accepted,
+and links carrying a literal space in the query are percent-encoded instead of
+discarded. The instrumentation suite was also reworked for speed and stability.
+Final verification passes:
+
+- **659/659 unit tests** (`./gradlew test`, debug variant) — 7 new tests
+- **235/235 instrumentation tests** (`./gradlew connectedAndroidTest`) on
+  `Pixel_API_35_Play` / API 35, zero failures in a single full-suite pass
+- **Release lint** (`./gradlew lintRelease`) — 0 errors
+
+New coverage pins the exact URL from the bug report: `CatalogParameterCleaner`
+tests assert that `pdp_npi` and `spm` are removed while `gatewayAdapt`,
+`pdp_ext_f` and `pvid` survive byte for byte and that a second cleaning pass is
+idempotent; `UrlProcessorTest` asserts that a decoded URL with spaces in the
+query is percent-encoded rather than dropped, and that whitespace before the
+query is still rejected so the host cannot shift.
+
+Test-infrastructure changes: fixed sleeps were replaced with the shared
+`EspressoSupport.awaitAssertion` poller, per-class duplicate helpers were
+consolidated, and a `@Smoke` annotation marks a 52-test development subset
+(`-Pandroid.testInstrumentationRunnerArguments.annotation=com.fixupxer.Smoke`,
+43 s) that explicitly does **not** replace the full suite as a release gate.
+Full-suite runtime went from about 19 minutes to about 10, and the previously
+flaky `SettingsTest.testMaxEntriesValidation` now passes consistently.
+
+Environment note: the AVD does not survive several consecutive full suites —
+individual tests start taking a minute or more and the run dies with
+`INSTRUMENTATION_ABORTED: System has crashed`, most often on the
+`ShareActivityTest` action-mode tests that hand a link to an external browser.
+The gate run above was made on a cold-booted emulator.
+
 ## v2.6.0 verification — July 22, 2026
 
 v2.6.0 fixes Private Link Guard history suppression for fully cleaned

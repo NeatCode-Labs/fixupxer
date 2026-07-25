@@ -20,12 +20,9 @@
 package com.fixupxer
 
 import android.content.Context
-import android.view.View
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isChecked
@@ -103,14 +100,6 @@ class ThemePickerTest {
         ActivityScenario.launch(SettingsActivity::class.java).use {
             onView(isRoot()).perform(waitFor(500))
             onView(withId(R.id.buttonThemeDark)).check(matches(isChecked()))
-        }
-    }
-
-    private fun waitFor(millis: Long): ViewAction = object : ViewAction {
-        override fun getConstraints() = isRoot()
-        override fun getDescription() = "Wait for $millis milliseconds"
-        override fun perform(uiController: UiController, view: View) {
-            uiController.loopMainThreadForAtLeast(millis)
         }
     }
 }

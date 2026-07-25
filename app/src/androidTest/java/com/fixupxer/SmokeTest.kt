@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 package com.fixupxer
 
 import androidx.test.core.app.ActivityScenario
@@ -28,167 +27,156 @@ import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.fixupxer.MainActivity
+import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Comprehensive test suite for release build verification
+ * Lightweight smoke tests for release build verification.
  */
+@Smoke
 @RunWith(AndroidJUnit4::class)
-class ReleaseTestSuite {
+class SmokeTest {
     @Test
     fun testAppLaunchesSuccessfully() {
-        // Test that the app launches without crashing
         ActivityScenario.launch(MainActivity::class.java)
-        
-        Thread.sleep(1000)
-        
-        // Verify main UI elements are present
-        onView(withId(R.id.editTextUrl))
-            .check(matches(isDisplayed()))
-        
-        onView(withId(R.id.buttonProcess))
-            .check(matches(isDisplayed()))
+
+        awaitAssertion {
+            onView(withId(R.id.editTextUrl))
+                .check(matches(isDisplayed()))
+            onView(withId(R.id.buttonProcess))
+                .check(matches(isDisplayed()))
+        }
     }
-    
+
     @Test
     fun testCoreUrlProcessing() {
         ActivityScenario.launch(MainActivity::class.java)
-        
-        Thread.sleep(1000)
-        
-        // Test URL processing functionality
+
+        awaitAssertion {
+            onView(withId(R.id.editTextUrl)).check(matches(isDisplayed()))
+        }
+
         onView(withId(R.id.editTextUrl))
             .perform(replaceText("https://www.instagram.com/p/test123/?utm_source=ig_web&utm_medium=share"))
-        
+
         onView(withId(R.id.buttonProcess))
             .perform(click())
-        
-        Thread.sleep(500)
-        
-        // Verify URL was processed
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(isDisplayed()))
-            .check(matches(not(withText(""))))
+
+        awaitAssertion {
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(isDisplayed()))
+                .check(matches(not(withText(""))))
+        }
     }
-    
+
     @Test
     fun testAllPlatformConversions() {
         ActivityScenario.launch(MainActivity::class.java)
-        
-        Thread.sleep(1000)
-        
-        // Test Instagram
-        testUrlConversion("https://instagram.com/p/test/?utm_source=test")
-        
-        // Test Twitter/X
-        testUrlConversion("https://x.com/user/status/123?s=20")
-        
-        // Test Facebook
-        testUrlConversion("https://m.facebook.com/story.php?id=123&_rdr")
+
+        awaitAssertion {
+            onView(withId(R.id.editTextUrl)).check(matches(isDisplayed()))
+        }
+
+        testUrlConversion("https://instagram.com/p/test/?utm_source=test", "/p/test/")
+        testUrlConversion("https://x.com/user/status/123?s=20", "/user/status/123")
+        testUrlConversion("https://m.facebook.com/story.php?id=123&_rdr", "story.php")
     }
-    
-    private fun testUrlConversion(url: String) {
+
+    /**
+     * [expectedInResult] must be unique to [url] — the field still holds the previous result when
+     * this runs, so a generic "not empty" check would pass before the new URL is processed.
+     */
+    private fun testUrlConversion(url: String, expectedInResult: String) {
         onView(withId(R.id.editTextUrl))
             .perform(clearText(), replaceText(url))
-        
+
         onView(withId(R.id.buttonProcess))
             .perform(click())
-        
-        Thread.sleep(300)
-        
-        // Verify processing completed
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(isDisplayed()))
+
+        awaitAssertion {
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText(containsString(expectedInResult))))
+        }
     }
-    
+
     @Test
     fun testCopyShareButtons() {
         ActivityScenario.launch(MainActivity::class.java)
-        
-        Thread.sleep(1000)
-        
-        // Process a URL first
+
+        awaitAssertion {
+            onView(withId(R.id.editTextUrl)).check(matches(isDisplayed()))
+        }
+
         onView(withId(R.id.editTextUrl))
             .perform(replaceText("https://x.com/test"))
-        
+
         onView(withId(R.id.buttonProcess))
             .perform(click())
-        
-        // Copy/Share stay disabled until processing produces a result,
-        // so give it enough time before asserting on the enabled state.
-        Thread.sleep(1500)
-        
-        // Test copy button
+
+        awaitAssertion {
+            onView(withId(R.id.buttonCopy))
+                .check(matches(isEnabled()))
+        }
+
         onView(withId(R.id.buttonCopy))
-            .check(matches(isEnabled()))
             .perform(click())
-        
-        // Test share button
+
         onView(withId(R.id.buttonShare))
             .check(matches(isEnabled()))
     }
-    
+
     @Test
     fun testHistoryFeature() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
-        
-        // Ensure history is enabled
+
         prefs.edit().putBoolean("history_enabled", true).commit()
-        
+
         ActivityScenario.launch(MainActivity::class.java)
-        
-        Thread.sleep(1000)
-        
-        // Process a URL to create history
+
+        awaitAssertion {
+            onView(withId(R.id.editTextUrl)).check(matches(isDisplayed()))
+        }
+
         onView(withId(R.id.editTextUrl))
             .perform(replaceText("https://instagram.com/p/test123/"))
-        
+
         onView(withId(R.id.buttonProcess))
             .perform(click())
-        
-        Thread.sleep(500)
-        
-        // Open history
+
+        awaitProcessedUrl()
+
         onView(withId(R.id.buttonHistory))
             .perform(click())
-        
-        Thread.sleep(500)
-        
-        // Verify history dialog opens
-        onView(withText("Conversion History"))
-            .check(matches(isDisplayed()))
+
+        awaitAssertion {
+            onView(withText("Conversion History"))
+                .check(matches(isDisplayed()))
+        }
     }
-    
+
     @Test
     fun testReleaseConfiguration() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        
-        // Package name will be com.fixupxer.debug during testing
-        // The actual release APK uses com.fixupxer
-        
-        // Test that app doesn't crash on various inputs
         ActivityScenario.launch(MainActivity::class.java)
-        
-        Thread.sleep(1000)
-        
-        // Test empty input
+
+        awaitAssertion {
+            onView(withId(R.id.editTextUrl)).check(matches(isDisplayed()))
+        }
+
         onView(withId(R.id.buttonProcess))
             .perform(click())
-        
-        // Test invalid input
+
         onView(withId(R.id.editTextUrl))
             .perform(replaceText("not a url"))
-        
+
         onView(withId(R.id.buttonProcess))
             .perform(click())
-        
-        // App should handle gracefully without crashing
-        Thread.sleep(500)
-        
-        onView(withId(R.id.editTextUrl))
-            .check(matches(isDisplayed()))
+
+        awaitAssertion {
+            onView(withId(R.id.editTextUrl))
+                .check(matches(withText("not a url")))
+        }
     }
-} 
+}

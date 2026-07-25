@@ -25,8 +25,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.Espresso.pressBack
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.replaceText
@@ -74,20 +72,18 @@ class ProxyPickerDialogTest {
         ProxyRoster.reset()
     }
 
-    private fun waitFor(millis: Long): ViewAction = object : ViewAction {
-        override fun getConstraints() = isRoot()
-        override fun getDescription() = "Wait for $millis ms"
-        override fun perform(uiController: UiController, view: View?) {
-            uiController.loopMainThreadForAtLeast(millis)
-        }
-    }
 
     private fun openXPicker() {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText("https://twitter.com/user/status/1"), closeSoftKeyboard())
-        onView(isRoot()).perform(waitFor(1500))
+        // The proxy label appears only once async validation flags the URL as X/Twitter.
+        awaitAssertion {
+            onView(withId(R.id.textViewChangeProxy)).check(matches(isDisplayed()))
+        }
         onView(withId(R.id.textViewChangeProxy)).perform(click())
-        onView(isRoot()).perform(waitFor(500))
+        awaitAssertion {
+            onView(withId(R.id.recyclerViewProxyPicker)).check(matches(isDisplayed()))
+        }
     }
 
     /** Scroll the picker list until the row whose item view matches is laid out. */
@@ -145,12 +141,12 @@ class ProxyPickerDialogTest {
         ActivityScenario.launch(MainActivity::class.java).use {
             openXPicker()
             onView(withText(containsString(Constants.XCANCEL_DOMAIN))).perform(click())
-            onView(isRoot()).perform(waitFor(500))
-
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.XCANCEL_DOMAIN}.")))
-            onView(withId(R.id.platformTitle))
-                .check(matches(withText(R.string.read_without_account)))
+            awaitAssertion {
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.XCANCEL_DOMAIN}.")))
+                onView(withId(R.id.platformTitle))
+                    .check(matches(withText(R.string.read_without_account)))
+            }
         }
     }
 
@@ -194,9 +190,10 @@ class ProxyPickerDialogTest {
             onView(allOf(withText(R.string.undo), isDisplayed())).perform(click())
             onView(isRoot()).perform(waitFor(500))
             pressBack()
-            onView(isRoot()).perform(waitFor(500))
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.FIXUPX_DOMAIN}.")))
+            awaitAssertion {
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.FIXUPX_DOMAIN}.")))
+            }
         }
     }
 }

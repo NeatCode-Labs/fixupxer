@@ -34,9 +34,6 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.junit.Test
 import org.junit.runner.RunWith
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
-import android.view.View
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import com.fixupxer.PreferencesManager
@@ -46,6 +43,7 @@ import org.junit.Before
 import androidx.preference.PreferenceManager
 import org.junit.Assert.*
 
+@Smoke
 @RunWith(AndroidJUnit4::class)
 class ShareActivityTest {
     
@@ -56,15 +54,6 @@ class ShareActivityTest {
         preferencesManager = PreferencesManager(InstrumentationRegistry.getInstrumentation().targetContext)
     }
     
-    private fun waitFor(delay: Long): ViewAction {
-        return object : ViewAction {
-            override fun getConstraints() = isRoot()
-            override fun getDescription() = "Wait for $delay milliseconds."
-            override fun perform(uiController: UiController, view: View?) {
-                uiController.loopMainThreadForAtLeast(delay)
-            }
-        }
-    }
     
     private fun launchShareActivityWithText(text: String): ActivityScenario<ShareActivity> {
         val intent = Intent(InstrumentationRegistry.getInstrumentation().targetContext, ShareActivity::class.java).apply {
@@ -85,11 +74,11 @@ class ShareActivityTest {
             launchShareActivityWithText("https://www.instagram.com/p/test123/?utm_source=ig_web")
             
             // Wait for processing
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // v1.4.8: convert to default proxy (toinstagram.com), strip www., remove tracking
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://toinstagram.com/p/test123/")))
+            awaitAssertion {
+                // v1.4.8: convert to default proxy (toinstagram.com), strip www., remove tracking
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://toinstagram.com/p/test123/")))
+            }
         }
     }
     
@@ -103,11 +92,11 @@ class ShareActivityTest {
             launchShareActivityWithText("https://www.instagram.com/p/test123/?utm_source=ig_web")
             
             // Wait for processing
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // Verify it stays instagram.com but tracking is removed
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.instagram.com/p/test123/")))
+            awaitAssertion {
+                // Verify it stays instagram.com but tracking is removed
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://www.instagram.com/p/test123/")))
+            }
         }
     }
     
@@ -121,11 +110,11 @@ class ShareActivityTest {
             launchShareActivityWithText("https://x.com/user/status/123456789?t=abc&s=09")
             
             // Wait for processing
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // Verify conversion to fixupx.com with tracking removed
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://fixupx.com/user/status/123456789")))
+            awaitAssertion {
+                // Verify conversion to fixupx.com with tracking removed
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://fixupx.com/user/status/123456789")))
+            }
         }
     }
     
@@ -139,11 +128,11 @@ class ShareActivityTest {
             launchShareActivityWithText("https://m.facebook.com/story.php?story_fbid=123&id=456&_rdr")
             
             // Wait for processing
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // Verify URL stays on facebook.com (no built-in frontend to convert to)
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://m.facebook.com/story.php?story_fbid=123&id=456")))
+            awaitAssertion {
+                // Verify URL stays on facebook.com (no built-in frontend to convert to)
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://m.facebook.com/story.php?story_fbid=123&id=456")))
+            }
         }
     }
     
@@ -155,12 +144,12 @@ class ShareActivityTest {
 
             launchShareActivityWithText("https://facebookez.com/zuck/posts/10115959821974691")
 
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://facebookez.com/zuck/posts/10115959821974691")))
-            onView(withId(R.id.textViewResultStatus))
-                .check(matches(withText(containsString("Already clean"))))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://facebookez.com/zuck/posts/10115959821974691")))
+                onView(withId(R.id.textViewResultStatus))
+                    .check(matches(withText(containsString("Already clean"))))
+            }
         }
     }
 
@@ -172,10 +161,10 @@ class ShareActivityTest {
 
             launchShareActivityWithText("https://facebookez.com/zuck/posts/10115959821974691?utm_source=twitter&utm_medium=social")
 
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://facebookez.com/zuck/posts/10115959821974691")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://facebookez.com/zuck/posts/10115959821974691")))
+            }
         }
     }
     
@@ -190,18 +179,20 @@ class ShareActivityTest {
             // unknown parameters survive the keep-unknown contract)
             launchShareActivityWithText("https://www.facebook.com/zuck/posts/10115959821974691?fbclid=test123")
             
-            // Wait for initial processing
-            onView(isRoot()).perform(waitFor(2000))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText(containsString("facebook.com"))))
+            }
             
             // Toggle Facebook conversion off (dedicated convert_facebook pref)
             onView(withId(R.id.switchPlatform)).perform(click())
             
             // Wait for reprocessing
-            onView(isRoot()).perform(waitFor(1500))
-            
-            // Verify URL is cleaned but stays facebook.com
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.facebook.com/zuck/posts/10115959821974691")))
+            awaitAssertion {
+                // Verify URL is cleaned but stays facebook.com
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://www.facebook.com/zuck/posts/10115959821974691")))
+            }
         }
     }
     
@@ -210,30 +201,32 @@ class ShareActivityTest {
         launchShareActivityWithText("https://www.instagram.com/p/test123/")
         
         // Wait for processing
-        onView(isRoot()).perform(waitFor(2000))
-        
-        // Verify share button is enabled
-        onView(withId(R.id.buttonShare))
-            .check(matches(isEnabled()))
-            .check(matches(isClickable()))
+        awaitAssertion {
+            // Verify share button is enabled
+            onView(withId(R.id.buttonShare))
+                .check(matches(isEnabled()))
+                .check(matches(isClickable()))
+        }
     }
     
     @Test
     fun testCopyButtonFunctionality() {
         launchShareActivityWithText("https://x.com/user/status/123456789")
         
-        // Wait for processing
-        onView(isRoot()).perform(waitFor(2000))
+        awaitAssertion {
+            onView(withId(R.id.buttonCopy))
+                .check(matches(isEnabled()))
+        }
         
         // Click copy button
         onView(withId(R.id.buttonCopy)).perform(click())
         
         // Wait for toast or feedback
-        onView(isRoot()).perform(waitFor(1000))
-        
-        // Verify button is still enabled (didn't crash)
-        onView(withId(R.id.buttonCopy))
-            .check(matches(isEnabled()))
+        awaitAssertion {
+            // Verify button is still enabled (didn't crash)
+            onView(withId(R.id.buttonCopy))
+                .check(matches(isEnabled()))
+        }
     }
     
     @Test
@@ -245,20 +238,23 @@ class ShareActivityTest {
             delay(100)
             
             launchShareActivityWithText("https://www.instagram.com/p/test/").use {
-                onView(isRoot()).perform(waitFor(1500))
-                onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
+                awaitAssertion {
+                    onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
+                }
             }
             
             // Test Twitter URL - should show Twitter toggle
             launchShareActivityWithText("https://x.com/user/status/123").use {
-                onView(isRoot()).perform(waitFor(1500))
-                onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
+                awaitAssertion {
+                    onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
+                }
             }
             
             // Test Facebook URL - should show Facebook toggle (uses convert_instagram pref)
             launchShareActivityWithText("https://www.facebook.com/test").use {
-                onView(isRoot()).perform(waitFor(1500))
-                onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
+                awaitAssertion {
+                    onView(withId(R.id.switchPlatform)).check(matches(isDisplayed()))
+                }
             }
         }
     }
@@ -305,13 +301,9 @@ class ShareActivityTest {
     fun testHistoryRecordingOnShare() {
         launchShareActivityWithText("https://www.instagram.com/p/test123/?ig_source=test")
         
-        // Wait for processing
-        onView(isRoot()).perform(waitFor(2000))
-        
-        // The history should be recorded automatically
-        // We can't directly verify database here, but we can verify the URL was processed
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(not(withText(""))))
+        // The history should be recorded automatically. We can't directly verify the database
+        // here, but we can verify the URL was processed.
+        awaitProcessedUrl()
     }
     
     @Test
@@ -334,12 +326,12 @@ class ShareActivityTest {
             launchShareActivityWithText("https://www.instagram.com/p/test123/?utm_source=test")
             
             // Wait for processing
-            onView(isRoot()).perform(waitFor(2500))
-            
-            // v1.4.8: With Instagram conversion enabled, URL converts to default proxy (toinstagram.com),
-            // www. is stripped, and tracking parameters are removed.
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://toinstagram.com/p/test123/")))
+            awaitAssertion {
+                // v1.4.8: With Instagram conversion enabled, URL converts to default proxy (toinstagram.com),
+                // www. is stripped, and tracking parameters are removed.
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://toinstagram.com/p/test123/")))
+            }
         }
     }
     
@@ -365,13 +357,13 @@ class ShareActivityTest {
 
             launchShareActivityWithText("https://x.com/user/status/123456789")
 
-            onView(isRoot()).perform(waitFor(2000))
-
-            // Share uses main embed proxy (fixupx), not browser privacy reader (xcancel).
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://fixupx.com/user/status/123456789")))
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(not(withText(containsString(Constants.XCANCEL_DOMAIN)))))
+            awaitAssertion {
+                // Share uses main embed proxy (fixupx), not browser privacy reader (xcancel).
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://fixupx.com/user/status/123456789")))
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(not(withText(containsString(Constants.XCANCEL_DOMAIN)))))
+            }
         }
     }
     
@@ -395,11 +387,11 @@ class ShareActivityTest {
             launchShareActivityWithText("https://x.com/test/status/123")
             
             // Wait for processing
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // URL should be converted to fixupx.com
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText(containsString("fixupx.com"))))
+            awaitAssertion {
+                // URL should be converted to fixupx.com
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText(containsString("fixupx.com"))))
+            }
         }
     }
 } 

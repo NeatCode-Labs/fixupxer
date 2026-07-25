@@ -1,3 +1,39 @@
+# FixupXer v2.6.1 - AliExpress Cleaning and Share Reliability
+
+## What's New
+
+### AliExpress links are actually cleaned now
+Cleaning an AliExpress product link removed `spm` but left `pdp_npi` untouched,
+and that single parameter is often longer than the rest of the URL put together.
+The result looked like nothing had happened. This release strips `pdp_npi` and
+15 further confirmed tracking keys from AliExpress links.
+
+Parameters that can carry functional data are deliberately kept: `pdp_ext_f`
+and `pvid` survive byte for byte, as does `gatewayAdapt`, which selects the
+regional gateway.
+
+### Sharing from apps that use a wildcard text type
+`ACTION_SEND` intents were only accepted when the sending app declared exactly
+`text/plain`. Apps that share as `text/*` still match the manifest filter, so
+their links reached FixupXer and were then rejected with "No URL found in
+shared text". The share handler now accepts any text type it is offered, and
+falls back to the intent's character sequence extra before reading `ClipData`.
+
+### Links containing a space are no longer discarded
+A single-line link whose query contained a literal space, which is what happens
+when a browser address bar hands over a partly decoded URL, was dropped
+entirely. Spaces in the query tail are percent-encoded instead. Whitespace
+before the query still rejects the input, so the host can never shift to a
+different domain.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 43
+- versionName: 2.6.1
+
+---
+
 # FixupXer v2.6.0 - Redacted History for Sensitive Links
 
 ## What's New

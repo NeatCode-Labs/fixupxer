@@ -25,8 +25,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.Espresso.pressBack
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.replaceText
@@ -83,20 +81,18 @@ class CustomProxyDialogTest {
         ProxyRoster.reset()
     }
 
-    private fun waitFor(millis: Long): ViewAction = object : ViewAction {
-        override fun getConstraints() = isRoot()
-        override fun getDescription() = "Wait for $millis ms"
-        override fun perform(uiController: UiController, view: View?) {
-            uiController.loopMainThreadForAtLeast(millis)
-        }
-    }
 
     private fun openProxyPicker() {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText("https://instagram.com/p/abc"), closeSoftKeyboard())
-        onView(isRoot()).perform(waitFor(1500))
+        // The proxy label appears only once async validation flags the URL as Instagram.
+        awaitAssertion {
+            onView(withId(R.id.textViewChangeProxy)).check(matches(isDisplayed()))
+        }
         onView(withId(R.id.textViewChangeProxy)).perform(click())
-        onView(isRoot()).perform(waitFor(500))
+        awaitAssertion {
+            onView(withId(R.id.recyclerViewProxyPicker)).check(matches(isDisplayed()))
+        }
     }
 
     /** Scroll the picker list until the row whose item view matches is laid out. */
@@ -139,10 +135,10 @@ class CustomProxyDialogTest {
             scrollPickerTo(hasDescendant(withText(containsString(Constants.INSTAGRAM7_DOMAIN))))
             onView(allOf(withText(containsString(Constants.INSTAGRAM7_DOMAIN)), isDisplayed()))
                 .perform(click())
-            onView(isRoot()).perform(waitFor(500))
-
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
+            awaitAssertion {
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
+            }
         }
     }
 
@@ -158,14 +154,14 @@ class CustomProxyDialogTest {
             onView(withText("Add"))
                 .inRoot(isDialog())
                 .perform(click())
-            onView(isRoot()).perform(waitFor(500))
-
-            onView(withId(R.id.customProxyInput))
-                .inRoot(isDialog())
-                .check(matches(isDisplayed()))
-            onView(withText(R.string.proxy_error_invalid_domain))
-                .inRoot(isDialog())
-                .check(matches(isDisplayed()))
+            awaitAssertion {
+                onView(withId(R.id.customProxyInput))
+                    .inRoot(isDialog())
+                    .check(matches(isDisplayed()))
+                onView(withText(R.string.proxy_error_invalid_domain))
+                    .inRoot(isDialog())
+                    .check(matches(isDisplayed()))
+            }
         }
     }
 
@@ -181,11 +177,11 @@ class CustomProxyDialogTest {
             onView(withText("Add"))
                 .inRoot(isDialog())
                 .perform(click())
-            onView(isRoot()).perform(waitFor(500))
-
-            onView(withText(R.string.proxy_error_reserved_domain))
-                .inRoot(isDialog())
-                .check(matches(isDisplayed()))
+            awaitAssertion {
+                onView(withText(R.string.proxy_error_reserved_domain))
+                    .inRoot(isDialog())
+                    .check(matches(isDisplayed()))
+            }
         }
     }
 
@@ -201,11 +197,11 @@ class CustomProxyDialogTest {
             onView(withText("Add"))
                 .inRoot(isDialog())
                 .perform(click())
-            onView(isRoot()).perform(waitFor(500))
-
-            onView(withText(R.string.proxy_error_reserved_domain))
-                .inRoot(isDialog())
-                .check(matches(isDisplayed()))
+            awaitAssertion {
+                onView(withText(R.string.proxy_error_reserved_domain))
+                    .inRoot(isDialog())
+                    .check(matches(isDisplayed()))
+            }
         }
     }
 
@@ -221,11 +217,11 @@ class CustomProxyDialogTest {
             onView(withText("Add"))
                 .inRoot(isDialog())
                 .perform(click())
-            onView(isRoot()).perform(waitFor(500))
-
-            onView(withText(R.string.proxy_error_reserved_domain))
-                .inRoot(isDialog())
-                .check(matches(isDisplayed()))
+            awaitAssertion {
+                onView(withText(R.string.proxy_error_reserved_domain))
+                    .inRoot(isDialog())
+                    .check(matches(isDisplayed()))
+            }
         }
     }
 
@@ -249,10 +245,10 @@ class CustomProxyDialogTest {
 
             onView(allOf(withText(containsString(customProxy)), isDisplayed()))
                 .perform(click())
-            onView(isRoot()).perform(waitFor(500))
-
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: $customProxy.")))
+            awaitAssertion {
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: $customProxy.")))
+            }
 
             onView(withId(R.id.textViewChangeProxy)).perform(click())
             onView(isRoot()).perform(waitFor(500))
@@ -268,16 +264,16 @@ class CustomProxyDialogTest {
                     isDisplayed(),
                 )
             ).perform(click())
-            onView(isRoot()).perform(waitFor(500))
-
-            onView(withText(containsString(customProxy)))
-                .check(doesNotExist())
+            awaitAssertion {
+                onView(withText(containsString(customProxy)))
+                    .check(doesNotExist())
+            }
 
             pressBack()
-            onView(isRoot()).perform(waitFor(500))
-
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
+            awaitAssertion {
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
+            }
         }
     }
 }

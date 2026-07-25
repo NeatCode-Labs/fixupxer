@@ -45,17 +45,11 @@ import com.fixupxer.ui.SettingsActivity
 import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.ProxyPlatform
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
 import android.view.View
 import androidx.test.espresso.matcher.RootMatchers.isDialog
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.delay
 import androidx.test.espresso.matcher.ViewMatchers.isNotChecked
-import androidx.core.widget.NestedScrollView
-import org.hamcrest.Matcher
-import android.view.ViewParent
-
 /**
  * Settings related UI tests
  */
@@ -85,18 +79,20 @@ class SettingsTest {
         onView(withContentDescription("More options")).perform(click())
         
         // Wait for menu to appear
-        onView(isRoot()).perform(waitFor(500))
+        awaitAssertion {
+            onView(withText("About")).check(matches(isDisplayed()))
+        }
         
         // Click About menu item
         onView(withText("About")).perform(click())
         
         // Wait for dialog
-        onView(isRoot()).perform(waitFor(1000))
-        
-        // Verify About dialog is shown by checking the title
-        onView(withText("About FixupXer"))
-            .inRoot(isDialog())
-            .check(matches(isDisplayed()))
+        awaitAssertion {
+            // Verify About dialog is shown by checking the title
+            onView(withText("About FixupXer"))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+        }
         
         // Verify version info is displayed
         onView(withText(containsString("Version")))
@@ -151,12 +147,12 @@ class SettingsTest {
             .perform(click())
         
         // Wait for dialog
-        onView(isRoot()).perform(waitFor(1000))
-        
-        // Verify dialog is shown
-        onView(withText("Select max entries"))
-            .inRoot(isDialog())
-            .check(matches(isDisplayed()))
+        awaitAssertion {
+            // Verify dialog is shown
+            onView(withText("Select max entries"))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+        }
         
         // Verify input field exists
         onView(withId(R.id.editTextMaxEntries))
@@ -182,11 +178,11 @@ class SettingsTest {
         
         // Wait out the bottom sheet settle exit animation, which ignores
         // the animator duration scale, before asserting the activity root.
-        onView(isRoot()).perform(waitFor(1000))
-        
-        // Verify we're back to main activity
-        onView(withId(R.id.buttonProcess))
-            .check(matches(isDisplayed()))
+        awaitAssertion {
+            // Verify we're back to main activity
+            onView(withId(R.id.buttonProcess))
+                .check(matches(isDisplayed()))
+        }
     }
     
     @Test
@@ -197,16 +193,22 @@ class SettingsTest {
         onView(withId(R.id.buttonHistory))
             .perform(click())
         
-        // Wait for dialog
-        onView(isRoot()).perform(waitFor(1000))
+        awaitAssertion {
+            onView(withId(R.id.btnMaxEntries))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+        }
         
         // Click max entries button
         onView(withId(R.id.btnMaxEntries))
             .inRoot(isDialog())
             .perform(click())
         
-        // Wait for dialog
-        onView(isRoot()).perform(waitFor(1000))
+        awaitAssertion {
+            onView(withId(R.id.editTextMaxEntries))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+        }
         
         // Clear and enter invalid value (too low); close the keyboard so the
         // IME can't steal window focus when the dialog later dismisses.
@@ -220,12 +222,12 @@ class SettingsTest {
             .perform(click())
         
         // Wait a bit
-        onView(isRoot()).perform(waitFor(500))
-        
-        // Dialog should still be open due to validation
-        onView(withId(R.id.editTextMaxEntries))
-            .inRoot(isDialog())
-            .check(matches(isDisplayed()))
+        awaitAssertion {
+            // Dialog should still be open due to validation
+            onView(withId(R.id.editTextMaxEntries))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+        }
         
         // Enter valid value
         onView(withId(R.id.editTextMaxEntries))
@@ -237,8 +239,12 @@ class SettingsTest {
             .inRoot(isDialog())
             .perform(click())
         
-        // Wait for dialog to close
-        onView(isRoot()).perform(waitFor(1000))
+        // Wait for max-entries sub-dialog to close before reopening the setting
+        awaitAssertion {
+            onView(withId(R.id.btnMaxEntries))
+                .inRoot(isDialog())
+                .check(matches(allOf(isDisplayed(), isEnabled())))
+        }
         
         // Reopen the compact setting and verify the saved value
         onView(withId(R.id.btnMaxEntries))
@@ -287,11 +293,11 @@ class SettingsTest {
         onView(withId(R.id.buttonConversionDefaults))
             .perform(nestedScrollTo(), click())
         
-        onView(isRoot()).perform(waitFor(1000))
-        
-        onView(withText(R.string.conversion_defaults_title))
-            .inRoot(isDialog())
-            .check(matches(isDisplayed()))
+        awaitAssertion {
+            onView(withText(R.string.conversion_defaults_title))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+        }
         
         // Every supported row shows a target line; anchor on the X row to avoid ambiguity.
         onView(
@@ -349,15 +355,14 @@ class SettingsTest {
         onView(withId(R.id.configurationStatusNavigation))
             .perform(nestedScrollTo(), click())
 
-        onView(isRoot()).perform(waitFor(1000))
-
-        onView(withText(R.string.configuration_status_title))
-            .inRoot(isDialog())
-            .check(matches(isDisplayed()))
-
-        onView(withText(R.string.configuration_status_detail_browser_off))
-            .inRoot(isDialog())
-            .check(matches(isDisplayed()))
+        awaitAssertion {
+            onView(withText(R.string.configuration_status_title))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+            onView(withText(R.string.configuration_status_detail_browser_off))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+        }
     }
 
     @Test
@@ -504,7 +509,12 @@ class SettingsTest {
             .inRoot(isDialog())
             .perform(click())
 
-        onView(isRoot()).perform(waitFor(500))
+        // Anchor on a reader target being rendered first: the absence checks below would
+        // pass trivially against the previous dialog if they ran before the picker appeared.
+        awaitAssertion {
+            onView(allOf(withText(containsString(Constants.NITTER_NET_DOMAIN)), isDisplayed()))
+                .check(matches(isDisplayed()))
+        }
 
         // Selection-only privacy picker: no embed/automatic targets, no section
         // header for embeds and no management actions may be present.
@@ -518,17 +528,23 @@ class SettingsTest {
         onView(allOf(withText(containsString(Constants.NITTER_NET_DOMAIN)), isDisplayed()))
             .perform(click())
 
-        onView(isRoot()).perform(waitFor(500))
+        // The picker dismisses back to the defaults dialog; a fixed wait on isRoot() throws
+        // RootViewWithoutFocusException while that transition is in flight.
+        awaitAssertion {
+            onView(withId(R.id.btnSave))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+        }
 
         onView(withId(R.id.btnSave))
             .inRoot(isDialog())
             .perform(click())
 
-        onView(isRoot()).perform(waitFor(300))
-
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
-        assertEquals("x_nitter_net", prefs.getString("browser_privacy_target_x", null))
+        awaitAssertion {
+            assertEquals("x_nitter_net", prefs.getString("browser_privacy_target_x", null))
+        }
     }
 
     @Test
@@ -660,8 +676,11 @@ class SettingsTest {
         onView(withId(R.id.buttonConversionDefaults))
             .perform(nestedScrollTo(), click())
         
-        // Wait for dialog
-        onView(isRoot()).perform(waitFor(1000))
+        awaitAssertion {
+            onView(withText(R.string.conversion_defaults_title))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
+        }
         
         onView(withId(R.id.switchBrowserPinterest))
             .inRoot(isDialog())
@@ -686,34 +705,6 @@ class SettingsTest {
             .check(matches(isChecked()))
     }
     
-    // Helper function to wait
-    private fun waitFor(millis: Long): ViewAction {
-        return object : ViewAction {
-            override fun getConstraints() = isRoot()
-            override fun getDescription() = "Wait for $millis milliseconds"
-            override fun perform(uiController: UiController, view: View) {
-                uiController.loopMainThreadForAtLeast(millis)
-            }
-        }
-    }
-
-    private fun nestedScrollTo(): ViewAction {
-        return object : ViewAction {
-            override fun getConstraints(): Matcher<View> = isAssignableFrom(View::class.java)
-            override fun getDescription() = "Scroll enclosing NestedScrollView to target view"
-            override fun perform(uiController: UiController, view: View) {
-                var y = view.top
-                var parent: ViewParent? = view.parent
-                while (parent is View && parent !is NestedScrollView) {
-                    y += parent.top
-                    parent = (parent as View).parent
-                }
-                (parent as? NestedScrollView)?.scrollTo(0, y)
-                uiController.loopMainThreadUntilIdle()
-            }
-        }
-    }
-
     @Test
     fun testBackupAndSavedAppChoicesSectionsVisible() {
         ActivityScenario.launch(SettingsActivity::class.java).use {

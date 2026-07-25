@@ -33,27 +33,14 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
-import android.view.View
-
+@Smoke
 @RunWith(AndroidJUnit4::class)
 class UrlInputValidationTest {
     private fun launchMainActivity() {
         ActivityScenario.launch(MainActivity::class.java)
     }
 
-    fun waitFor(delay: Long): ViewAction {
-        return object : ViewAction {
-            override fun getConstraints() = isRoot()
-            override fun getDescription() = "Wait for $delay milliseconds."
-            override fun perform(uiController: UiController, view: View?) {
-                uiController.loopMainThreadForAtLeast(delay)
-            }
-        }
-    }
 
     @Test
     fun testGluedUrlsAreRejected() {
@@ -64,10 +51,10 @@ class UrlInputValidationTest {
         onView(withId(R.id.editTextUrl)).perform(replaceText(glued), closeSoftKeyboard())
         
         // Wait for TextWatcher to process
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify the input field is cleared (indicating rejection)
-        onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+        awaitAssertion {
+            // Verify the input field is cleared (indicating rejection)
+            onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+        }
         
         // Verify error message is shown in the input field's error slot
         onView(withText(containsString("Please paste one URL at a time"))).check(matches(isDisplayed()))
@@ -79,10 +66,10 @@ class UrlInputValidationTest {
         val tricky = "www.instagram.com\u200Bwww.x.com"
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(tricky), closeSoftKeyboard())
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify input is cleared
-        onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+        awaitAssertion {
+            // Verify input is cleared
+            onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+        }
         // Verify error message is shown
         onView(withText(containsString("Please paste one URL at a time"))).check(matches(isDisplayed()))
     }
@@ -93,10 +80,10 @@ class UrlInputValidationTest {
         val tricky = "www%2Einstagram.com"
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(tricky), closeSoftKeyboard())
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify input is cleared
-        onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+        awaitAssertion {
+            // Verify input is cleared
+            onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+        }
         // Not a multi-URL paste — the generic invalid-input message is shown
         onView(withText(containsString("This input can't be processed"))).check(matches(isDisplayed()))
     }
@@ -107,10 +94,10 @@ class UrlInputValidationTest {
         val tricky = "www.instagram.com\u0000www.x.com"
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(tricky), closeSoftKeyboard())
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify input is cleared
-        onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+        awaitAssertion {
+            // Verify input is cleared
+            onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+        }
         // Verify error message is shown
         onView(withText(containsString("Please paste one URL at a time"))).check(matches(isDisplayed()))
     }
@@ -126,10 +113,10 @@ class UrlInputValidationTest {
         
         // Click process to see the result
         onView(withId(R.id.buttonProcess)).perform(click())
-        onView(isRoot()).perform(waitFor(2000))
-        
-        // Verify some processing occurred (either result or error message)
-        onView(withId(R.id.textViewProcessedUrl)).check(matches(not(withText(""))))
+        awaitAssertion {
+            // Verify some processing occurred (either result or error message)
+            onView(withId(R.id.textViewProcessedUrl)).check(matches(not(withText(""))))
+        }
         
         // Verify the app is still responsive
         onView(withId(R.id.buttonProcess)).check(matches(isEnabled()))
@@ -141,11 +128,11 @@ class UrlInputValidationTest {
         val malformed = "not-a-url-at-all"
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(malformed), closeSoftKeyboard())
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // If we get here without crashing, the test passes
-        // Verify the app is still responsive
-        onView(withId(R.id.buttonProcess)).check(matches(isEnabled()))
+        awaitAssertion {
+            // If we get here without crashing, the test passes
+            // Verify the app is still responsive
+            onView(withId(R.id.buttonProcess)).check(matches(isEnabled()))
+        }
     }
 
     @Test
@@ -154,10 +141,10 @@ class UrlInputValidationTest {
         val multipleProtocols = "https://www.instagram.comhttp://www.x.com"
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(multipleProtocols), closeSoftKeyboard())
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify input is cleared
-        onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+        awaitAssertion {
+            // Verify input is cleared
+            onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+        }
         // Verify error message is shown
         onView(withText(containsString("Please paste one URL at a time"))).check(matches(isDisplayed()))
     }
@@ -168,10 +155,10 @@ class UrlInputValidationTest {
         val unicodeTricky = "www.instagram\u0300.com" // Combining accent
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(unicodeTricky), closeSoftKeyboard())
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify input is cleared
-        onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+        awaitAssertion {
+            // Verify input is cleared
+            onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+        }
         // Not a multi-URL paste — the generic invalid-input message is shown
         onView(withText(containsString("This input can't be processed"))).check(matches(isDisplayed()))
     }
@@ -187,10 +174,10 @@ class UrlInputValidationTest {
         
         // Click process button
         onView(withId(R.id.buttonProcess)).perform(click())
-        onView(isRoot()).perform(waitFor(2000))
-        
-        // Verify processing occurred
-        onView(withId(R.id.textViewProcessedUrl)).check(matches(not(withText(""))))
+        awaitAssertion {
+            // Verify processing occurred
+            onView(withId(R.id.textViewProcessedUrl)).check(matches(not(withText(""))))
+        }
     }
 
     @Test
@@ -200,9 +187,9 @@ class UrlInputValidationTest {
         // Click process button with empty input
         onView(isRoot()).perform(waitFor(500))
         onView(withId(R.id.buttonProcess)).perform(click())
-        onView(isRoot()).perform(waitFor(1000))
-        
-        // Verify error state - input errors render in the TextInputLayout error slot
-        onView(withText(containsString("Please enter a URL"))).check(matches(isDisplayed()))
+        awaitAssertion {
+            // Verify error state - input errors render in the TextInputLayout error slot
+            onView(withText(containsString("Please enter a URL"))).check(matches(isDisplayed()))
+        }
     }
 } 

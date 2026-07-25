@@ -38,6 +38,7 @@ import org.junit.runner.RunWith
  * This test ensures that sharing URLs with tracking parameters and toggling
  * conversion switches does not create duplicate history entries.
  */
+@Smoke
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class ShareActivityNoDuplicatesTest {
@@ -50,16 +51,11 @@ class ShareActivityNoDuplicatesTest {
         // When sharing the URL to ShareActivity
         val scenario = launchShareActivity(testUrl)
         
-        // Wait for processing
-        Thread.sleep(3000)
-        
-        // Then verify the activity launched and shows the Twitter toggle
-        onView(withId(R.id.switchPlatform))
-            .check(matches(isDisplayed()))
-        
-        // Verify the processed URL is displayed (not checking exact text due to toggle state)
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(isDisplayed()))
+        awaitAssertion {
+            onView(withId(R.id.switchPlatform))
+                .check(matches(isDisplayed()))
+        }
+        awaitProcessedUrl()
         
         scenario.close()
     }
@@ -72,23 +68,19 @@ class ShareActivityNoDuplicatesTest {
         // When sharing the URL to ShareActivity
         val scenario = launchShareActivity(testUrl)
         
-        // Wait for initial processing
-        Thread.sleep(3000)
+        awaitAssertion {
+            onView(withId(R.id.switchPlatform))
+                .check(matches(isDisplayed()))
+        }
         
         // Toggle the switch multiple times to verify no crashes or errors
         for (i in 1..3) {
-            // Toggle the Twitter conversion switch
             onView(withId(R.id.switchPlatform))
                 .check(matches(isDisplayed()))
                 .perform(click())
-            
-            // Wait for processing
-            Thread.sleep(2000)
         }
         
-        // Verify the activity is still responsive
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(isDisplayed()))
+        awaitProcessedUrl()
         
         scenario.close()
     }
@@ -101,22 +93,15 @@ class ShareActivityNoDuplicatesTest {
         // When sharing the URL to ShareActivity
         val scenario = launchShareActivity(testUrl)
         
-        // Wait for processing
-        Thread.sleep(3000)
+        awaitAssertion {
+            onView(withId(R.id.switchPlatform))
+                .check(matches(isDisplayed()))
+        }
         
-        // Verify Instagram toggle is shown
-        onView(withId(R.id.switchPlatform))
-            .check(matches(isDisplayed()))
-        
-        // Toggle it once
         onView(withId(R.id.switchPlatform))
             .perform(click())
         
-        Thread.sleep(2000)
-        
-        // Verify the activity is still working
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(isDisplayed()))
+        awaitProcessedUrl()
         
         scenario.close()
     }
@@ -129,16 +114,11 @@ class ShareActivityNoDuplicatesTest {
         // When sharing the URL to ShareActivity
         val scenario = launchShareActivity(testUrl)
         
-        // Wait for processing
-        Thread.sleep(3000)
-        
-        // Verify the Facebook toggle is shown (shares the convert_instagram pref)
-        onView(withId(R.id.switchPlatform))
-            .check(matches(isDisplayed()))
-        
-        // Verify the processed URL is displayed
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(isDisplayed()))
+        awaitAssertion {
+            onView(withId(R.id.switchPlatform))
+                .check(matches(isDisplayed()))
+        }
+        awaitProcessedUrl()
         
         scenario.close()
     }

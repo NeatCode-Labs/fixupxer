@@ -31,24 +31,23 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.junit.Test
 import org.junit.runner.RunWith
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
-import android.view.View
 
 @RunWith(AndroidJUnit4::class)
 class UrlValidationImprovementsTest {
-    private fun waitFor(delay: Long): ViewAction {
-        return object : ViewAction {
-            override fun getConstraints() = isRoot()
-            override fun getDescription() = "Wait for $delay milliseconds."
-            override fun perform(uiController: UiController, view: View?) {
-                uiController.loopMainThreadForAtLeast(delay)
-            }
-        }
-    }
     
     private fun launchMainActivity() {
         ActivityScenario.launch(MainActivity::class.java)
+    }
+
+    /**
+     * The text watcher validates asynchronously and clears the field when it rejects the input
+     * (`MainActivity.afterTextChanged`). Polling cannot prove the text *stays* put, so wait out
+     * that window — bounded by the validator's own 200 ms timeout — before asserting it survived.
+     */
+    private fun assertInputSurvivesValidation(url: String) {
+        onView(isRoot()).perform(waitFor(400))
+        onView(withId(R.id.editTextUrl))
+            .check(matches(withText(url)))
     }
     
     @Test
@@ -61,22 +60,17 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(facebookStoryUrl), closeSoftKeyboard())
         
-        // Wait for validation
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify URL is NOT cleared (it's valid)
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText(facebookStoryUrl)))
+        assertInputSurvivesValidation(facebookStoryUrl)
         
         // Process it to verify it works
         onView(withId(R.id.buttonProcess)).perform(click())
-        onView(isRoot()).perform(waitFor(2000))
-        
-        // Verify processing occurred successfully
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(not(withText(""))))
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(not(withText(containsString("Multiple URLs detected")))))
+        awaitAssertion {
+            // Verify processing occurred successfully
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(not(withText(""))))
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(not(withText(containsString("Multiple URLs detected")))))
+        }
     }
     
     @Test
@@ -89,11 +83,7 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(complexUrl), closeSoftKeyboard())
         
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify URL is not cleared
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText(complexUrl)))
+        assertInputSurvivesValidation(complexUrl)
     }
     
     @Test
@@ -106,11 +96,7 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(urlWithDots), closeSoftKeyboard())
         
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify URL is not cleared
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText(urlWithDots)))
+        assertInputSurvivesValidation(urlWithDots)
     }
     
     @Test
@@ -123,11 +109,11 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(multipleUrls), closeSoftKeyboard())
         
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify input is cleared
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText("")))
+        awaitAssertion {
+            // Verify input is cleared
+            onView(withId(R.id.editTextUrl))
+                .check(matches(withText("")))
+        }
         
         // Verify error message (shown in the TextInputLayout error slot)
         onView(withText(containsString("Please paste one URL at a time")))
@@ -144,11 +130,11 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(gluedUrls), closeSoftKeyboard())
         
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify input is cleared
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText("")))
+        awaitAssertion {
+            // Verify input is cleared
+            onView(withId(R.id.editTextUrl))
+                .check(matches(withText("")))
+        }
     }
     
     @Test
@@ -161,11 +147,7 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(fileUrl), closeSoftKeyboard())
         
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify URL is not cleared
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText(fileUrl)))
+        assertInputSurvivesValidation(fileUrl)
     }
     
     @Test
@@ -178,11 +160,7 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(portUrl), closeSoftKeyboard())
         
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify URL is not cleared
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText(portUrl)))
+        assertInputSurvivesValidation(portUrl)
     }
     
     @Test
@@ -194,16 +172,14 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(facebookezUrl), closeSoftKeyboard())
 
-        onView(isRoot()).perform(waitFor(1500))
-
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText(facebookezUrl)))
+        assertInputSurvivesValidation(facebookezUrl)
 
         onView(withId(R.id.buttonProcess)).perform(click())
-        onView(isRoot()).perform(waitFor(2000))
 
-        onView(withId(R.id.textViewProcessedUrl))
-            .check(matches(withText(facebookezUrl)))
+        awaitAssertion {
+            onView(withId(R.id.textViewProcessedUrl))
+                .check(matches(withText(facebookezUrl)))
+        }
     }
     
     @Test
@@ -216,10 +192,7 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(adamlikesUrl), closeSoftKeyboard())
 
-        onView(isRoot()).perform(waitFor(1500))
-
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText(adamlikesUrl)))
+        assertInputSurvivesValidation(adamlikesUrl)
     }
 
     @Test
@@ -231,10 +204,7 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(kkinstagramUrl), closeSoftKeyboard())
 
-        onView(isRoot()).perform(waitFor(1500))
-
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText(kkinstagramUrl)))
+        assertInputSurvivesValidation(kkinstagramUrl)
     }
     
     @Test
@@ -247,11 +217,7 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(fixupxUrl), closeSoftKeyboard())
         
-        onView(isRoot()).perform(waitFor(1500))
-        
-        // Verify URL is not cleared
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText(fixupxUrl)))
+        assertInputSurvivesValidation(fixupxUrl)
     }
 
     @Test
@@ -264,10 +230,7 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(toinstagramUrl), closeSoftKeyboard())
 
-        onView(isRoot()).perform(waitFor(1500))
-
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText(toinstagramUrl)))
+        assertInputSurvivesValidation(toinstagramUrl)
     }
 
     @Test
@@ -280,9 +243,6 @@ class UrlValidationImprovementsTest {
         onView(withId(R.id.editTextUrl))
             .perform(replaceText(instagram7Url), closeSoftKeyboard())
 
-        onView(isRoot()).perform(waitFor(1500))
-
-        onView(withId(R.id.editTextUrl))
-            .check(matches(withText(instagram7Url)))
+        assertInputSurvivesValidation(instagram7Url)
     }
 } 

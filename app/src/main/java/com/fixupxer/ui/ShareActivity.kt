@@ -308,16 +308,24 @@ class ShareActivity : BaseActivity() {
         }
     }
     
+    private fun Intent.isPlainTextSend(): Boolean {
+        if (action != Intent.ACTION_SEND) return false
+        val mimeType = type ?: return true
+        val normalized = mimeType.substringBefore(';').trim().lowercase()
+        return normalized == "text/plain" || normalized == "text/*"
+    }
+
+    private fun extractSendText(intent: Intent): String? {
+        if (!intent.isPlainTextSend()) return null
+        // Some apps put the shared text only into ClipData, not EXTRA_TEXT.
+        return intent.getStringExtra(Intent.EXTRA_TEXT)
+            ?: intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
+            ?: intent.clipData?.takeIf { it.itemCount > 0 }
+                ?.getItemAt(0)?.coerceToText(this)?.toString()
+    }
+
     private fun handleIntent() {
-        val sharedText = when {
-            intent.action == Intent.ACTION_SEND && intent.type == "text/plain" -> {
-                // Some apps put the shared text only into ClipData, not EXTRA_TEXT.
-                intent.getStringExtra(Intent.EXTRA_TEXT)
-                    ?: intent.clipData?.takeIf { it.itemCount > 0 }
-                        ?.getItemAt(0)?.coerceToText(this)?.toString()
-            }
-            else -> null
-        }
+        val sharedText = extractSendText(intent)
         
         if (!sharedText.isNullOrEmpty()) {
             viewModel.processSharedText(sharedText)

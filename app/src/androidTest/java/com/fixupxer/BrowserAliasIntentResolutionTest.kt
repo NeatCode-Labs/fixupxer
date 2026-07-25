@@ -49,6 +49,7 @@ import org.junit.runner.RunWith
  *  3. AOSP regression: existing VIEW+http path still resolves when Browser mode is on.
  *  4. No duplicate launcher icon: alias never resolves a MAIN+LAUNCHER query.
  */
+@Smoke
 @RunWith(AndroidJUnit4::class)
 class BrowserAliasIntentResolutionTest {
 

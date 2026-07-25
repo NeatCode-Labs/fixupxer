@@ -20,11 +20,8 @@
 package com.fixupxer
 
 import android.content.Context
-import android.view.View
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.replaceText
@@ -81,13 +78,6 @@ class MainActivityProxyLabelTest {
             .commit()
     }
 
-    private fun waitFor(millis: Long): ViewAction = object : ViewAction {
-        override fun getConstraints() = isRoot()
-        override fun getDescription() = "Wait for $millis ms"
-        override fun perform(uiController: UiController, view: View?) {
-            uiController.loopMainThreadForAtLeast(millis)
-        }
-    }
 
     @Test
     fun instagramUrlShowsActiveToinstagramByDefault() {
@@ -95,14 +85,14 @@ class MainActivityProxyLabelTest {
         ActivityScenario.launch(MainActivity::class.java).use {
             onView(withId(R.id.editTextUrl))
                 .perform(replaceText("https://instagram.com/p/abc"), closeSoftKeyboard())
-            onView(isRoot()).perform(waitFor(1500))
-
-            onView(withId(R.id.platformProxyRow))
-                .check(matches(isDisplayed()))
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
-            onView(withId(R.id.textViewChangeProxy))
-                .check(matches(isDisplayed()))
+            awaitAssertion {
+                onView(withId(R.id.platformProxyRow))
+                    .check(matches(isDisplayed()))
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
+                onView(withId(R.id.textViewChangeProxy))
+                    .check(matches(isDisplayed()))
+            }
         }
     }
 
@@ -114,10 +104,10 @@ class MainActivityProxyLabelTest {
         ActivityScenario.launch(MainActivity::class.java).use {
             onView(withId(R.id.editTextUrl))
                 .perform(replaceText("https://instagram.com/p/abc"), closeSoftKeyboard())
-            onView(isRoot()).perform(waitFor(1500))
-
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
+            awaitAssertion {
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
+            }
         }
     }
 
@@ -130,10 +120,10 @@ class MainActivityProxyLabelTest {
         ActivityScenario.launch(MainActivity::class.java).use {
             onView(withId(R.id.editTextUrl))
                 .perform(replaceText("https://instagram.com/p/abc"), closeSoftKeyboard())
-            onView(isRoot()).perform(waitFor(1500))
-
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.ADAMLIKES_DOMAIN}.")))
+            awaitAssertion {
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.ADAMLIKES_DOMAIN}.")))
+            }
         }
     }
 
@@ -142,12 +132,12 @@ class MainActivityProxyLabelTest {
         ActivityScenario.launch(MainActivity::class.java).use {
             onView(withId(R.id.editTextUrl))
                 .perform(replaceText("https://facebook.com/user/posts/1"), closeSoftKeyboard())
-            onView(isRoot()).perform(waitFor(1500))
-
-            onView(withId(R.id.platformToggleContainer))
-                .check(matches(isDisplayed()))
-            onView(withId(R.id.platformProxyRow))
-                .check(matches(isDisplayed()))
+            awaitAssertion {
+                onView(withId(R.id.platformToggleContainer))
+                    .check(matches(isDisplayed()))
+                onView(withId(R.id.platformProxyRow))
+                    .check(matches(isDisplayed()))
+            }
         }
     }
 
@@ -164,11 +154,11 @@ class MainActivityProxyLabelTest {
         ActivityScenario.launch(MainActivity::class.java).use {
             onView(withId(R.id.editTextUrl))
                 .perform(replaceText("https://instagram.com/p/abc"), closeSoftKeyboard())
-            onView(isRoot()).perform(waitFor(1500))
-
-            // Default proxy
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
+            awaitAssertion {
+                // Default proxy
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
+            }
 
             // Processed URL field shows the placeholder (user hasn't pressed Process yet)
             onView(withId(R.id.textViewProcessedUrl))
@@ -182,13 +172,13 @@ class MainActivityProxyLabelTest {
             onView(withText(containsString(Constants.INSTAGRAM7_DOMAIN)))
                 .inRoot(isDialog())
                 .perform(click())
-            onView(isRoot()).perform(waitFor(500))
-
-            // MainActivity is still in the foreground; label reflects the new proxy
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
-            onView(withId(R.id.editTextUrl))
-                .check(matches(isDisplayed()))
+            awaitAssertion {
+                // MainActivity is still in the foreground; label reflects the new proxy
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
+                onView(withId(R.id.editTextUrl))
+                    .check(matches(isDisplayed()))
+            }
 
             // No auto-reprocess: Processed URL field keeps the placeholder until the
             // user taps Process (preserves the explicit Process-button flow for fresh inputs).
@@ -213,11 +203,11 @@ class MainActivityProxyLabelTest {
 
             // Press Process to populate the Processed URL field with the default proxy
             onView(withId(R.id.buttonProcess)).perform(click())
-            onView(isRoot()).perform(waitFor(1500))
-
-            // Sanity: the processed text uses toinstagram.com (default)
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText(containsString(Constants.TOINSTAGRAM_DOMAIN))))
+            awaitAssertion {
+                // Sanity: the processed text uses toinstagram.com (default)
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText(containsString(Constants.TOINSTAGRAM_DOMAIN))))
+            }
 
             // Open the proxy dialog and pick instagram7.com
             onView(withId(R.id.textViewChangeProxy)).perform(click())
@@ -225,16 +215,16 @@ class MainActivityProxyLabelTest {
             onView(withText(containsString(Constants.INSTAGRAM7_DOMAIN)))
                 .inRoot(isDialog())
                 .perform(click())
-            onView(isRoot()).perform(waitFor(1500))
-
-            // Label updates AND the Processed URL field is automatically refreshed
-            // with the newly selected proxy — no extra Process tap required.
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText(containsString(Constants.INSTAGRAM7_DOMAIN))))
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(not(withText(containsString(Constants.TOINSTAGRAM_DOMAIN)))))
+            awaitAssertion {
+                // Label updates AND the Processed URL field is automatically refreshed
+                // with the newly selected proxy — no extra Process tap required.
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText(containsString(Constants.INSTAGRAM7_DOMAIN))))
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(not(withText(containsString(Constants.TOINSTAGRAM_DOMAIN)))))
+            }
         }
     }
 
@@ -246,16 +236,17 @@ class MainActivityProxyLabelTest {
             onView(isRoot()).perform(waitFor(1500))
 
             onView(withId(R.id.buttonProcess)).perform(click())
-            onView(isRoot()).perform(waitFor(1500))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText(containsString(Constants.TOINSTAGRAM_DOMAIN))))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText(containsString(Constants.TOINSTAGRAM_DOMAIN))))
+            }
 
             onView(withId(R.id.switchPlatform)).perform(click())
-            onView(isRoot()).perform(waitFor(1500))
 
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://instagram.com/p/abc")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://instagram.com/p/abc")))
+            }
         }
     }
 
@@ -267,12 +258,12 @@ class MainActivityProxyLabelTest {
         ActivityScenario.launch(MainActivity::class.java).use {
             onView(withId(R.id.editTextUrl))
                 .perform(replaceText("https://twitter.com/user/status/1"), closeSoftKeyboard())
-            onView(isRoot()).perform(waitFor(1500))
-
-            onView(withId(R.id.platformTitle))
-                .check(matches(withText(R.string.read_without_account)))
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.XCANCEL_DOMAIN}.")))
+            awaitAssertion {
+                onView(withId(R.id.platformTitle))
+                    .check(matches(withText(R.string.read_without_account)))
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.XCANCEL_DOMAIN}.")))
+            }
         }
     }
 }

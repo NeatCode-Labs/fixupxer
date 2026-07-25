@@ -21,11 +21,8 @@ package com.fixupxer
 
 import android.content.Context
 import android.content.Intent
-import android.view.View
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.isDialog
@@ -76,24 +73,17 @@ class ShareActivityProxyLabelTest {
         }
     }
 
-    private fun waitFor(millis: Long): ViewAction = object : ViewAction {
-        override fun getConstraints() = isRoot()
-        override fun getDescription() = "Wait for $millis ms"
-        override fun perform(uiController: UiController, view: View?) {
-            uiController.loopMainThreadForAtLeast(millis)
-        }
-    }
 
     @Test
     fun instagramShareShowsActiveToinstagramByDefault() {
         // v1.4.8: default = toinstagram.com
         ActivityScenario.launch<ShareActivity>(shareIntent("https://instagram.com/p/abc")).use {
-            onView(isRoot()).perform(waitFor(1500))
-
-            onView(withId(R.id.platformProxyRow))
-                .check(matches(isDisplayed()))
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
+            awaitAssertion {
+                onView(withId(R.id.platformProxyRow))
+                    .check(matches(isDisplayed()))
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
+            }
         }
     }
 
@@ -104,10 +94,10 @@ class ShareActivityProxyLabelTest {
         PreferencesManager(ctx).setInstagramProxy(Constants.ADAMLIKES_DOMAIN)
 
         ActivityScenario.launch<ShareActivity>(shareIntent("https://instagram.com/p/abc")).use {
-            onView(isRoot()).perform(waitFor(1500))
-
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.ADAMLIKES_DOMAIN}.")))
+            awaitAssertion {
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.ADAMLIKES_DOMAIN}.")))
+            }
         }
     }
 
@@ -124,11 +114,11 @@ class ShareActivityProxyLabelTest {
     @Test
     fun changeProxyInShowsDialogAndUpdatesLabelInPlace() {
         ActivityScenario.launch<ShareActivity>(shareIntent("https://instagram.com/p/abc")).use {
-            onView(isRoot()).perform(waitFor(1500))
-
-            // Default proxy should be toinstagram.com (v1.4.8)
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
+            awaitAssertion {
+                // Default proxy should be toinstagram.com (v1.4.8)
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.TOINSTAGRAM_DOMAIN}.")))
+            }
 
             // Click the "Change." link -> dialog must appear (in-activity, not Settings)
             onView(withId(R.id.textViewChangeProxy)).perform(click())
@@ -138,13 +128,13 @@ class ShareActivityProxyLabelTest {
             onView(withText(containsString(Constants.INSTAGRAM7_DOMAIN)))
                 .inRoot(isDialog())
                 .perform(click())
-            onView(isRoot()).perform(waitFor(500))
-
-            // Share screen must still be alive and the label must reflect the new proxy
-            onView(withId(R.id.textViewPlatformProxyStatus))
-                .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
-            onView(withId(R.id.platformToggleContainer))
-                .check(matches(isDisplayed()))
+            awaitAssertion {
+                // Share screen must still be alive and the label must reflect the new proxy
+                onView(withId(R.id.textViewPlatformProxyStatus))
+                    .check(matches(withText("Active: ${Constants.INSTAGRAM7_DOMAIN}.")))
+                onView(withId(R.id.platformToggleContainer))
+                    .check(matches(isDisplayed()))
+            }
         }
     }
 }

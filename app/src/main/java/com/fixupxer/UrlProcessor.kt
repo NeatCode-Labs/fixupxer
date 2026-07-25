@@ -252,6 +252,16 @@ class UrlProcessor @Inject constructor(
             }
         }
 
+        private fun encodeQueryWhitespace(url: String): String? {
+            val queryStart = url.indexOf('?')
+            if (queryStart < 0) return null
+            val head = url.substring(0, queryStart)
+            if (head.any { it.isWhitespace() }) return null
+            val tail = url.substring(queryStart)
+            if (!tail.contains(' ')) return null
+            return head + tail.replace(" ", "%20")
+        }
+
         private fun isValidUrlSimple(url: String): Boolean {
             if (url.isEmpty()) return false
             if (!VALID_URL_PATTERN.matches(url)) return false
@@ -294,7 +304,12 @@ class UrlProcessor @Inject constructor(
             if (trimmedText.isNotEmpty() && !trimmedText.contains("\n") && !trimmedText.contains("\r")) {
                 if (trimmedText.startsWith("http://") || trimmedText.startsWith("https://")) {
                     if (isValidUrlSimple(trimmedText)) return trimmedText
-                    return if (parseValidHttpUri(trimmedText) != null) trimmedText else null
+                    if (parseValidHttpUri(trimmedText) != null) return trimmedText
+                    // Only query-tail spaces may be repaired; scheme and authority stay unchanged.
+                    val repaired = encodeQueryWhitespace(trimmedText)
+                    return repaired?.takeIf {
+                        isValidUrlSimple(it) || parseValidHttpUri(it) != null
+                    }
                 }
                 if (!trimmedText.contains(" ") && trimmedText.contains(".")) {
                     val parts = trimmedText.split(".")

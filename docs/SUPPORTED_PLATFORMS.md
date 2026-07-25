@@ -58,7 +58,7 @@ These registered platforms support host-bound tracking parameter removal:
 - **Amazon** - Removes known Amazon tracking keys and canonicalizes recognised product links
 - **Google Store** - Removes `hl` and `selections` on `store.google.com`
 - **eBay** (`ebay.com`, `ebay.co.uk`, `ebay.de`) - Removes `mkevt`, `mkcid`, `mkrid`, `campid`, `customid`, `toolid`, `ssspo`, `sssrc`, `ssuid`, `widget_ver`, `media`, `_trkparms`, and `_trksid`; keeps `var`, `selected`, `hash`, and `epid`
-- **AliExpress** - Removes `spm`, `srcSns`, `businessType`, `templateKey`, `aff_fcid`, `aff_fsk`, `aff_platform`, `aff_trace_key`, `terminal_id`, `afSmartRedirect`, and `utparam-url`; keeps `sku_id`, `currency`, `language`, and `gatewayAdapt`
+- **AliExpress** - Removes `spm`, `srcSns`, `businessType`, `templateKey`, `aff_fcid`, `aff_fsk`, `aff_platform`, `aff_trace_key`, `terminal_id`, `afSmartRedirect`, `utparam-url`, `pdp_npi`, `afTraceInfo`, `algo_pvid`, `algo_exp_id`, `algo_expid`, `curPageLogUid`, `scm`, `scm_id`, `scm-url`, `utparam`, `aff_short_key`, `aff_request_id`, `gps-id`, `ws_ab_test`, `btsid`, and `mall_affr`; keeps `sku_id`, `currency`, `language`, and `gatewayAdapt`
 
 ### Search & Discovery
 - **Google Search** - Removes known Google tracking keys and extracts `/url` redirect destinations

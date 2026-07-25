@@ -123,6 +123,45 @@ class CatalogParameterCleanerTest {
     }
 
     @Test
+    fun `aliexpress cleaner removes reported tracking keys and preserves gatewayAdapt`() {
+        val rule = ParameterRuleCatalog.rules.first { it.id == "aliexpress" }
+        val cleaner = CatalogParameterCleaner(rule)
+        val input = "https://he.aliexpress.com/item/1005007790675247.html?" +
+            "pdp_npi=4%40dis%21USD%21US+%2425.80%21US+%2412.40%21%21%2125.80%2112.40" +
+            "%21%402102ef5e17849031233483899e10b3%2112000042214375874%21sh%21IL%21134321167%21X" +
+            "&spm=a2g0o.store_pc_allItems_or_groupList.new_all_items_2007523659251.1005007790675247" +
+            "&gatewayAdapt=glo2isr"
+        val expected = "https://he.aliexpress.com/item/1005007790675247.html?gatewayAdapt=glo2isr"
+        val cleaned = cleaner.clean(input)
+
+        assertEquals(expected, cleaned)
+        assertFalse(cleaned.contains("pdp_npi="))
+        assertFalse(cleaned.contains("spm="))
+        assertTrue(cleaned.contains("gatewayAdapt=glo2isr"))
+        assertEquals(expected, cleaner.clean(cleaned))
+    }
+
+    @Test
+    fun `aliexpress cleaner preserves pdp_ext_f and pvid byte for byte`() {
+        val rule = ParameterRuleCatalog.rules.first { it.id == "aliexpress" }
+        val cleaner = CatalogParameterCleaner(rule)
+        val pdpExtF = "%7B%22fromPage%22%3A%22item%22%2C%22order%22%3A%221%22%2C" +
+            "%22eval%22%3A%22A%22%2C%22sku_id%22%3A%2212000042214375874%22%7D"
+        val pvid = "abc123-variant-context"
+        val base = "https://www.aliexpress.com/item/1005007790675247.html"
+        val input = "$base?pdp_ext_f=$pdpExtF&pvid=$pvid&spm=tracked"
+        val expected = "$base?pdp_ext_f=$pdpExtF&pvid=$pvid"
+
+        val cleaned = cleaner.clean(input)
+
+        assertEquals(expected, cleaned)
+        assertTrue(cleaned.contains("pdp_ext_f=$pdpExtF"))
+        assertTrue(cleaned.contains("pvid=$pvid"))
+        assertFalse(cleaned.contains("spm="))
+        assertEquals(expected, cleaner.clean(cleaned))
+    }
+
+    @Test
     fun `bilibili cleaner removes only documented keys and preserves from`() {
         val rule = ParameterRuleCatalog.rules.first { it.id == "bilibili" }
         val cleaner = CatalogParameterCleaner(rule)

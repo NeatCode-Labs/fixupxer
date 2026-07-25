@@ -33,23 +33,10 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.junit.Test
 import org.junit.runner.RunWith
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
-import android.view.View
 import androidx.test.espresso.matcher.RootMatchers.isDialog
 
 @RunWith(AndroidJUnit4::class)
 class MainActivityHistoryTest {
-    
-    private fun waitFor(delay: Long): ViewAction {
-        return object : ViewAction {
-            override fun getConstraints() = isRoot()
-            override fun getDescription() = "Wait for $delay milliseconds."
-            override fun perform(uiController: UiController, view: View?) {
-                uiController.loopMainThreadForAtLeast(delay)
-            }
-        }
-    }
     
     private fun launchMainActivity() {
         ActivityScenario.launch(MainActivity::class.java)

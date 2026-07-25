@@ -138,10 +138,16 @@ object ParameterRuleCatalog {
             displayName = "AliExpress",
             category = CleanerCategory.E_COMMERCE,
             domains = listOf(Constants.ALIEXPRESS_DOMAIN),
+            // `pdp_ext_f` and `pvid` look like tracking but are not removed:
+            // `pdp_ext_f` can carry a `sku_id` that selects the product variant, and
+            // `pvid` is excluded from the AliExpress ruleset upstream (ClearURLs).
             removeKeys = setOf(
                 "spm", "srcSns", "businessType", "templateKey", "aff_fcid", "aff_fsk",
                 "aff_platform", "aff_trace_key", "terminal_id", "afSmartRedirect",
-                "utparam-url"
+                "utparam-url", "pdp_npi", "afTraceInfo", "algo_pvid",
+                "algo_exp_id", "algo_expid", "curPageLogUid", "scm", "scm_id",
+                "scm-url", "utparam", "aff_short_key", "aff_request_id", "gps-id",
+                "ws_ab_test", "btsid", "mall_affr"
             ),
             preserveKeys = setOf("sku_id", "currency", "language", "gatewayAdapt")
         ),

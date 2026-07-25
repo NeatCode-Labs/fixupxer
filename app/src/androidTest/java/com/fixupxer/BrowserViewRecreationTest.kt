@@ -21,20 +21,13 @@ package com.fixupxer
 
 import android.content.Intent
 import android.net.Uri
-import android.os.SystemClock
-import android.view.View
 import androidx.room.Room
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.NoMatchingRootException
-import androidx.test.espresso.NoMatchingViewException
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.isRoot
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -49,6 +42,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
+@Smoke
 @RunWith(AndroidJUnit4::class)
 class BrowserViewRecreationTest {
 
@@ -124,33 +118,10 @@ class BrowserViewRecreationTest {
     }
 
     private fun waitForPostCleanDialog() {
-        val deadline = SystemClock.uptimeMillis() + DIALOG_TIMEOUT_MS
-        while (SystemClock.uptimeMillis() < deadline) {
-            try {
-                onView(withText(R.string.post_clean_action_title))
-                    .inRoot(isDialog())
-                    .check(matches(isDisplayed()))
-                return
-            } catch (_: NoMatchingViewException) {
-                // Dialog is not attached yet.
-            } catch (_: NoMatchingRootException) {
-                // Dialog window is not attached yet.
-            }
-            onView(isRoot()).perform(waitFor(POLL_INTERVAL_MS))
-        }
-
-        onView(withText(R.string.post_clean_action_title))
-            .inRoot(isDialog())
-            .check(matches(isDisplayed()))
-    }
-
-    private fun waitFor(delay: Long): ViewAction {
-        return object : ViewAction {
-            override fun getConstraints() = isRoot()
-            override fun getDescription() = "Wait for $delay milliseconds."
-            override fun perform(uiController: UiController, view: View?) {
-                uiController.loopMainThreadForAtLeast(delay)
-            }
+        awaitAssertion(timeoutMs = DIALOG_TIMEOUT_MS, pollMs = POLL_INTERVAL_MS) {
+            onView(withText(R.string.post_clean_action_title))
+                .inRoot(isDialog())
+                .check(matches(isDisplayed()))
         }
     }
 

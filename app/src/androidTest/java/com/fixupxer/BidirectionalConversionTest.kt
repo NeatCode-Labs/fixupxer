@@ -32,9 +32,6 @@ import com.fixupxer.ui.ShareActivity
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.Test
 import org.junit.runner.RunWith
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
-import android.view.View
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.delay
 import org.junit.Before
@@ -53,15 +50,6 @@ class BidirectionalConversionTest {
         preferencesManager = PreferencesManager(InstrumentationRegistry.getInstrumentation().targetContext)
     }
     
-    private fun waitFor(delay: Long): ViewAction {
-        return object : ViewAction {
-            override fun getConstraints() = isRoot()
-            override fun getDescription() = "Wait for $delay milliseconds."
-            override fun perform(uiController: UiController, view: View?) {
-                uiController.loopMainThreadForAtLeast(delay)
-            }
-        }
-    }
     
     private fun launchShareActivityWithText(text: String) {
         val intent = Intent(InstrumentationRegistry.getInstrumentation().targetContext, ShareActivity::class.java).apply {
@@ -82,10 +70,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://www.instagram.com/p/test123/")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://toinstagram.com/p/test123/")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://toinstagram.com/p/test123/")))
+            }
         }
     }
 
@@ -97,10 +85,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://toinstagram.com/p/test123/")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://instagram.com/p/test123/")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://instagram.com/p/test123/")))
+            }
         }
     }
 
@@ -111,10 +99,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://www.kkinstagram.com/p/test123/?utm_source=app&igshid=abc")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.kkinstagram.com/p/test123/?igshid=abc")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://www.kkinstagram.com/p/test123/?igshid=abc")))
+            }
         }
     }
     
@@ -126,12 +114,12 @@ class BidirectionalConversionTest {
             delay(100)
             
             launchShareActivityWithText("https://www.instagram.com/p/test123/")
-            onView(isRoot()).perform(waitFor(2000))
-            
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.instagram.com/p/test123/")))
-            onView(withId(R.id.textViewResultStatus))
-                .check(matches(withText(containsString("Already clean"))))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://www.instagram.com/p/test123/")))
+                onView(withId(R.id.textViewResultStatus))
+                    .check(matches(withText(containsString("Already clean"))))
+            }
         }
     }
     
@@ -145,11 +133,11 @@ class BidirectionalConversionTest {
             delay(100)
             
             launchShareActivityWithText("https://twitter.com/user/status/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // Should convert to fixupx with toggle ON
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://fixupx.com/user/status/123456789")))
+            awaitAssertion {
+                // Should convert to fixupx with toggle ON
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://fixupx.com/user/status/123456789")))
+            }
         }
     }
     
@@ -161,11 +149,11 @@ class BidirectionalConversionTest {
             delay(100)
             
             launchShareActivityWithText("https://x.com/user/status/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // Should convert to fixupx with toggle ON
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://fixupx.com/user/status/123456789")))
+            awaitAssertion {
+                // Should convert to fixupx with toggle ON
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://fixupx.com/user/status/123456789")))
+            }
         }
     }
     
@@ -177,11 +165,11 @@ class BidirectionalConversionTest {
             delay(100)
             
             launchShareActivityWithText("https://fixupx.com/user/status/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // Should convert back to x.com
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://x.com/user/status/123456789")))
+            awaitAssertion {
+                // Should convert back to x.com
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://x.com/user/status/123456789")))
+            }
         }
     }
     
@@ -193,11 +181,11 @@ class BidirectionalConversionTest {
             delay(100)
             
             launchShareActivityWithText("https://fixupx.com/user/status/123456789?t=test&s=09")
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // Should clean and convert to x.com
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://x.com/user/status/123456789")))
+            awaitAssertion {
+                // Should clean and convert to x.com
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://x.com/user/status/123456789")))
+            }
         }
     }
     
@@ -209,11 +197,11 @@ class BidirectionalConversionTest {
             delay(100)
             
             launchShareActivityWithText("https://fixupx.com/user/status/123456789?utm_source=share")
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // Should clean but stay fixupx.com
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://fixupx.com/user/status/123456789")))
+            awaitAssertion {
+                // Should clean but stay fixupx.com
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://fixupx.com/user/status/123456789")))
+            }
         }
     }
     
@@ -225,12 +213,12 @@ class BidirectionalConversionTest {
             delay(100)
             
             launchShareActivityWithText("https://x.com/user/status/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-            
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://x.com/user/status/123456789")))
-            onView(withId(R.id.textViewResultStatus))
-                .check(matches(withText(containsString("Already clean"))))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://x.com/user/status/123456789")))
+                onView(withId(R.id.textViewResultStatus))
+                    .check(matches(withText(containsString("Already clean"))))
+            }
         }
     }
     
@@ -243,10 +231,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://www.facebook.com/zuck/posts/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.facebook.com/zuck/posts/123456789")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://www.facebook.com/zuck/posts/123456789")))
+            }
         }
     }
 
@@ -257,10 +245,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://facebookez.com/zuck/posts/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://facebookez.com/zuck/posts/123456789")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://facebookez.com/zuck/posts/123456789")))
+            }
         }
     }
 
@@ -271,10 +259,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://facebookez.com/story.php?story_fbid=123&id=456&fbclid=abc")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://facebookez.com/story.php?story_fbid=123&id=456")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://facebookez.com/story.php?story_fbid=123&id=456")))
+            }
         }
     }
 
@@ -285,10 +273,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://web.facebook.com/story.php?story_fbid=123&id=456")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://web.facebook.com/story.php?story_fbid=123&id=456")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://web.facebook.com/story.php?story_fbid=123&id=456")))
+            }
         }
     }
 
@@ -299,10 +287,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://www.facebook.com/zuck/posts/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.facebook.com/zuck/posts/123456789")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://www.facebook.com/zuck/posts/123456789")))
+            }
         }
     }
     
@@ -314,12 +302,12 @@ class BidirectionalConversionTest {
             delay(100)
             
             launchShareActivityWithText("https://www.facebook.com/zuck/posts/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-            
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.facebook.com/zuck/posts/123456789")))
-            onView(withId(R.id.textViewResultStatus))
-                .check(matches(withText(containsString("Already clean"))))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://www.facebook.com/zuck/posts/123456789")))
+                onView(withId(R.id.textViewResultStatus))
+                    .check(matches(withText(containsString("Already clean"))))
+            }
         }
     }
     
@@ -333,10 +321,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://www.tiktok.com/@user/video/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.tnktok.com/@user/video/123456789")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://www.tnktok.com/@user/video/123456789")))
+            }
         }
     }
 
@@ -348,10 +336,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://tnktok.com/@user/video/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://tiktok.com/@user/video/123456789")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://tiktok.com/@user/video/123456789")))
+            }
         }
     }
 
@@ -363,10 +351,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://vm.tiktok.com/ZMabcdef/")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://vm.tnktok.com/ZMabcdef/")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://vm.tnktok.com/ZMabcdef/")))
+            }
         }
     }
 
@@ -378,10 +366,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://vxtiktok.com/@user/video/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://tnktok.com/@user/video/123456789")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://tnktok.com/@user/video/123456789")))
+            }
         }
     }
 
@@ -393,12 +381,12 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://www.tiktok.com/@user/video/123?is_from_webapp=1&_r=1&_t=abc")
-            onView(isRoot()).perform(waitFor(2000))
-
-            // is_from_webapp is an unknown/functional key and survives the
-            // keep-unknown contract; _r and _t are known tracking keys.
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.tnktok.com/@user/video/123?is_from_webapp=1")))
+            awaitAssertion {
+                // is_from_webapp is an unknown/functional key and survives the
+                // keep-unknown contract; _r and _t are known tracking keys.
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://www.tnktok.com/@user/video/123?is_from_webapp=1")))
+            }
         }
     }
 
@@ -410,12 +398,12 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://www.tiktok.com/@user/video/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://www.tiktok.com/@user/video/123456789")))
-            onView(withId(R.id.textViewResultStatus))
-                .check(matches(withText(containsString("Already clean"))))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://www.tiktok.com/@user/video/123456789")))
+                onView(withId(R.id.textViewResultStatus))
+                    .check(matches(withText(containsString("Already clean"))))
+            }
         }
     }
 
@@ -429,11 +417,11 @@ class BidirectionalConversionTest {
             delay(100)
             
             launchShareActivityWithText("https://WWW.INSTAGRAM.COM/p/TEST123/")
-            onView(isRoot()).perform(waitFor(2000))
-
-            // v1.4.8: case-insensitive match + www. (any case) is stripped → default = toinstagram.com
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://toinstagram.com/p/TEST123/")))
+            awaitAssertion {
+                // v1.4.8: case-insensitive match + www. (any case) is stripped → default = toinstagram.com
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://toinstagram.com/p/TEST123/")))
+            }
         }
     }
     
@@ -445,11 +433,11 @@ class BidirectionalConversionTest {
             delay(100)
             
             launchShareActivityWithText("https://x.com/user/status/123456789#reply")
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // Should convert and preserve fragment
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://fixupx.com/user/status/123456789#reply")))
+            awaitAssertion {
+                // Should convert and preserve fragment
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://fixupx.com/user/status/123456789#reply")))
+            }
         }
     }
     
@@ -461,11 +449,11 @@ class BidirectionalConversionTest {
             delay(100)
             
             launchShareActivityWithText("https://fxtwitter.com/user/status/123456789")
-            onView(isRoot()).perform(waitFor(2000))
-            
-            // Should convert fxtwitter to fixupx
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://fixupx.com/user/status/123456789")))
+            awaitAssertion {
+                // Should convert fxtwitter to fixupx
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://fixupx.com/user/status/123456789")))
+            }
         }
     }
     
@@ -477,10 +465,10 @@ class BidirectionalConversionTest {
             delay(100)
 
             launchShareActivityWithText("https://toinstagram.com/p/test/?utm_source=ig_web&igshid=test")
-            onView(isRoot()).perform(waitFor(2000))
-
-            onView(withId(R.id.textViewProcessedUrl))
-                .check(matches(withText("https://toinstagram.com/p/test/")))
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://toinstagram.com/p/test/")))
+            }
         }
     }
 } 

@@ -23,6 +23,7 @@ package com.fixupxer
 import com.fixupxer.cleaners.CleanerService
 import com.fixupxer.cleaners.CleanerCatalog
 import com.fixupxer.cleaners.CleanerRegistry
+import com.fixupxer.processing.UrlNormalizer
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -295,6 +296,53 @@ class UrlProcessorTest {
         assertEquals(expected, result)
     }
     
+    @Test
+    fun `findFirstValidUrl encodes query spaces without truncating decoded AliExpress URL`() {
+        val decodedUrl = "https://he.aliexpress.com/item/1005007790675247.html?" +
+            "pdp_npi=4@dis!USD!US \$25.80!US \$12.40!!!25.80!12.40!" +
+            "@2102ef5e17849031233483899e10b3!12000042214375874!sh!IL!134321167!X" +
+            "&spm=tracked"
+        val expected = decodedUrl.replace(" ", "%20")
+
+        val result = UrlProcessor.findFirstValidUrl(decodedUrl)
+
+        assertEquals(expected, result)
+    }
+
+    @Test
+    fun `findFirstValidUrl rejects whitespace before query delimiter`() {
+        assertNull(
+            UrlProcessor.findFirstValidUrl(
+                "https://example.com/page and?commentary=true"
+            )
+        )
+    }
+
+    @Test
+    fun `findFirstValidUrl rejects whitespace when query is absent`() {
+        assertNull(
+            UrlProcessor.findFirstValidUrl(
+                "https://example.com/page and commentary"
+            )
+        )
+    }
+
+    @Test
+    fun `findFirstValidUrl preserves host while encoding query spaces`() {
+        val input = "https://evil.com/?x=1 @good.com/path"
+        val expected = "https://evil.com/?x=1%20@good.com/path"
+
+        val result = UrlProcessor.findFirstValidUrl(input)
+
+        assertEquals(expected, result)
+        assertEquals("evil.com", UrlNormalizer.extractAsciiHost(result!!))
+    }
+
+    @Test
+    fun `findFirstValidUrl returns null for invalid single line URL without whitespace`() {
+        assertNull(UrlProcessor.findFirstValidUrl("https://nodotdomain"))
+    }
+
     @Test
     fun `test extract URLs from text`() {
         val text = "Check out https://example.com and http://test.org/page"

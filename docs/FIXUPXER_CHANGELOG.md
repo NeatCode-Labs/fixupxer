@@ -1,9 +1,9 @@
 # FixupXer App - Development Summary
-## Version Progression: v2.6.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.6.1 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 36 (v2.6.0 through v1.2.1)
-**Current Version:** v2.6.0 (versionCode: 42)
-**Development Period:** v1.2.1 (Initial) → v2.6.0 (Current)
+**Total Versions Released:** 37 (v2.6.1 through v1.2.1)
+**Current Version:** v2.6.1 (versionCode: 43)
+**Development Period:** v1.2.1 (Initial) → v2.6.1 (Current)
 
 ---
 
@@ -29,7 +29,7 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 - ✅ **Offline Redirect Unwrapping** - Curated HTTP(S) target extraction with exact host/path checks, strict single decoding and multi-pass destination cleaning
 - ✅ **Efficient Dispatch** - O(1) domain dispatch and bounded smart caching
 - ✅ **International Support** - Full IDN support and zero-width character handling
-- ✅ **Comprehensive Verification** - 877 automated tests plus release lint, REUSE and reproducible-build checks
+- ✅ **Comprehensive Verification** - 894 automated tests plus release lint, REUSE and reproducible-build checks
 - ✅ **Thread-Safe Design** - Immutable processing snapshots and concurrency-safe state
 - ✅ **Security Hardening** - Comprehensive protection against malicious input attacks
 - ✅ **Professional Architecture** - Clean, maintainable, and extensible codebase
@@ -37,6 +37,14 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.6.0 → v2.6.1
+- **Focus:** Field bug report — an AliExpress product link came back visually unchanged after cleaning, and the same reporter hit "No URL found in shared text" when sharing from the browser address bar. Three separate defects turned out to sit behind those two symptoms.
+- **AliExpress catalog rule:** `spm` was already removed, but `pdp_npi` was not, and on a real product link that one parameter is longer than the rest of the URL combined, so the cleaned result looked identical. Added 16 upstream-confirmed tracking keys (`pdp_npi`, `algo_pvid`, `gatewayAdapt` family excluded, …) to the `aliexpress` rule in `ParameterRuleCatalog`. `pdp_ext_f` and `pvid` are deliberately kept because they can carry functional selection data, and `gatewayAdapt` stays because it selects the regional gateway. Both keep-cases are pinned by byte-for-byte tests.
+- **Share MIME handling:** `ShareActivity` compared the incoming type against exactly `text/plain`, while the manifest filter also matches `text/*`. Apps declaring the wildcard therefore reached the activity and were rejected. The handler now accepts any text type and falls back to `getCharSequenceExtra` before reading `ClipData`.
+- **URL extraction:** `findFirstValidUrl` returned null for single-line `http(s)` text containing a literal space, which is exactly what a partly decoded address-bar URL looks like. Spaces in the query tail are percent-encoded instead; whitespace before the query still returns null so the host can never shift to another domain.
+- **Test infrastructure:** instrumentation suite reworked for speed and stability — fixed sleeps replaced with a shared polling helper (`EspressoSupport.awaitAssertion`), duplicated per-class helpers consolidated, and a `@Smoke` annotation added for a 52-test development subset that runs in well under a minute. The full `connectedAndroidTest` remains the only release gate. Suite runtime dropped from roughly 19 minutes to about 10, with the previously flaky `SettingsTest.testMaxEntriesValidation` now stable.
+- **Verification:** 659 unit + 235 instrumentation tests green, release lint clean.
 
 ### v2.5.1 → v2.6.0
 - **Focus:** History fix for Private Link Guard false positives — links whose sensitive input is fully cleaned to a safe result now leave a redacted history entry instead of vanishing from history entirely. Reported in the field: an external article opened from Reddit through Browser mode (out.reddit.com wrapper with a functional `token=` parameter) never appeared in Conversion History.
@@ -773,11 +781,12 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.4.1 | 39 | Privacy fix (fragment query leak) + Open self-interception, Facebook retarget, Browser VIEW history dedup | ✅ Released |
 | v2.5.0 | 40 | Retired unsafe frontends (facebookez.com, kkinstagram.com) with automatic migration; Alternative frontends screen in Settings | ✅ Released |
 | v2.5.1 | 41 | Android 16 (API 36) target compliance; AGP 8.9.3; no user-facing changes | ✅ Released |
-| v2.6.0 | 42 | Redacted history entries for fully cleaned sensitive links (Reddit/Google Ads wrappers etc.) | ✅ Current |
+| v2.6.0 | 42 | Redacted history entries for fully cleaned sensitive links (Reddit/Google Ads wrappers etc.) | ✅ Released |
+| v2.6.1 | 43 | AliExpress `pdp_npi` cleaning, wildcard `text/*` share handling, links with spaces in the query | ✅ Current |
 
-### Build Artifacts (v2.6.0):
+### Build Artifacts (v2.6.1):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk`
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
-- **GITHUB / F-Droid APK:** `FixupXer-v2.6.0-release.apk` built from a fresh clone of the `v2.6.0` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+- **GITHUB / F-Droid APK:** `FixupXer-v2.6.1-release.apk` built from a fresh clone of the `v2.6.1` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

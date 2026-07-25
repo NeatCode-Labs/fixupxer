@@ -12,18 +12,12 @@
 package com.fixupxer
 
 import android.content.Context
-import android.view.View
-import android.view.ViewParent
-import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.UiController
-import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.isDialog
-import androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom
 import androidx.test.espresso.matcher.ViewMatchers.isClickable
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.isEnabled
@@ -36,7 +30,6 @@ import com.fixupxer.ui.SettingsActivity
 import com.fixupxer.utils.BrowserModeUtils
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.not
-import org.hamcrest.Matcher
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -157,23 +150,6 @@ class SettingsRegressionTest {
                 .check(matches(isDisplayed()))
             assertFalse(preferences.getBoolean("show_configuration_status_widget", true))
             assertTrue(preferences.getBoolean("browser_enabled", false))
-        }
-    }
-
-    private fun nestedScrollTo(): ViewAction {
-        return object : ViewAction {
-            override fun getConstraints(): Matcher<View> = isAssignableFrom(View::class.java)
-            override fun getDescription() = "Scroll enclosing NestedScrollView to target view"
-            override fun perform(uiController: UiController, view: View) {
-                var y = view.top
-                var parent: ViewParent? = view.parent
-                while (parent is View && parent !is NestedScrollView) {
-                    y += parent.top
-                    parent = (parent as View).parent
-                }
-                (parent as? NestedScrollView)?.scrollTo(0, y)
-                uiController.loopMainThreadUntilIdle()
-            }
         }
     }
 }

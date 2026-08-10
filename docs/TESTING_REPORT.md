@@ -1,5 +1,25 @@
 # FixupXer Testing Report
 
+## v2.6.2 verification — August 10, 2026
+
+v2.6.2 handles YouTube's renamed share tracker: the `si` share identifier on
+shared links was flipped to `is` (same tracker, new name, rolled out to work
+around existing blocklists). `YouTubeCleaner` now removes both spellings, and
+YouTube Music keeps preserving the share identifier under either name.
+Final verification passes:
+
+- **662/662 unit tests** (`./gradlew test`, debug variant; release variant
+  also green) — 3 new tests
+- **235/235 instrumentation tests** (`./gradlew connectedAndroidTest`) on
+  `Pixel_API_35_Play` / API 35, zero failures in a single full-suite pass on
+  a cold-booted emulator
+- **Release lint** (`./gradlew lintRelease`) — 0 errors
+
+New coverage mirrors the existing `si` fixtures: `is` is removed from
+`youtube.com/watch` and `youtu.be` URLs (timestamp `t=` preserved byte for
+byte), and preserved on `music.youtube.com` exactly like `si`. No
+instrumentation changes — the suite re-ran green with the new rule.
+
 ## v2.6.1 verification — July 25, 2026
 
 v2.6.1 fixes a field report about AliExpress links: `pdp_npi` and 15 further

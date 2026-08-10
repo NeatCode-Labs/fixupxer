@@ -1,9 +1,9 @@
 # FixupXer App - Development Summary
-## Version Progression: v2.6.1 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.6.2 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 37 (v2.6.1 through v1.2.1)
-**Current Version:** v2.6.1 (versionCode: 43)
-**Development Period:** v1.2.1 (Initial) → v2.6.1 (Current)
+**Total Versions Released:** 38 (v2.6.2 through v1.2.1)
+**Current Version:** v2.6.2 (versionCode: 44)
+**Development Period:** v1.2.1 (Initial) → v2.6.2 (Current)
 
 ---
 
@@ -29,7 +29,7 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 - ✅ **Offline Redirect Unwrapping** - Curated HTTP(S) target extraction with exact host/path checks, strict single decoding and multi-pass destination cleaning
 - ✅ **Efficient Dispatch** - O(1) domain dispatch and bounded smart caching
 - ✅ **International Support** - Full IDN support and zero-width character handling
-- ✅ **Comprehensive Verification** - 894 automated tests plus release lint, REUSE and reproducible-build checks
+- ✅ **Comprehensive Verification** - 897 automated tests plus release lint, REUSE and reproducible-build checks
 - ✅ **Thread-Safe Design** - Immutable processing snapshots and concurrency-safe state
 - ✅ **Security Hardening** - Comprehensive protection against malicious input attacks
 - ✅ **Professional Architecture** - Clean, maintainable, and extensible codebase
@@ -37,6 +37,13 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.6.1 → v2.6.2
+- **Focus:** Field report by e-mail — YouTube renamed the `si` share identifier on shared links to `is` (same account-bound share tracker, new name, rolled out in early 2026 to work around existing blocklists; confirmed against ClearURLs issue #192 and independent reports). Until this release the renamed parameter survived cleaning.
+- **YouTubeCleaner:** `is` added to the tracking-parameter set alongside `si` — both spellings stay on the removal list so cleaning keeps working if YouTube ever flips the name back. YouTube Music keeps its existing policy: the share identifier is deliberately preserved there, now for both spellings (`si` and `is`).
+- **Scope check:** `si` elsewhere is untouched — the Spotify catalog rule still removes Spotify's own `si` parameter, and the general tracking cleaner contract (unknown keys survive) is unchanged.
+- **Tests:** +3 unit (662 total): `is` removed from `watch` and `youtu.be` URLs (with `t=` preserved), and preserved on `music.youtube.com` — mirroring the existing `si` fixtures.
+- **Verification:** 662 unit + 235 instrumentation tests green on a cold-booted `Pixel_API_35_Play`, release lint clean.
 
 ### v2.6.0 → v2.6.1
 - **Focus:** Field bug report — an AliExpress product link came back visually unchanged after cleaning, and the same reporter hit "No URL found in shared text" when sharing from the browser address bar. Three separate defects turned out to sit behind those two symptoms.
@@ -782,11 +789,12 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.5.0 | 40 | Retired unsafe frontends (facebookez.com, kkinstagram.com) with automatic migration; Alternative frontends screen in Settings | ✅ Released |
 | v2.5.1 | 41 | Android 16 (API 36) target compliance; AGP 8.9.3; no user-facing changes | ✅ Released |
 | v2.6.0 | 42 | Redacted history entries for fully cleaned sensitive links (Reddit/Google Ads wrappers etc.) | ✅ Released |
-| v2.6.1 | 43 | AliExpress `pdp_npi` cleaning, wildcard `text/*` share handling, links with spaces in the query | ✅ Current |
+| v2.6.1 | 43 | AliExpress `pdp_npi` cleaning, wildcard `text/*` share handling, links with spaces in the query | ✅ Released |
+| v2.6.2 | 44 | YouTube's renamed `is` share tracker removed (kept `si` too) | ✅ Current |
 
-### Build Artifacts (v2.6.1):
+### Build Artifacts (v2.6.2):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk`
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
-- **GITHUB / F-Droid APK:** `FixupXer-v2.6.1-release.apk` built from a fresh clone of the `v2.6.1` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+- **GITHUB / F-Droid APK:** `FixupXer-v2.6.2-release.apk` built from a fresh clone of the `v2.6.2` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

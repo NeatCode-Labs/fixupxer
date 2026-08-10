@@ -1,0 +1,2 @@
+• YouTube renamed its si share tracker on shared links to is, working around existing blocklists. FixupXer now removes both spellings, so share links keep getting cleaned either way.
+• YouTube Music is unaffected: the share identifier stays preserved there, now under both names.

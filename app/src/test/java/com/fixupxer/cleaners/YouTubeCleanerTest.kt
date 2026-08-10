@@ -79,6 +79,20 @@ class YouTubeCleanerTest {
         assertTrue(cleaned.contains("list=RDAMVM"))
         assertFalse(cleaned.contains("feature=share"))
     }
+
+    @Test
+    fun `test renamed is share identifier is removed like si`() {
+        // YouTube flipped "si" to "is" in early 2026 to work around blocklists
+        val watchUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&is=nTf2xxYGCDE0abc"
+        assertEquals("https://www.youtube.com/watch?v=dQw4w9WgXcQ", YouTubeCleaner.clean(watchUrl))
+
+        val shortUrl = "https://youtu.be/dQw4w9WgXcQ?is=nTf2xxYGCDE0abc"
+        assertEquals("https://youtu.be/dQw4w9WgXcQ", YouTubeCleaner.clean(shortUrl))
+
+        // YouTube Music keeps share ID (same policy as "si")
+        val musicUrl = "https://music.youtube.com/watch?v=abc123&is=xyz789"
+        assertTrue(YouTubeCleaner.clean(musicUrl).contains("is=xyz789"))
+    }
     
     @Test
     fun `test YouTube search query preservation`() {

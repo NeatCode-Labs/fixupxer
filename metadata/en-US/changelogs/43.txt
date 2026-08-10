@@ -1,1 +1,3 @@
-AliExpress links are now actually cleaned: pdp_npi, which is often longer than the rest of the URL, plus 15 further tracking keys are removed, while functional pdp_ext_f, pvid and gatewayAdapt parameters are preserved. Sharing from apps that use a wildcard text type no longer fails with "No URL found in shared text". Links carrying a space in the query, as handed over by some address bars, are no longer discarded.
+• AliExpress links are now actually cleaned: pdp_npi, which is often longer than the rest of the URL, plus 15 further tracking keys are removed, while functional pdp_ext_f, pvid and gatewayAdapt parameters are preserved.
+• Sharing from apps that use a wildcard text type no longer fails with "No URL found in shared text". 
+• Links carrying a space in the query, as handed over by some address bars, are no longer discarded.

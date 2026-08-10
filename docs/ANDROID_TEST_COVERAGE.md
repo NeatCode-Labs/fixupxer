@@ -1,4 +1,18 @@
-# Android Test Coverage for FixupXer v2.6.1
+# Android Test Coverage for FixupXer v2.6.2
+
+## v2.6.2 delta (August 10, 2026)
+
+Current verification is **662 unit / 235 instrumentation tests**, all passing
+on `Pixel_API_35_Play`. Delta vs the v2.6.1 release inventory (659 / 235):
+
+- **Added (unit)**: 3 tests for YouTube's renamed share identifier (`si` →
+  `is`, flipped by YouTube in early 2026 to dodge blocklists).
+  `UpdatedCleanersTest` asserts `is` is removed from a `watch` URL and from a
+  `youtu.be` short URL with `t=` preserved; `YouTubeCleanerTest` additionally
+  pins the YouTube Music path where the share identifier is deliberately
+  preserved under both spellings. Existing `si` fixtures are untouched — both
+  parameter names stay on the removal list.
+- **Instrumentation**: no changes — the existing suite re-ran green.
 
 ## v2.6.1 delta (July 25, 2026)
 

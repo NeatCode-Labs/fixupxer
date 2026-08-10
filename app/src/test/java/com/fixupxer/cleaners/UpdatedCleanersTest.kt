@@ -69,8 +69,23 @@ class UpdatedCleanersTest {
     }
     
     @Test
+    fun testYouTubeCleanerRemovesIsParameter() {
+        // YouTube renamed the "si" share identifier to "is" in early 2026
+        val url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=share&is=abc123"
+        val expected = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        assertEquals(expected, YouTubeCleaner.clean(url))
+    }
+
+    @Test
     fun testYouTubeCleanerPreservesTimestamp() {
         val url = "https://youtu.be/dQw4w9WgXcQ?t=42&si=xyz789"
+        val expected = "https://youtu.be/dQw4w9WgXcQ?t=42"
+        assertEquals(expected, YouTubeCleaner.clean(url))
+    }
+
+    @Test
+    fun testYouTubeCleanerRemovesIsFromShortUrl() {
+        val url = "https://youtu.be/dQw4w9WgXcQ?t=42&is=xyz789"
         val expected = "https://youtu.be/dQw4w9WgXcQ?t=42"
         assertEquals(expected, YouTubeCleaner.clean(url))
     }

@@ -39,7 +39,8 @@ object YouTubeCleaner : UrlCleaner {
     // Most extensive tracking parameter list available
     private val youtubeTracking = setOf(
         // Basic tracking
-        "si", "pp", "feature", "app", "attribution_link",
+        // "is" = renamed "si" share identifier (YouTube flipped it early 2026 to dodge blocklists)
+        "si", "is", "pp", "feature", "app", "attribution_link",
         "embeds_referring_euri", "embeds_referring_origin",
         "embeds_euri", "source_ve_path", "gclid", "ytclid",
         
@@ -203,7 +204,8 @@ object YouTubeCleaner : UrlCleaner {
         // YouTube Music specific preserve params
         val musicPreserveParams = preserveParams + setOf(
             "radio", // Radio station
-            "si" // Share ID (sometimes needed for music)
+            "si", // Share ID (sometimes needed for music)
+            "is" // Renamed share ID (post-2026 flip) — same treatment as "si"
         )
         
         try {

@@ -1,3 +1,27 @@
+# FixupXer v2.6.2 - YouTube's Renamed Share Tracker
+
+## What's New
+
+### YouTube's renamed share tracker is removed again
+YouTube quietly renamed the `si` share identifier on shared links to `is` —
+the same tracker under a new name, flipped specifically to slip past existing
+blocklists. A share link that used to end in `?si=…` now ends in `?is=…`, and
+until this release that parameter survived cleaning. FixupXer now strips `is`
+exactly like `si`.
+
+Both spellings stay on the removal list, so links keep getting cleaned even
+if YouTube ever flips the name back. YouTube Music is unaffected: the share
+identifier is deliberately preserved there (same policy as before, now for
+both spellings). Thanks to the user who reported this by e-mail.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 44
+- versionName: 2.6.2
+
+---
+
 # FixupXer v2.6.1 - AliExpress Cleaning and Share Reliability
 
 ## What's New

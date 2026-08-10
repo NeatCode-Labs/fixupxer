@@ -91,7 +91,7 @@ FixupXer v2.6.2 has passed unit, lint, full emulator instrumentation, signed-bui
 ## Build Artifacts Generated
 - [x] **Google Release APK**: `app/build/outputs/apk/release/app-release.apk` — 4,349,634 bytes, SHA-256 `7A046A2A3E57AA101BCC27945CB997C5142AFFFA4367E0B0BA6F4B57D9D9E958`
 - [x] **Google Release AAB**: `app/build/outputs/bundle/release/app-release.aab` — 5,510,766 bytes, SHA-256 `125A2204E6B2D8AC738EB7867214354E98A151B2EAEBB8A9611C6C867F44BA2E`; `base/assets/adi-registration.properties` present (verified)
-- [ ] **GITHUB Release APK**: `FixupXer-v2.6.2-release.apk` — pending; built from a fresh clone of the `v2.6.2` tag after the mirror push
+- [x] **GITHUB Release APK**: `FixupXer-v2.6.2-release.apk` — 4,344,923 bytes, SHA-256 `7142C2E2F988B7A63B220FECCB09DA4BD6CC9C766ECC83058083BE68A4B9FDA7`; built from a fresh clone of the `v2.6.2` tag and verified free of `dependencies.pb` and `adi-registration.properties`; signing fingerprint matches canonical
 - [x] **Signing Report**: Production keystore validated; SHA-256 fingerprint matches the canonical `78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F` (verified with apksigner)
 - [x] **ProGuard Mapping**: Code obfuscation applied
 - [x] **Test Reports**: 662/662 unit + 235/235 instrumentation, all green
@@ -99,8 +99,8 @@ FixupXer v2.6.2 has passed unit, lint, full emulator instrumentation, signed-bui
 ## GITHUB (F-Droid) Variant Verification
 - [x] Version 2.6.2 applied to the mirror's four version fields (`dependenciesInfo` stays `false`)
 - [x] F-Droid changelog 44 added and validated under 500 characters (280) — `metadata/en-US/changelogs/44.txt`
-- [ ] Full root → mirror source/docs sync + DCO commit pushed
-- [ ] `main` and annotated tag `v2.6.2` pushed; reproducible fresh-clone APK published
+- [x] Full root → mirror source/docs sync completed; DCO commit `553d0e2` pushed
+- [x] `main` and annotated tag `v2.6.2` pushed; reproducible fresh-clone APK published at https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.6.2
 
 ## Quality Assurance Verification
 

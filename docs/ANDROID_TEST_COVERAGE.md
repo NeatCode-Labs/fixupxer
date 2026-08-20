@@ -1,4 +1,16 @@
-# Android Test Coverage for FixupXer v2.6.2
+# Android Test Coverage for FixupXer v2.6.3
+
+## v2.6.3 delta (August 20, 2026)
+
+Current verification is **664 unit / 235 instrumentation tests**, all passing
+on `Pixel_API_35_Play`. Delta vs the v2.6.2 release inventory (662 / 235):
+
+- **Added (unit)**: 2 tests for Instagram's renamed share identifier (`igsh` /
+  `igshid` → `igsi`). `UpdatedCleanersTest` asserts the reported Reel URL is
+  stripped to the bare path, and that `igsi` is removed while `img_index` is
+  preserved. Existing `igsh`/`igshid` fixtures are untouched — all three
+  parameter names stay on the removal list.
+- **Instrumentation**: no changes — the existing suite re-ran green.
 
 ## v2.6.2 delta (August 10, 2026)
 

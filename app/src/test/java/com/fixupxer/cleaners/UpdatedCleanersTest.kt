@@ -32,6 +32,21 @@ class UpdatedCleanersTest {
         val expected = "https://www.instagram.com/p/DLRNJjEx45S/"
         assertEquals(expected, InstagramCleaner.clean(url))
     }
+
+    @Test
+    fun testInstagramCleanerRemovesIgsiParameter() {
+        // Instagram renamed the share identifier to "igsi" (same tracker, new name)
+        val url = "https://www.instagram.com/reel/Da0a2ylvv4z/?igsi=Nm44MGppNTFIZXNw"
+        val expected = "https://www.instagram.com/reel/Da0a2ylvv4z/"
+        assertEquals(expected, InstagramCleaner.clean(url))
+    }
+
+    @Test
+    fun testInstagramCleanerRemovesIgsiAndPreservesCarouselIndex() {
+        val url = "https://www.instagram.com/p/ABC123/?igsi=Nm44MGppNTFIZXNw&img_index=2"
+        val expected = "https://www.instagram.com/p/ABC123/?img_index=2"
+        assertEquals(expected, InstagramCleaner.clean(url))
+    }
     
     @Test
     fun testInstagramCleanerPreservesEssentialParams() {

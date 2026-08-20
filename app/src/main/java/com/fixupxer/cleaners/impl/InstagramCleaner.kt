@@ -39,7 +39,8 @@ object InstagramCleaner : UrlCleaner {
     // Most extensive tracking parameter list available
     private val instagramTracking = setOf(
         // Basic tracking
-        "igsh", "igshid", "ig_cache_key", "ig_mid", 
+        // "igsi" = renamed share identifier (Instagram flipped igsh/igshid to dodge blocklists)
+        "igsh", "igshid", "igsi", "ig_cache_key", "ig_mid",
         "ig_share_sheet", "__a", "__d", "_rdr", "hl",
         
         // Share tracking
@@ -100,7 +101,7 @@ object InstagramCleaner : UrlCleaner {
     
     override fun matches(url: String): Boolean {
         // All known proxies (fixed + custom + legacy) so e.g. legacy eeinstagram.com
-        // links still get Instagram-specific parameter cleaning (igsh, igshid, ...).
+        // links still get Instagram-specific parameter cleaning (igsh, igshid, igsi, ...).
         return UrlNormalizer.urlMatchesAnyDomain(
             url,
             listOf(Constants.INSTAGRAM_DOMAIN) + InstagramProxyStore.allKnownProxies()

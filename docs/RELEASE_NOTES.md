@@ -1,3 +1,26 @@
+# FixupXer v2.6.3 - Instagram's Renamed Share Tracker
+
+## What's New
+
+### Instagram's renamed share tracker is removed again
+Instagram started appending `igsi` to shared Reel and post links — the same
+account-bound share identifier that used to appear as `igsh` / `igshid`, under
+a new name. Until this release that parameter survived cleaning, so a link such
+as `instagram.com/reel/…/?igsi=…` came back marked "Already clean". FixupXer
+now strips `igsi` exactly like `igsh` and `igshid`.
+
+All three spellings stay on the removal list, so links keep getting cleaned
+even if Instagram flips the name again. Functional parameters such as
+`img_index` are unchanged.
+
+### Technical Details
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 45
+- versionName: 2.6.3
+
+---
+
 # FixupXer v2.6.2 - YouTube's Renamed Share Tracker
 
 ## What's New

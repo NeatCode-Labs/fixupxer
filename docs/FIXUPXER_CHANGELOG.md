@@ -1,9 +1,9 @@
 # FixupXer App - Development Summary
-## Version Progression: v2.6.2 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.6.3 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 38 (v2.6.2 through v1.2.1)
-**Current Version:** v2.6.2 (versionCode: 44)
-**Development Period:** v1.2.1 (Initial) → v2.6.2 (Current)
+**Total Versions Released:** 39 (v2.6.3 through v1.2.1)
+**Current Version:** v2.6.3 (versionCode: 45)
+**Development Period:** v1.2.1 (Initial) → v2.6.3 (Current)
 
 ---
 
@@ -29,7 +29,7 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 - ✅ **Offline Redirect Unwrapping** - Curated HTTP(S) target extraction with exact host/path checks, strict single decoding and multi-pass destination cleaning
 - ✅ **Efficient Dispatch** - O(1) domain dispatch and bounded smart caching
 - ✅ **International Support** - Full IDN support and zero-width character handling
-- ✅ **Comprehensive Verification** - 897 automated tests plus release lint, REUSE and reproducible-build checks
+- ✅ **Comprehensive Verification** - 899 automated tests plus release lint, REUSE and reproducible-build checks
 - ✅ **Thread-Safe Design** - Immutable processing snapshots and concurrency-safe state
 - ✅ **Security Hardening** - Comprehensive protection against malicious input attacks
 - ✅ **Professional Architecture** - Clean, maintainable, and extensible codebase
@@ -37,6 +37,13 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.6.2 → v2.6.3
+- **Focus:** Field report with screenshot — Instagram started appending `igsi` to shared Reel/post links (same account-bound share identifier as `igsh`/`igshid`, new name). The keep-unknown contract left the unknown key in place, so the result was marked "Already clean".
+- **InstagramCleaner:** `igsi` added to the tracking-parameter set alongside `igsh` and `igshid` — all three spellings stay on the removal list so cleaning keeps working if Instagram flips the name again. Functional keys such as `img_index` are unchanged.
+- **Scope check:** Threads catalog (`igshid`, `xmt`) is untouched; no evidence yet that Threads uses `igsi`.
+- **Tests:** +2 unit (664 total): the reported Reel URL is stripped to the bare path, and `igsi` is removed while `img_index` is preserved. Existing `igsh`/`igshid` fixtures stay.
+- **Verification:** 664 unit + 235 instrumentation tests green on a cold-booted `Pixel_API_35_Play`, release lint clean.
 
 ### v2.6.1 → v2.6.2
 - **Focus:** Field report by e-mail — YouTube renamed the `si` share identifier on shared links to `is` (same account-bound share tracker, new name, rolled out in early 2026 to work around existing blocklists; confirmed against ClearURLs issue #192 and independent reports). Until this release the renamed parameter survived cleaning.
@@ -790,11 +797,12 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.5.1 | 41 | Android 16 (API 36) target compliance; AGP 8.9.3; no user-facing changes | ✅ Released |
 | v2.6.0 | 42 | Redacted history entries for fully cleaned sensitive links (Reddit/Google Ads wrappers etc.) | ✅ Released |
 | v2.6.1 | 43 | AliExpress `pdp_npi` cleaning, wildcard `text/*` share handling, links with spaces in the query | ✅ Released |
-| v2.6.2 | 44 | YouTube's renamed `is` share tracker removed (kept `si` too) | ✅ Current |
+| v2.6.2 | 44 | YouTube's renamed `is` share tracker removed (kept `si` too) | ✅ Released |
+| v2.6.3 | 45 | Instagram's renamed `igsi` share tracker removed (kept `igsh`/`igshid` too) | ✅ Current |
 
-### Build Artifacts (v2.6.2):
+### Build Artifacts (v2.6.3):
 - **Google APK:** `app/build/outputs/apk/release/app-release.apk`
 - **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
-- **GITHUB / F-Droid APK:** `FixupXer-v2.6.2-release.apk` built from a fresh clone of the `v2.6.2` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+- **GITHUB / F-Droid APK:** `FixupXer-v2.6.3-release.apk` built from a fresh clone of the `v2.6.3` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

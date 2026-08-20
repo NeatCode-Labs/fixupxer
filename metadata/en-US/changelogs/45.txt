@@ -1,0 +1,2 @@
+• Instagram renamed its share tracker on shared Reel and post links to igsi. FixupXer now removes igsi, igsh and igshid, so share links keep getting cleaned either way.
+• Functional parameters such as img_index are unchanged.

@@ -1,5 +1,25 @@
 # FixupXer Testing Report
 
+## v2.6.3 verification — August 20, 2026
+
+v2.6.3 handles Instagram's renamed share tracker: shared Reel and post links
+now carry `igsi` instead of (or as well as) `igsh` / `igshid`. The keep-unknown
+contract left the unknown key in place, so the result was marked
+"Already clean". `InstagramCleaner` now removes all three spellings.
+Final verification passes:
+
+- **664/664 unit tests** (`./gradlew test`, debug variant; release variant
+  also green) — 2 new tests
+- **235/235 instrumentation tests** (`./gradlew connectedAndroidTest`) on
+  `Pixel_API_35_Play` / API 35, zero failures in a single full-suite pass on
+  a cold-booted emulator
+- **Release lint** (`./gradlew lintRelease`) — 0 errors
+
+New coverage pins the reported Reel URL
+(`instagram.com/reel/Da0a2ylvv4z/?igsi=…` → bare path) and asserts that
+`img_index` survives while `igsi` is removed. Existing `igsh`/`igshid`
+fixtures are unchanged. No instrumentation changes — the suite re-ran green.
+
 ## v2.6.2 verification — August 10, 2026
 
 v2.6.2 handles YouTube's renamed share tracker: the `si` share identifier on

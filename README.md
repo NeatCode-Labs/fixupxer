@@ -7,7 +7,7 @@
 <h3 align="center">Clean tracking from links. Improve social previews. Build your own offline URL rules.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.6.2"><img src="https://img.shields.io/badge/version-2.6.2-blue?style=flat-square" alt="Version 2.6.2"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.6.3"><img src="https://img.shields.io/badge/version-2.6.3-blue?style=flat-square" alt="Version 2.6.3"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>
@@ -279,7 +279,7 @@ the original social-media domain.
 - Modular cleaner registry with O(1) domain dispatch
 - Raw-preserving URL processing with immutable per-request rule snapshots
 - RE2/J 1.8 for user-authored regular expressions
-- 897 automated tests: 662 unit + 235 instrumentation
+- 899 automated tests: 664 unit + 235 instrumentation
 - Release lint, zero-permission manifest regression test, and REUSE 3.3
   compliance
 

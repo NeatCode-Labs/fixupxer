@@ -179,6 +179,112 @@ class InputValidatorTest {
     }
 
     @Test
+    fun `encoded filename dots in path query and fragment are preserved`() {
+        listOf(
+            "https://example.com/report%2Epdf",
+            "https://example.com/download?filename=report%2Epdf",
+            "https://example.com/page#report%2epdf",
+            "https://example.com/versions/v1%2E2/file",
+        ).forEach { url -> assertEquals(url, url, validate(url)) }
+    }
+
+    @Test
+    fun `encoded reserved delimiters and plus signs remain data`() {
+        val url = "https://example.com/a%2Fb%3Fq%3D1%26x%3D2%23part" +
+            "?value=a+b%2Bc%26d%3De%3Ff%23g%25#part%2Fone"
+        assertEquals(url, validate(url))
+    }
+
+    @Test
+    fun `encoded query or fragment delimiter in path cannot hide a second protocol`() {
+        listOf("%3F", "%23").forEach { delimiter ->
+            val url = "https://example.com/path${delimiter}https://attacker.com/page"
+            val result = runBlocking { InputValidator.validate(url) }
+            assertEquals(
+                url,
+                InputValidator.ValidationResult.Invalid(InputValidator.InvalidReason.MULTIPLE_URLS),
+                result,
+            )
+        }
+    }
+
+    @Test
+    fun `malformed percent escapes are rejected in every url component`() {
+        listOf(
+            "https://example%GG.com/page",
+            "https://example.com/file%",
+            "https://example.com/file%2",
+            "https://example.com/?value=%GG",
+            "https://example.com/#part%0X",
+            "https://example.com/?value=%GG%01",
+        ).forEach { url ->
+            val result = runBlocking { InputValidator.validate(url) }
+            assertEquals(
+                url,
+                InputValidator.ValidationResult.Invalid(InputValidator.InvalidReason.OTHER),
+                result,
+            )
+        }
+    }
+
+    @Test
+    fun `encoded authority separators remain rejected`() {
+        listOf("%2e", "%2F", "%3F", "%23", "%40", "%3A").forEach { separator ->
+            val url = "https://example${separator}com/page"
+            assertNull(url, validate(url))
+        }
+        assertNull(validate("www.example%2Ecom/page"))
+        assertNull(validate("example%2Ecom/page"))
+    }
+
+    @Test
+    fun `unicode and idn urls preserve combining characters outside the host`() {
+        listOf(
+            "https://bücher.example/cafe\u0301?q=na\u0308ive#re\u0301sume\u0301",
+            "https://xn--bcher-kva.example/search?q=नमस्ते",
+            "https://example.com/?q=cafe%CC%81#re%CC%81sume%CC%81",
+        ).forEach { url -> assertEquals(url, url, validate(url)) }
+    }
+
+    @Test
+    fun `combining host characters still fail the authority guard`() {
+        assertNull(validate("https://bu\u0308cher.example/page"))
+        assertNull(validate("https://bu%CC%88cher.example/page"))
+    }
+
+    @Test
+    fun `encoded dot segments are rejected only at real path boundaries`() {
+        listOf("%2e", "%2E%2e", ".%2e", "%2e.").forEach { segment ->
+            assertNull(segment, validate("https://example.com/a/$segment/b"))
+            assertNull(segment, validate("https://example.com/a/$segment?name=report%2Epdf"))
+        }
+        listOf(
+            "https://example.com/a/../b",
+            "https://example.com/a/./b",
+            "https://example.com/a%2F%2e%2e%2Fb",
+            "https://example.com/%2e%2e%2Fnotes",
+            "https://example.com/%2e%2e%3Fname",
+            "https://example.com/?value=../%2e%2e/#%2e%2e",
+            "https://example.com/%252e%252e/b",
+        ).forEach { url -> assertEquals(url, url, validate(url)) }
+    }
+
+    @Test
+    fun `encoded controls remain rejected in path query and fragment`() {
+        listOf(
+            "https://example.com/path%00",
+            "https://example.com/?value=%0A",
+            "https://example.com/#part%0D",
+        ).forEach { url -> assertNull(url, validate(url)) }
+    }
+
+    @Test
+    fun `shared prose and url components keep legitimate unicode and escapes`() {
+        val input = "Cafe\u0301: https://example.com/file%2Epdf?name=re\u0301sume\u0301"
+        assertEquals(input, validate(input))
+    }
+
+    @Test
     fun `overlong input is rejected`() {
         val long = "https://example.com/" + "a".repeat(3000)
         assertNull(validate(long))

@@ -5,6 +5,9 @@ coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
+testRunner = "1.6.2"
+uiAutomator = "2.2.0"
+preference = "1.2.1"
 lifecycleRuntimeKtx = "2.8.4"
 material = "1.13.0-beta01"
 coroutines = "1.8.1"
@@ -23,6 +26,10 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoCore" }
+androidx-espresso-accessibility = { group = "androidx.test.espresso", name = "espresso-accessibility", version.ref = "espressoCore" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "testRunner" }
+androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiAutomator" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleRuntimeKtx" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -33,6 +40,7 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", v
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 leakcanary = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
@@ -41,6 +49,7 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidx-preference = { module = "androidx.preference:preference-ktx", version.ref = "preference" }
 re2j = { module = "com.google.re2j:re2j", version.ref = "re2j" }
 
 [plugins]

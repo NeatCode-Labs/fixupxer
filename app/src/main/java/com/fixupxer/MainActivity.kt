@@ -75,6 +75,7 @@ class MainActivity : BaseActivity() {
     private lateinit var urlTextWatcher: TextWatcher
     private var footerLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
     private var textValidationJob: kotlinx.coroutines.Job? = null
+    private var inputDraftBlocked = false
     private var viewIntentJob: Job? = null
     private var activePostCleanRunner: PostCleanRunner? = null
     
@@ -232,10 +233,13 @@ class MainActivity : BaseActivity() {
 
     private fun handoffOriginalUrl(originalUrl: String) {
         viewModel.clearCompletedViewTransaction()
+        textValidationJob?.cancel()
+        inputDraftBlocked = false
         binding.editTextUrl.removeTextChangedListener(urlTextWatcher)
         binding.editTextUrl.setText(originalUrl)
         binding.editTextUrl.addTextChangedListener(urlTextWatcher)
         viewModel.showOriginalForManualFallback(originalUrl)
+        updateProcessButtonState()
 
         val opened = UrlActionHelper.openUrlInExternalBrowser(
             binding.root,
@@ -354,6 +358,8 @@ class MainActivity : BaseActivity() {
                 // Cancel any in-flight validation so rapid typing can't deliver
                 // out-of-order results to the ViewModel.
                 textValidationJob?.cancel()
+                inputDraftBlocked = true
+                binding.buttonProcess.isEnabled = false
                 textValidationJob = lifecycleScope.launch {
                     try {
                         val result = withTimeout(200) {
@@ -363,25 +369,37 @@ class MainActivity : BaseActivity() {
                         }
                         if (result is InputValidator.ValidationResult.Invalid) {
                             withContext(Dispatchers.Main) {
-                                binding.editTextUrl.removeTextChangedListener(urlTextWatcher)
-                                binding.editTextUrl.setText("")
-                                binding.editTextUrl.addTextChangedListener(urlTextWatcher)
+                                // A draft such as "%" or "%2" must remain editable
+                                // until the user completes its percent escape.
+                                // Multiple-URL pastes retain their existing clear UX.
+                                inputDraftBlocked = result.reason == InputValidator.InvalidReason.OTHER
+                                if (!inputDraftBlocked) {
+                                    binding.editTextUrl.removeTextChangedListener(urlTextWatcher)
+                                    binding.editTextUrl.setText("")
+                                    binding.editTextUrl.addTextChangedListener(urlTextWatcher)
+                                }
                                 viewModel.setValidationError(result.reason)
+                                updateProcessButtonState()
                             }
                             return@launch
                         }
                         val validated = (result as InputValidator.ValidationResult.Valid).value
                         withContext(Dispatchers.Main) {
+                            inputDraftBlocked = false
                             viewModel.onUrlChanged(validated)
+                            updateProcessButtonState()
                         }
                     } catch (e: TimeoutCancellationException) {
                         withContext(Dispatchers.Main) {
-                            SnackbarHelper.showShort(binding.root, getString(R.string.error_processing_url))
+                            viewModel.setValidationError(InputValidator.InvalidReason.OTHER)
+                            updateProcessButtonState()
                         }
                     } catch (e: kotlinx.coroutines.CancellationException) {
                         throw e // superseded by a newer text change — don't log as error
                     } catch (e: Exception) {
                         Timber.e(e, "Error during text validation")
+                        viewModel.setValidationError(InputValidator.InvalidReason.OTHER)
+                        updateProcessButtonState()
                     }
                 }
             }
@@ -390,7 +408,9 @@ class MainActivity : BaseActivity() {
         
         // Button listeners
         binding.textInputLayoutUrl.setEndIconOnClickListener { pasteFromClipboard() }
-        binding.buttonProcess.setOnClickListener { viewModel.processUrl() }
+        binding.buttonProcess.setOnClickListener {
+            if (!inputDraftBlocked) viewModel.processUrl()
+        }
         binding.buttonShare.setOnClickListener {
             UrlActionHelper.shareUrl(binding.root, this, viewModel.uiState.value.actionUrl)
         }
@@ -457,7 +477,7 @@ class MainActivity : BaseActivity() {
 
                     binding.progressIndicator.visibility =
                         if (state.isLoading) View.VISIBLE else View.INVISIBLE
-                    binding.buttonProcess.isEnabled = !state.isLoading
+                    binding.buttonProcess.isEnabled = !state.isLoading && !inputDraftBlocked
 
                     // Share/Open/Copy only make sense once a result exists —
                     // same pattern as the Share screen.
@@ -534,6 +554,10 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    private fun updateProcessButtonState() {
+        binding.buttonProcess.isEnabled = !viewModel.uiState.value.isLoading && !inputDraftBlocked
+    }
+
     private fun onChangeProxyClick() {
         val platform = viewModel.uiState.value.detectedPlatform ?: return
         ProxyPickerDialogHelper.show(
@@ -570,13 +594,14 @@ class MainActivity : BaseActivity() {
                                 }
 
                                 if (result is InputValidator.ValidationResult.Invalid) {
-                                    // Same flow as the TextWatcher rejection: clear
-                                    // the field (watcher detached so this can't
-                                    // race) and let the ViewModel own the error.
+                                    // Explicit paste is final input, so malformed
+                                    // clipboard values still use strict rejection.
                                     binding.editTextUrl.removeTextChangedListener(urlTextWatcher)
                                     binding.editTextUrl.setText("")
                                     binding.editTextUrl.addTextChangedListener(urlTextWatcher)
+                                    inputDraftBlocked = false
                                     viewModel.setValidationError(result.reason)
+                                    updateProcessButtonState()
                                     return@withTimeout
                                 }
 
@@ -626,10 +651,8 @@ class MainActivity : BaseActivity() {
             historyRepository = historyRepository,
             preferencesManager = preferencesManager,
             onEntrySelected = { entry ->
-                binding.editTextUrl.removeTextChangedListener(urlTextWatcher)
+                // Run the same validation as editing, including replacing a blocked draft.
                 binding.editTextUrl.setText(entry.originalUrl)
-                binding.editTextUrl.addTextChangedListener(urlTextWatcher)
-                viewModel.onUrlChanged(entry.originalUrl)
             }
         )
         historyDialogHelper.showHistoryDialog()
@@ -641,4 +664,4 @@ class MainActivity : BaseActivity() {
     }
     
 
-} 
+}

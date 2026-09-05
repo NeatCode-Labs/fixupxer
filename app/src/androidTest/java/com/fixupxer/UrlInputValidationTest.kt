@@ -20,8 +20,12 @@
 
 package com.fixupxer
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.EditText
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
@@ -67,7 +71,7 @@ class UrlInputValidationTest {
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(tricky), closeSoftKeyboard())
         awaitAssertion {
-            // Verify input is cleared
+            // Multiple URLs retain the existing clear-input behaviour.
             onView(withId(R.id.editTextUrl)).check(matches(withText("")))
         }
         // Verify error message is shown
@@ -81,8 +85,9 @@ class UrlInputValidationTest {
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(tricky), closeSoftKeyboard())
         awaitAssertion {
-            // Verify input is cleared
-            onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+            // Invalid drafts stay editable but cannot be submitted.
+            onView(withId(R.id.editTextUrl)).check(matches(withText(tricky)))
+            onView(withId(R.id.buttonProcess)).check(matches(not(isEnabled())))
         }
         // Not a multi-URL paste — the generic invalid-input message is shown
         onView(withText(containsString("This input can't be processed"))).check(matches(isDisplayed()))
@@ -156,11 +161,78 @@ class UrlInputValidationTest {
         
         onView(withId(R.id.editTextUrl)).perform(replaceText(unicodeTricky), closeSoftKeyboard())
         awaitAssertion {
-            // Verify input is cleared
-            onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+            // Invalid authority remains visible for correction, with actions blocked.
+            onView(withId(R.id.editTextUrl)).check(matches(withText(unicodeTricky)))
+            onView(withId(R.id.buttonProcess)).check(matches(not(isEnabled())))
         }
         // Not a multi-URL paste — the generic invalid-input message is shown
         onView(withText(containsString("This input can't be processed"))).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun testPercentEscapeCanBeCompletedThroughActualTextWatcher() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            val prefix = "https://example.com/file"
+            onView(withId(R.id.editTextUrl)).perform(replaceText(prefix), closeSoftKeyboard())
+            awaitAssertion { onView(withId(R.id.buttonProcess)).check(matches(isEnabled())) }
+
+            listOf("%", "2").forEachIndexed { index, character ->
+                scenario.onActivity { activity ->
+                    activity.findViewById<EditText>(R.id.editTextUrl).append(character)
+                }
+                val draft = prefix + (if (index == 0) "%" else "%2")
+                awaitAssertion {
+                    onView(withId(R.id.editTextUrl)).check(matches(withText(draft)))
+                    onView(withId(R.id.buttonProcess)).check(matches(not(isEnabled())))
+                    onView(withText(R.string.error_invalid_input)).check(matches(isDisplayed()))
+                }
+            }
+
+            scenario.onActivity { activity ->
+                activity.findViewById<EditText>(R.id.editTextUrl).append("0name?utm_source=test")
+            }
+            val completed = "$prefix%20name?utm_source=test"
+            awaitAssertion {
+                onView(withId(R.id.editTextUrl)).check(matches(withText(completed)))
+                onView(withId(R.id.buttonProcess)).check(matches(isEnabled()))
+            }
+            onView(withId(R.id.buttonProcess)).perform(click())
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl)).check(matches(withText("$prefix%20name")))
+                onView(withId(R.id.buttonCopy)).check(matches(isEnabled()))
+            }
+        }
+    }
+
+    @Test
+    fun testMalformedDraftCannotSubmitAndExplicitPasteRemainsStrict() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            val malformed = "https://example.com/file%2"
+            onView(withId(R.id.editTextUrl)).perform(replaceText(malformed), closeSoftKeyboard())
+            awaitAssertion {
+                onView(withId(R.id.editTextUrl)).check(matches(withText(malformed)))
+                onView(withId(R.id.buttonProcess)).check(matches(not(isEnabled())))
+                onView(withText(R.string.error_invalid_input)).check(matches(isDisplayed()))
+            }
+            // Even a programmatic click cannot dispatch a blocked draft.
+            scenario.onActivity { activity ->
+                activity.findViewById<android.view.View>(R.id.buttonProcess).performClick()
+            }
+            onView(isRoot()).perform(waitFor(300))
+            onView(withText(R.string.error_invalid_input)).check(matches(isDisplayed()))
+            onView(withId(R.id.buttonCopy)).check(matches(not(isEnabled())))
+
+            scenario.onActivity { activity ->
+                val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                clipboard.setPrimaryClip(ClipData.newPlainText("Malformed test URL", malformed))
+            }
+            onView(withContentDescription(R.string.paste_content_desc)).perform(click())
+            awaitAssertion {
+                onView(withId(R.id.editTextUrl)).check(matches(withText("")))
+                onView(withText(R.string.error_invalid_input)).check(matches(isDisplayed()))
+                onView(withId(R.id.buttonCopy)).check(matches(not(isEnabled())))
+            }
+        }
     }
 
     @Test
@@ -192,4 +264,4 @@ class UrlInputValidationTest {
             onView(withText(containsString("Please enter a URL"))).check(matches(isDisplayed()))
         }
     }
-} 
+}

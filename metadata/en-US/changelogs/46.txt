@@ -1,0 +1,4 @@
+• Valid percent-encoded URLs and Unicode query values are preserved; incomplete typed links stay editable.
+• Copied URLs hide their contents in supported system previews, with consistent copy feedback.
+• History Undo restores the original entry and time; delete, restore and clear failures are reported.
+• Test dependencies and the existing Gradle 8.11.1 wrapper are aligned.

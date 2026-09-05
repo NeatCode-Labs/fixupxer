@@ -41,6 +41,9 @@ interface HistoryRepository {
         platform: String,
         conversionType: String
     )
+
+    /** Restore a deleted entry with its original identity and chronological position. */
+    suspend fun restoreHistory(entry: UrlHistory)
     
     /**
      * Delete a specific history entry by ID
@@ -56,4 +59,4 @@ interface HistoryRepository {
      * Trim history to keep only the most recent maxEntries
      */
     suspend fun trimHistory(maxEntries: Int)
-} 
+}

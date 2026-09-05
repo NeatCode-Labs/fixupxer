@@ -86,4 +86,7 @@ venv/
 env/
 
 # Internal documentation
-GITHUB_UPDATE_INSTRUCTIONS.md 
+GITHUB_UPDATE_INSTRUCTIONS.md
+
+# Local agent configuration
+.claude/

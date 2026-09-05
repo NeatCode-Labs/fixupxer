@@ -21,9 +21,6 @@ package com.fixupxer.utils
 
 import android.app.Activity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import android.content.ClipData
-import android.content.ClipDescription
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -320,10 +317,7 @@ class PostCleanRunner(
                 "native_app" -> launchNativeApp(uri)
                 "browser" -> launchBrowser(uri)
                 "share_menu" -> share(uri)
-                "clipboard" -> {
-                    copyToClipboard(uri)
-                    true
-                }
+                "clipboard" -> copyToClipboard(uri)
                 else -> false
             }
 
@@ -582,16 +576,17 @@ class PostCleanRunner(
     /**
      * Copy URL to clipboard
      */
-    private fun copyToClipboard(uri: Uri) {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clip = ClipData.newPlainText(context.getString(R.string.clipboard_label_url), uri.toString()).apply {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                description.extras = android.os.PersistableBundle().apply {
-                    putString(ClipDescription.MIMETYPE_TEXT_URILIST, uri.toString())
-                }
+    private fun copyToClipboard(uri: Uri): Boolean {
+        return try {
+            UrlClipboard.copy(context, uri.toString())
+            if (UrlClipboard.needsAppFeedback) {
+                Toast.makeText(context, R.string.url_copied, Toast.LENGTH_SHORT).show()
             }
+            true
+        } catch (error: Exception) {
+            Timber.e(error, "Failed to copy URL")
+            Toast.makeText(context, R.string.error_copying_url, Toast.LENGTH_SHORT).show()
+            false
         }
-        clipboard.setPrimaryClip(clip)
-        Toast.makeText(context, context.getString(R.string.url_copied), Toast.LENGTH_SHORT).show()
     }
 }

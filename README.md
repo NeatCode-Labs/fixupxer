@@ -7,7 +7,7 @@
 <h3 align="center">Clean tracking from links. Improve social previews. Build your own offline URL rules.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.6.3"><img src="https://img.shields.io/badge/version-2.6.3-blue?style=flat-square" alt="Version 2.6.3"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.6.4"><img src="https://img.shields.io/badge/version-2.6.4-blue?style=flat-square" alt="Version 2.6.4"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>
@@ -22,7 +22,7 @@
 <p align="center">
   <a href="docs/BROWSER_MODE_GUIDE.md">Browser Mode Guide</a> ·
   <a href="docs/CUSTOM_URL_RULES_GUIDE.md">Custom Rules Guide</a> ·
-  <a href="SUPPORTED_PLATFORMS.md">Supported Platforms</a> ·
+  <a href="docs/SUPPORTED_PLATFORMS.md">Supported Platforms</a> ·
   <a href="PRIVACY_POLICY.md">Privacy</a>
 </p>
 
@@ -53,8 +53,11 @@ selected.
   FixupXer before handing them to a browser, native app, share menu, or clipboard.
 - **Process Text** — select a link in any app and choose “Clean link” to clean
   it in place, entirely offline.
-- **Local history** — revisit, copy, share, or delete processed links; history
-  is optional and remains on the device.
+- **Local history** — revisit, copy, share, or delete processed links; Undo
+  restores the original entry and time. History is optional and remains on the
+  device.
+- **Private clipboard previews** — copied URL contents are marked sensitive
+  for system previews where Android supports it, with consistent copy feedback.
 - **Manual backup** — export or restore settings, custom rules, and remembered
   after-clean destinations to a JSON file you choose (history never included).
 - **Modern Android UI** — Material 3 before/after flow, light and dark themes,
@@ -163,7 +166,7 @@ These are local string transformations; FixupXer never contacts a frontend.
 Reader conversions are off by default, and each platform remembers its own
 selection with migration from known legacy proxies. Full domain rosters and
 platform behavior are documented in
-**[Supported Platforms](SUPPORTED_PLATFORMS.md)**.
+**[Supported Platforms](docs/SUPPORTED_PLATFORMS.md)**.
 
 If you open a converted URL, the receiving browser, native app, or third-party
 frontend performs the network request and applies its own privacy policy.
@@ -271,14 +274,15 @@ the original social-media domain.
 <details>
 <summary><b>Requirements, architecture, and test status</b></summary>
 
-- Android 5.0 (API 21) or newer; target/compile SDK 35
+- Android 5.0 (API 21) or newer; target/compile SDK 36
 - Kotlin 1.9.23, JDK 17, Views + View Binding, Material 3
 - Hilt dependency injection and Room persistence
 - Modular cleaner registry with O(1) domain dispatch
 - Raw-preserving URL processing with immutable per-request rule snapshots
 - RE2/J 1.8 for user-authored regular expressions
-- 899 automated tests: 664 unit + 235 instrumentation
-- Release lint, zero-permission manifest regression test, and REUSE 3.3
+- Release verification: 696 unit tests per build variant and 237 instrumentation
+  tests passed; details are recorded in the build report.
+- Release lint, zero-permission manifest regression test, and REUSE
   compliance
 
 </details>
@@ -286,7 +290,7 @@ the original social-media domain.
 <details>
 <summary><b>Build from source</b></summary>
 
-Prerequisites: JDK 17 and Android SDK 35.
+Prerequisites: JDK 17 and Android SDK 36.
 
 ```bash
 git clone https://github.com/NeatCode-Labs/fixupxer.git
@@ -381,4 +385,3 @@ If FixupXer is useful to you:
   <a href="https://neatcodelabs.com"><img src="https://img.shields.io/badge/Website-neatcodelabs.com-blue?style=flat-square" alt="NeatCode Labs website"></a>
   <a href="https://ko-fi.com/neatcodelabs"><img src="https://img.shields.io/badge/Ko--fi-Support-ff5e5b?style=flat-square&amp;logo=ko-fi" alt="Support on Ko-fi"></a>
 </p>
-

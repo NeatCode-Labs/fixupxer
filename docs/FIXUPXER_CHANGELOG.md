@@ -1,15 +1,16 @@
 # FixupXer App - Development Summary
-## Version Progression: v2.6.3 → v1.2.1 (Latest to Oldest)
 
-**Total Versions Released:** 39 (v2.6.3 through v1.2.1)
-**Current Version:** v2.6.3 (versionCode: 45)
-**Development Period:** v1.2.1 (Initial) → v2.6.3 (Current)
+## Version Progression: v2.6.4 → v1.2.1 (Latest to Oldest)
+
+**Versions Documented:** 40 (v2.6.4 through v1.2.1)
+**Current Version:** v2.6.4 (versionCode: 46)
+**Development Period:** v1.2.1 (Initial) → v2.6.4 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.6.0: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard with redacted history for fully cleaned sensitive links, curated offline redirect unwrapping, social embed conversion with a vetted frontend catalog reachable from Settings, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine — all while retaining the zero-permission offline model.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.6.4: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard with redacted history for fully cleaned sensitive links, curated offline redirect unwrapping, social embed conversion with a vetted frontend catalog reachable from Settings, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine. The latest fixes improve encoded URL input, clipboard privacy and history Undo while retaining the zero-permission offline model.
 
 ### Key Achievements:
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
@@ -29,7 +30,7 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 - ✅ **Offline Redirect Unwrapping** - Curated HTTP(S) target extraction with exact host/path checks, strict single decoding and multi-pass destination cleaning
 - ✅ **Efficient Dispatch** - O(1) domain dispatch and bounded smart caching
 - ✅ **International Support** - Full IDN support and zero-width character handling
-- ✅ **Comprehensive Verification** - 899 automated tests plus release lint, REUSE and reproducible-build checks
+- ✅ **Regression Coverage** - Unit and instrumentation coverage for URL processing, UI actions and persistence; release validation is recorded in the build and testing reports
 - ✅ **Thread-Safe Design** - Immutable processing snapshots and concurrency-safe state
 - ✅ **Security Hardening** - Comprehensive protection against malicious input attacks
 - ✅ **Professional Architecture** - Clean, maintainable, and extensible codebase
@@ -37,6 +38,14 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.6.3 → v2.6.4
+- **URL validation:** inspect raw URL components without decoding the whole input. Valid encoded filename dots, reserved delimiters and Unicode query/fragment values are preserved; malformed escapes, unsafe authority/control characters and encoded traversal segments remain blocked.
+- **Editable input:** incomplete percent escapes stay visible while being typed. Processing is disabled until validation succeeds, preventing a stale previously valid URL from being processed. Explicit invalid pastes and multiple-URL pastes retain their rejection behavior.
+- **Clipboard:** all processed-URL copy actions share sensitive-preview metadata and failure handling. Android 13+ uses system copy feedback without an additional app notification; older Android versions retain app feedback.
+- **History:** Undo restores the original ID and timestamp. Delete, restore and clear errors reach the UI; failed restoration offers another attempt. Existing retention settings and stored history are preserved.
+- **Build maintenance:** test dependencies use the central version catalog. Official Gradle 8.11.1 wrapper files replace the pre-existing drift without changing the runtime version; the POSIX launcher no longer forces a JDK path. A read-only root-to-mirror verifier checks relevant working-tree files and documented build, metadata and documentation exceptions.
+- **Regression coverage:** encoded URL boundaries and typing/paste flow, clipboard behavior across Android API levels, history identity/time roundtrips and failure/retry handling. Final v2.6.4 release-gate results are recorded in the build and testing reports.
 
 ### v2.6.2 → v2.6.3
 - **Focus:** Field report with screenshot — Instagram started appending `igsi` to shared Reel/post links (same account-bound share identifier as `igsh`/`igshid`, new name). The keep-unknown contract left the unknown key in place, so the result was marked "Already clean".
@@ -798,11 +807,11 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.6.0 | 42 | Redacted history entries for fully cleaned sensitive links (Reddit/Google Ads wrappers etc.) | ✅ Released |
 | v2.6.1 | 43 | AliExpress `pdp_npi` cleaning, wildcard `text/*` share handling, links with spaces in the query | ✅ Released |
 | v2.6.2 | 44 | YouTube's renamed `is` share tracker removed (kept `si` too) | ✅ Released |
-| v2.6.3 | 45 | Instagram's renamed `igsi` share tracker removed (kept `igsh`/`igshid` too) | ✅ Current |
+| v2.6.3 | 45 | Instagram's renamed `igsi` share tracker removed (kept `igsh`/`igshid` too) | ✅ Released |
+| v2.6.4 | 46 | Encoded URL input, private clipboard previews, reliable history Undo and build maintenance | Release preparation |
 
-### Build Artifacts (v2.6.3):
-- **Google APK:** `app/build/outputs/apk/release/app-release.apk`
-- **Google AAB:** `app/build/outputs/bundle/release/app-release.aab`
-- **GITHUB / F-Droid APK:** `FixupXer-v2.6.3-release.apk` built from a fresh clone of the `v2.6.3` tag (verified free of `BUNDLE-METADATA/.../dependencies.pb` and `adi-registration.properties`)
+### Build Artifacts (v2.6.4):
+- **Google Play AAB:** `FixupXer-v2.6.4-release.aab` — signed root build verified; upload is performed by the maintainer.
+- **GITHUB / F-Droid APK:** `FixupXer-v2.6.4-release.apk` — fresh-clone build and verification pending.
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

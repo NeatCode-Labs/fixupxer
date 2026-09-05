@@ -22,8 +22,8 @@ package com.fixupxer.utils
 
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
+import java.net.URI
+import java.net.URISyntaxException
 import timber.log.Timber
 
 object InputValidator {
@@ -38,6 +38,7 @@ object InputValidator {
     // whitespace-separated (this fails on them); glued host names still live in
     // the authority+path, which the multiple-URL check keeps probing.
     private val SINGLE_URL_TOKEN = Regex("^https?://\\S+$", RegexOption.IGNORE_CASE)
+    private val URL_TOKEN = Regex("(?:https?://|www\\.)\\S+", RegexOption.IGNORE_CASE)
     
     // All patterns below are constant — compiled once here. They used to be
     // (re)built on every hasMultipleUrls()/detectGluedUrls() call, and with
@@ -50,6 +51,7 @@ object InputValidator {
     private val TLD_GLUE_PATTERN = Regex("\\.(com|net|org|gov|edu|co|io|info)([a-z0-9-]+)\\.(com|net|org|gov|edu|co|io|info)", RegexOption.IGNORE_CASE)
     private val CONTROL_CHARS_PATTERN = Regex("[\\u0000-\\u001F]")
     private val COMBINING_MARKS_PATTERN = Regex("\\p{M}")
+    private val DOT_SEGMENT_PATTERN = Regex("(?:\\.|%2e){1,2}", RegexOption.IGNORE_CASE)
     
     // Common TLDs - comprehensive list (used by the glued-URL patterns below)
     private val COMMON_TLDS = listOf(
@@ -113,7 +115,7 @@ object InputValidator {
     /**
      * Same checks as [validateAndSanitizeInput], but reports WHY the input was
      * rejected so callers can distinguish a genuine multi-URL paste from other
-     * failures (too long, encoded-dot/control-char attacks, timeout).
+     * failures (too long, unsafe URL components, control characters, timeout).
      */
     suspend fun validate(input: String): ValidationResult {
         return try {
@@ -124,10 +126,9 @@ object InputValidator {
                     return@withTimeout ValidationResult.Invalid(InvalidReason.OTHER)
                 }
                 
-                // Sanitize the raw value. Decoding is inspection-only: returning a
-                // decoded URL would corrupt '+' and encoded query delimiters.
+                // Keep URL components and percent escapes intact. Decoding before
+                // finding their boundaries would turn encoded data into delimiters.
                 val sanitized = sanitizeInput(input)
-                val decoded = decodeUrlSafely(sanitized)
                 
                 // A single URL legitimately carries a nested destination in its
                 // query/fragment (redirect wrappers: Gmail's google.com/url?q=,
@@ -142,28 +143,17 @@ object InputValidator {
                 // wrapper is never navigated (see UrlProcessorTest
                 // `google url wrapper cannot smuggle extra urls`).
                 val multiUrlProbe = if (SINGLE_URL_TOKEN.matches(sanitized)) {
-                    decoded.substringBefore('?').substringBefore('#')
+                    sanitized.substringBefore('?').substringBefore('#')
                 } else {
-                    decoded
+                    sanitized
                 }
                 if (hasMultipleUrls(multiUrlProbe)) {
                     Timber.w("Multiple URLs detected in input")
                     return@withTimeout ValidationResult.Invalid(InvalidReason.MULTIPLE_URLS)
                 }
                 
-                // Additional safety checks
-                if (decoded.contains(CONTROL_CHARS_PATTERN)) { // Control characters
-                    Timber.w("Control characters detected in input")
-                    return@withTimeout ValidationResult.Invalid(InvalidReason.OTHER)
-                }
-                // Reject Unicode normalization attacks (combining accents)
-                if (decoded.contains(COMBINING_MARKS_PATTERN)) {
-                    Timber.w("Unicode normalization (combining accent) detected in input")
-                    return@withTimeout ValidationResult.Invalid(InvalidReason.OTHER)
-                }
-                // Reject encoded dot attacks (e.g., %2E)
-                if (sanitized.contains("%2E", ignoreCase = true)) {
-                    Timber.w("Encoded dot attack detected in input")
+                if (hasUnsafeUrlComponents(sanitized)) {
+                    Timber.w("Unsafe or malformed URL component detected in input")
                     return@withTimeout ValidationResult.Invalid(InvalidReason.OTHER)
                 }
                 
@@ -190,14 +180,48 @@ object InputValidator {
     }
     
     /**
-     * Safely decode URL-encoded strings
+     * Inspect each URL without decoding delimiters or normalizing the returned
+     * value. Prose around a URL is allowed; downstream extraction owns it.
      */
-    private fun decodeUrlSafely(input: String): String {
-        return try {
-            URLDecoder.decode(input, StandardCharsets.UTF_8.name())
-        } catch (e: Exception) {
-            Timber.w("URL decoding failed, using original input")
-            input // Return original if decoding fails
+    private fun hasUnsafeUrlComponents(input: String): Boolean {
+        val tokens = URL_TOKEN.findAll(input).map { it.value }.toList()
+        // Plain domains without a scheme are also accepted by UrlProcessor.
+        val candidates = if (tokens.isEmpty() && input.isNotBlank() && input.none { it.isWhitespace() }) {
+            listOf(input)
+        } else {
+            tokens
+        }
+        return candidates.any { token ->
+            val url = if (token.startsWith("http://", true) || token.startsWith("https://", true)) {
+                token
+            } else {
+                "https://$token"
+            }
+            val uri = try {
+                URI(url)
+            } catch (_: URISyntaxException) {
+                return@any true // Includes incomplete/non-hex percent escapes.
+            }
+            val authority = uri.rawAuthority ?: return@any true
+            val hostAndPort = authority.substringAfterLast('@')
+            // Keep host spoofing checks in the authority. Encoded host characters
+            // must not hide separators; ordinary Unicode/IDN labels are preserved.
+            if ('%' in hostAndPort || COMBINING_MARKS_PATTERN.containsMatchIn(hostAndPort)) {
+                return@any true
+            }
+            // Decode components only for control-character inspection, never for
+            // URL boundaries, multi-URL detection or the value returned to callers.
+            if (listOf(uri.authority, uri.path, uri.query, uri.fragment).any {
+                    it != null && CONTROL_CHARS_PATTERN.containsMatchIn(it)
+                }) {
+                return@any true
+            }
+            // An encoded filename dot is data. Preserve the existing rejection of
+            // encoded dot segments, matching only real '/' path boundaries. Query,
+            // fragment and encoded slashes are not filesystem/path separators.
+            uri.rawPath.orEmpty().split('/').any { segment ->
+                '%' in segment && DOT_SEGMENT_PATTERN.matches(segment)
+            }
         }
     }
     
@@ -354,4 +378,4 @@ object InputValidator {
         
         return false
     }
-} 
+}

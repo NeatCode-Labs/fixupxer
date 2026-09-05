@@ -1,3 +1,30 @@
+# FixupXer v2.6.4 - Reliable URL Input, Private Copying and History Undo
+
+## What's New
+
+- Preserve valid percent-encoded filenames and query values, including Unicode,
+  while keeping malformed escapes and unsafe URL components blocked.
+- Keep incomplete URL drafts editable; processing waits for valid input.
+- Use consistent copy feedback across Android versions and mask copied URL
+  contents in system clipboard previews where supported.
+- Restore the original history entry and timestamp when Undo is used. Failed
+  delete, restore or clear operations now report the error instead of success.
+- Align test dependencies through the version catalog and restore the official
+  wrapper files for the existing Gradle 8.11.1 runtime. The POSIX launcher
+  respects the build environment's JDK selection.
+
+No new permissions or network access are introduced. Processing remains offline,
+and existing history retention settings are unchanged.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 46
+- versionName: 2.6.4
+
+---
+
 # FixupXer v2.6.3 - Instagram's Renamed Share Tracker
 
 ## What's New
@@ -1510,4 +1537,4 @@ Feedback from @IzzySoft (F-Droid):
 
 ---
 
-Made with ❤️ by NeatCode Labs 
+Made with ❤️ by NeatCode Labs

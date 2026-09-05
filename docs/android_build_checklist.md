@@ -35,7 +35,7 @@ Record the per-version results (test counts, artifact names, dates) in `BUILD_RE
 ## Performance & Compatibility
 - [ ] **Memory Usage**: No memory leaks detected during testing
 - [ ] **ANR Check**: No Application Not Responding issues
-- [ ] **API Compatibility**: Works correctly on minimum (21) and target (35) SDK versions
+- [ ] **API Compatibility**: Review minimum SDK 21 and target SDK 36 compatibility; record the API levels actually executed and distinguish emulator/device coverage from Robolectric coverage
 - [ ] **Device Compatibility**: Tested on target devices/emulators
 
 ## Release Artifacts

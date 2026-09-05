@@ -19,10 +19,7 @@
 
 package com.fixupxer.ui.helpers
 
-import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -33,6 +30,7 @@ import android.view.View
 import androidx.core.net.toUri
 import com.fixupxer.R
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.UrlClipboard
 import timber.log.Timber
 
 /**
@@ -40,27 +38,15 @@ import timber.log.Timber
  */
 object UrlActionHelper {
 
-    @SuppressLint("NewApi")
-    fun copyToClipboard(anchor: View, activity: Activity, url: String) {
+    fun copyToClipboard(anchor: View, activity: Context, url: String) {
         if (url.isEmpty()) {
             SnackbarHelper.showShort(anchor, activity.getString(R.string.no_url_to_copy))
             return
         }
         try {
-            val clipboardManager = activity.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-            if (clipboardManager == null) {
-                Timber.e("ClipboardManager not available")
-                SnackbarHelper.showShort(anchor, activity.getString(R.string.error_processing_url))
-                return
-            }
-            val clipData = ClipData.newPlainText(activity.getString(R.string.clipboard_label_url), url)
-            clipboardManager.setPrimaryClip(clipData)
-
-            // Manual feedback only below Android 10 (API 29); Android 10+ shows a system notification.
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            UrlClipboard.copy(activity, url)
+            if (UrlClipboard.needsAppFeedback) {
                 SnackbarHelper.showShort(anchor, activity.getString(R.string.url_copied))
-            } else {
-                Timber.d("URL copied to clipboard (Android 10+)")
             }
         } catch (e: Exception) {
             Timber.e(e, "Error copying to clipboard")

@@ -22,10 +22,13 @@ package com.fixupxer.data.repository
 
 import com.fixupxer.data.database.UrlHistoryDao
 import com.fixupxer.data.database.UrlHistoryEntity
+import com.fixupxer.domain.model.UrlHistory
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.utils.timeAgo
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,19 +42,28 @@ class HistoryRepositoryImpl @Inject constructor(
         cleanedUrl: String,
         platform: String,
         conversionType: String
-    ) {
-        try {
-            val entity = UrlHistoryEntity(
-                originalUrl = originalUrl,
-                cleanedUrl = cleanedUrl,
-                platform = platform,
-                conversionType = conversionType,
-                timestamp = System.currentTimeMillis()
+    ) = withContext(Dispatchers.IO) {
+        val entity = UrlHistoryEntity(
+            originalUrl = originalUrl,
+            cleanedUrl = cleanedUrl,
+            platform = platform,
+            conversionType = conversionType,
+            timestamp = System.currentTimeMillis()
+        )
+        urlHistoryDao.insert(entity)
+    }
+
+    override suspend fun restoreHistory(entry: UrlHistory) = withContext(Dispatchers.IO) {
+        urlHistoryDao.insert(
+            UrlHistoryEntity(
+                id = entry.id,
+                originalUrl = entry.originalUrl,
+                cleanedUrl = entry.cleanedUrl,
+                platform = entry.platform,
+                conversionType = entry.conversionType,
+                timestamp = entry.timestamp,
             )
-            urlHistoryDao.insert(entity)
-        } catch (e: Exception) {
-            // Silently ignore errors
-        }
+        )
     }
     
     override fun getAllHistory(): Flow<List<com.fixupxer.domain.model.UrlHistory>> {
@@ -70,15 +82,15 @@ class HistoryRepositoryImpl @Inject constructor(
         }
     }
     
-    override suspend fun deleteHistory(id: Long) {
+    override suspend fun deleteHistory(id: Long) = withContext(Dispatchers.IO) {
         urlHistoryDao.delete(id)
     }
     
-    override suspend fun deleteAllHistory() {
+    override suspend fun deleteAllHistory() = withContext(Dispatchers.IO) {
         urlHistoryDao.deleteAll()
     }
     
-    override suspend fun trimHistory(maxEntries: Int) {
+    override suspend fun trimHistory(maxEntries: Int) = withContext(Dispatchers.IO) {
         urlHistoryDao.trimHistory(maxEntries)
     }
-} 
+}

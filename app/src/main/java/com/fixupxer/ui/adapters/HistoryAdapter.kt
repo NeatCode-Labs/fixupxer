@@ -20,11 +20,7 @@
 
 package com.fixupxer.ui.adapters
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -36,9 +32,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.fixupxer.R
 import com.fixupxer.databinding.ItemHistoryBinding
 import com.fixupxer.domain.model.UrlHistory
-import com.fixupxer.ui.helpers.SnackbarHelper
+import com.fixupxer.ui.helpers.UrlActionHelper
 import com.fixupxer.utils.Constants
-import timber.log.Timber
 
 /**
  * Adapter for displaying URL history items
@@ -98,17 +93,11 @@ class HistoryAdapter(
                 
                 // Copy button
                 buttonCopy.setOnClickListener {
-                    val clipboard = binding.root.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val clip = ClipData.newPlainText(
-                        binding.root.context.getString(R.string.clipboard_label_url),
-                        item.cleanedUrl
+                    UrlActionHelper.copyToClipboard(
+                        snackbarAnchor,
+                        binding.root.context,
+                        item.cleanedUrl,
                     )
-                    clipboard.setPrimaryClip(clip)
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                        SnackbarHelper.showShort(snackbarAnchor, binding.root.context.getString(R.string.url_copied))
-                    } else {
-                        Timber.d("History item URL copied (Android 10+)")
-                    }
                 }
                 
                 // Share button

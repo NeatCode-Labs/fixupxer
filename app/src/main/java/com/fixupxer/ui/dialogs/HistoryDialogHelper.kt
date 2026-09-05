@@ -249,12 +249,24 @@ class HistoryDialogHelper(
         }
         
         dialogBinding.buttonClearAll.setOnClickListener {
+            dialogBinding.buttonClearAll.isEnabled = false
             lifecycleOwner.lifecycleScope.launch {
-                historyRepository.deleteAllHistory()
-                Timber.d("History cleared")
-                SnackbarHelper.showShort(binding.root, context.getString(R.string.history_cleared))
+                try {
+                    historyRepository.deleteAllHistory()
+                    Timber.d("History cleared")
+                    confirmDialog.dismiss()
+                    SnackbarHelper.showShort(binding.root, context.getString(R.string.history_cleared))
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Timber.w(error, "Failed to clear history")
+                    dialogBinding.buttonClearAll.isEnabled = true
+                    SnackbarHelper.showShort(
+                        dialogBinding.root,
+                        context.getString(R.string.history_clear_failed),
+                    )
+                }
             }
-            confirmDialog.dismiss()
         }
         
         confirmDialog.show()
@@ -262,19 +274,35 @@ class HistoryDialogHelper(
     
     private fun deleteHistoryEntry(item: UrlHistory) {
         lifecycleOwner.lifecycleScope.launch {
-            historyRepository.deleteHistory(item.id)
-            Timber.d("History entry deleted")
-            SnackbarHelper.showShortWithAction(
-                anchor = binding.root,
-                message = context.getString(R.string.history_entry_deleted),
-                actionLabel = context.getString(R.string.undo)
-            ) {
-                lifecycleOwner.lifecycleScope.launch {
-                    historyRepository.insertHistory(
-                        originalUrl = item.originalUrl,
-                        cleanedUrl = item.cleanedUrl,
-                        platform = item.platform,
-                        conversionType = item.conversionType
+            try {
+                historyRepository.deleteHistory(item.id)
+                Timber.d("History entry deleted")
+                showUndo(item, R.string.history_entry_deleted)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Timber.w(error, "Failed to delete history entry")
+                SnackbarHelper.showShort(binding.root, context.getString(R.string.history_delete_failed))
+            }
+        }
+    }
+
+    private fun showUndo(item: UrlHistory, message: Int) {
+        SnackbarHelper.showShortWithAction(
+            anchor = binding.root,
+            message = context.getString(message),
+            actionLabel = context.getString(R.string.undo),
+        ) {
+            lifecycleOwner.lifecycleScope.launch {
+                try {
+                    historyRepository.restoreHistory(item)
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Timber.w(error, "Failed to restore history entry")
+                    showUndo(
+                        item,
+                        R.string.history_restore_failed,
                     )
                 }
             }

@@ -67,6 +67,9 @@
     <string name="clear_history_confirm">Clear all history?</string>
     <string name="history_cleared">History cleared</string>
     <string name="history_entry_deleted">Entry deleted</string>
+    <string name="history_delete_failed">Could not delete the entry. Please try again.</string>
+    <string name="history_restore_failed">Could not restore the entry. Tap Undo to try again.</string>
+    <string name="history_clear_failed">Could not clear history. Please try again.</string>
     <string name="history_sensitive_input_label">Sensitive input</string>
     <string name="history_original_url_not_saved">Original URL was not saved</string>
     <string name="history_input_redacted_badge">Input redacted for privacy</string>

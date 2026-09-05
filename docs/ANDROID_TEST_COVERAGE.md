@@ -1,4 +1,44 @@
-# Android Test Coverage for FixupXer v2.6.3
+# Android Test Coverage for FixupXer
+
+## v2.6.4 release gate (September 5, 2026)
+
+Version **2.6.4 / code 46** passes **696 debug unit + 696 release unit tests**
+and **237 instrumentation tests**, with no failures, errors or skips. The full
+instrumentation suite ran on a cold-booted `Pixel_API_35_Play` / API 35 in
+580 seconds. Release lint reports 0 errors and 40 warnings.
+
+The 32 additional unit cases and 2 additional instrumentation cases are listed
+in the implementation delta below. The version bump adds no further cases;
+all release checks were rerun against the final version fields.
+
+## Unreleased delta (September 5, 2026)
+
+The current working tree passes **696 debug unit + 696 release unit tests** and
+**237 instrumentation tests** on a cold-booted `Pixel_API_35_Play` / API 35.
+There are no failures, errors or skipped tests. Version fields remain 2.6.3 / 45;
+the release inventories below are historical snapshots.
+
+Compared with the published v2.6.3 inventory, this adds **32 unit cases**:
+
+- `InputValidatorTest`: 10 cases for raw URL component boundaries, valid encoded
+  filenames and reserved characters, query/fragment Unicode, malformed escapes,
+  authority controls and encoded dot segments.
+- `MainActivityInputDraftTest`: 3 cases using the actual text watcher to check
+  character-by-character input, unfinished percent escapes and blocked stale
+  submission. Validation jobs are awaited; test logging is isolated.
+- `UrlClipboardTest`: 11 executed cases across API 21/29/32/33 for Main/Share,
+  history and post-clean copy paths, sensitive clip metadata, appropriate
+  feedback and clipboard failures.
+- `HistoryRepositoryImplTest`: 4 database cases for restoring identity,
+  timestamp and order, conflict behavior, insert failures and cancellation.
+- `HistoryDialogHelperTest`: 4 cases for delete/clear failures, persistence
+  before feedback, and retrying a failed Undo.
+
+`UrlInputValidationTest` adds **2 instrumentation cases** for percent-escape
+completion and malformed input submission/paste. Two existing invalid-input
+expectations now assert a retained editable draft and disabled Process action.
+The full keyboard/orientation suite passes. Device execution is limited to API
+35; older clipboard API coverage uses Robolectric.
 
 ## v2.6.3 delta (August 20, 2026)
 

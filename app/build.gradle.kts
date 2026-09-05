@@ -23,14 +23,14 @@ android {
         applicationId = "com.fixupxer"
         minSdk = 21
         targetSdk = 36
-        versionCode = 45
-        versionName = "2.6.3"
+        versionCode = 46
+        versionName = "2.6.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         // Add build config fields
-        buildConfigField("String", "VERSION_NAME", "\"2.6.3\"")
-        buildConfigField("int", "VERSION_CODE", "45")
+        buildConfigField("String", "VERSION_NAME", "\"2.6.4\"")
+        buildConfigField("int", "VERSION_CODE", "46")
     }
 
     signingConfigs {
@@ -136,8 +136,8 @@ dependencies {
     
     // Material Design
     implementation(libs.material)
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.preference:preference-ktx:1.2.1")
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.preference)
     
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
@@ -168,11 +168,10 @@ dependencies {
     testImplementation(libs.gson) // JsonBasedCleanerTest čita test-cases.json
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.5.1") // For RecyclerView actions
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test:runner:1.5.2")
-    androidTestImplementation("androidx.room:room-testing:2.6.1") // For Room testing
-    androidTestImplementation("androidx.test.espresso:espresso-accessibility:3.5.1") // For accessibility testing
-    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3") // For coroutines testing
-    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.2.0") // For UI device testing
+    androidTestImplementation(libs.androidx.espresso.contrib) // RecyclerView actions
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.room.testing)
+    androidTestImplementation(libs.androidx.espresso.accessibility)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.androidx.uiautomator)
 } 

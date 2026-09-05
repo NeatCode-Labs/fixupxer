@@ -162,3 +162,12 @@ pinned commit and run the same acceptance gate for each new candidate:
 Do not import an upstream rule catalogue as a shortcut. Revisit a
 **rejected (backlog)** row only when it has user demand and those acceptance
 fixtures.
+
+## User-controlled local exports
+
+FixupXer also ships an optional **Settings > Backup & restore** JSON export
+(format `fixupxer-local-backup`, schema v1) for whitelisted preferences, custom
+rules, and remembered after-clean destinations. That file format is defined and
+implemented entirely in FixupXer; it is not derived from Léon, Untracker, or
+other third-party cleaner projects. URL history and internal rollback snapshots
+are excluded by design.

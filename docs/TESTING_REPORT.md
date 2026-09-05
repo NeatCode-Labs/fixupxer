@@ -1,5 +1,52 @@
 # FixupXer Testing Report
 
+## v2.6.4 release verification — September 5, 2026
+
+The final **2.6.4 / code 46** release gate passes:
+
+- **696/696 debug unit tests and 696/696 release unit tests**, with no failures,
+  errors or skips.
+- **237/237 instrumentation tests** on a cold-booted `Pixel_API_35_Play` / API 35,
+  with no failures or skips. The full suite took **580 seconds**.
+- **Release lint: 0 errors, 40 warnings**.
+- **REUSE 6.2.0: pass** for the public mirror; all inspected files have license
+  and copyright information.
+
+Commands: `.\gradlew.bat test lintRelease connectedAndroidTest --console=plain`.
+The task completed successfully in 12 minutes 37 seconds. Coverage added during
+implementation is detailed in the earlier local verification below; the full
+suite was rerun after the version bump. API 21/29/32/33 clipboard checks use
+Robolectric; device execution is limited to the API 35 emulator.
+
+Signed artifacts, source-tag provenance and installation checks are recorded in
+`BUILD_REPORT.md`. Earlier sections describe their respective historical builds.
+
+## Unreleased working-tree verification — September 5, 2026
+
+These results cover the current local implementation, with the version still
+**2.6.3 / code 45**. They do not describe a new published release. The dated
+sections below retain their historical release results.
+
+- **696/696 debug unit tests and 696/696 release unit tests**, with no failures,
+  errors or skipped tests (`.\gradlew.bat test`).
+- **237/237 instrumentation tests** on a cold-booted `Pixel_API_35_Play` / API 35,
+  with no failures or skipped tests (`.\gradlew.bat connectedAndroidTest`).
+  The single full-suite pass took 512 seconds.
+- **Release lint: 0 errors, 40 warnings** (`.\gradlew.bat lintRelease`).
+
+The 32 additional unit cases cover component-aware URL validation, encoded
+delimiters and filenames, malformed escapes and authority checks, editable
+partial URL input, clipboard privacy and feedback, and history persistence
+failures with an Undo that preserves the original record identity and ordering.
+The 2 additional instrumentation tests cover percent-escape completion and
+rejection of malformed input without dispatching a stale valid URL. Existing
+keyboard and orientation tests also pass with the updated input watcher.
+
+Clipboard behavior on API 21/29/32/33 is covered with Robolectric; the physical
+Android clipboard overlay was not tested on separate devices. Instrumentation
+ran on API 35 only. Mirror source parity and local signed artifact checks are
+recorded in `BUILD_REPORT.md`; a tagged fresh-clone release build was not run.
+
 ## v2.6.3 verification — August 20, 2026
 
 v2.6.3 handles Instagram's renamed share tracker: shared Reel and post links

@@ -1,6 +1,73 @@
 # FixupXer Build Report
 
-## Executive Summary
+## v2.6.4 release — September 5, 2026
+
+**Version: 2.6.4 / code 46. Release test gate passed.**
+
+The release fixes component-aware URL validation and editable input drafts,
+clipboard privacy/feedback, and history Undo/error reporting. Test dependencies
+use the central catalog, and the official Gradle 8.11.1 wrapper is restored.
+Minimum SDK 21, target/compile SDK 36, and the zero-permission offline model
+remain unchanged.
+
+- Unit tests: **696/696 debug + 696/696 release**, no failures/errors/skips.
+- Full instrumentation: **237/237**, no failures/skips, cold-booted API 35
+  emulator, 580 seconds.
+- Release lint: **0 errors, 40 warnings**.
+- REUSE 6.2.0: passed for the public mirror.
+- F-Droid short description, code 46 changelog and 512×512 store icon checked;
+  Google Play description checked within its 4000-character limit.
+
+The signed root Play AAB has been built and verified: 5,514,129 bytes,
+SHA-256 `db927f429634a8e169c33e8b9b36668460796cfbf52f8baf12ba3cf011b7f86e`.
+Its certificate matches the expected release key and the Play ownership asset
+is present. The GitHub APK is built separately from a fresh clone of the release
+tag and verified before publication; its final checks are recorded here after
+completion.
+The older local-validation artifacts below retain their original version and
+are not the v2.6.4 release artifacts.
+
+## Unreleased local validation — September 5, 2026
+
+**STATUS: LOCAL VALIDATION PASSED; NO NEW RELEASE PUBLISHED.** Version fields
+remain **2.6.3 / code 45**. The published v2.6.3 report below is historical;
+its release approval does not apply to these working-tree changes.
+
+URL validation and incremental input, clipboard privacy/feedback, and history
+Undo/error handling were updated. Test dependencies now use the shared version
+catalog. The official Gradle 8.11.1 wrapper was regenerated and synchronized;
+the Gradle runtime version is unchanged.
+
+| Check | Result |
+|---|---|
+| Unit tests | 696/696 debug and 696/696 release; no failures, errors or skips |
+| Instrumentation | 237/237 on cold-booted Pixel_API_35_Play / API 35; no failures or skips |
+| Release lint | 0 errors, 40 warnings |
+| Root Play AAB | `bundleRelease` succeeded; JAR signature verified; Play ownership asset present |
+| Mirror APK | `assembleRelease` succeeded; APK signature verified; zero permissions; no `adi-registration.properties` or `dependencies.pb` |
+| Release APK smoke | Installed and launched on the API 35 emulator; process remained running with no startup crash recorded |
+| Root/mirror source parity | 372 file pairs verified, allowing only documented differences |
+
+Both artifacts use signing certificate SHA-256:
+`78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`.
+
+Local copies are kept in the Android root's
+`app/build/outputs/local-validation-20260905/`:
+
+| Artifact | Bytes | SHA-256 |
+|---|---:|---|
+| `FixupXer-unreleased-20260905.aab` | 5,513,768 | `12a159fff131f0d59c580e538a35bdc80e07cdd994bdbb8d86420415f2799688` |
+| `FixupXer-unreleased-20260905.apk` | 4,347,719 | `14150aca2273051a227f95a0df9b23c69febff63c87881f8d7c71cb2c3c0503a` |
+
+These artifacts are for local review, built from the current working trees.
+No version bump, commit, push, tag, release upload or fresh-clone reproducibility
+verification was performed. Mirror Linux JDK configuration was preserved; the
+local Windows build used a command-line JDK override. Its stale ignored
+`local.properties` SDK path produced a warning, while the installed SDK was
+successfully resolved through the existing environment.
+
+## Published v2.6.3 verification — August 20, 2026
+
 **STATUS: [x] PRODUCTION READY**
 
 FixupXer v2.6.3 has passed unit, lint, full emulator instrumentation, signed-build, manifest, and signature verification. This release answers a field report with a screenshot: Instagram started appending `igsi` to shared Reel and post links — the same account-bound share identifier that used to appear as `igsh` / `igshid`, under a new name. The keep-unknown contract left the unknown key in place, so the result was marked "Already clean". `InstagramCleaner` now removes `igsi` exactly like `igsh` and `igshid`, and all three spellings stay on the removal list so cleaning keeps working if Instagram flips the name again. Functional parameters such as `img_index` are unchanged. Threads catalog handling is untouched. Build toolchain unchanged: Gradle 8.11.1, AGP 8.9.3, JDK 17, compileSdk/targetSdk 36.

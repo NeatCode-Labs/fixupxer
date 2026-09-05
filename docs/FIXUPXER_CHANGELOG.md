@@ -808,10 +808,10 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.6.1 | 43 | AliExpress `pdp_npi` cleaning, wildcard `text/*` share handling, links with spaces in the query | ✅ Released |
 | v2.6.2 | 44 | YouTube's renamed `is` share tracker removed (kept `si` too) | ✅ Released |
 | v2.6.3 | 45 | Instagram's renamed `igsi` share tracker removed (kept `igsh`/`igshid` too) | ✅ Released |
-| v2.6.4 | 46 | Encoded URL input, private clipboard previews, reliable history Undo and build maintenance | Release preparation |
+| v2.6.4 | 46 | Encoded URL input, private clipboard previews, reliable history Undo and build maintenance | ✅ Released |
 
 ### Build Artifacts (v2.6.4):
 - **Google Play AAB:** `FixupXer-v2.6.4-release.aab` — signed root build verified; upload is performed by the maintainer.
-- **GITHUB / F-Droid APK:** `FixupXer-v2.6.4-release.apk` — fresh-clone build and verification pending.
+- **GITHUB / F-Droid APK:** `FixupXer-v2.6.4-release.apk` — built from tag `v2.6.4` in a fresh clone, signatures and repeat clean-build hash verified, published on GitHub Releases.
 
 For per-build SHA-256 fingerprints, signing details, and the full release checklist, see [BUILD_REPORT.md](BUILD_REPORT.md).

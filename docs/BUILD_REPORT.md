@@ -2,7 +2,7 @@
 
 ## v2.6.4 release — September 5, 2026
 
-**Version: 2.6.4 / code 46. Release test gate passed.**
+**Version: 2.6.4 / code 46. GitHub release published; artifact verification passed.**
 
 The release fixes component-aware URL validation and editable input drafts,
 clipboard privacy/feedback, and history Undo/error reporting. Test dependencies
@@ -18,12 +18,39 @@ remain unchanged.
 - F-Droid short description, code 46 changelog and 512×512 store icon checked;
   Google Play description checked within its 4000-character limit.
 
-The signed root Play AAB has been built and verified: 5,514,129 bytes,
-SHA-256 `db927f429634a8e169c33e8b9b36668460796cfbf52f8baf12ba3cf011b7f86e`.
-Its certificate matches the expected release key and the Play ownership asset
-is present. The GitHub APK is built separately from a fresh clone of the release
-tag and verified before publication; its final checks are recorded here after
-completion.
+Published release: [FixupXer v2.6.4](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.6.4).
+The immutable annotated tag points to source commit
+`c203634d16cfd0c21f93c52f5ae212b6501ac6ed`. The Play bundle was built from the
+local root release commit `7df0b28efcbf22934a55f14a8f9e9fd4fd8a2635`.
+
+| Artifact | Bytes | SHA-256 |
+|---|---:|---|
+| `FixupXer-v2.6.4-release.aab` | 5,514,129 | `db927f429634a8e169c33e8b9b36668460796cfbf52f8baf12ba3cf011b7f86e` |
+| `FixupXer-v2.6.4-release.apk` | 4,347,705 | `064b8aaa8af5b4e715b813f652b4528854ce038006b3df43d24469562cd3ebf1` |
+
+Both signatures match certificate SHA-256
+`78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`.
+The AAB contains the Play ownership asset. The APK has zero permissions, is not
+debuggable, and contains neither `adi-registration.properties` nor
+`dependencies.pb`.
+
+The APK was built from a fresh GitHub clone of the tag. A second `clean
+assembleRelease` run produced exactly the same SHA-256, with an unchanged source
+checkout. GitHub's uploaded asset digest matches that hash; `SHA256SUMS.txt` is
+also attached. This confirms repeatability with the local toolchain; F-Droid's
+independent build/distribution occurs subsequently.
+
+The signed APK installed and launched successfully on the API 35 emulator:
+versionName 2.6.4, versionCode 46, minSdk 21 and targetSdk 36, with no startup
+crash observed. This final smoke check completed after publication because the
+emulator had exited before the first installation attempt and was cold-booted
+again. The published APK was unchanged.
+
+Root/mirror parity passed for 372 file pairs. The ignored mirror SDK path was
+corrected for local Windows builds; its tracked Linux JDK configuration remains
+unchanged. Play Console upload is performed by the maintainer. The existing
+F-Droid tag-based update process has not been claimed as already complete.
+
 The older local-validation artifacts below retain their original version and
 are not the v2.6.4 release artifacts.
 

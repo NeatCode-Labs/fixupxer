@@ -2,30 +2,60 @@
 
 ## v2.6.5 release — September 5, 2026
 
-**Version: 2.6.5 / code 47. All release test gates passed; signed artifacts and publication pending.**
+**Version: 2.6.5 / code 47. GitHub release published; signed artifact checks passed.**
 
-Removes Instagram `stkn` and the previously uncovered `ig_rid` share tracker.
-Existing share-ID rules, functional selectors, unknown query values and
-fragments are preserved. Production change is confined to the Instagram key
-set; no permissions, network calls, dependencies or proxy targets are added.
+Removes Instagram's current `stkn` share identifier and the previously uncovered
+`ig_rid` tracker. Existing share-ID cleaning, functional selectors, unknown query
+values and fragments are preserved. No permissions, network calls, dependencies
+or proxy targets were added.
 
 - Unit tests: **702/702 debug + 702/702 release**, no failures/errors/skips.
+- Full instrumentation: **239/239**, no failures/errors/skips; cold-booted
+  `Pixel_API_35_Play` / API 35 with SwiftShader, **395.642 seconds**.
 - Release lint: **0 errors, 40 warnings**.
-- Full instrumentation: **239/239**, no failures/errors/skips, 395.642 seconds, cold-booted API 35 emulator using SwiftShader.
-- The 512×512 store icon is visually verified and matches the current artwork.
-- Play and F-Droid descriptions reviewed; the existing feature descriptions
-  remain accurate. Code 47 F-Droid changelog added.
+- Mirror parity: **372 file pairs**; REUSE: **446/446** files compliant.
+- Current 512×512 store icon visually checked. Play description: 3996 characters;
+  F-Droid short description: 77; code 47 changelog: 345. Existing full store
+  descriptions still reflect the feature set.
 
-The reported URL was reproduced on the installed v2.6.4 APK: Share converted
-the domain but left `stkn` behind. New unit cases failed before the fix and pass
-on v2.6.5. An intermediate History Undo test failure and successful isolated/
-full unit reruns are recorded in `TESTING_REPORT.md`.
+Published release: [FixupXer v2.6.5](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.6.5).
+The annotated tag points to source commit `c054f0dcbad2cd71b2129d0ad78724ae09446064`.
+The Play AAB was built from root commit `f2407f94d8ffdcbb0757bd96b91d80741223cf1a`.
+Later documentation-only commits do not change either artifact or move the tag.
 
-Artifact hashes, source commits, installation smoke and publication results
-will be recorded after their respective checks. Play Console upload is the
-maintainer's action; F-Droid independently consumes the published tag/APK.
-The Android repository currently has no GitHub Actions workflows; the required
-Gradle build/test/release pipeline runs locally.
+| Artifact | Bytes | SHA-256 |
+|---|---:|---|
+| `FixupXer-v2.6.5-release.aab` | 5,514,116 | `96be481053695ff6c0442f50a9f17a508b0b73f874d3baa0c0dbe1e86ce48777` |
+| `FixupXer-v2.6.5-release.apk` | 4,347,931 | `d5742380468e77e7af38b9e83474feafd7c366ab321f730edd48c9ce50ed24dd` |
+
+Both artifacts use the existing certificate SHA-256:
+`78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`.
+The AAB's JAR signature and bundletool validation pass; its Play ownership asset
+is present. The APK was built from a fresh GitHub clone of the exact tag, with
+no tracked-source changes. APK v1/v2 signatures pass, it is not debuggable, has
+zero permissions, and contains neither `adi-registration.properties` nor
+`dependencies.pb`. Both manifests identify version 2.6.5/code 47, minSdk 21,
+targetSdk 36. Signature tools emit compatibility warnings about JAR/META-INF
+entries; verification succeeds and the APK v2 signature is verified.
+
+The signed APK installed and launched on the API 35 emulator. Sharing the
+reported `https://www.instagram.com/reel/Dc4fAOCs97R/?stkn=anBpYnlkeG82MDJz`
+produces exactly `https://toinstagram.com/reel/Dc4fAOCs97R/` with the existing
+frontend selection. GitHub's uploaded APK asset digest matches the local hash;
+`SHA256SUMS.txt` is attached. This is fresh-tag-clone build evidence; F-Droid's
+independent reproducibility and distribution checks occur later.
+
+The initial unit History Undo NPE and first emulator focus/black-screen failure
+were followed by successful isolated and full runs without changes to those
+components. Details and exact coverage are in `TESTING_REPORT.md`. Anonymous
+Instagram HTML confirmed the current share-ID configuration, but video playback
+was not verified. No new heap profiling or physical-device testing was performed.
+
+Play Console upload remains the maintainer's step. The upstream F-Droid metadata
+was checked on September 5 at 20:05 UTC: tag updates are enabled and its current
+version was still 2.6.3/code 45. Publishing this release supplies the expected
+tag and APK; F-Droid availability is not claimed as complete. The Android repo
+has no GitHub Actions workflows: its required Gradle release pipeline ran locally.
 
 ## v2.6.4 release — September 5, 2026
 

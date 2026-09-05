@@ -813,8 +813,11 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.6.2 | 44 | YouTube's renamed `is` share tracker removed (kept `si` too) | ✅ Released |
 | v2.6.3 | 45 | Instagram's renamed `igsi` share tracker removed (kept `igsh`/`igshid` too) | ✅ Released |
 | v2.6.4 | 46 | Encoded URL input, private clipboard previews, reliable history Undo and build maintenance | ✅ Released |
+| v2.6.5 | 47 | Instagram stkn and ig_rid share tracking removal with functional query preservation | ✅ Released |
 
-| v2.6.5 | 47 | Instagram stkn and ig_rid share tracking removal with functional query preservation | Release in preparation |
+### Build Artifacts (v2.6.5):
+- **Google Play AAB:** `FixupXer-v2.6.5-release.aab` — signed root build and bundletool validation passed; maintainer uploads to Play.
+- **GITHUB / F-Droid APK:** `FixupXer-v2.6.5-release.apk` — built from tag `v2.6.5` in a fresh clone, signature and emulator Share smoke verified, published on GitHub Releases.
 
 ### Build Artifacts (v2.6.4, previous release):
 - **Google Play AAB:** `FixupXer-v2.6.4-release.aab` — signed root build verified; upload is performed by the maintainer.

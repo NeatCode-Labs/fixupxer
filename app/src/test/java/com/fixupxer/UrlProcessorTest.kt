@@ -44,6 +44,15 @@ class UrlProcessorTest {
     }
     
     @Test
+    fun `reported Instagram stkn is removed through the full cleaner service`() {
+        val url = "https://www.instagram.com/reel/Dc4fAOCs97R/?stkn=anBpYnlkeG82MDJz&img_index=2&keep=value#slide"
+        val expected = "https://toinstagram.com/reel/Dc4fAOCs97R/?img_index=2&keep=value#slide"
+        val cleaned = urlProcessor.processUrl(url, cleanTracking = true, convertTwitter = true).first
+        assertEquals(expected, cleaned)
+        assertEquals(expected, urlProcessor.processUrl(cleaned, cleanTracking = true, convertTwitter = true).first)
+    }
+
+    @Test
     fun `test remove tracking parameters from URL`() {
         val urlWithTracking = "https://example.com/page?utm_source=twitter&utm_campaign=test&ref=social"
         val expected = "https://example.com/page?ref=social"
@@ -351,4 +360,4 @@ class UrlProcessorTest {
         assertEquals("https://example.com", urls[0])
         assertEquals("http://test.org/page", urls[1])
     }
-} 
+}

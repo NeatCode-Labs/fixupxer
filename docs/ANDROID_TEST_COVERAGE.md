@@ -1,5 +1,20 @@
 # Android Test Coverage for FixupXer
 
+## v2.6.5 release gate (September 5, 2026)
+
+Version **2.6.5 / code 47** passes **702 debug unit + 702 release unit tests**,
+with no failures, errors or skips. Release lint has 0 errors and 40 warnings.
+Full API 35 instrumentation: **239/239 passed** with no failures/errors/skips (395.642 seconds), cold boot with SwiftShader.
+
+Delta: 6 unit tests (`UpdatedCleanersTest`: 5; `UrlProcessorTest`: 1) and 2
+instrumentation tests (`MainActivityProxyLabelTest`: 1;
+`BidirectionalConversionTest`: 1). They pin the reported `stkn` URL, remove
+`ig_rid` with previous share IDs, preserve functional/unknown query data and
+fragments, constrain host matching, cover known proxies and assert idempotence.
+Share coverage checks both conversion modes; Main checks retained `img_index`.
+Device testing is limited to API 35; older clipboard behavior remains covered
+by the existing Robolectric tests.
+
 ## v2.6.4 release gate (September 5, 2026)
 
 Version **2.6.4 / code 46** passes **696 debug unit + 696 release unit tests**

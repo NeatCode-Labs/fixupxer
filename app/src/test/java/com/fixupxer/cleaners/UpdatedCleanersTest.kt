@@ -25,6 +25,52 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class UpdatedCleanersTest {
+    @Test
+    fun testInstagramCleanerRemovesReportedStknShareParameter() {
+        val url = "https://www.instagram.com/reel/Dc4fAOCs97R/?stkn=anBpYnlkeG82MDJz"
+        assertEquals("https://www.instagram.com/reel/Dc4fAOCs97R/", InstagramCleaner.clean(url))
+    }
+
+    @Test
+    fun testInstagramCleanerRemovesShareRidAlongsideCurrentAndOlderShareIds() {
+        val url = "https://www.instagram.com/p/ABC123/?ig_rid=share&stkn=current&igsi=previous&igsh=older&igshid=legacy&img_index=2&keep=a%26b#slide"
+        val expected = "https://www.instagram.com/p/ABC123/?img_index=2&keep=a%26b#slide"
+        assertEquals(expected, InstagramCleaner.clean(url))
+        assertEquals(expected, InstagramCleaner.clean(expected))
+        val otherHost = "https://example.org/?ig_rid=keep&stkn=keep"
+        assertEquals(otherHost, InstagramCleaner.clean(otherHost))
+    }
+
+    @Test
+    fun testInstagramStknDuplicatesPreserveFunctionalAndEncodedUnknownValues() {
+        val url = "https://www.instagram.com/p/ABC123/?stkn=first&img_index=2&keep=a%26b%3Dc+z&stkn=second&stkn#slide"
+        val expected = "https://www.instagram.com/p/ABC123/?img_index=2&keep=a%26b%3Dc+z#slide"
+        val cleaned = InstagramCleaner.clean(url)
+        assertEquals(expected, cleaned)
+        assertEquals(expected, InstagramCleaner.clean(cleaned))
+    }
+
+    @Test
+    fun testInstagramStknCleaningAlsoCoversKnownProxyHosts() {
+        com.fixupxer.utils.InstagramProxyStore.allKnownProxies().forEach { host ->
+            assertEquals(
+                "https://$host/reel/ABC123/?img_index=2#slide",
+                InstagramCleaner.clean("https://$host/reel/ABC123/?stkn=share&img_index=2#slide")
+            )
+        }
+    }
+
+    @Test
+    fun testInstagramStknDoesNotAffectOtherHostsOrFragmentContents() {
+        listOf(
+            "https://instagram.com.example.org/reel/ABC123/?stkn=keep",
+            "https://notinstagram.com/reel/ABC123/?stkn=keep",
+            "https://example.org/instagram.com?stkn=keep",
+            "https://www.instagram.com/reel/ABC123/#?stkn=keep",
+            "https://www.instagram.com/reel/ABC123/"
+        ).forEach { url -> assertEquals(url, InstagramCleaner.clean(url)) }
+    }
+
     
     @Test
     fun testInstagramCleanerRemovesIgshParameter() {

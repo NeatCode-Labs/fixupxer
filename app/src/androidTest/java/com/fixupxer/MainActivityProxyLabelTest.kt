@@ -28,6 +28,7 @@ import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.isEnabled
 import androidx.test.espresso.matcher.ViewMatchers.isRoot
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
@@ -78,6 +79,25 @@ class MainActivityProxyLabelTest {
             .commit()
     }
 
+
+    @Test
+    fun instagramStknCleaningPreservesCarouselAndUnknownValues() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        PreferencesManager(context).setConvertInstagramEnabled(false)
+        ActivityScenario.launch(MainActivity::class.java).use {
+            onView(withId(R.id.editTextUrl)).perform(
+                replaceText("https://www.instagram.com/p/ABC123/?stkn=share&ig_rid=older&img_index=2&keep=a%26b#slide"),
+                closeSoftKeyboard()
+            )
+            awaitAssertion { onView(withId(R.id.buttonProcess)).check(matches(isEnabled())) }
+            onView(withId(R.id.buttonProcess)).perform(click())
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl)).check(matches(withText(
+                    "https://www.instagram.com/p/ABC123/?img_index=2&keep=a%26b#slide"
+                )))
+            }
+        }
+    }
 
     @Test
     fun instagramUrlShowsActiveToinstagramByDefault() {

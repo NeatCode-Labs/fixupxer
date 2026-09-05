@@ -35,16 +35,15 @@ object InstagramCleaner : UrlCleaner {
     override val priority = UrlCleaner.PRIORITY_CONVERSION
     override val category = CleanerCategory.SOCIAL_MEDIA
     
-    // Comprehensive Instagram-specific tracking parameters
-    // Most extensive tracking parameter list available
+    // Known Instagram-specific tracking parameters; unknown keys are preserved.
     private val instagramTracking = setOf(
         // Basic tracking
-        // "igsi" = renamed share identifier (Instagram flipped igsh/igshid to dodge blocklists)
-        "igsh", "igshid", "igsi", "ig_cache_key", "ig_mid",
+        // Instagram's IGShareIdParams lists stkn as current, followed by igsi/igsh/igshid.
+        "igsh", "igshid", "igsi", "stkn", "ig_cache_key", "ig_mid",
         "ig_share_sheet", "__a", "__d", "_rdr", "hl",
         
         // Share tracking
-        "share_app_id", "share_sheet_id", "share_id",
+        "share_app_id", "share_sheet_id", "share_id", "ig_rid",
         "ig_did", "share_campaign_id", "share_link_id",
         
         // Analytics & attribution
@@ -157,4 +156,4 @@ object InstagramCleaner : UrlCleaner {
             return url
         }
     }
-} 
+}

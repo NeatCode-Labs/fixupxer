@@ -1,16 +1,16 @@
 # FixupXer App - Development Summary
 
-## Version Progression: v2.6.4 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.6.5 → v1.2.1 (Latest to Oldest)
 
-**Versions Documented:** 40 (v2.6.4 through v1.2.1)
-**Current Version:** v2.6.4 (versionCode: 46)
-**Development Period:** v1.2.1 (Initial) → v2.6.4 (Current)
+**Versions Documented:** 41 (v2.6.5 through v1.2.1)
+**Current Version:** v2.6.5 (versionCode: 47)
+**Development Period:** v1.2.1 (Initial) → v2.6.5 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.6.4: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard with redacted history for fully cleaned sensitive links, curated offline redirect unwrapping, social embed conversion with a vetted frontend catalog reachable from Settings, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine. The latest fixes improve encoded URL input, clipboard privacy and history Undo while retaining the zero-permission offline model.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.6.5: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard with redacted history for fully cleaned sensitive links, curated offline redirect unwrapping, social embed conversion with a vetted frontend catalog reachable from Settings, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine. The latest fix removes Instagram stkn and ig_rid share trackers while retaining functional query parameters and the zero-permission offline model.
 
 ### Key Achievements:
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
@@ -38,6 +38,10 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.6.4 → v2.6.5
+- **Instagram share tracking:** remove the current `stkn` share identifier and previously uncovered `ig_rid` tracker on Instagram and recognised/custom frontends. Keep existing `igsi`/`igsh`/`igshid` rules, functional selectors, unknown query values and fragments.
+- **Regression coverage:** reported Reel, duplicate tokens, host boundaries, known proxies, idempotence and Main/Share emulator processing.
 
 ### v2.6.3 → v2.6.4
 - **URL validation:** inspect raw URL components without decoding the whole input. Valid encoded filename dots, reserved delimiters and Unicode query/fragment values are preserved; malformed escapes, unsafe authority/control characters and encoded traversal segments remain blocked.
@@ -810,7 +814,9 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.6.3 | 45 | Instagram's renamed `igsi` share tracker removed (kept `igsh`/`igshid` too) | ✅ Released |
 | v2.6.4 | 46 | Encoded URL input, private clipboard previews, reliable history Undo and build maintenance | ✅ Released |
 
-### Build Artifacts (v2.6.4):
+| v2.6.5 | 47 | Instagram stkn and ig_rid share tracking removal with functional query preservation | Release in preparation |
+
+### Build Artifacts (v2.6.4, previous release):
 - **Google Play AAB:** `FixupXer-v2.6.4-release.aab` — signed root build verified; upload is performed by the maintainer.
 - **GITHUB / F-Droid APK:** `FixupXer-v2.6.4-release.apk` — built from tag `v2.6.4` in a fresh clone, signatures and repeat clean-build hash verified, published on GitHub Releases.
 

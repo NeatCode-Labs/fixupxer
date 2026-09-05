@@ -1,5 +1,32 @@
 # FixupXer Build Report
 
+## v2.6.5 release — September 5, 2026
+
+**Version: 2.6.5 / code 47. All release test gates passed; signed artifacts and publication pending.**
+
+Removes Instagram `stkn` and the previously uncovered `ig_rid` share tracker.
+Existing share-ID rules, functional selectors, unknown query values and
+fragments are preserved. Production change is confined to the Instagram key
+set; no permissions, network calls, dependencies or proxy targets are added.
+
+- Unit tests: **702/702 debug + 702/702 release**, no failures/errors/skips.
+- Release lint: **0 errors, 40 warnings**.
+- Full instrumentation: **239/239**, no failures/errors/skips, 395.642 seconds, cold-booted API 35 emulator using SwiftShader.
+- The 512×512 store icon is visually verified and matches the current artwork.
+- Play and F-Droid descriptions reviewed; the existing feature descriptions
+  remain accurate. Code 47 F-Droid changelog added.
+
+The reported URL was reproduced on the installed v2.6.4 APK: Share converted
+the domain but left `stkn` behind. New unit cases failed before the fix and pass
+on v2.6.5. An intermediate History Undo test failure and successful isolated/
+full unit reruns are recorded in `TESTING_REPORT.md`.
+
+Artifact hashes, source commits, installation smoke and publication results
+will be recorded after their respective checks. Play Console upload is the
+maintainer's action; F-Droid independently consumes the published tag/APK.
+The Android repository currently has no GitHub Actions workflows; the required
+Gradle build/test/release pipeline runs locally.
+
 ## v2.6.4 release — September 5, 2026
 
 **Version: 2.6.4 / code 46. GitHub release published; artifact verification passed.**

@@ -1,5 +1,33 @@
 # FixupXer Testing Report
 
+## v2.6.5 release verification — September 5, 2026
+
+Final source version **2.6.5 / code 47**:
+
+- **702/702 debug unit tests and 702/702 release unit tests**, with no failures,
+  errors or skips.
+- Release lint: **0 errors, 40 warnings**.
+- Full instrumentation: **239/239 passed**, no failures/errors/skips, on a cold-booted `Pixel_API_35_Play` / API 35 with SwiftShader (395.642 seconds).
+
+Six new unit cases cover the reported `stkn` Reel, `ig_rid` alongside existing
+share identifiers, duplicate tokens, encoded unknown values, fragments, known
+proxy hosts, host boundaries and idempotence through the cleaner service. Two
+new instrumentation cases cover Main input with preserved carousel/unknown
+parameters and the reported Share URL with conversion disabled and enabled.
+
+The initial pre-fix regression run failed in 4 of 5 cases as expected. An
+intermediate full run hit an existing History Undo snackbar NPE in the release
+unit variant. The whole History test class passed in isolation, and both final
+full unit variants passed without History code/test changes. This transient
+failure remains recorded; it is not an Instagram regression.
+
+Commands: `.\gradlew.bat test lintRelease connectedAndroidTest --console=plain`.
+The tests prove local URL processing and Android UI output. Anonymous Instagram
+requests exposed the share-ID configuration but returned an error route, so
+video playback was not verified. Signed artifact checks are in `BUILD_REPORT.md`.
+
+The first device run developed repeated existing dialog-window focus failures and a black screen; it was stopped after 72 tests. The two affected dialog classes passed 10/10 after a cold boot with SwiftShader, followed by the complete 239-test pass after another cold boot. No app or test changes were made for these environment checks. The final command was `.\gradlew.bat connectedAndroidTest --console=plain` (6m 55s total).
+
 ## v2.6.4 release verification — September 5, 2026
 
 The final **2.6.4 / code 46** release gate passes:

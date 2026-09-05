@@ -1,3 +1,32 @@
+# FixupXer v2.6.5 - Instagram Share Tracking
+
+## What's New
+
+- Remove Instagram's current `stkn` share identifier from shared Reel and post
+  links, including recognised and custom Instagram frontends.
+- Also remove the previously uncovered `ig_rid` share tracker. Existing
+  `igsi`, `igsh` and `igshid` cleaning continues to apply.
+- Preserve carousel selectors such as `img_index`, unknown query values and
+  fragments. Processing remains offline with zero permissions.
+
+The reported link now cleans to `https://www.instagram.com/reel/Dc4fAOCs97R/`
+before any optional frontend conversion.
+
+Instagram's public page configuration identifies `stkn` as its current share
+ID parameter. The older `ig_rid` key is documented in the
+[AdGuard tracking filter](https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt).
+The investigation confirmed the parameter configuration, not video playback
+or the date Instagram introduced the change.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 47
+- versionName: 2.6.5
+
+---
+
 # FixupXer v2.6.4 - Reliable URL Input, Private Copying and History Undo
 
 ## What's New

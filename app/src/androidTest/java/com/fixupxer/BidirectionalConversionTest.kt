@@ -61,6 +61,26 @@ class BidirectionalConversionTest {
     }
     
     // ============ INSTAGRAM BIDIRECTIONAL TESTS ============
+
+    @Test
+    fun testReportedInstagramStknShareWithAndWithoutConversion() {
+        preferencesManager.setInstagramProxy("toinstagram.com")
+        listOf(false, true).forEach { convert ->
+            preferencesManager.setConvertInstagramEnabled(convert)
+            val intent = Intent(InstrumentationRegistry.getInstrumentation().targetContext, ShareActivity::class.java).apply {
+                action = Intent.ACTION_SEND
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, "https://www.instagram.com/reel/Dc4fAOCs97R/?stkn=anBpYnlkeG82MDJz")
+            }
+            ActivityScenario.launch<ShareActivity>(intent).use {
+                val host = if (convert) "toinstagram.com" else "www.instagram.com"
+                awaitAssertion {
+                    onView(withId(R.id.textViewProcessedUrl))
+                        .check(matches(withText("https://$host/reel/Dc4fAOCs97R/")))
+                }
+            }
+        }
+    }
     
     @Test
     fun testCleanInstagramToProxyConversionStripsWww() {
@@ -471,4 +491,4 @@ class BidirectionalConversionTest {
             }
         }
     }
-} 
+}

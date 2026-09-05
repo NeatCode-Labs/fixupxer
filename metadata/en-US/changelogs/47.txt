@@ -1,0 +1,1 @@
+Removes Instagram's current stkn share identifier and the older ig_rid tracker from Instagram and recognised/custom frontend links. Existing igsi, igsh and igshid cleaning remains active. Carousel selectors, unknown parameters and fragments are preserved. Includes regression coverage for the reported Reel URL and Android Main/Share processing.

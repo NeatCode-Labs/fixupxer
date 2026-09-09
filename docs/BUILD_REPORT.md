@@ -1,5 +1,24 @@
 # FixupXer Build Report
 
+## v2.6.6 release — September 9, 2026
+
+**Version: 2.6.6 / code 48. Release preparation in progress.**
+
+YouTube Music now removes `si` and `is` share identifiers through the shared
+YouTube cleaner. Song IDs, playlists, radio context, timestamps, raw unknown
+query values and fragments are preserved. The Music domain is retained.
+
+- Unit tests: **706/706 debug + 706/706 release**, no failures/errors/skips.
+- Release lint: **0 errors, 40 warnings**.
+- Full API 35 instrumentation: **240/240 passed**, no failures/errors/skips; cold boot with SwiftShader, **386.435 seconds**.
+- Mirror parity: **372 file pairs**; REUSE: **447/447** files compliant.
+- The 512×512 F-Droid store icon and existing full store descriptions were
+  reviewed. No feature-set change to the descriptions was needed.
+
+Signed AAB/APK verification and publication status will be recorded after the
+remaining gates. No new heap profiling, physical-device test or YouTube Music
+audio playback test is claimed.
+
 ## v2.6.5 release — September 5, 2026
 
 **Version: 2.6.5 / code 47. GitHub release published; signed artifact checks passed.**

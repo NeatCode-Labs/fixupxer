@@ -81,17 +81,42 @@ class YouTubeCleanerTest {
     }
 
     @Test
+    fun `reported YouTube Music share identifier is removed`() {
+        val url = "https://music.youtube.com/watch?v=wARcb77cLMk&si=aL_JnTLnlBa8mp0D"
+        assertEquals("https://music.youtube.com/watch?v=wARcb77cLMk", YouTubeCleaner.clean(url))
+    }
+
+    @Test
+    fun `Music share identifiers are removed while playback data stays unchanged`() {
+        val url = "https://music.youtube.com/watch?v=wARcb77cLMk&si=first&list=RDAMVMwARcb77cLMk&index=2&radio=1&t=90&keep=a%26b%3Dc+z&si=second&is=third#part"
+        val expected = "https://music.youtube.com/watch?v=wARcb77cLMk&list=RDAMVMwARcb77cLMk&index=2&radio=1&t=90&keep=a%26b%3Dc+z#part"
+        assertEquals(expected, YouTubeCleaner.clean(url))
+        assertEquals(expected, YouTubeCleaner.clean(expected))
+    }
+
+    @Test
+    fun `Music cleanup respects host parameter and fragment boundaries`() {
+        listOf(
+            "https://music.youtube.com.example.org/watch?v=test&si=keep&is=keep",
+            "https://notyoutube.com/watch?v=test&si=keep",
+            "https://example.org/music.youtube.com?si=keep",
+            "https://music.youtube.com/watch?v=test#?si=keep&is=keep",
+            "https://music.youtube.com/watch?v=test&si_extra=keep&island=keep"
+        ).forEach { url -> assertEquals(url, YouTubeCleaner.clean(url)) }
+    }
+
+    @Test
     fun `test renamed is share identifier is removed like si`() {
-        // YouTube flipped "si" to "is" in early 2026 to work around blocklists
+        // Both known share-identifier keys follow the same cleanup policy.
         val watchUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ&is=nTf2xxYGCDE0abc"
         assertEquals("https://www.youtube.com/watch?v=dQw4w9WgXcQ", YouTubeCleaner.clean(watchUrl))
 
         val shortUrl = "https://youtu.be/dQw4w9WgXcQ?is=nTf2xxYGCDE0abc"
         assertEquals("https://youtu.be/dQw4w9WgXcQ", YouTubeCleaner.clean(shortUrl))
 
-        // YouTube Music keeps share ID (same policy as "si")
+        // Music uses the same share-identifier cleanup as other YouTube links.
         val musicUrl = "https://music.youtube.com/watch?v=abc123&is=xyz789"
-        assertTrue(YouTubeCleaner.clean(musicUrl).contains("is=xyz789"))
+        assertEquals("https://music.youtube.com/watch?v=abc123", YouTubeCleaner.clean(musicUrl))
     }
     
     @Test
@@ -102,4 +127,4 @@ class YouTubeCleanerTest {
         // sp parameter is removed as it's not in preserve list
         assertFalse(cleaned.contains("sp="))
     }
-} 
+}

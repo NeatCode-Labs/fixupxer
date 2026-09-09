@@ -65,6 +65,26 @@ class ShareActivityTest {
     }
     
     @Test
+    fun testYouTubeMusicShareRemovesIdentifierAndReportsTrackingRemoved() {
+        val customRulesEnabled = preferencesManager.areCustomRulesEnabled()
+        try {
+            preferencesManager.setCustomRulesEnabled(false)
+            launchShareActivityWithText(
+                "https://music.youtube.com/watch?v=wARcb77cLMk&si=aL_JnTLnlBa8mp0D"
+            ).use {
+                awaitAssertion {
+                    onView(withId(R.id.textViewProcessedUrl))
+                        .check(matches(withText("https://music.youtube.com/watch?v=wARcb77cLMk")))
+                    onView(withId(R.id.textViewResultStatus))
+                        .check(matches(withText(R.string.result_status_cleaned)))
+                }
+            }
+        } finally {
+            preferencesManager.setCustomRulesEnabled(customRulesEnabled)
+        }
+    }
+
+    @Test
     fun testInstagramUrlConversionWithToggleOn() {
         runBlocking {
             // Set preferences to enable Instagram conversion
@@ -394,4 +414,4 @@ class ShareActivityTest {
             }
         }
     }
-} 
+}

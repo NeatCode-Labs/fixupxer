@@ -1,5 +1,28 @@
 # FixupXer Testing Report
 
+## v2.6.6 release verification — September 9, 2026
+
+Source version **2.6.6 / code 48**:
+
+- **706/706 debug unit tests and 706/706 release unit tests**, with no failures,
+  errors or skips (`.\gradlew.bat test lintRelease --console=plain`, 2m 5s).
+- Release lint: **0 errors, 40 warnings**.
+- Full API 35 instrumentation: **240/240 passed**, no failures/errors/skips (386.435 seconds), on a cold-booted `Pixel_API_35_Play`
+  with SwiftShader (`.\gradlew.bat connectedAndroidTest --console=plain`).
+
+The reported Music share URL was reproduced on installed v2.6.5-debug:
+`si` remained and ShareActivity displayed `Already clean`. Before the fix,
+4 of 12 targeted cleaner/pipeline tests failed as expected. The same 12 tests
+passed after removal of the Music-only share-ID exception.
+
+Four new unit cases cover the report, duplicate share identifiers, retained
+playlist/radio/timestamp context, encoded unknown query values, fragments,
+host/key boundaries and idempotence through MAIN/SHARE/BROWSER profiles. One
+new instrumentation case asserts the exact cleaned URL and `Tracking removed`
+status in ShareActivity. The existing Music `is` assertion now expects removal.
+Tests cover local processing and Android UI output; audio playback and
+external application delivery are not established by these new assertions.
+
 ## v2.6.5 release verification — September 5, 2026
 
 Final source version **2.6.5 / code 47**:

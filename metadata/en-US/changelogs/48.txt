@@ -1,0 +1,1 @@
+YouTube Music links now remove si and is share tracking identifiers instead of reporting Already clean. Song IDs, playlists, radio context, timestamps, unknown query values and fragments are preserved. Music links keep their original domain. All processing remains offline with zero permissions.

@@ -115,6 +115,27 @@ class UrlPipelineDifferentialTest {
     }
 
     @Test
+    fun `YouTube Music share cleanup is consistent across processing profiles`() = runTest {
+        val input = "https://music.youtube.com/watch?v=wARcb77cLMk&si=aL_JnTLnlBa8mp0D"
+        val expected = "https://music.youtube.com/watch?v=wARcb77cLMk"
+        ProcessingProfile.entries.forEach { profile ->
+            val options = ProcessingOptions(
+                profile = profile,
+                cleanTracking = true,
+                convertDomains = true,
+                proxySelections = ProxySelections.DEFAULT,
+                customRulesEnabled = false
+            )
+            val result = orchestrator.process(input, options)
+            assertEquals(profile.name, expected, result.url)
+            assertEquals(profile.name, false, result.wasAlreadyClean)
+            val repeated = orchestrator.process(result.url, options)
+            assertEquals(profile.name, expected, repeated.url)
+            assertEquals(profile.name, true, repeated.wasAlreadyClean)
+        }
+    }
+
+    @Test
     fun `redirect reentry stops at global hop limit`() = runTest {
         ruleRepository.save(
             CustomUrlRule(

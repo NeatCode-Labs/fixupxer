@@ -1,3 +1,27 @@
+# FixupXer v2.6.6 - YouTube Music Share Tracking
+
+## What's New
+
+- Remove `si` and `is` share identifiers from YouTube Music links, using the
+  same tracking cleanup as other YouTube URLs.
+- Shared Music links now show `Tracking removed` when an identifier is removed.
+- Preserve song IDs, playlists, radio context, timestamps, unknown query values
+  and fragments. YouTube Music links keep their original Music domain.
+
+Music previously had an exception that kept these share identifiers and could
+incorrectly report `Already clean`. This release removes that exception.
+The `si` policy agrees with the YouTube subdomain rule in
+[ClearURLs Rules](https://github.com/ClearURLs/Rules/blob/master/data.min.json).
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 48
+- versionName: 2.6.6
+
+---
+
 # FixupXer v2.6.5 - Instagram Share Tracking
 
 ## What's New

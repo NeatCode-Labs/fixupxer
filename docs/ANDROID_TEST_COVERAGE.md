@@ -1,5 +1,20 @@
 # Android Test Coverage for FixupXer
 
+## v2.6.6 release gate (September 9, 2026)
+
+Version **2.6.6 / code 48** passes **706 debug unit + 706 release unit tests**,
+with no failures/errors/skips. Release lint: 0 errors and 40 warnings.
+Full API 35 instrumentation passes **240/240**, no failures/errors/skips, after a cold boot (386.435 seconds).
+
+Delta: **4 unit cases** (`YouTubeCleanerTest`: 3;
+`UrlPipelineDifferentialTest`: 1), plus **1 instrumentation case** in
+`ShareActivityTest`. Coverage includes the reported Music link, repeated
+`si`/`is` identifiers, preserved playlist/radio/timestamp/unknown parameters,
+raw encoding and fragments, host/key boundaries, idempotence and consistent
+MAIN/SHARE/BROWSER processing. The Share test checks both output and status.
+Device execution is limited to API 35; existing Robolectric API coverage is
+unchanged. Playback is outside the evidence supplied by these tests.
+
 ## v2.6.5 release gate (September 5, 2026)
 
 Version **2.6.5 / code 47** passes **702 debug unit + 702 release unit tests**,

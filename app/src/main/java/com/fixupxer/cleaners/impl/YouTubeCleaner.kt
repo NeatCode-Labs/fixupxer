@@ -39,7 +39,7 @@ object YouTubeCleaner : UrlCleaner {
     // Most extensive tracking parameter list available
     private val youtubeTracking = setOf(
         // Basic tracking
-        // "is" = renamed "si" share identifier (YouTube flipped it early 2026 to dodge blocklists)
+        // Share identifiers use the same cleanup policy on YouTube and YouTube Music.
         "si", "is", "pp", "feature", "app", "attribution_link",
         "embeds_referring_euri", "embeds_referring_origin",
         "embeds_euri", "source_ve_path", "gclid", "ytclid",
@@ -143,12 +143,7 @@ object YouTubeCleaner : UrlCleaner {
     override fun clean(url: String): String {
         if (!matches(url)) return url
 
-        // Handle YouTube Music differently
-        if (UrlNormalizer.urlMatchesDomain(url, "music.youtube.com")) {
-            return cleanYouTubeMusic(url)
-        }
-        
-        // Standard YouTube cleaning
+        // Music playback parameters are already covered by preserveParams.
         return cleanStandardUrl(url)
     }
     
@@ -200,58 +195,4 @@ object YouTubeCleaner : UrlCleaner {
         }
     }
     
-    private fun cleanYouTubeMusic(url: String): String {
-        // YouTube Music specific preserve params
-        val musicPreserveParams = preserveParams + setOf(
-            "radio", // Radio station
-            "si", // Share ID (sometimes needed for music)
-            "is" // Renamed share ID (post-2026 flip) — same treatment as "si"
-        )
-        
-        try {
-            // If no query parameters, return as is
-            val idx = url.indexOf('?')
-            if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
-                return url
-            }
-            
-            val base = url.substring(0, idx)
-            val queryAndFragment = url.substring(idx + 1)
-            
-            // Handle fragment
-            val fragmentIdx = queryAndFragment.indexOf('#')
-            val query = if (fragmentIdx > -1) {
-                queryAndFragment.substring(0, fragmentIdx)
-            } else {
-                queryAndFragment
-            }
-            val fragment = if (fragmentIdx > -1) {
-                queryAndFragment.substring(fragmentIdx)
-            } else {
-                ""
-            }
-            
-            // Process parameters
-            val kept = query.split('&').mapNotNull { pair ->
-                val eqIdx = pair.indexOf('=')
-                val key = if (eqIdx == -1) pair else pair.substring(0, eqIdx)
-                
-                // Keep music-essential and unknown params, remove only known tracking
-                when {
-                    musicPreserveParams.contains(key) -> pair
-                    youtubeTracking.contains(key) -> null
-                    else -> pair
-                }
-            }.filter { it.isNotEmpty() }
-            
-            return if (kept.isEmpty()) {
-                base + fragment
-            } else {
-                base + "?" + kept.joinToString("&") + fragment
-            }
-        } catch (e: Exception) {
-            // On error, return original URL
-            return url
-        }
-    }
-} 
+}

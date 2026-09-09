@@ -2,7 +2,7 @@
 
 ## v2.6.6 release — September 9, 2026
 
-**Version: 2.6.6 / code 48. Release preparation in progress.**
+**Version: 2.6.6 / code 48. GitHub release published; signed artifact checks passed.**
 
 YouTube Music now removes `si` and `is` share identifiers through the shared
 YouTube cleaner. Song IDs, playlists, radio context, timestamps, raw unknown
@@ -15,9 +15,47 @@ query values and fragments are preserved. The Music domain is retained.
 - The 512×512 F-Droid store icon and existing full store descriptions were
   reviewed. No feature-set change to the descriptions was needed.
 
-Signed AAB/APK verification and publication status will be recorded after the
-remaining gates. No new heap profiling, physical-device test or YouTube Music
-audio playback test is claimed.
+Published release: [FixupXer v2.6.6](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.6.6).
+The immutable tag points to source commit `5e69292548335ef7f3f776a3b1b5e4d966f76a13`.
+The Play AAB was built from root commit `2a1d465825798201c4e7df7ec369759459c207a7`.
+Later documentation-only commits do not change these artifacts or move the tag.
+
+| Artifact | Bytes | SHA-256 |
+|---|---:|---|
+| `FixupXer-v2.6.6-release.aab` | 5,513,470 | `159f265142e3b621bcb1fcdee35718123354f9b1d1ad40f5ba57538a38741f19` |
+| `FixupXer-v2.6.6-release.apk` | 4,347,831 | `eb1ebf363044de1bb0ea1bd3b028a09d909e12b8c40557e1664d6c396393ff5c` |
+
+Both artifacts have the expected signing-certificate SHA-256:
+`78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`.
+The root AAB passes JAR signature verification and bundletool validation, and
+contains the Play ownership asset. The APK was built from a fresh clone of the
+exact tag with no tracked-source changes, passes v1/v2 signature verification,
+and contains neither Play ownership nor dependency metadata. Both artifacts
+identify `com.fixupxer`, version 2.6.6/48, minSdk 21, targetSdk 36, zero
+permissions and no debuggable flag. Signature tools emit existing JAR/META-INF
+compatibility warnings; verification succeeds.
+
+The signed APK installed and launched on API 35. Sharing the reported Music
+link with `si` returns exactly `https://music.youtube.com/watch?v=wARcb77cLMk`
+and displays `Tracking removed`; both the UI hierarchy and screenshot were
+checked. The GitHub APK asset digest matches the local SHA-256, and
+`SHA256SUMS.txt` is attached to the release.
+
+The exact source commit has no GitHub Actions runs, check runs or commit-status
+contexts; this repository has no configured Actions workflows. Required Gradle
+gates ran locally. F-Droid's upstream metadata was checked directly on September
+9 at 20:51 UTC: tag auto-updates are enabled and its current version was 2.6.5/47.
+The new tag and APK are available for its independent build verification;
+F-Droid distribution of 2.6.6 is not claimed as complete.
+
+Google Play accepted the root AAB and the request to submit **FixupXer v2.6.6**
+to Production with **100% rollout** in the existing countries. Publishing
+overview shows **Changes in review**, with automated quick checks still running
+before review proceeds. Managed publishing remains off, so approval leads to
+automatic publication. Availability on Google Play is **not yet confirmed**.
+The updated 2.6.6-debug build is installed and ready on the emulator alongside
+the signed release build. No new heap profiling, physical-device test or
+YouTube Music audio playback test is claimed.
 
 ## v2.6.5 release — September 5, 2026
 

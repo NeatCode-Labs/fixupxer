@@ -156,7 +156,7 @@ class HistoryDatabaseTest {
                 originalUrl = "https://old.com/$i",
                 cleanedUrl = "https://old.com/$i",
                 platform = "Other",
-                conversionType = "Already clean",
+                conversionType = "No changes made",
                 timestamp = System.currentTimeMillis() - (10 - i) * 60000 // Older entries have lower timestamps
             )
             historyDao.insert(entry)

@@ -129,7 +129,7 @@ class BidirectionalConversionTest {
     @Test
     fun testCleanInstagramNothingToDoWithToggleOff() {
         runBlocking {
-            // Clean instagram.com with toggle OFF should show URL and "Already clean"
+            // Clean instagram.com with toggle OFF should show URL and "No changes made"
             preferencesManager.setConvertInstagramEnabled(false)
             delay(100)
             
@@ -138,7 +138,7 @@ class BidirectionalConversionTest {
                 onView(withId(R.id.textViewProcessedUrl))
                     .check(matches(withText("https://www.instagram.com/p/test123/")))
                 onView(withId(R.id.textViewResultStatus))
-                    .check(matches(withText(containsString("Already clean"))))
+                    .check(matches(withText(containsString("No changes made"))))
             }
         }
     }
@@ -228,7 +228,7 @@ class BidirectionalConversionTest {
     @Test
     fun testCleanXNothingToDoWithToggleOff() {
         runBlocking {
-            // Clean x.com with toggle OFF should show URL and "Already clean"
+            // Clean x.com with toggle OFF should show URL and "No changes made"
             preferencesManager.setConvertTwitterEnabled(false)
             delay(100)
             
@@ -237,7 +237,7 @@ class BidirectionalConversionTest {
                 onView(withId(R.id.textViewProcessedUrl))
                     .check(matches(withText("https://x.com/user/status/123456789")))
                 onView(withId(R.id.textViewResultStatus))
-                    .check(matches(withText(containsString("Already clean"))))
+                    .check(matches(withText(containsString("No changes made"))))
             }
         }
     }
@@ -317,7 +317,7 @@ class BidirectionalConversionTest {
     @Test
     fun testCleanFacebookNothingToDoWithToggleOff() {
         runBlocking {
-            // Clean facebook.com with toggle OFF should show URL and "Already clean"
+            // Clean facebook.com with toggle OFF should show URL and "No changes made"
             preferencesManager.setConvertFacebookEnabled(false) // v2.4.0: dedicated Facebook toggle
             delay(100)
             
@@ -326,7 +326,7 @@ class BidirectionalConversionTest {
                 onView(withId(R.id.textViewProcessedUrl))
                     .check(matches(withText("https://www.facebook.com/zuck/posts/123456789")))
                 onView(withId(R.id.textViewResultStatus))
-                    .check(matches(withText(containsString("Already clean"))))
+                    .check(matches(withText(containsString("No changes made"))))
             }
         }
     }
@@ -413,7 +413,7 @@ class BidirectionalConversionTest {
     @Test
     fun testCleanTikTokNothingToDoWithToggleOff() {
         runBlocking {
-            // Clean tiktok.com with toggle OFF should show URL and "Already clean"
+            // Clean tiktok.com with toggle OFF should show URL and "No changes made"
             preferencesManager.setConvertTikTokEnabled(false)
             delay(100)
 
@@ -422,7 +422,7 @@ class BidirectionalConversionTest {
                 onView(withId(R.id.textViewProcessedUrl))
                     .check(matches(withText("https://www.tiktok.com/@user/video/123456789")))
                 onView(withId(R.id.textViewResultStatus))
-                    .check(matches(withText(containsString("Already clean"))))
+                    .check(matches(withText(containsString("No changes made"))))
             }
         }
     }

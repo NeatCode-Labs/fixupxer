@@ -1,5 +1,18 @@
 # Android Test Coverage for FixupXer
 
+## v2.6.7 release gate (September 11, 2026)
+
+Version **2.6.7 / code 49** passes **707 debug unit + 707 release unit tests**,
+with no failures/errors/skips. Release lint: 0 errors and 40 warnings.
+Full API 35 instrumentation passes **241/241**, no failures/errors/skips, after a cold boot with SwiftShader (429.968 seconds).
+
+Delta: **1 unit case** (`UrlPipelineDifferentialTest`) and **1 instrumentation
+case** (`ShareActivityTest`) for MailerLite-shaped click-tracking links:
+pass-through without operations across MAIN/SHARE/BROWSER, unchanged status
+resolution, and the Share screen's exact input plus `No changes made` status.
+Six existing status assertions were updated to the new text. Device execution
+is limited to API 35; existing Robolectric API coverage is unchanged.
+
 ## v2.6.6 release gate (September 9, 2026)
 
 Version **2.6.6 / code 48** passes **706 debug unit + 706 release unit tests**,

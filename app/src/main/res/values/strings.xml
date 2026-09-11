@@ -277,7 +277,7 @@
     <string name="clipboard_label_monero_address">Monero Address</string>
     
     <!-- Processing messages -->
-    <string name="result_status_already_clean">Already clean</string>
+    <string name="result_status_already_clean">No changes made</string>
     <string name="result_status_cleaned">Tracking removed</string>
     <string name="result_status_converted">Converted for embedding</string>
     <string name="result_status_cleaned_and_converted">Tracking removed and converted</string>

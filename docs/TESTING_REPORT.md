@@ -1,5 +1,30 @@
 # FixupXer Testing Report
 
+## v2.6.7 release verification — September 11, 2026
+
+Source version **2.6.7 / code 49**:
+
+- **707/707 debug unit tests and 707/707 release unit tests**, with no failures,
+  errors or skips (`.\gradlew.bat test lintRelease --console=plain`, 2m 7s).
+- Release lint: **0 errors, 40 warnings**.
+- Full API 35 instrumentation: **241/241 passed**, no failures/errors/skips (429.968 seconds), on a cold-booted `Pixel_API_35_Play`
+  with SwiftShader (`.\gradlew.bat connectedAndroidTest --console=plain`, 7m 28s).
+
+A MailerLite click-tracking link from a field report was reproduced through the
+processing pipeline: the link is returned unchanged in the MAIN, SHARE and
+BROWSER profiles because its path token carries only opaque identifiers and a
+signature, so no destination can be derived offline. The result card labelled
+it `Already clean`; the status text is now `No changes made`.
+
+One new unit case in `UrlPipelineDifferentialTest` pins the pass-through with
+a synthetic MailerLite-shaped token (no operations, unchanged status across
+profiles). One new instrumentation case in `ShareActivityTest` asserts the
+exact input and the `No changes made` status. Six existing assertions on the
+old status text were updated in `BidirectionalConversionTest`,
+`ShareActivityTest` and `HistoryDatabaseTest`. The reporter's real token is
+not stored in the repository. These tests cover local processing and the
+Android UI status; server-side redirect targets are outside their evidence.
+
 ## v2.6.6 release verification — September 9, 2026
 
 Source version **2.6.6 / code 48**:

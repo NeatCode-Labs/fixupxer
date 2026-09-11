@@ -1,5 +1,26 @@
 # FixupXer Build Report
 
+## v2.6.7 release — September 11, 2026
+
+**Version: 2.6.7 / code 49. Release preparation in progress.**
+
+The result card status `Already clean` is now `No changes made`. The chip is
+shown whenever the output equals the input, which covers links without known
+tracking, conversions that are switched off or do not apply, and opaque
+redirect or click-tracking links whose destination is only known to the
+sender's server and cannot be unwrapped offline. No cleaner, catalog,
+permission or network behavior changed.
+
+- Unit tests: **707/707 debug + 707/707 release**, no failures/errors/skips.
+- Release lint: **0 errors, 40 warnings**.
+- Full API 35 instrumentation: **241/241 passed**, no failures/errors/skips; cold boot with SwiftShader, **429.968 seconds**.
+- Mirror parity: **372 file pairs**; REUSE: **448/448** files compliant.
+- The 512×512 F-Droid store icon and existing full store descriptions were
+  reviewed. No feature-set change to the descriptions was needed.
+
+Signed AAB/APK verification and publication status will be recorded after the
+remaining gates. No new heap profiling or physical-device test is claimed.
+
 ## v2.6.6 release — September 9, 2026
 
 **Version: 2.6.6 / code 48. GitHub release published; signed artifact checks passed.**

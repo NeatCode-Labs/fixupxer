@@ -1,3 +1,31 @@
+# FixupXer v2.6.7 - No Changes Made Status
+
+## What's New
+
+- The result card status `Already clean` is now `No changes made`. It states
+  what FixupXer did instead of judging the link.
+- The new wording is accurate in every case where a link is returned as is:
+  no known tracking to remove, a conversion that is switched off or does not
+  apply, and opaque redirect or click-tracking links whose destination is only
+  known to the sender's server and cannot be unwrapped offline.
+- Regression coverage for MailerLite-style click-tracking links: they pass
+  through unchanged across Main, Share and Browser processing, and the Share
+  screen reports `No changes made`.
+
+A field report showed a MailerLite click-tracking link labelled `Already clean`
+although the whole link is a per-recipient tracker. FixupXer has no network
+access and cannot follow server-side redirects, so it leaves such links
+untouched; the status no longer implies that the link is clean.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 49
+- versionName: 2.6.7
+
+---
+
 # FixupXer v2.6.6 - YouTube Music Share Tracking
 
 ## What's New

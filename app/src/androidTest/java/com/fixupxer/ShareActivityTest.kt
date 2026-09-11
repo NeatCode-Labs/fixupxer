@@ -85,6 +85,29 @@ class ShareActivityTest {
     }
 
     @Test
+    fun testOpaqueClickTrackingRedirectReportsNoChangesMade() {
+        val customRulesEnabled = preferencesManager.areCustomRulesEnabled()
+        try {
+            preferencesManager.setCustomRulesEnabled(false)
+            // MailerLite-style click link: the path token holds only opaque ids and a
+            // signature, the destination is resolved server-side, so the offline
+            // pipeline leaves the link untouched and the card must not call it clean.
+            val input = "https://abcdef.clicks.mlsend.com/tl/cl/" +
+                "eyJ2Ijoie1wiYVwiOjEsXCJsXCI6MixcInJcIjozfSIsInMiOiIwMDAwMDAwMDAwMDAwMDAwIn0"
+            launchShareActivityWithText(input).use {
+                awaitAssertion {
+                    onView(withId(R.id.textViewProcessedUrl))
+                        .check(matches(withText(input)))
+                    onView(withId(R.id.textViewResultStatus))
+                        .check(matches(withText(R.string.result_status_already_clean)))
+                }
+            }
+        } finally {
+            preferencesManager.setCustomRulesEnabled(customRulesEnabled)
+        }
+    }
+
+    @Test
     fun testInstagramUrlConversionWithToggleOn() {
         runBlocking {
             // Set preferences to enable Instagram conversion
@@ -168,7 +191,7 @@ class ShareActivityTest {
                 onView(withId(R.id.textViewProcessedUrl))
                     .check(matches(withText("https://facebookez.com/zuck/posts/10115959821974691")))
                 onView(withId(R.id.textViewResultStatus))
-                    .check(matches(withText(containsString("Already clean"))))
+                    .check(matches(withText(containsString("No changes made"))))
             }
         }
     }

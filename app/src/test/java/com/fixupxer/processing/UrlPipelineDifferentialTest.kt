@@ -19,6 +19,8 @@ import com.fixupxer.cleaners.CleanerRegistry
 import com.fixupxer.cleaners.CleanerService
 import com.fixupxer.cleaners.cache.CleanerCache
 import com.fixupxer.data.database.FixupXerDatabase
+import com.fixupxer.domain.model.ResultStatus
+import com.fixupxer.domain.model.resolveResultStatus
 import com.fixupxer.rules.CustomRuleEngine
 import com.fixupxer.rules.CustomRuleRepository
 import com.fixupxer.rules.RuleActionExecutor
@@ -132,6 +134,31 @@ class UrlPipelineDifferentialTest {
             val repeated = orchestrator.process(result.url, options)
             assertEquals(profile.name, expected, repeated.url)
             assertEquals(profile.name, true, repeated.wasAlreadyClean)
+        }
+    }
+
+    @Test
+    fun `opaque click-tracking redirect passes through unchanged across processing profiles`() = runTest {
+        // Same shape as MailerLite click links: the path token carries only opaque ids
+        // and a signature, so the destination cannot be derived offline and the
+        // result card must report that no changes were made.
+        val input = "https://abcdef.clicks.mlsend.com/tl/cl/" +
+            "eyJ2Ijoie1wiYVwiOjEsXCJsXCI6MixcInJcIjozfSIsInMiOiIwMDAwMDAwMDAwMDAwMDAwIn0"
+        ProcessingProfile.entries.forEach { profile ->
+            val result = orchestrator.process(
+                input,
+                ProcessingOptions(
+                    profile = profile,
+                    cleanTracking = true,
+                    convertDomains = true,
+                    proxySelections = ProxySelections.DEFAULT,
+                    customRulesEnabled = false
+                )
+            )
+            assertEquals(profile.name, input, result.url)
+            assertEquals(profile.name, true, result.wasAlreadyClean)
+            assertEquals(profile.name, 0, result.operations.size)
+            assertEquals(profile.name, ResultStatus.ALREADY_CLEAN, resolveResultStatus(input, result.url))
         }
     }
 

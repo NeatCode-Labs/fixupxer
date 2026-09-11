@@ -1,16 +1,16 @@
 # FixupXer App - Development Summary
 
-## Version Progression: v2.6.6 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.6.7 → v1.2.1 (Latest to Oldest)
 
-**Versions Documented:** 42 (v2.6.6 through v1.2.1)
-**Current Version:** v2.6.6 (versionCode: 48)
-**Development Period:** v1.2.1 (Initial) → v2.6.6 (Current)
+**Versions Documented:** 43 (v2.6.7 through v1.2.1)
+**Current Version:** v2.6.7 (versionCode: 49)
+**Development Period:** v1.2.1 (Initial) → v2.6.7 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.6.6: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard with redacted history for fully cleaned sensitive links, curated offline redirect unwrapping, social embed conversion with a vetted frontend catalog reachable from Settings, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine. The latest fix removes YouTube Music si and is share identifiers while retaining functional query parameters and the zero-permission offline model.
+This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.6.7: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard with redacted history for fully cleaned sensitive links, curated offline redirect unwrapping, social embed conversion with a vetted frontend catalog reachable from Settings, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine. The latest change renames the result status Already clean to No changes made, so the card states what the app did, including for opaque redirect links that cannot be unwrapped offline, while retaining the zero-permission offline model.
 
 ### Key Achievements:
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
@@ -38,6 +38,10 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.6.6 → v2.6.7
+- **Result status wording:** the `Already clean` chip on the Main and Share result cards is now `No changes made`. The chip is shown whenever the output equals the input, which also covers conversions that are off or do not apply and opaque redirect or click-tracking links (for example MailerLite click links) whose destination is only known to the sender's server. The new wording describes what FixupXer did instead of asserting that the link is clean. No cleaner, catalog, permission or network behavior changes.
+- **Regression coverage:** a MailerLite-shaped click link with a synthetic opaque token passes through unchanged across MAIN/SHARE/BROWSER with no operations and resolves to the unchanged status; ShareActivity shows the exact input and `No changes made`. Existing status assertions were updated to the new text.
 
 ### v2.6.5 → v2.6.6
 - **YouTube Music share tracking:** remove the Music-only exception that retained `si`/`is`. Music now uses the existing YouTube cleanup policy while preserving content IDs, playlist/radio context, timestamps, raw unknown query values and fragments; no Music frontend conversion is introduced.
@@ -819,8 +823,9 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.6.4 | 46 | Encoded URL input, private clipboard previews, reliable history Undo and build maintenance | ✅ Released |
 | v2.6.5 | 47 | Instagram stkn and ig_rid share tracking removal with functional query preservation | ✅ Released |
 | v2.6.6 | 48 | YouTube Music share tracking cleanup with functional query preservation | ✅ Released |
+| v2.6.7 | 49 | Result status renamed to No changes made; opaque redirect regression coverage | In preparation |
 
-### Build Artifacts (v2.6.6):
+### Build Artifacts (v2.6.6, previous release):
 - **Google Play AAB:** `FixupXer-v2.6.6-release.aab` — signed root bundle; signature, manifest and bundletool validation passed. Play submission status is recorded in BUILD_REPORT.md.
 - **GITHUB / F-Droid APK:** `FixupXer-v2.6.6-release.apk` — built from tag `v2.6.6` in a fresh clone, signatures and reported Music Share smoke verified, published on GitHub Releases.
 

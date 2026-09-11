@@ -2,7 +2,7 @@
 
 ## v2.6.7 release — September 11, 2026
 
-**Version: 2.6.7 / code 49. Release preparation in progress.**
+**Version: 2.6.7 / code 49. GitHub release published; signed artifact checks passed.**
 
 The result card status `Already clean` is now `No changes made`. The chip is
 shown whenever the output equals the input, which covers links without known
@@ -18,8 +18,41 @@ permission or network behavior changed.
 - The 512×512 F-Droid store icon and existing full store descriptions were
   reviewed. No feature-set change to the descriptions was needed.
 
-Signed AAB/APK verification and publication status will be recorded after the
-remaining gates. No new heap profiling or physical-device test is claimed.
+Published release: [FixupXer v2.6.7](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.6.7).
+The annotated tag points to source commit `136c22d87c3719525e1e453164432735fa1783e5`.
+The Play AAB was built from root commit `8ce4ccc5107fbbcb8be2204588754fde8eec53a5`.
+Later documentation-only commits do not change these artifacts or move the tag.
+
+| Artifact | Bytes | SHA-256 |
+|---|---:|---|
+| `FixupXer-v2.6.7-release.aab` | 5,506,440 | `c654eb6a2f5fc8bf909a9755de3ada20a20b7e6bb8cd7013608a7f0e100fcb36` |
+| `FixupXer-v2.6.7-release.apk` | 4,347,830 | `edad2f655c1c8ec5037cdb55f5cf817ab278e256a746170da90e8aa8244c4da4` |
+
+Both artifacts have the expected signing-certificate SHA-256:
+`78:E3:69:50:96:3A:98:EA:39:FE:30:B9:55:C2:73:64:E1:87:FE:CA:85:A1:AF:6A:D1:09:87:D1:5F:18:EC:2F`.
+The root AAB passes JAR signature verification and bundletool validation, and
+contains the Play ownership asset. The APK was built from a fresh clone of the
+exact tag with no tracked-source changes, passes v1/v2 signature verification,
+and contains neither Play ownership nor dependency metadata. Both artifacts
+identify `com.fixupxer`, version 2.6.7/49, minSdk 21, targetSdk 36, zero
+permissions and no debuggable flag.
+
+The signed APK installed and launched on API 35. Sharing the reported MailerLite
+click link returns it unchanged and displays `No changes made`; both the UI
+hierarchy and screenshot were checked. The GitHub APK asset digest matches the
+local SHA-256, and `SHA256SUMS.txt` is attached to the release. The `v2.6.7`
+tag was briefly pushed to the previous commit by a scripting error and replaced
+on the release commit within two minutes, before any release or artifact
+existed.
+
+The source commit has no GitHub Actions runs; this repository has no configured
+Actions workflows. Required Gradle gates ran locally. F-Droid distribution of
+2.6.7 is not claimed as complete.
+
+Google Play: the verified root AAB has not been uploaded yet because the Play
+Console sign-in was not available to the release agent at publication time.
+Submission to Production with 100% rollout follows as a separate step and will
+be recorded here. No new heap profiling or physical-device test is claimed.
 
 ## v2.6.6 release — September 9, 2026
 

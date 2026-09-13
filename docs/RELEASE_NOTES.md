@@ -12,6 +12,7 @@
   documented fallback without overwriting your remembered choice.
 - Backup schema v2 includes Browser choices and still imports v1 files safely.
   Deleting a custom domain also clears its active or remembered Browser choice.
+  Theme changes and screen recreation preserve the latest saved settings.
 - Interrupted processing, changed settings and failed external actions keep the
   result available for Retry. Stale callbacks cannot dispatch a newer link;
   rotation preserves a completed transaction without duplicating history.

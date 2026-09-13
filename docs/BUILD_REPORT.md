@@ -9,7 +9,7 @@ The root Play AAB and distribution mirror APK use the same application source;
 Play ownership and dependency metadata remain restricted to the root build.
 
 Development gates passed: **757 debug + 757 release unit/integration tests**,
-**271/271 cold-boot API35 instrumentation tests**, no failures/errors/skips,
+**274/274 cold-boot API35 instrumentation tests**, no failures/errors/skips,
 and lint with zero errors and 43 warnings. Final artifact hashes, source
 identities, reproducibility and publication are pending the remaining gates.
 `TESTING_REPORT.md` separates debug-device evidence from signed-artifact checks.
@@ -18,6 +18,12 @@ During API 36 testing, a cold-start validation timeout exposed redundant URL
 heuristic work and DebugTree stack-trace overhead inside the 50-ms detection
 deadline. The redundant scan and debug logging were removed without changing
 the acceptance conditions or the 100-ms overall validation limit.
+
+Final-artifact testing also exposed stale checked-state restoration overwriting
+imported themes and newer Browser settings. Both settings screens now restore
+their layout without saving old control values, then display current preferences.
+Three device regressions cover real theme restore/recreation and Browser mode
+and action choices changed by a newer settings transaction.
 
 Upstream F-Droid metadata incorrectly listed MIT although the project uses
 GPL-3.0-or-later. A [license-only correction](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/48797)

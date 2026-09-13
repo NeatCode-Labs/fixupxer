@@ -54,11 +54,13 @@ class BrowserSettingsActivity : BaseActivity() {
     private var conversionDefaultsDialog: androidx.appcompat.app.AlertDialog? = null
     private var aliasOperationFailed = false
     private var renderedState: BrowserSettingsState? = null
+    private var restoringViewState = false
 
     @Inject
     lateinit var preferencesManager: PreferencesManager
 
     private val browserModeListener = CompoundButton.OnCheckedChangeListener { _, checked ->
+        if (restoringViewState) return@OnCheckedChangeListener
         if (checked == preferencesManager.isBrowserModeEnabled()) return@OnCheckedChangeListener
         val result = BrowserModeUtils.updateBrowserMode(this, preferencesManager, checked)
         aliasOperationFailed = result.needsAttention
@@ -74,6 +76,7 @@ class BrowserSettingsActivity : BaseActivity() {
     }
 
     private val actionModeListener = RadioGroup.OnCheckedChangeListener { _, checkedId ->
+        if (restoringViewState) return@OnCheckedChangeListener
         val mode = if (checkedId == R.id.radioFollowPriority) {
             PreferencesManager.ACTION_MODE_PRIORITY
         } else {
@@ -107,6 +110,18 @@ class BrowserSettingsActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         if (::binding.isInitialized) renderState()
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        // Saved view state predates changes made by another settings transaction.
+        // Restore layout state without treating old checked values as user edits.
+        restoringViewState = true
+        try {
+            super.onRestoreInstanceState(savedInstanceState)
+        } finally {
+            restoringViewState = false
+        }
+        renderState()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {

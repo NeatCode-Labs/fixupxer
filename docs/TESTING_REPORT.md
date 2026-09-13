@@ -10,9 +10,15 @@ draft settings and Android transaction/recreation/action behavior.
 
 Final unit/lint gates passed **757 unit/integration tests in each debug and
 release variant**, with no skipped tests or failures, and lint with zero errors
-and 43 warnings. The final full cold-boot API 35 gate passed **271/271**,
-with no failures or skipped tests, in 8m57s. Earlier 252/252 and 268/268 runs
-preceded the final cancellation fixes and remain historical development evidence.
+and 43 warnings. The final full cold-boot API 35 gate passed **274/274**,
+with no failures or skipped tests, in 9m10s (526.777 seconds of device tests).
+Earlier 252/252, 268/268 and 271/271 runs remain historical development evidence.
+
+The initial signed candidate exposed old Android checked-state restoration
+overwriting an imported System theme. A targeted device test also reproduced
+Browser settings reverting a newer disabled mode. Both screens now ignore
+preference callbacks during framework view-state restoration. All three new
+theme/Browser recreation regressions passed in the full 274-test run.
 
 API 21: all 11 Browser settings tests, five backup codec/migration tests and
 11 frontend flow tests passed. The first flow run failed in its test setup:

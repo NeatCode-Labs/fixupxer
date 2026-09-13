@@ -66,6 +66,7 @@ class SettingsActivity : BaseActivity() {
     private val backupViewModel: SettingsBackupViewModel by viewModels()
     private var restoreProgressDialog: AlertDialog? = null
     private var restoreThemeAwaitingRecreation: String? = null
+    private var restoringViewState = false
 
     @Inject
     lateinit var preferencesManager: PreferencesManager
@@ -74,7 +75,7 @@ class SettingsActivity : BaseActivity() {
     lateinit var localBackupManager: LocalBackupManager
 
     private val customRulesListener = CompoundButton.OnCheckedChangeListener { _, checked ->
-        if (customRulesViewModel.enabled.value != checked) {
+        if (!restoringViewState && customRulesViewModel.enabled.value != checked) {
             customRulesViewModel.setEnabled(checked)
         }
     }
@@ -108,6 +109,18 @@ class SettingsActivity : BaseActivity() {
         if (::binding.isInitialized) renderState()
     }
 
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        // A backup can change preferences while its theme change recreates us.
+        // Android's old checked states must not be treated as fresh user edits.
+        restoringViewState = true
+        try {
+            super.onRestoreInstanceState(savedInstanceState)
+        } finally {
+            restoringViewState = false
+        }
+        renderState()
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         android.R.id.home -> {
             finish()
@@ -118,7 +131,7 @@ class SettingsActivity : BaseActivity() {
 
     private fun setupViews() {
         binding.themeToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (!isChecked) return@addOnButtonCheckedListener
+            if (!isChecked || restoringViewState) return@addOnButtonCheckedListener
             val mode = when (checkedId) {
                 R.id.buttonThemeLight -> PreferencesManager.THEME_MODE_LIGHT
                 R.id.buttonThemeDark -> PreferencesManager.THEME_MODE_DARK
@@ -131,7 +144,7 @@ class SettingsActivity : BaseActivity() {
         }
 
         binding.handToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (!isChecked) return@addOnButtonCheckedListener
+            if (!isChecked || restoringViewState) return@addOnButtonCheckedListener
             val hand = if (checkedId == R.id.buttonHandLeft) {
                 PreferencesManager.DOMINANT_HAND_LEFT
             } else {

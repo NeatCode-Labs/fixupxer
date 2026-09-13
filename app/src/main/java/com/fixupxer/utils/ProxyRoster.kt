@@ -33,6 +33,25 @@ import com.fixupxer.processing.UrlNormalizer
  */
 object ProxyRoster {
 
+    data class Snapshot(
+        val revision: Long,
+        val activeTargets: Map<ProxyPlatform, List<FrontendTarget>>,
+        val knownDomains: Map<ProxyPlatform, List<String>>,
+    )
+
+    @Volatile
+    var revision: Long = 0L
+        private set
+
+    @Synchronized
+    fun snapshot(): Snapshot = Snapshot(
+        revision,
+        ProxyPlatform.entries.associateWith(::activeTargets),
+        ProxyPlatform.entries.associateWith { platform ->
+            (AlternativeFrontendCatalog.sourceDomains(platform) + allKnownDomains(platform)).distinct()
+        },
+    )
+
     private data class PlatformState(
         val customDomains: List<String> = emptyList(),
         val disabledBuiltInIds: Set<String> = emptySet(),
@@ -49,6 +68,8 @@ object ProxyRoster {
         val current = states.toMutableMap()
         current[platform] = transform(stateFor(platform))
         states = current
+        revision++
+        BrowserViewGate.invalidate()
     }
 
     fun setCustomProxies(platform: ProxyPlatform, proxies: List<String>) {
@@ -120,6 +141,8 @@ object ProxyRoster {
     @Synchronized
     fun reset() {
         states = emptyMap()
+        revision++
+        BrowserViewGate.invalidate()
     }
 
     /** Clears state for a single platform — used by legacy store facades. */
@@ -128,6 +151,8 @@ object ProxyRoster {
         val current = states.toMutableMap()
         current.remove(platform)
         states = current
+        revision++
+        BrowserViewGate.invalidate()
     }
 
     // ---------------------------------------------------------------------

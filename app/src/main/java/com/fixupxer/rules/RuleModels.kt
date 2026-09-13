@@ -143,5 +143,6 @@ data class RuleEngineResult(
     val url: String,
     val changed: Boolean,
     val redirectRequested: Boolean,
-    val trace: List<RuleTraceStep>
+    val trace: List<RuleTraceStep>,
+    val invalidOutput: Boolean = false,
 )

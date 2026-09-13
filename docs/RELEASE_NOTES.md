@@ -1,3 +1,35 @@
+# FixupXer v2.7.0 - Browser Frontend Choices
+
+## What's New
+
+- Choose separate Browser frontends for TikTok, Instagram, X, Bluesky, Reddit,
+  Pinterest and Facebook. Supported built-in readers, embeds and existing custom
+  domains appear in separate groups; YouTube and Threads remain Clean only.
+- Open with > FixupXer now uses those choices. Copy, Share and Open receive the
+  same final processed URL, including TikTok short-link subdomains.
+- Existing reader selections migrate without enabling new conversions. Changes
+  and category restores stay drafts until Save; unavailable readers use the
+  documented fallback without overwriting your remembered choice.
+- Backup schema v2 includes Browser choices and still imports v1 files safely.
+  Deleting a custom domain also clears its active or remembered Browser choice.
+- Interrupted processing, changed settings and failed external actions keep the
+  result available for Retry. Stale callbacks cannot dispatch a newer link;
+  rotation preserves a completed transaction without duplicating history.
+- Host conversion preserves domain text inside query values and fragments.
+  Cache entries are separated by cleaner/roster configuration and pass limits.
+
+FixupXer remains offline with zero permissions. Frontend conversion changes a URL
+locally; it does not verify the availability or privacy of a third-party service.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 50
+- versionName: 2.7.0
+
+---
+
 # FixupXer v2.6.7 - No Changes Made Status
 
 ## What's New

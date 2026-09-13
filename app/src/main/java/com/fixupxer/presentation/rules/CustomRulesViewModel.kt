@@ -16,7 +16,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fixupxer.PreferencesManager
 import com.fixupxer.domain.repository.UrlRepository
-import com.fixupxer.processing.BrowserConversionPolicy
 import com.fixupxer.processing.ProcessingOptions
 import com.fixupxer.processing.ProcessingProfile
 import com.fixupxer.processing.ProxySelections
@@ -155,7 +154,10 @@ class RuleEditorViewModel @Inject constructor(
             customRulesEnabled = customRulesEnabled,
             persistHistory = false,
             useCache = false,
-            traceEnabled = true
+            traceEnabled = true,
+            browserFrontends = if (profile == ProcessingProfile.BROWSER) {
+                com.fixupxer.processing.BrowserFrontendSnapshot(preferences.getBrowserFrontendPreferences())
+            } else null,
         ),
         snapshotOverride = snapshot
     )
@@ -163,25 +165,12 @@ class RuleEditorViewModel @Inject constructor(
     private fun shouldConvertDomains(url: String, profile: ProcessingProfile): Boolean {
         val isInstagram = urlRepository.isInstagramUrl(url)
         val isFacebook = urlRepository.isFacebookUrl(url)
-        val isTwitter = urlRepository.isTwitterUrl(url)
         val isTikTok = urlRepository.isTikTokUrl(url)
         val isBluesky = urlRepository.isBlueskyUrl(url)
         val isReddit = urlRepository.isRedditUrl(url)
         val isYouTube = urlRepository.isYouTubeUrl(url)
         val isPinterest = urlRepository.isPinterestUrl(url)
         val isThreads = urlRepository.isThreadsUrl(url)
-        val browserPlatform = when {
-            isInstagram -> ProxyPlatform.INSTAGRAM
-            isFacebook -> ProxyPlatform.FACEBOOK
-            isTwitter -> ProxyPlatform.X
-            isTikTok -> ProxyPlatform.TIKTOK
-            isBluesky -> ProxyPlatform.BLUESKY
-            isReddit -> ProxyPlatform.REDDIT
-            isYouTube -> ProxyPlatform.YOUTUBE
-            isPinterest -> ProxyPlatform.PINTEREST
-            isThreads -> ProxyPlatform.THREADS
-            else -> null
-        }
         return when (profile) {
             ProcessingProfile.MAIN, ProcessingProfile.SHARE -> when {
                 isInstagram -> preferences.isConvertInstagramEnabled()
@@ -194,15 +183,7 @@ class RuleEditorViewModel @Inject constructor(
                 isThreads -> preferences.isConvertThreadsEnabled()
                 else -> preferences.isConvertTwitterEnabled()
             }
-            ProcessingProfile.BROWSER -> BrowserConversionPolicy.shouldConvert(
-                platform = browserPlatform,
-                toggleEnabled = browserPlatform?.let {
-                    preferences.isBrowserPrivacyConversionEnabled(it)
-                } == true,
-                hasActiveTarget = browserPlatform?.let {
-                    preferences.resolveBrowserPrivacyTarget(it)
-                } != null,
-            )
+            ProcessingProfile.BROWSER -> false // Resolved per URL/hop in the orchestrator.
         }
     }
 }

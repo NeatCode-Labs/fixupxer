@@ -2,19 +2,8 @@
 /*
  * FixupXer - URL Enhancer
  * Copyright (C) 2020-2026  NeatCode Labs
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * This program is free software under the GNU General Public License,
+ * version 3 or (at your option) any later version.
  */
 
 package com.fixupxer
@@ -23,6 +12,8 @@ import android.content.Context
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.widget.LinearLayout
+import com.fixupxer.processing.BrowserConversionMode
+import com.fixupxer.processing.BrowserFrontendPreference
 import com.fixupxer.ui.helpers.BrowserConversionDefaultsHelper
 import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.InstagramProxyStore
@@ -31,6 +22,7 @@ import com.fixupxer.utils.ProxyRoster
 import com.fixupxer.utils.TikTokProxyStore
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -42,18 +34,17 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class BrowserConversionDefaultsRecoveryTest {
-
     private lateinit var context: Context
-    private lateinit var preferencesManager: PreferencesManager
+    private lateinit var preferences: PreferencesManager
 
     @Before
-    fun setUp() {
+    fun setup() {
+        context = RuntimeEnvironment.getApplication().applicationContext
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().commit()
         ProxyRoster.reset()
         InstagramProxyStore.reset()
         TikTokProxyStore.reset()
-        context = RuntimeEnvironment.getApplication()
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().commit()
-        preferencesManager = PreferencesManager(context)
+        preferences = PreferencesManager(context)
     }
 
     @After
@@ -65,103 +56,135 @@ class BrowserConversionDefaultsRecoveryTest {
     }
 
     @Test
-    fun `restoring and selecting a reader preserves an enabled conversion draft`() {
-        preferencesManager.setBrowserConvertTwitterEnabled(true)
-        AlternativeFrontendCatalog.builtInReaders(ProxyPlatform.X).forEach { reader ->
-            preferencesManager.disableBuiltIn(ProxyPlatform.X, reader.id)
-        }
-
-        val draft = BrowserConversionDefaultsHelper.createDraft(preferencesManager)
-        val themedContext = ContextThemeWrapper(context, R.style.Theme_FixupXer)
-        val container = LinearLayout(themedContext)
+    fun `draft contains all seven configurable platforms`() {
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
+        val themed = ContextThemeWrapper(context, R.style.Theme_FixupXer)
         val rows = BrowserConversionDefaultsHelper.populateContainer(
-            context = themedContext,
-            layoutInflater = LayoutInflater.from(themedContext),
-            container = container,
-            draft = draft,
-            onChangePrivacyTarget = {},
+            themed,
+            LayoutInflater.from(themed),
+            LinearLayout(themed),
+            draft,
+            onChangeTarget = {},
         )
 
-        draft.restoreBuiltInReaders(ProxyPlatform.X)
-        val restoredReader = AlternativeFrontendCatalog.builtInReaders(ProxyPlatform.X).first()
-        draft.updateDraftTarget(ProxyPlatform.X, restoredReader)
-        BrowserConversionDefaultsHelper.refreshRows(
-            context = themedContext,
-            rows = rows,
-            draft = draft,
-            onChangePrivacyTarget = {},
-        )
-
-        val xRow = rows.first { it.entry.platform == ProxyPlatform.X }
-        assertTrue(xRow.binding.switchBrowserPrivacyPlatform.isEnabled)
-        assertTrue(xRow.binding.switchBrowserPrivacyPlatform.isChecked)
-
-        draft.apply(preferencesManager)
-
-        assertTrue(preferencesManager.isBrowserConvertTwitterEnabled())
+        assertEquals(7, rows.size)
         assertEquals(
-            restoredReader.id,
-            preferencesManager.getBrowserPrivacyTargetId(ProxyPlatform.X),
+            BrowserConversionDefaultsHelper.entries.map { it.platform }.toSet(),
+            rows.map { it.entry.platform }.toSet(),
         )
     }
 
     @Test
-    fun `reader-only restore keeps disabled embed built-ins disabled after save`() {
-        preferencesManager.setBrowserConvertTwitterEnabled(true)
-        preferencesManager.disableBuiltIn(ProxyPlatform.X, EMBED_X_ID)
-        AlternativeFrontendCatalog.builtInReaders(ProxyPlatform.X).forEach { reader ->
-            preferencesManager.disableBuiltIn(ProxyPlatform.X, reader.id)
-        }
+    fun `cancelled reader restore and selection do not mutate prefs or roster`() {
+        preferences.disableBuiltIn(ProxyPlatform.X, "x_xcancel")
+        val before = preferences.exportSettingsSnapshot()
+        val beforeRoster = ProxyRoster.getDisabledBuiltIns(ProxyPlatform.X)
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
 
-        val draft = BrowserConversionDefaultsHelper.createDraft(preferencesManager)
-        val initialDisabled = preferencesManager.getDisabledBuiltIns(ProxyPlatform.X)
-        draft.restoreBuiltInReaders(ProxyPlatform.X)
+        draft.restoreCategory(ProxyPlatform.X, BrowserConversionMode.READER)
+        draft.select(
+            ProxyPlatform.X,
+            BrowserFrontendPreference(BrowserConversionMode.READER, "x_xcancel"),
+        )
 
-        assertEquals(initialDisabled, preferencesManager.getDisabledBuiltIns(ProxyPlatform.X))
-        assertEquals(initialDisabled, ProxyRoster.getDisabledBuiltIns(ProxyPlatform.X))
-        assertEquals(setOf(EMBED_X_ID), draft.disabledBuiltIns(ProxyPlatform.X))
-
-        val restoredReader = AlternativeFrontendCatalog.builtInReaders(ProxyPlatform.X).first()
-        draft.updateDraftTarget(ProxyPlatform.X, restoredReader)
-        draft.apply(preferencesManager)
-
-        assertEquals(setOf(EMBED_X_ID), preferencesManager.getDisabledBuiltIns(ProxyPlatform.X))
-        assertTrue(preferencesManager.isBrowserConvertTwitterEnabled())
+        assertEquals(before, preferences.exportSettingsSnapshot())
+        assertEquals(beforeRoster, ProxyRoster.getDisabledBuiltIns(ProxyPlatform.X))
     }
 
     @Test
-    fun `cancelled draft restore never mutates preferences or proxy roster`() {
-        preferencesManager.setBrowserConvertTwitterEnabled(true)
-        preferencesManager.disableBuiltIn(ProxyPlatform.X, EMBED_X_ID)
-        AlternativeFrontendCatalog.builtInReaders(ProxyPlatform.X).forEach { reader ->
-            preferencesManager.disableBuiltIn(ProxyPlatform.X, reader.id)
-        }
-        val initialDisabled = preferencesManager.getDisabledBuiltIns(ProxyPlatform.X)
+    fun `disabled saved reader displays fallback without overwriting raw id`() {
+        val initial = preferences.getBrowserFrontendPreferences()
+        preferences.saveBrowserFrontendPreferences(
+            mapOf(
+                ProxyPlatform.X to BrowserFrontendPreference(
+                    BrowserConversionMode.READER,
+                    "x_xcancel",
+                )
+            ),
+            initial,
+        )
+        preferences.disableBuiltIn(ProxyPlatform.X, "x_xcancel")
 
-        val draft = BrowserConversionDefaultsHelper.createDraft(preferencesManager)
-        draft.restoreBuiltInReaders(ProxyPlatform.X)
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
 
-        assertEquals(initialDisabled, preferencesManager.getDisabledBuiltIns(ProxyPlatform.X))
-        assertEquals(initialDisabled, ProxyRoster.getDisabledBuiltIns(ProxyPlatform.X))
-        assertEquals(setOf(EMBED_X_ID), draft.disabledBuiltIns(ProxyPlatform.X))
+        assertEquals("x_xcancel", draft.preference(ProxyPlatform.X).targetId)
+        assertEquals("x_nitter_net", draft.effectiveTarget(ProxyPlatform.X)?.id)
+        assertTrue(draft.isUsingFallback(ProxyPlatform.X))
     }
 
     @Test
-    fun `new draft copies roster without mutating it`() {
-        preferencesManager.disableBuiltIn(ProxyPlatform.X, EMBED_X_ID)
-        val initialDisabled = preferencesManager.getDisabledBuiltIns(ProxyPlatform.X)
+    fun `save restores only requested category and preserves dormant clean choice`() {
+        preferences.disableBuiltIn(ProxyPlatform.X, "x_fixupx")
+        preferences.disableBuiltIn(ProxyPlatform.X, "x_xcancel")
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
+        draft.restoreCategory(ProxyPlatform.X, BrowserConversionMode.READER)
+        draft.select(
+            ProxyPlatform.X,
+            BrowserFrontendPreference(BrowserConversionMode.CLEAN_ONLY, "x_xcancel"),
+        )
 
-        val draft = BrowserConversionDefaultsHelper.createDraft(preferencesManager)
-
-        assertEquals(initialDisabled, preferencesManager.getDisabledBuiltIns(ProxyPlatform.X))
-        assertEquals(initialDisabled, ProxyRoster.getDisabledBuiltIns(ProxyPlatform.X))
-        assertEquals(initialDisabled, draft.disabledBuiltIns(ProxyPlatform.X))
+        assertTrue(draft.apply())
+        assertTrue("x_fixupx" in preferences.getDisabledBuiltIns(ProxyPlatform.X))
+        assertFalse("x_xcancel" in preferences.getDisabledBuiltIns(ProxyPlatform.X))
+        assertEquals(
+            BrowserFrontendPreference(BrowserConversionMode.CLEAN_ONLY, "x_xcancel"),
+            preferences.getBrowserFrontendPreferences()[ProxyPlatform.X],
+        )
     }
 
-    private companion object {
-        const val PREFS_NAME = "FixupXerPrefs"
+    @Test
+    fun `sequential reader and embed restores remain explicit draft operations`() {
+        preferences.disableBuiltIn(ProxyPlatform.X, "x_fixupx")
+        preferences.disableBuiltIn(ProxyPlatform.X, "x_xcancel")
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
 
-        /** Built-in X embed target (fixupx.com) — must never be resurrected by reader restore. */
-        const val EMBED_X_ID = "x_fixupx"
+        draft.restoreCategory(ProxyPlatform.X, BrowserConversionMode.READER)
+        draft.restoreCategory(ProxyPlatform.X, BrowserConversionMode.EMBED)
+
+        assertTrue(draft.apply())
+        assertFalse("x_fixupx" in preferences.getDisabledBuiltIns(ProxyPlatform.X))
+        assertFalse("x_xcancel" in preferences.getDisabledBuiltIns(ProxyPlatform.X))
     }
+
+    @Test
+    fun `custom target is selectable but Browser draft does not edit custom roster`() {
+        preferences.addCustomProxy(ProxyPlatform.FACEBOOK, "reader.example")
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
+        val custom = draft.activeTargets(ProxyPlatform.FACEBOOK).single()
+        draft.select(
+            ProxyPlatform.FACEBOOK,
+            BrowserFrontendPreference(BrowserConversionMode.CUSTOM, custom.id),
+        )
+
+        assertTrue(draft.apply())
+        assertEquals(listOf("reader.example"), preferences.getCustomProxies(ProxyPlatform.FACEBOOK))
+        assertEquals(BrowserConversionMode.CUSTOM, preferences.getBrowserFrontendPreferences()[ProxyPlatform.FACEBOOK]?.mode)
+    }
+
+    @Test
+    fun `stale draft save fails without overwriting newer choice`() {
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
+        draft.select(
+            ProxyPlatform.X,
+            BrowserFrontendPreference(BrowserConversionMode.READER, "x_xcancel"),
+        )
+        val current = preferences.getBrowserFrontendPreferences()
+        preferences.saveBrowserFrontendPreferences(
+            mapOf(
+                ProxyPlatform.X to BrowserFrontendPreference(
+                    BrowserConversionMode.EMBED,
+                    AlternativeFrontendCatalog.defaultTargetId(ProxyPlatform.X),
+                )
+            ),
+            current,
+        )
+
+        assertFalse(draft.apply())
+        assertEquals(
+            BrowserConversionMode.EMBED,
+            preferences.getBrowserFrontendPreferences()[ProxyPlatform.X]?.mode,
+        )
+    }
+
+    private companion object { const val PREFS_NAME = "FixupXerPrefs" }
 }

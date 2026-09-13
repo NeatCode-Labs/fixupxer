@@ -15,11 +15,14 @@ import android.content.Context
 import androidx.annotation.StringRes
 import com.fixupxer.PreferencesManager
 import com.fixupxer.R
+import com.fixupxer.processing.BrowserConversionMode
+import com.fixupxer.processing.BrowserFrontendPolicy
 import com.fixupxer.utils.BrowserEffectiveStatus
 import com.fixupxer.utils.BrowserModeUtils
 import com.fixupxer.utils.BrowserPrivacySummary
 import com.fixupxer.utils.BrowserSettingsState
 import com.fixupxer.utils.BrowserSettingsStateResolver
+import com.fixupxer.utils.ProxyRoster
 
 object BrowserStatusTextHelper {
 
@@ -48,10 +51,17 @@ object BrowserStatusTextHelper {
 
     fun privacySummary(preferencesManager: PreferencesManager): BrowserPrivacySummary {
         var active = 0
-        var attention = 0
+        var attention = if (preferencesManager.hasInvalidBrowserFrontendPreferences()) 1 else 0
+        val preferences = preferencesManager.getBrowserFrontendPreferences()
         BrowserConversionDefaultsHelper.entries.forEach { entry ->
-            if (!entry.getter(preferencesManager)) return@forEach
-            if (preferencesManager.resolveBrowserPrivacyTarget(entry.platform) == null) {
+            val preference = preferences.getValue(entry.platform)
+            if (preference.mode == BrowserConversionMode.CLEAN_ONLY) return@forEach
+            if (BrowserFrontendPolicy.resolve(
+                    entry.platform,
+                    preference,
+                    ProxyRoster.activeTargets(entry.platform),
+                ) == null
+            ) {
                 attention++
             } else {
                 active++

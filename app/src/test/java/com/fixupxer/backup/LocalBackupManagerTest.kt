@@ -31,6 +31,7 @@ import com.fixupxer.rules.RuleMatcher
 import com.fixupxer.rules.RuleVectorRunner
 import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.utils.BrowserModeUtils
+import com.fixupxer.utils.BrowserViewGate
 import com.fixupxer.utils.Constants
 import kotlinx.coroutines.test.runTest
 import org.json.JSONObject
@@ -63,6 +64,7 @@ class LocalBackupManagerTest {
 
     @Before
     fun setup() {
+        BrowserViewGate.resetForTests()
         context = RuntimeEnvironment.getApplication().applicationContext
         context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
             .edit()
@@ -104,6 +106,7 @@ class LocalBackupManagerTest {
 
     @After
     fun tearDown() {
+        BrowserViewGate.resetForTests()
         database.close()
         context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
             .edit()
@@ -192,6 +195,31 @@ class LocalBackupManagerTest {
         assertTrue(BrowserModeUtils.isBrowserAliasEnabled(context))
         verify(historyRepository).trimHistory(20_000)
         assertFalse(rollbackFile().exists())
+    }
+
+    @Test
+    fun `failed interrupted recovery retains rollback record until a successful retry`() = runTest {
+        val rollbackBackup = manager.exportJson()
+        rollbackFile().writeText("not-json")
+
+        assertTrue(manager.recoverInterruptedRestore().isFailure)
+        assertTrue(rollbackFile().exists())
+        assertTrue(manager.restore(rollbackBackup).isFailure)
+        assertTrue(rollbackFile().exists())
+
+        rollbackFile().writeText(
+            JSONObject()
+                .put("format", Constants.RESTORE_ROLLBACK_FORMAT)
+                .put("schemaVersion", Constants.RESTORE_ROLLBACK_SCHEMA_VERSION)
+                .put("backup", JSONObject(rollbackBackup))
+                .put("browserAliasEnabled", false)
+                .put("pendingLegacyHistoryLimit", JSONObject.NULL)
+                .toString()
+        )
+
+        assertTrue(manager.recoverInterruptedRestore().isSuccess)
+        assertFalse(rollbackFile().exists())
+        assertNotNull(BrowserViewGate.begin(preferenceEnabled = true, aliasEnabled = true))
     }
 
     @Test

@@ -1,20 +1,20 @@
 # FixupXer App - Development Summary
 
-## Version Progression: v2.6.7 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.7.0 → v1.2.1 (Latest to Oldest)
 
-**Versions Documented:** 43 (v2.6.7 through v1.2.1)
-**Current Version:** v2.6.7 (versionCode: 49)
-**Development Period:** v1.2.1 (Initial) → v2.6.7 (Current)
+**Versions Documented:** 44 (v2.7.0 through v1.2.1)
+**Current Version:** v2.7.0 (versionCode: 50)
+**Development Period:** v1.2.1 (Initial) → v2.7.0 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes all modifications made to the FixupXer Android app since v1.2.1, culminating in v2.6.7: selective host-bound cleaning across 26 domain cleaners plus a universal cleaner, Private Link Guard with redacted history for fully cleaned sensitive links, curated offline redirect unwrapping, social embed conversion with a vetted frontend catalog reachable from Settings, Browser-mode privacy readers with saved per-host app choices, local settings backup/restore, Process Text, and a tested no-code custom-rule engine. The latest change renames the result status Already clean to No changes made, so the card states what the app did, including for opaque redirect links that cannot be unwrapped offline, while retaining the zero-permission offline model.
+This document summarizes modifications since v1.2.1, through v2.7.0: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text and custom rules. Browser mode now has separate frontend choices for seven platforms, including TikTok and Instagram. Copy, Share and Open use the same processed URL; incomplete or stale processing stays in the app for Retry. Backup schema v2 migrates existing reader choices and retains v1 import. All processing remains offline with zero permissions.
 
 ### Key Achievements:
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
-- ✅ **Browser Privacy Readers & Saved App Choices** - Dedicated Browser mode settings hub with per-platform privacy reader conversions (X, Bluesky, Reddit, Pinterest), exact-host saved app routing, and a read-only Configuration status overview
+- ✅ **Browser Frontends & Saved App Choices** - Separate Clean only, Reader, Embed and Custom choices for seven eligible platforms, exact-host saved app routing, and a read-only Configuration status overview
 - ✅ **Alternative Frontend Catalog** - Embed/Privacy frontend picker on Main/Share across nine platforms with selectable readers (xcancel, Nitter, SkyLib, Redlib, Invidious, …) and custom domains for every platform
 - ✅ **Local Settings Backup** - Validated JSON export/restore of settings, custom rules, and saved app choices with atomic apply, automatic rollback, and crash-safe recovery
 - ✅ **Private Link Guard** - Offline detection of credentials, e-mails, JWT/auth tokens and precise coordinates left in links; sensitive originals never enter history or cache, while fully cleaned results are kept as clearly marked redacted entries
@@ -38,6 +38,12 @@ This document summarizes all modifications made to the FixupXer Android app sinc
 ---
 
 ## 📋 Version History
+
+### v2.6.7 → v2.7.0
+- **Browser frontend choices:** separate Clean only/Reader/Embed/Custom preferences across the seven eligible platforms, including TikTok and Instagram; experimental YouTube/Threads conversions stay unavailable. A category restore and selection remain unsaved until Save, and concurrent edits do not overwrite newer choices.
+- **Consistent processing and delivery:** each conversion phase resolves the current cleaned URL against a configuration snapshot. Copy/Share/Open receive the same result; unavailable explicit targets, invalid output, cycles and pass limits leave a local result for Retry. UUID-based VIEW transactions, configuration fingerprints and persistent attention state guard recreation and late callbacks.
+- **Storage and backup:** schema v2 stores all nine Browser platform choices and imports v1 through explicit migration. Disabled reader selections survive upgrades; deleted custom targets reset their Browser choice. Failed restore recovery retains its journal and blocks Browser dispatch.
+- **Shared correctness fixes:** host-only X conversion preserves query/fragment literals; cleaner cache keys include roster/cleaner revisions and pass limits, and sensitive eviction prevents in-flight repopulation. Share excludes FixupXer from destinations, while temporarily incompatible saved app routes remain saved.
 
 ### v2.6.6 → v2.6.7
 - **Result status wording:** the `Already clean` chip on the Main and Share result cards is now `No changes made`. The chip is shown whenever the output equals the input, which also covers conversions that are off or do not apply and opaque redirect or click-tracking links (for example MailerLite click links) whose destination is only known to the sender's server. The new wording describes what FixupXer did instead of asserting that the link is clean. No cleaner, catalog, permission or network behavior changes.

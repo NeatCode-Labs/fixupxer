@@ -39,6 +39,9 @@ import com.fixupxer.databinding.ItemProxyActionBinding
 import com.fixupxer.databinding.ItemProxyGroupHeaderBinding
 import com.fixupxer.databinding.ItemProxyOptionBinding
 import com.fixupxer.databinding.ItemProxySectionHeaderBinding
+import com.fixupxer.processing.BrowserConversionMode
+import com.fixupxer.processing.BrowserFrontendPolicy
+import com.fixupxer.processing.BrowserFrontendPreference
 import com.fixupxer.ui.helpers.FrontendDisplayHelper
 import com.fixupxer.ui.helpers.SnackbarHelper
 import com.fixupxer.utils.AlternativeFrontendCatalog
@@ -70,9 +73,13 @@ object ProxyPickerDialogHelper {
             val showDelete: Boolean,
         ) : PickerItem()
 
+        data class CleanOnly(val checked: Boolean) : PickerItem()
+
         enum class ActionType {
             ADD_CUSTOM,
             RESTORE_BUILT_INS,
+            RESTORE_READERS,
+            RESTORE_EMBEDS,
             EDIT_TOGGLE,
         }
 
@@ -129,11 +136,13 @@ object ProxyPickerDialogHelper {
         adapter = ProxyPickerAdapter(
             onOptionClick = { target ->
                 if (editMode) return@ProxyPickerAdapter
+                target ?: return@ProxyPickerAdapter
                 preferencesManager.setSelectedProxyDomain(platform, target.domain)
                 onChanged()
                 dialog?.dismissAnimated()
             },
             onDeleteClick = { target ->
+                target ?: return@ProxyPickerAdapter
                 handleDelete(
                     context = context,
                     platform = platform,
@@ -164,6 +173,8 @@ object ProxyPickerDialogHelper {
                         editMode = !editMode
                         refresh()
                     }
+                    PickerItem.ActionType.RESTORE_READERS,
+                    PickerItem.ActionType.RESTORE_EMBEDS -> Unit
                 }
             }
         )
@@ -253,6 +264,7 @@ object ProxyPickerDialogHelper {
 
         adapter = ProxyPickerAdapter(
             onOptionClick = { target ->
+                target ?: return@ProxyPickerAdapter
                 onSelected(target)
                 dialog?.dismissAnimated()
             },
@@ -274,6 +286,119 @@ object ProxyPickerDialogHelper {
             setContentView(binding.root)
             show()
         }
+    }
+
+    /** Browser-only selection mode. It never adds, deletes, or persists roster entries. */
+    fun showBrowserSelection(
+        context: Context,
+        layoutInflater: LayoutInflater,
+        platform: ProxyPlatform,
+        selectedPreference: BrowserFrontendPreference,
+        disabledBuiltIns: () -> Set<String>,
+        onRestoreCategory: (BrowserConversionMode) -> Unit,
+        onSelected: (BrowserFrontendPreference) -> Unit,
+    ) {
+        val binding = DialogProxyPickerBinding.inflate(layoutInflater)
+        var dialog: AnimatedBottomSheetDialog? = null
+        lateinit var adapter: ProxyPickerAdapter
+
+        fun activeTargets(): List<FrontendTarget> {
+            val disabled = disabledBuiltIns()
+            val runtime = ProxyRoster.activeTargets(platform).filterNot { it.id in disabled }
+            val restored = AlternativeFrontendCatalog.builtIn(platform).filter { target ->
+                target.id !in disabled && runtime.none { it.id == target.id }
+            }
+            return BrowserFrontendPolicy.allowedTargets(platform, runtime + restored)
+        }
+
+        fun refresh() {
+            val disabled = disabledBuiltIns()
+            val disabledAllowed = BrowserFrontendPolicy.allowedTargets(
+                platform,
+                AlternativeFrontendCatalog.builtIn(platform).filter { it.id in disabled },
+            )
+            binding.recyclerViewProxyPicker.isVisible = true
+            binding.emptyStateProxyPicker.isVisible = false
+            adapter.submit(
+                buildBrowserSelectionItems(
+                    activeTargets(),
+                    selectedPreference,
+                    restoreReaders = disabledAllowed.any { it.role == FrontendRole.READER },
+                    restoreEmbeds = disabledAllowed.any { it.role == FrontendRole.EMBED },
+                )
+            )
+        }
+
+        binding.textViewProxyPickerTitle.text = context.getString(
+            R.string.browser_frontend_picker_title,
+            context.getString(FrontendDisplayHelper.platformNameRes(platform)),
+        )
+        binding.proxyPickerInfoIcon.setOnClickListener {
+            MaterialAlertDialogBuilder(context)
+                .setTitle(R.string.browser_frontend_info_title)
+                .setMessage(R.string.browser_frontend_info_message)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
+        binding.buttonEmptyAddCustom.isVisible = false
+        binding.buttonEmptyRestoreBuiltIns.isVisible = false
+
+        adapter = ProxyPickerAdapter(
+            onOptionClick = { target ->
+                val preference = target?.let {
+                    BrowserFrontendPreference(BrowserFrontendPolicy.modeFor(it), it.id)
+                } ?: BrowserFrontendPreference(
+                    BrowserConversionMode.CLEAN_ONLY,
+                    selectedPreference.targetId,
+                )
+                onSelected(preference)
+                dialog?.dismissAnimated()
+            },
+            onDeleteClick = {},
+            onActionClick = { action ->
+                val mode = when (action) {
+                    PickerItem.ActionType.RESTORE_READERS -> BrowserConversionMode.READER
+                    PickerItem.ActionType.RESTORE_EMBEDS -> BrowserConversionMode.EMBED
+                    else -> return@ProxyPickerAdapter
+                }
+                onRestoreCategory(mode)
+                refresh()
+            },
+        )
+        binding.recyclerViewProxyPicker.layoutManager = LinearLayoutManager(context)
+        binding.recyclerViewProxyPicker.adapter = adapter
+        refresh()
+        dialog = AnimatedBottomSheetDialog(context).apply {
+            setContentView(binding.root)
+            show()
+        }
+    }
+
+    private fun buildBrowserSelectionItems(
+        targets: List<FrontendTarget>,
+        selected: BrowserFrontendPreference,
+        restoreReaders: Boolean,
+        restoreEmbeds: Boolean,
+    ): List<PickerItem> = buildList {
+        add(PickerItem.Header(R.string.browser_frontend_group_clean))
+        add(PickerItem.CleanOnly(selected.mode == BrowserConversionMode.CLEAN_ONLY))
+        val readers = targets.filter { BrowserFrontendPolicy.modeFor(it) == BrowserConversionMode.READER }
+        if (readers.isNotEmpty()) {
+            add(PickerItem.Header(R.string.browser_frontend_group_readers))
+            readers.forEach { add(PickerItem.Option(it, selected.mode == BrowserConversionMode.READER && selected.targetId == it.id, false)) }
+        }
+        val embeds = targets.filter { BrowserFrontendPolicy.modeFor(it) == BrowserConversionMode.EMBED }
+        if (embeds.isNotEmpty()) {
+            add(PickerItem.Header(R.string.browser_frontend_group_embeds))
+            embeds.forEach { add(PickerItem.Option(it, selected.mode == BrowserConversionMode.EMBED && selected.targetId == it.id, false)) }
+        }
+        val customs = targets.filter { BrowserFrontendPolicy.modeFor(it) == BrowserConversionMode.CUSTOM }
+        if (customs.isNotEmpty()) {
+            add(PickerItem.Header(R.string.browser_frontend_group_custom))
+            customs.forEach { add(PickerItem.Option(it, selected.mode == BrowserConversionMode.CUSTOM && selected.targetId == it.id, false)) }
+        }
+        if (restoreReaders) add(PickerItem.Action(PickerItem.ActionType.RESTORE_READERS, R.string.browser_frontend_restore_readers))
+        if (restoreEmbeds) add(PickerItem.Action(PickerItem.ActionType.RESTORE_EMBEDS, R.string.browser_frontend_restore_embeds))
     }
 
     private fun buildFullItems(
@@ -536,8 +661,8 @@ object ProxyPickerDialogHelper {
     }
 
     private class ProxyPickerAdapter(
-        private val onOptionClick: (FrontendTarget) -> Unit,
-        private val onDeleteClick: (FrontendTarget) -> Unit,
+        private val onOptionClick: (FrontendTarget?) -> Unit,
+        private val onDeleteClick: (FrontendTarget?) -> Unit,
         private val onActionClick: (PickerItem.ActionType) -> Unit,
     ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -552,6 +677,7 @@ object ProxyPickerDialogHelper {
             is PickerItem.SectionHeader -> VIEW_SECTION_HEADER
             is PickerItem.Header -> VIEW_HEADER
             is PickerItem.Option -> VIEW_OPTION
+            is PickerItem.CleanOnly -> VIEW_OPTION
             is PickerItem.Action -> VIEW_ACTION
         }
 
@@ -578,6 +704,7 @@ object ProxyPickerDialogHelper {
                 is PickerItem.SectionHeader -> (holder as SectionHeaderViewHolder).bind(item)
                 is PickerItem.Header -> (holder as HeaderViewHolder).bind(item)
                 is PickerItem.Option -> (holder as OptionViewHolder).bind(item, onOptionClick, onDeleteClick)
+                is PickerItem.CleanOnly -> (holder as OptionViewHolder).bindClean(item, onOptionClick)
                 is PickerItem.Action -> (holder as ActionViewHolder).bind(item, onActionClick)
             }
         }
@@ -609,8 +736,8 @@ object ProxyPickerDialogHelper {
         ) : RecyclerView.ViewHolder(binding.root) {
             fun bind(
                 item: PickerItem.Option,
-                onOptionClick: (FrontendTarget) -> Unit,
-                onDeleteClick: (FrontendTarget) -> Unit,
+                onOptionClick: (FrontendTarget?) -> Unit,
+                onDeleteClick: (FrontendTarget?) -> Unit,
             ) {
                 val context = binding.root.context
                 binding.proxyDomainText.text =
@@ -654,6 +781,19 @@ object ProxyPickerDialogHelper {
                         }
                     },
                 )
+            }
+
+            fun bindClean(item: PickerItem.CleanOnly, onOptionClick: (FrontendTarget?) -> Unit) {
+                val context = binding.root.context
+                binding.proxyDomainText.setText(R.string.browser_frontend_clean_only)
+                binding.proxySubtitleText.isVisible = true
+                binding.proxySubtitleText.setText(R.string.browser_frontend_clean_only_description)
+                binding.proxyRadio.isChecked = item.checked
+                binding.proxyDeleteButton.isVisible = false
+                binding.root.setOnClickListener { onOptionClick(null) }
+                binding.root.contentDescription = context.getString(R.string.browser_frontend_clean_only)
+                binding.root.isClickable = true
+                binding.root.isFocusable = true
             }
         }
 

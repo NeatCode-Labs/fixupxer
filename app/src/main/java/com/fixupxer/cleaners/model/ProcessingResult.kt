@@ -21,6 +21,7 @@
 package com.fixupxer.cleaners.model
 
 import com.fixupxer.processing.ChangeOperation
+import com.fixupxer.processing.PipelineStatus
 
 /**
  * Result of URL processing with non-sensitive details about what was changed.
@@ -30,5 +31,6 @@ data class ProcessingResult(
     val cleanedUrl: String,
     val operations: List<ChangeOperation>,
     val totalPasses: Int,
-    val wasModified: Boolean = originalUrl != cleanedUrl
+    val wasModified: Boolean = originalUrl != cleanedUrl,
+    val status: PipelineStatus = PipelineStatus.COMPLETE,
 )

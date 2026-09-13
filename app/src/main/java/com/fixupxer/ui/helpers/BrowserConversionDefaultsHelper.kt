@@ -1,91 +1,67 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 /*
  * FixupXer - URL Enhancer
- * Copyright (C) 2020-2025  NeatCode Labs
+ * Copyright (C) 2020-2026  NeatCode Labs
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package com.fixupxer.ui.helpers
 
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
 import com.fixupxer.PreferencesManager
 import com.fixupxer.R
 import com.fixupxer.databinding.ItemBrowserPrivacyPlatformBinding
+import com.fixupxer.processing.BrowserConversionMode
+import com.fixupxer.processing.BrowserFrontendPolicy
+import com.fixupxer.processing.BrowserFrontendPreference
 import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.FrontendTarget
 import com.fixupxer.utils.ProxyPlatform
-import com.google.android.material.materialswitch.MaterialSwitch
-import timber.log.Timber
+import com.fixupxer.utils.ProxyRoster
 
-/**
- * Builds the data-driven browser privacy conversion rows for Settings.
- */
+/** Builds the seven Browser frontend rows and owns their unsaved dialog state. */
 object BrowserConversionDefaultsHelper {
 
     data class BrowserPlatformEntry(
         val platform: ProxyPlatform,
         val labelRes: Int,
         val switchId: Int,
-        val getter: (PreferencesManager) -> Boolean,
-        val setter: (PreferencesManager, Boolean) -> Unit,
     )
 
-    val entries: List<BrowserPlatformEntry> = AlternativeFrontendCatalog
-        .privacyCapablePlatforms()
-        .mapNotNull { platform -> entryFor(platform) }
-
-    private fun entryFor(platform: ProxyPlatform): BrowserPlatformEntry? = when (platform) {
-        ProxyPlatform.X -> BrowserPlatformEntry(
+    val entries: List<BrowserPlatformEntry> = BrowserFrontendPolicy.supportedPlatforms().map { platform ->
+        BrowserPlatformEntry(
             platform = platform,
-            labelRes = R.string.convert_twitter_browser,
-            switchId = R.id.switchBrowserTwitter,
-            getter = { it.isBrowserConvertTwitterEnabled() },
-            setter = { prefs, enabled -> prefs.setBrowserConvertTwitterEnabled(enabled) },
+            labelRes = when (platform) {
+                ProxyPlatform.X -> R.string.convert_twitter_browser
+                ProxyPlatform.INSTAGRAM -> R.string.convert_instagram_browser
+                ProxyPlatform.TIKTOK -> R.string.convert_tiktok_browser
+                ProxyPlatform.FACEBOOK -> R.string.convert_facebook_browser
+                ProxyPlatform.BLUESKY -> R.string.convert_bluesky_browser
+                ProxyPlatform.REDDIT -> R.string.convert_reddit_browser
+                ProxyPlatform.PINTEREST -> R.string.convert_pinterest_browser
+                ProxyPlatform.YOUTUBE, ProxyPlatform.THREADS -> error("Clean-only platform")
+            },
+            switchId = when (platform) {
+                ProxyPlatform.X -> R.id.switchBrowserTwitter
+                ProxyPlatform.INSTAGRAM -> R.id.switchBrowserInstagram
+                ProxyPlatform.TIKTOK -> R.id.switchBrowserTikTok
+                ProxyPlatform.FACEBOOK -> R.id.switchBrowserFacebook
+                ProxyPlatform.BLUESKY -> R.id.switchBrowserBluesky
+                ProxyPlatform.REDDIT -> R.id.switchBrowserReddit
+                ProxyPlatform.PINTEREST -> R.id.switchBrowserPinterest
+                ProxyPlatform.YOUTUBE, ProxyPlatform.THREADS -> error("Clean-only platform")
+            },
         )
-        ProxyPlatform.BLUESKY -> BrowserPlatformEntry(
-            platform = platform,
-            labelRes = R.string.convert_bluesky_browser,
-            switchId = R.id.switchBrowserBluesky,
-            getter = { it.isBrowserConvertBlueskyEnabled() },
-            setter = { prefs, enabled -> prefs.setBrowserConvertBlueskyEnabled(enabled) },
-        )
-        ProxyPlatform.REDDIT -> BrowserPlatformEntry(
-            platform = platform,
-            labelRes = R.string.convert_reddit_browser,
-            switchId = R.id.switchBrowserReddit,
-            getter = { it.isBrowserConvertRedditEnabled() },
-            setter = { prefs, enabled -> prefs.setBrowserConvertRedditEnabled(enabled) },
-        )
-        ProxyPlatform.PINTEREST -> BrowserPlatformEntry(
-            platform = platform,
-            labelRes = R.string.convert_pinterest_browser,
-            switchId = R.id.switchBrowserPinterest,
-            getter = { it.isBrowserConvertPinterestEnabled() },
-            setter = { prefs, enabled -> prefs.setBrowserConvertPinterestEnabled(enabled) },
-        )
-        else -> {
-            Timber.w("No browser conversion defaults mapping for privacy platform %s", platform)
-            null
-        }
     }
 
-    data class BrowserPrivacyRow(
+    data class BrowserFrontendRow(
         val entry: BrowserPlatformEntry,
         val binding: ItemBrowserPrivacyPlatformBinding,
     )
@@ -93,145 +69,180 @@ object BrowserConversionDefaultsHelper {
     class DraftState internal constructor(
         private val preferencesManager: PreferencesManager,
     ) {
-        val draftTargetIds: MutableMap<ProxyPlatform, String?> = mutableMapOf()
-        val draftToggles: MutableMap<ProxyPlatform, Boolean> = mutableMapOf()
-        val draftDisabledBuiltIns: MutableMap<ProxyPlatform, Set<String>> = mutableMapOf()
+        private var expected: Map<ProxyPlatform, BrowserFrontendPreference> = emptyMap()
+        private var initialDisabled: Map<ProxyPlatform, Set<String>> = emptyMap()
+        private var repairInvalidState = false
+        val preferences: MutableMap<ProxyPlatform, BrowserFrontendPreference> = mutableMapOf()
+        val disabledBuiltIns: MutableMap<ProxyPlatform, Set<String>> = mutableMapOf()
 
-        init {
-            entries.forEach { entry ->
-                // The resolver already prefers the stored id when it is still an
-                // active reader and falls back to the first active one otherwise,
-                // so a stale (disabled) stored id never leaks into the draft.
-                draftTargetIds[entry.platform] =
-                    preferencesManager.resolveBrowserPrivacyTarget(entry.platform)?.id
-                draftToggles[entry.platform] = entry.getter(preferencesManager)
-                draftDisabledBuiltIns[entry.platform] =
-                    preferencesManager.getDisabledBuiltIns(entry.platform)
+        init { refreshFromPreferences() }
+
+        fun refreshFromPreferences() {
+            repairInvalidState = preferencesManager.hasInvalidBrowserFrontendPreferences()
+            expected = preferencesManager.getBrowserFrontendPreferences()
+            initialDisabled = ProxyPlatform.entries.associateWith {
+                preferencesManager.getDisabledBuiltIns(it)
             }
+            preferences.clear()
+            preferences.putAll(expected)
+            disabledBuiltIns.clear()
+            disabledBuiltIns.putAll(initialDisabled)
         }
 
-        fun draftTarget(platform: ProxyPlatform): FrontendTarget? {
-            val draftId = draftTargetIds[platform] ?: return null
-            val target = AlternativeFrontendCatalog.byId(draftId) ?: return null
-            if (target.platform != platform || target.id in disabledBuiltIns(platform)) return null
-            return target
+        fun preference(platform: ProxyPlatform): BrowserFrontendPreference = preferences.getValue(platform)
+
+        fun activeTargets(platform: ProxyPlatform): List<FrontendTarget> {
+            val disabled = disabledBuiltIns[platform].orEmpty()
+            val runtime = ProxyRoster.activeTargets(platform).filterNot { it.id in disabled }
+            val restored = AlternativeFrontendCatalog.builtIn(platform).filter { target ->
+                target.id !in disabled && runtime.none { it.id == target.id }
+            }
+            return BrowserFrontendPolicy.allowedTargets(platform, runtime + restored)
         }
 
-        fun displayTarget(platform: ProxyPlatform): FrontendTarget? =
-            draftTarget(platform) ?: activeReaders(platform).firstOrNull()
+        fun effectiveTarget(platform: ProxyPlatform): FrontendTarget? =
+            BrowserFrontendPolicy.resolve(platform, preference(platform), activeTargets(platform))
 
-        fun disabledBuiltIns(platform: ProxyPlatform): Set<String> =
-            draftDisabledBuiltIns[platform].orEmpty()
+        fun isUsingFallback(platform: ProxyPlatform): Boolean {
+            val preference = preference(platform)
+            val effective = effectiveTarget(platform)
+            return preference.mode == BrowserConversionMode.READER &&
+                preference.targetId != null &&
+                effective != null &&
+                effective.id != preference.targetId
+        }
 
-        fun activeReaders(platform: ProxyPlatform): List<FrontendTarget> =
-            AlternativeFrontendCatalog.builtInReaders(platform)
-                .filterNot { it.id in disabledBuiltIns(platform) }
+        fun savedTargetLabel(platform: ProxyPlatform): String? {
+            val id = preference(platform).targetId ?: return null
+            return (AlternativeFrontendCatalog.byId(id)
+                ?: ProxyRoster.activeTargets(platform).firstOrNull { it.id == id })
+                ?.let(FrontendDisplayHelper::displayLabel)
+        }
 
-        fun restoreBuiltInReaders(platform: ProxyPlatform) {
-            val readerIds = AlternativeFrontendCatalog.builtInReaders(platform)
+        fun setEnabled(platform: ProxyPlatform, enabled: Boolean) {
+            val current = preference(platform)
+            if (!enabled) {
+                preferences[platform] = BrowserFrontendPreference(
+                    BrowserConversionMode.CLEAN_ONLY,
+                    current.targetId,
+                )
+                return
+            }
+            val remembered = activeTargets(platform).firstOrNull { it.id == current.targetId }
+                ?: AlternativeFrontendCatalog.byId(current.targetId.orEmpty())
+                    ?.takeIf { it.platform == platform }
+            if (remembered != null) {
+                val mode = runCatching { BrowserFrontendPolicy.modeFor(remembered) }.getOrNull()
+                if (mode != null) {
+                    val candidate = BrowserFrontendPreference(mode, remembered.id)
+                    if (BrowserFrontendPolicy.resolve(platform, candidate, activeTargets(platform)) != null) {
+                        preferences[platform] = candidate
+                        return
+                    }
+                }
+            }
+            val first = activeTargets(platform).firstOrNull()
+            preferences[platform] = first?.let {
+                BrowserFrontendPreference(BrowserFrontendPolicy.modeFor(it), it.id)
+            } ?: BrowserFrontendPreference.CLEAN_ONLY
+        }
+
+        fun select(platform: ProxyPlatform, preference: BrowserFrontendPreference) {
+            preferences[platform] = preference
+        }
+
+        fun restoreCategory(platform: ProxyPlatform, mode: BrowserConversionMode) {
+            val ids = AlternativeFrontendCatalog.builtIn(platform)
+                .filter { target ->
+                    runCatching { BrowserFrontendPolicy.modeFor(target) }.getOrNull() == mode
+                }
                 .mapTo(mutableSetOf()) { it.id }
-            draftDisabledBuiltIns[platform] = disabledBuiltIns(platform) - readerIds
-            if (draftTarget(platform) == null) {
-                draftTargetIds[platform] = activeReaders(platform).firstOrNull()?.id
-            }
+            disabledBuiltIns[platform] = disabledBuiltIns[platform].orEmpty() - ids
         }
 
-        fun updateDraftTarget(platform: ProxyPlatform, target: FrontendTarget) {
-            draftTargetIds[platform] = target.id
-        }
-
-        fun apply(preferencesManager: PreferencesManager) {
-            entries.forEach { entry ->
-                val platform = entry.platform
-                preferencesManager.setDisabledBuiltIns(platform, disabledBuiltIns(platform))
-                draftTargetIds[platform]?.let { targetId ->
-                    preferencesManager.setBrowserPrivacyTargetId(platform, targetId)
-                }
-                if (displayTarget(platform) != null) {
-                    entry.setter(preferencesManager, draftToggles[platform] == true)
-                } else {
-                    entry.setter(preferencesManager, false)
-                }
+        fun apply(): Boolean {
+            val changes = if (repairInvalidState) preferences.toMap() else preferences.filter {
+                (platform, value) -> expected[platform] != value
             }
+            val restores = ProxyPlatform.entries.mapNotNull { platform ->
+                val ids = initialDisabled[platform].orEmpty() - disabledBuiltIns[platform].orEmpty()
+                ids.takeIf { it.isNotEmpty() }?.let { platform to it }
+            }.toMap()
+            val saved = preferencesManager.saveBrowserFrontendPreferences(changes, expected, restores)
+            if (saved) refreshFromPreferences()
+            return saved
         }
     }
 
-    fun createDraft(preferencesManager: PreferencesManager): DraftState =
-        DraftState(preferencesManager)
+    fun createDraft(preferencesManager: PreferencesManager): DraftState = DraftState(preferencesManager)
 
     fun populateContainer(
         context: Context,
         layoutInflater: LayoutInflater,
         container: LinearLayout,
         draft: DraftState,
-        onChangePrivacyTarget: (ProxyPlatform) -> Unit,
-    ): List<BrowserPrivacyRow> {
+        onChangeTarget: (ProxyPlatform) -> Unit,
+    ): List<BrowserFrontendRow> {
         container.removeAllViews()
         return entries.map { entry ->
-            val rowBinding = ItemBrowserPrivacyPlatformBinding.inflate(layoutInflater, container, false)
-            rowBinding.switchBrowserPrivacyPlatform.id = entry.switchId
-            bindRow(context, rowBinding, entry, draft, onChangePrivacyTarget)
-            container.addView(rowBinding.root)
-            BrowserPrivacyRow(entry, rowBinding)
+            val binding = ItemBrowserPrivacyPlatformBinding.inflate(layoutInflater, container, false)
+            binding.switchBrowserPrivacyPlatform.id = entry.switchId
+            bindRow(context, binding, entry, draft, onChangeTarget)
+            container.addView(binding.root)
+            BrowserFrontendRow(entry, binding)
         }
     }
 
     fun refreshRows(
         context: Context,
-        rows: List<BrowserPrivacyRow>,
+        rows: List<BrowserFrontendRow>,
         draft: DraftState,
-        onChangePrivacyTarget: (ProxyPlatform) -> Unit,
-    ) {
-        rows.forEach { row ->
-            bindRow(context, row.binding, row.entry, draft, onChangePrivacyTarget)
-        }
-    }
+        onChangeTarget: (ProxyPlatform) -> Unit,
+    ) = rows.forEach { bindRow(context, it.binding, it.entry, draft, onChangeTarget) }
 
     private fun bindRow(
         context: Context,
         binding: ItemBrowserPrivacyPlatformBinding,
         entry: BrowserPlatformEntry,
         draft: DraftState,
-        onChangePrivacyTarget: (ProxyPlatform) -> Unit,
+        onChangeTarget: (ProxyPlatform) -> Unit,
     ) {
         val platform = entry.platform
-        val displayTarget = draft.displayTarget(platform)
-        val hasActiveReader = displayTarget != null
-
+        val preference = draft.preference(platform)
+        val effective = draft.effectiveTarget(platform)
         binding.textViewPlatformLabel.setText(entry.labelRes)
-        binding.switchBrowserPrivacyPlatform.contentDescription = context.getString(entry.labelRes)
-
-        binding.textViewChangePrivacyTarget.isVisible = true
+        binding.textViewChangePrivacyTarget.setText(R.string.change_browser_frontend)
         binding.textViewChangePrivacyTarget.contentDescription = context.getString(
-            R.string.change_privacy_reader_desc,
+            R.string.change_browser_frontend_desc,
             context.getString(FrontendDisplayHelper.platformNameRes(platform)),
         )
-        binding.textViewChangePrivacyTarget.setOnClickListener {
-            onChangePrivacyTarget(platform)
-        }
-
-        if (hasActiveReader) {
-            binding.textViewPrivacyTargetStatus.isVisible = true
-            binding.textViewPrivacyTargetStatus.text = context.getString(
-                R.string.browser_privacy_frontend_label,
-                FrontendDisplayHelper.displayLabel(displayTarget!!),
+        binding.textViewChangePrivacyTarget.setOnClickListener { onChangeTarget(platform) }
+        binding.textViewPrivacyTargetStatus.isVisible = true
+        binding.textViewPrivacyTargetStatus.text = when {
+            preference.mode == BrowserConversionMode.CLEAN_ONLY ->
+                context.getString(R.string.browser_frontend_clean_only)
+            draft.isUsingFallback(platform) -> context.getString(
+                R.string.browser_frontend_reader_fallback,
+                FrontendDisplayHelper.displayLabel(effective!!),
+                draft.savedTargetLabel(platform).orEmpty(),
             )
-            binding.textViewPrivacyTargetWarning.isVisible = false
-
-            binding.switchBrowserPrivacyPlatform.isEnabled = true
-            binding.switchBrowserPrivacyPlatform.setOnCheckedChangeListener(null)
-            binding.switchBrowserPrivacyPlatform.isChecked = draft.draftToggles[platform] == true
-            binding.switchBrowserPrivacyPlatform.setOnCheckedChangeListener { _, isChecked ->
-                draft.draftToggles[platform] = isChecked
-            }
-        } else {
-            binding.textViewPrivacyTargetStatus.isVisible = false
-            binding.textViewPrivacyTargetWarning.isVisible = true
-            binding.textViewPrivacyTargetWarning.setText(R.string.browser_privacy_no_frontend)
-
-            binding.switchBrowserPrivacyPlatform.isEnabled = false
-            binding.switchBrowserPrivacyPlatform.setOnCheckedChangeListener(null)
-            binding.switchBrowserPrivacyPlatform.isChecked = false
+            effective != null -> context.getString(
+                R.string.browser_frontend_selected,
+                FrontendDisplayHelper.displayLabel(effective),
+            )
+            else -> context.getString(R.string.browser_frontend_unavailable)
+        }
+        binding.textViewPrivacyTargetWarning.isVisible =
+            preference.mode != BrowserConversionMode.CLEAN_ONLY && effective == null
+        if (binding.textViewPrivacyTargetWarning.isVisible) {
+            binding.textViewPrivacyTargetWarning.setText(R.string.browser_frontend_unavailable_help)
+        }
+        binding.switchBrowserPrivacyPlatform.setOnCheckedChangeListener(null)
+        binding.switchBrowserPrivacyPlatform.isChecked = preference.mode != BrowserConversionMode.CLEAN_ONLY
+        binding.switchBrowserPrivacyPlatform.isEnabled = draft.activeTargets(platform).isNotEmpty()
+        binding.switchBrowserPrivacyPlatform.setOnCheckedChangeListener { _, checked ->
+            draft.setEnabled(platform, checked)
+            bindRow(context, binding, entry, draft, onChangeTarget)
         }
     }
 }

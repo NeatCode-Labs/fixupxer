@@ -14,6 +14,7 @@ package com.fixupxer.processing
 import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.FrontendRole
+import com.fixupxer.utils.FrontendTarget
 import com.fixupxer.utils.InstagramProxyStore
 import com.fixupxer.utils.ProxyPlatform
 import com.fixupxer.utils.ProxyRoster
@@ -25,6 +26,20 @@ import java.util.regex.Pattern
  * Multi-platform host conversion logic driven by [ProxySelections].
  */
 object PlatformDomainConverter {
+
+    fun supportsBrowserTarget(url: String, platform: ProxyPlatform, target: FrontendTarget): Boolean {
+        val path = rawPath(url).let { if (isFarsideNitterUrl(url)) stripFarsidePathPrefix(it) else it }
+        return when (platform) {
+            ProxyPlatform.X -> target.role != FrontendRole.EMBED ||
+                Regex("^/[A-Za-z0-9_]+/status/[0-9]+(?:/.*)?$").matches(path)
+            ProxyPlatform.BLUESKY -> BLUESKY_POST_PATH.matches(path) ||
+                (target.role != FrontendRole.EMBED && BLUESKY_PROFILE_PATH.matches(path))
+            ProxyPlatform.PINTEREST -> PINTEREST_PIN_PATH.matches(path)
+            ProxyPlatform.REDDIT -> isRedditUrl(url)
+            ProxyPlatform.YOUTUBE, ProxyPlatform.THREADS -> false
+            else -> true
+        }
+    }
 
     private val BLUESKY_POST_PATH = Regex("^/profile/[^/?#]+/post/[^/?#]+(?:/.*)?$")
     private val BLUESKY_PROFILE_PATH = Regex("^/profile/[^/?#]+/?$")
@@ -236,9 +251,9 @@ object PlatformDomainConverter {
         val host = UrlNormalizer.extractAsciiHost(url)
         when {
             UrlNormalizer.hostMatchesDomain(host, Constants.FXTWITTER_DOMAIN) ->
-                return url.replace(Constants.FXTWITTER_DOMAIN, Constants.FIXUPX_DOMAIN, ignoreCase = true)
+                return replaceHostDomain(url, Constants.FXTWITTER_DOMAIN, Constants.FIXUPX_DOMAIN)
             UrlNormalizer.hostMatchesDomain(host, Constants.VXTWITTER_DOMAIN) ->
-                return url.replace(Constants.VXTWITTER_DOMAIN, Constants.FIXUPX_DOMAIN, ignoreCase = true)
+                return replaceHostDomain(url, Constants.VXTWITTER_DOMAIN, Constants.FIXUPX_DOMAIN)
             UrlNormalizer.hostMatchesDomain(host, Constants.FIXUPX_DOMAIN) -> return url
         }
         val normalized = normalizeXInputToTwitterHost(url)
@@ -276,13 +291,8 @@ object PlatformDomainConverter {
     }
 
     private fun convertTwitterStatusToFixupx(url: String): String {
-        val fragmentIndex = url.indexOf('#')
-        val urlWithoutFragment = if (fragmentIndex > -1) url.substring(0, fragmentIndex) else url
-        val fragment = if (fragmentIndex > -1) url.substring(fragmentIndex) else ""
-        val match = TWITTER_STATUS_PATH.find(urlWithoutFragment) ?: return url
-        val username = match.groupValues[1]
-        val statusId = match.groupValues[2]
-        return "https://${Constants.FIXUPX_DOMAIN}/$username${Constants.TWITTER_STATUS_PATH}$statusId$fragment"
+        if (!TWITTER_STATUS_PATH.containsMatchIn(url)) return url
+        return replaceHostDomain(url, Constants.X_DOMAIN, Constants.FIXUPX_DOMAIN)
     }
 
     private fun normalizeXInputToTwitterHost(url: String): String {
@@ -652,7 +662,7 @@ object PlatformDomainConverter {
         } else {
             ""
         }
-        if (stripFarsidePrefix) {
+        if (stripFarsidePrefix && isFarsideNitterUrl(url)) {
             path = stripFarsidePathPrefix(path)
         }
         val fragmentStart = url.indexOf('#', pathStart).takeIf { it >= 0 }

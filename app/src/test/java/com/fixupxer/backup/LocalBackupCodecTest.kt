@@ -12,6 +12,8 @@
 package com.fixupxer.backup
 
 import com.fixupxer.PreferencesManager
+import com.fixupxer.processing.BrowserConversionMode
+import com.fixupxer.processing.BrowserFrontendPreference
 import com.fixupxer.rules.RuleBundleCodec
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.ProxyPlatform
@@ -58,7 +60,7 @@ class LocalBackupCodecTest {
     @Test
     fun `newer schema is rejected`() {
         val encoded = encodeValid()
-            .replace("\"schemaVersion\": 1", "\"schemaVersion\": 2")
+            .replace("\"schemaVersion\": 2", "\"schemaVersion\": 3")
         assertTrue(runCatching { codec.decode(encoded) }.isFailure)
     }
 
@@ -73,7 +75,7 @@ class LocalBackupCodecTest {
     }
 
     @Test
-    fun `status widget true and false both round trip in schema one`() {
+    fun `status widget true and false both round trip in schema two`() {
         listOf(true, false).forEach { value ->
             val settings = validSettings().copy(showConfigurationStatusWidget = value)
             val decoded = codec.decode(
@@ -235,31 +237,135 @@ class LocalBackupCodecTest {
     }
 
     @Test
-    fun `privacy target must be reader of same platform`() {
+    fun `browser target mode must match target and platform`() {
         val embedTarget = validSettings().copy(
-            browserPrivacyTargetIds = ProxyPlatform.entries.associateWith { platform ->
-                if (platform == ProxyPlatform.X) "x_fixupx" else null
+            browserFrontends = ProxyPlatform.entries.associateWith { platform ->
+                if (platform == ProxyPlatform.X) {
+                    BrowserFrontendPreference(BrowserConversionMode.READER, "x_fixupx")
+                } else BrowserFrontendPreference.CLEAN_ONLY
             },
         )
         assertDecodeRejects(embedTarget)
 
         val wrongPlatform = validSettings().copy(
-            browserPrivacyTargetIds = ProxyPlatform.entries.associateWith { platform ->
-                if (platform == ProxyPlatform.REDDIT) "x_xcancel" else null
+            browserFrontends = ProxyPlatform.entries.associateWith { platform ->
+                if (platform == ProxyPlatform.REDDIT) {
+                    BrowserFrontendPreference(BrowserConversionMode.READER, "x_xcancel")
+                } else BrowserFrontendPreference.CLEAN_ONLY
             },
         )
         assertDecodeRejects(wrongPlatform)
     }
 
     @Test
-    fun `valid reader privacy target is accepted`() {
+    fun `valid reader browser target is accepted`() {
         val settings = validSettings().copy(
-            browserPrivacyTargetIds = ProxyPlatform.entries.associateWith { platform ->
-                if (platform == ProxyPlatform.X) "x_xcancel" else null
+            browserFrontends = ProxyPlatform.entries.associateWith { platform ->
+                if (platform == ProxyPlatform.X) {
+                    BrowserFrontendPreference(BrowserConversionMode.READER, "x_xcancel")
+                } else BrowserFrontendPreference.CLEAN_ONLY
             },
         )
         val decoded = codec.decode(codec.encode(settings, ruleCodec.encodeBundle(emptyList())))
-        assertEquals("x_xcancel", decoded.settings.browserPrivacyTargetIds[ProxyPlatform.X])
+        assertEquals(
+            BrowserFrontendPreference(BrowserConversionMode.READER, "x_xcancel"),
+            decoded.settings.browserFrontends[ProxyPlatform.X],
+        )
+    }
+
+    @Test
+    fun `schema one import migrates enabled readers and replaces all other browser choices`() {
+        val root = JSONObject(encodeValid())
+        root.put("schemaVersion", 1)
+        val settings = root.getJSONObject("settings")
+        settings.remove("browserFrontends")
+        settings.put("browserConvertTwitter", true)
+        settings.put("browserConvertBluesky", false)
+        settings.put("browserConvertReddit", true)
+        settings.put("browserConvertPinterest", false)
+        settings.put(
+            "browserPrivacyTargets",
+            proxyStringMap(
+                ProxyPlatform.X to "x_xcancel",
+                ProxyPlatform.BLUESKY to "bs_skylib_coffee",
+                ProxyPlatform.REDDIT to "rd_redlib_catsarch",
+            ),
+        )
+
+        val decoded = codec.decode(root.toString())
+
+        assertEquals(
+            BrowserFrontendPreference(BrowserConversionMode.READER, "x_xcancel"),
+            decoded.settings.browserFrontends[ProxyPlatform.X],
+        )
+        assertEquals(
+            BrowserFrontendPreference.CLEAN_ONLY,
+            decoded.settings.browserFrontends[ProxyPlatform.INSTAGRAM],
+        )
+        assertEquals(
+            BrowserFrontendPreference(
+                BrowserConversionMode.CLEAN_ONLY,
+                "bs_skylib_coffee",
+            ),
+            decoded.settings.browserFrontends[ProxyPlatform.BLUESKY],
+        )
+    }
+
+    @Test
+    fun `schema two custom browser target must exist in imported roster`() {
+        val settings = validSettings().copy(
+            browserFrontends = ProxyPlatform.entries.associateWith { platform ->
+                if (platform == ProxyPlatform.FACEBOOK) {
+                    BrowserFrontendPreference(BrowserConversionMode.CUSTOM, "custom:missing.example")
+                } else BrowserFrontendPreference.CLEAN_ONLY
+            },
+        )
+        assertDecodeRejects(settings)
+    }
+
+    @Test
+    fun `schema two custom browser target round trips against imported roster`() {
+        val settings = validSettings().copy(
+            customProxies = ProxyPlatform.entries.associateWith { platform ->
+                if (platform == ProxyPlatform.FACEBOOK) listOf("reader.example") else emptyList()
+            },
+            browserFrontends = ProxyPlatform.entries.associateWith { platform ->
+                if (platform == ProxyPlatform.FACEBOOK) {
+                    BrowserFrontendPreference(
+                        BrowserConversionMode.CUSTOM,
+                        "custom:reader.example",
+                    )
+                } else BrowserFrontendPreference.CLEAN_ONLY
+            },
+        )
+
+        val decoded = codec.decode(codec.encode(settings, ruleCodec.encodeBundle(emptyList())))
+
+        assertEquals(
+            settings.browserFrontends[ProxyPlatform.FACEBOOK],
+            decoded.settings.browserFrontends[ProxyPlatform.FACEBOOK],
+        )
+    }
+
+    @Test
+    fun `disabled reader remains a valid stored browser preference`() {
+        val settings = validSettings().copy(
+            disabledBuiltIns = ProxyPlatform.entries.associateWith { platform ->
+                if (platform == ProxyPlatform.X) setOf("x_xcancel") else emptySet()
+            },
+            browserFrontends = ProxyPlatform.entries.associateWith { platform ->
+                if (platform == ProxyPlatform.X) {
+                    BrowserFrontendPreference(BrowserConversionMode.READER, "x_xcancel")
+                } else BrowserFrontendPreference.CLEAN_ONLY
+            },
+        )
+
+        val decoded = codec.decode(codec.encode(settings, ruleCodec.encodeBundle(emptyList())))
+
+        assertEquals(
+            BrowserFrontendPreference(BrowserConversionMode.READER, "x_xcancel"),
+            decoded.settings.browserFrontends[ProxyPlatform.X],
+        )
     }
 
     @Test
@@ -377,6 +483,32 @@ class LocalBackupCodecTest {
     }
 
     @Test
+    fun `schema two migrates historical retired browser frontend ids before validation`() {
+        val root = JSONObject(encodeValid())
+        root.getJSONObject("settings")
+            .getJSONObject("browserFrontends")
+            .getJSONObject("instagram")
+            .put("mode", BrowserConversionMode.EMBED.name)
+            .put("targetId", RetiredFrontendMigration.RETIRED_INSTAGRAM_DISABLED_ID)
+
+        val decoded = codec.decode(root.toString())
+
+        assertEquals(
+            BrowserFrontendPreference.CLEAN_ONLY,
+            decoded.settings.browserFrontends[ProxyPlatform.INSTAGRAM],
+        )
+    }
+
+    @Test
+    fun `retired Browser target on wrong platform is rejected rather than enabling another target`() {
+        val root = JSONObject(encodeValid())
+        root.getJSONObject("settings").getJSONObject("browserFrontends").getJSONObject("x")
+            .put("mode", BrowserConversionMode.CLEAN_ONLY.name)
+            .put("targetId", RetiredFrontendMigration.RETIRED_INSTAGRAM_DISABLED_ID)
+        assertTrue(runCatching { codec.decode(root.toString()) }.isFailure)
+    }
+
+    @Test
     fun `backup with retired domain as facebook custom proxy is rejected`() {
         val encoded = encodeValidWithRawSettings(
             customProxies = proxyListMap(ProxyPlatform.FACEBOOK to listOf(Constants.FACEBOOKEZ_DOMAIN)),
@@ -413,9 +545,8 @@ class LocalBackupCodecTest {
             "convertPinterest", "convertThreads", "customRulesEnabled", "historyEnabled",
             "maxHistoryEntries", "themeMode", "dominantHand", "browserEnabled",
             "showConfigurationStatusWidget", "actionMode", "actionPriority",
-            "browserConvertTwitter", "browserConvertBluesky", "browserConvertReddit",
-            "browserConvertPinterest", "proxySelections", "customProxies", "disabledBuiltIns",
-            "browserPrivacyTargets", "rememberedRoutes",
+            "proxySelections", "customProxies", "disabledBuiltIns", "browserFrontends",
+            "rememberedRoutes",
         )
         assertEquals(expected, keys)
         assertFalse(encoded.contains("url_history"))
@@ -506,14 +637,12 @@ class LocalBackupCodecTest {
             PreferencesManager.ACTION_SHARE_MENU,
             PreferencesManager.ACTION_CLIPBOARD,
         ),
-        browserConvertTwitter = false,
-        browserConvertBluesky = false,
-        browserConvertReddit = false,
-        browserConvertPinterest = false,
         proxySelections = ProxyPlatform.entries.associateWith { null },
         customProxies = ProxyPlatform.entries.associateWith { emptyList() },
         disabledBuiltIns = ProxyPlatform.entries.associateWith { emptySet() },
-        browserPrivacyTargetIds = ProxyPlatform.entries.associateWith { null },
+        browserFrontends = ProxyPlatform.entries.associateWith {
+            BrowserFrontendPreference.CLEAN_ONLY
+        },
         rememberedRoutes = emptyMap(),
     )
 }

@@ -118,11 +118,11 @@ class BrowserPrivacyPreferenceTest {
     }
 
     @Test
-    fun `resolveBrowserPrivacySelections returns null for platforms without readers`() {
+    fun `resolveBrowserPrivacySelections returns null while browser choices are clean only`() {
         val selections = preferencesManager.resolveBrowserPrivacySelections()
         assertNull(selections[ProxyPlatform.FACEBOOK])
         assertNull(selections[ProxyPlatform.TIKTOK])
-        assertEquals(Constants.XCANCEL_DOMAIN, selections[ProxyPlatform.X])
+        assertNull(selections[ProxyPlatform.X])
     }
 
     private companion object {

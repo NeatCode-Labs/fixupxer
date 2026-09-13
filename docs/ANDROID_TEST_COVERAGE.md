@@ -1,5 +1,27 @@
 # Android Test Coverage for FixupXer
 
+## v2.7.0 coverage additions — September 13, 2026
+
+New Browser coverage exercises each allowed built-in target and seven custom
+platforms through ACTION_VIEW and real clipboard delivery, nine Clean only
+platforms, retained failure/Retry state and stale dialog rejection. Backup
+device tests use Android JSONObject and isolated SharedPreferences to check
+schema-v1 migration, schema-v2 platform maps, imported custom rosters, invalid
+selections and retired targets. Pipeline device tests cover current-platform
+resolution after POST_CLEAN, redirect reentry, phase order, distinct terminal
+statuses and cache namespace/generation isolation.
+
+Unit/integration tests additionally cover atomic preference conflicts and
+rollback, host/authority/encoding boundaries, cancelled or incompatible
+external routes and Main/Share/Test Lab parity. Tests reset the global roster;
+disposable emulator instances preserve the user's existing AVD data.
+
+Final development gates pass **757 debug + 757 release unit/integration tests**
+and **271/271 API35 instrumentation tests**, with zero failures/errors/skips.
+Lint reports zero errors and 43 warnings. Signed-artifact verification remains
+a separate gate; see `TESTING_REPORT.md` and `BUILD_REPORT.md`. Earlier
+releases below are historical records, not evidence for this candidate.
+
 ## v2.6.7 release gate (September 11, 2026)
 
 Version **2.6.7 / code 49** passes **707 debug unit + 707 release unit tests**,

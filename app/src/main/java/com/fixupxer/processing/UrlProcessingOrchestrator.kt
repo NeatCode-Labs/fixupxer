@@ -56,15 +56,18 @@ class UrlProcessingOrchestrator @Inject constructor(
         val operations = mutableListOf<ChangeOperation>()
         val cacheKeys = mutableListOf<String>()
         val seen = mutableSetOf<String>()
+        var status = PipelineStatus.COMPLETE
 
         for (hop in 0..Constants.MAX_PIPELINE_REENTRIES) {
             val cycleKey = normalizer.normalize(current).cycleKey
             if (!seen.add(cycleKey)) {
                 addSystemTrace(trace, RuleTraceStatus.CYCLE, current, "Redirect cycle detected")
+                status = PipelineStatus.CYCLE
                 break
             }
             if (hop >= Constants.MAX_PIPELINE_REENTRIES) {
                 addSystemTrace(trace, RuleTraceStatus.HOP_LIMIT, current, "Redirect hop limit reached")
+                status = PipelineStatus.HOP_LIMIT
                 break
             }
 
@@ -76,6 +79,7 @@ class UrlProcessingOrchestrator @Inject constructor(
                 options.traceEnabled
             )
             current = pre.url
+            if (pre.invalidOutput) status = PipelineStatus.INVALID_RESULT
             customChanged = customChanged || pre.changed
             trace.addBounded(pre.trace)
             operations.addCustomRuleOperation(pre.changed)
@@ -91,6 +95,7 @@ class UrlProcessingOrchestrator @Inject constructor(
                 builtinChanged = builtinChanged || cleaningResult.cleanedUrl != current
                 operations.addOperationsBounded(cleaningResult.operations)
                 current = cleaningResult.cleanedUrl
+                if (cleaningResult.status != PipelineStatus.COMPLETE) status = cleaningResult.status
             }
 
             val post = ruleEngine.applyPhase(
@@ -101,6 +106,7 @@ class UrlProcessingOrchestrator @Inject constructor(
                 options.traceEnabled
             )
             current = post.url
+            if (post.invalidOutput) status = PipelineStatus.INVALID_RESULT
             customChanged = customChanged || post.changed
             trace.addBounded(post.trace)
             operations.addCustomRuleOperation(post.changed)
@@ -108,11 +114,13 @@ class UrlProcessingOrchestrator @Inject constructor(
 
             val beforeConversion = current
             val routingHost = UrlNormalizer.extractAsciiHost(beforeConversion)
-            val converted = domainConversionService.convert(
-                current,
-                options.convertDomains,
-                options.proxySelections,
-            )
+            val converted = if (options.profile == ProcessingProfile.BROWSER) {
+                val conversion = options.browserFrontends?.convert(current)
+                if (conversion != null && conversion.status != PipelineStatus.COMPLETE) status = conversion.status
+                conversion?.url ?: current
+            } else {
+                domainConversionService.convert(current, options.convertDomains, options.proxySelections)
+            }
             domainChanged = domainChanged || converted != current
             if (converted != beforeConversion) {
                 operations.addOperationBounded(
@@ -134,10 +142,15 @@ class UrlProcessingOrchestrator @Inject constructor(
                 options.traceEnabled
             )
             current = final.url
+            if (final.invalidOutput) status = PipelineStatus.INVALID_RESULT
             customChanged = customChanged || final.changed
             trace.addBounded(final.trace)
             operations.addCustomRuleOperation(final.changed)
             if (final.redirectRequested) continue
+            if (!normalizer.isValidHttpUrl(current)) status = PipelineStatus.INVALID_RESULT
+            if (options.browserFrontends?.roster?.revision?.let { it != com.fixupxer.utils.ProxyRoster.revision } == true) {
+                status = PipelineStatus.STALE_CONFIGURATION
+            }
 
             return PipelineProcessingResult(
                 originalUrl = comparison,
@@ -151,6 +164,7 @@ class UrlProcessingOrchestrator @Inject constructor(
                 operations = operations.toList(),
                 cleanerCacheKeys = cacheKeys.toList(),
                 routingHost = routingHost,
+                status = status,
             )
         }
 
@@ -164,7 +178,8 @@ class UrlProcessingOrchestrator @Inject constructor(
             rulesRevision = snapshot.revision,
             trace = trace,
             operations = operations.toList(),
-            cleanerCacheKeys = cacheKeys.toList()
+            cleanerCacheKeys = cacheKeys.toList(),
+            status = status,
         )
     }
 

@@ -6,6 +6,9 @@
     <item name="instagramProxyInfoIcon" type="id" />
     <item name="tiktokProxyInfoIcon" type="id" />
     <item name="switchBrowserTwitter" type="id" />
+    <item name="switchBrowserInstagram" type="id" />
+    <item name="switchBrowserTikTok" type="id" />
+    <item name="switchBrowserFacebook" type="id" />
     <item name="switchBrowserBluesky" type="id" />
     <item name="switchBrowserReddit" type="id" />
     <item name="switchBrowserPinterest" type="id" />

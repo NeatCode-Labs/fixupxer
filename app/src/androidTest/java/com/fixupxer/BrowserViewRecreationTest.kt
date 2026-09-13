@@ -33,7 +33,12 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.fixupxer.data.database.FixupXerDatabase
 import com.fixupxer.data.database.MIGRATION_1_2
+import com.fixupxer.data.database.UrlHistoryEntity
+import com.fixupxer.backup.SettingsSnapshot
+import com.fixupxer.processing.BrowserFrontendPreference
 import com.fixupxer.utils.BrowserModeUtils
+import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.utils.ProxyRoster
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -49,9 +54,9 @@ class BrowserViewRecreationTest {
     private lateinit var context: android.content.Context
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var database: FixupXerDatabase
-    private var previousBrowserModeEnabled = false
-    private var previousActionMode = PreferencesManager.ACTION_MODE_ASK
-    private var previousHistoryEnabled = true
+    private lateinit var originalSettings: SettingsSnapshot
+    private var originalHistory: List<UrlHistoryEntity> = emptyList()
+    private var originalAliasEnabled = false
 
     private val testUrl = "https://www.instagram.com/p/ABC/?igsh=xyz"
 
@@ -67,10 +72,20 @@ class BrowserViewRecreationTest {
             .addMigrations(MIGRATION_1_2)
             .build()
 
-        previousBrowserModeEnabled = preferencesManager.isBrowserModeEnabled()
-        previousActionMode = preferencesManager.getActionMode()
-        previousHistoryEnabled = preferencesManager.isHistoryEnabled()
+        originalSettings = preferencesManager.exportSettingsSnapshot()
+        originalAliasEnabled = BrowserModeUtils.isBrowserAliasEnabled(context)
+        originalHistory = runBlocking { database.urlHistoryDao().getAllHistory().first() }
 
+        ProxyRoster.reset()
+        ProxyPlatform.entries.forEach(preferencesManager::restoreBuiltIns)
+        check(
+            preferencesManager.saveBrowserFrontendPreferences(
+                ProxyPlatform.entries.associateWith { BrowserFrontendPreference.CLEAN_ONLY },
+                preferencesManager.getBrowserFrontendPreferences(),
+            )
+        )
+        preferencesManager.clearRememberedRoutes()
+        preferencesManager.setCustomRulesEnabled(false)
         preferencesManager.setBrowserModeEnabled(true)
         BrowserModeUtils.setBrowserAliasEnabled(context, true)
         preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_ASK)
@@ -85,12 +100,12 @@ class BrowserViewRecreationTest {
     fun tearDown() {
         runBlocking {
             database.urlHistoryDao().deleteAll()
+            for (entry in originalHistory) database.urlHistoryDao().insert(entry)
         }
         database.close()
-        preferencesManager.setBrowserModeEnabled(previousBrowserModeEnabled)
-        preferencesManager.setActionMode(previousActionMode)
-        preferencesManager.setHistoryEnabled(previousHistoryEnabled)
-        BrowserModeUtils.setBrowserAliasEnabled(context, false)
+        BrowserModeUtils.setBrowserAliasEnabled(context, originalAliasEnabled)
+        ProxyRoster.reset()
+        check(preferencesManager.replaceSettingsSnapshot(originalSettings))
     }
 
     @Test
@@ -117,12 +132,45 @@ class BrowserViewRecreationTest {
         }
     }
 
+    @Test
+    fun testSameUrlNewIntentCreatesNewTransactionButRecreationDoesNot() {
+        ActivityScenario.launch<MainActivity>(viewIntent()).use { scenario ->
+            waitForPostCleanDialog()
+            waitForHistoryCount(1)
+
+            context.startActivity(
+                viewIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            )
+            waitForPostCleanDialog()
+            waitForHistoryCount(2)
+
+            scenario.recreate()
+            waitForPostCleanDialog()
+            waitForHistoryCount(2)
+        }
+    }
+
     private fun waitForPostCleanDialog() {
         awaitAssertion(timeoutMs = DIALOG_TIMEOUT_MS, pollMs = POLL_INTERVAL_MS) {
             onView(withText(R.string.post_clean_action_title))
                 .inRoot(isDialog())
                 .check(matches(isDisplayed()))
         }
+    }
+
+    private fun waitForHistoryCount(expected: Int) {
+        awaitAssertion(timeoutMs = DIALOG_TIMEOUT_MS, pollMs = POLL_INTERVAL_MS) {
+            val matchingEntries = runBlocking {
+                database.urlHistoryDao().getAllHistory().first()
+                    .filter { it.originalUrl == testUrl }
+            }
+            assertEquals(expected, matchingEntries.size)
+        }
+    }
+
+    private fun viewIntent(): Intent = Intent(Intent.ACTION_VIEW, Uri.parse(testUrl)).apply {
+        addCategory(Intent.CATEGORY_BROWSABLE)
+        setClass(context, MainActivity::class.java)
     }
 
     private companion object {

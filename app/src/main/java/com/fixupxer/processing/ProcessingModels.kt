@@ -21,18 +21,6 @@ enum class ProcessingProfile {
     BROWSER
 }
 
-object BrowserConversionPolicy {
-    fun shouldConvert(
-        platform: ProxyPlatform?,
-        toggleEnabled: Boolean,
-        hasActiveTarget: Boolean,
-    ): Boolean =
-        platform != null &&
-            platform in AlternativeFrontendCatalog.privacyCapablePlatforms() &&
-            toggleEnabled &&
-            hasActiveTarget
-}
-
 data class ProxySelections(val byPlatform: Map<ProxyPlatform, String?>) {
     fun domainFor(platform: ProxyPlatform): String? = byPlatform[platform]
 
@@ -56,7 +44,8 @@ data class ProcessingOptions(
     val customRulesEnabled: Boolean,
     val persistHistory: Boolean = true,
     val useCache: Boolean = true,
-    val traceEnabled: Boolean = false
+    val traceEnabled: Boolean = false,
+    val browserFrontends: BrowserFrontendSnapshot? = null,
 )
 
 data class PipelineProcessingResult(
@@ -78,4 +67,5 @@ data class PipelineProcessingResult(
     val cleanerCacheKeys: List<String> = emptyList(),
     /** ASCII host after cleaning/custom rules, before optional frontend conversion. */
     val routingHost: String? = null,
+    val status: PipelineStatus = PipelineStatus.COMPLETE,
 )

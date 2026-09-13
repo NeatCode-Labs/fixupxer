@@ -25,8 +25,10 @@ import com.fixupxer.cleaners.cache.CleanerCache
 import com.fixupxer.cleaners.model.ProcessingResult
 import com.fixupxer.processing.ChangeOperation
 import com.fixupxer.processing.ChangeOperationType
+import com.fixupxer.processing.PipelineStatus
 import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.ProxyRoster
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -59,16 +61,18 @@ class CleanerService @Inject constructor(
      * Clean a URL and return detailed, non-sensitive processing information.
      */
     fun deepCleanWithDetails(url: String, maxPasses: Int = 5): ProcessingResult {
-        val cached = cache.getOrCompute(url) {
+        val namespace = "${System.identityHashCode(registry)}:${registry.revision}:${ProxyRoster.revision}:$maxPasses"
+        val cached = cache.getOrCompute(url, namespace) {
             val result = performDeepCleanWithDetails(url, maxPasses)
-            CachedCleanResult(result.cleanedUrl, result.operations, result.totalPasses)
+            CachedCleanResult(result.cleanedUrl, result.operations, result.totalPasses, result.status)
         }
 
         return ProcessingResult(
             originalUrl = url,
             cleanedUrl = cached.cleanedUrl,
             operations = cached.operations,
-            totalPasses = cached.totalPasses
+            totalPasses = cached.totalPasses,
+            status = cached.status,
         )
     }
 
@@ -91,6 +95,7 @@ class CleanerService @Inject constructor(
         
         var current = url
         var passCount = 0
+        val seen = mutableSetOf(url)
         val operations = mutableListOf<ChangeOperation>()
         
         repeat(maxPasses) { pass ->
@@ -169,6 +174,9 @@ class CleanerService @Inject constructor(
                 return processingResult(url, current, operations, passCount)
             }
             
+            if (!seen.add(next)) {
+                return processingResult(url, next, operations, passCount, PipelineStatus.CYCLE)
+            }
             current = next
         }
         
@@ -181,19 +189,21 @@ class CleanerService @Inject constructor(
             )
         }
         
-        return processingResult(url, current, operations, passCount)
+        return processingResult(url, current, operations, passCount, PipelineStatus.HOP_LIMIT)
     }
 
     private fun processingResult(
         originalUrl: String,
         cleanedUrl: String,
         operations: List<ChangeOperation>,
-        totalPasses: Int
+        totalPasses: Int,
+        status: PipelineStatus = PipelineStatus.COMPLETE,
     ) = ProcessingResult(
         originalUrl = originalUrl,
         cleanedUrl = cleanedUrl,
         operations = operations.toList(),
-        totalPasses = totalPasses
+        totalPasses = totalPasses,
+        status = status,
     )
 
     private fun operationForCleanerChange(
@@ -290,4 +300,4 @@ class CleanerService @Inject constructor(
      * Get cache statistics
      */
     fun getCacheStats() = cache.getStats()
-} 
+}

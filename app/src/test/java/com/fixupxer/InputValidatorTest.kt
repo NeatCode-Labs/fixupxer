@@ -157,6 +157,21 @@ class InputValidatorTest {
     }
 
     @Test
+    fun `glued host and multiple protocol checks remain active without redundant scan`() {
+        listOf(
+            "https://google.cominstagram.com/path",
+            "https://example.netsecond.org/path",
+            "https://x.com/pathhttps://instagram.com/p/ABC",
+            "https://x.com/a https://instagram.com/p/ABC",
+        ).forEach { assertNull(it, validate(it)) }
+        listOf(
+            "https://x.com/alice/status/123",
+            "https://vm.tiktok.com/ZMabc/",
+            "https://reader.custom.example/alice?next=https://example.org/a#x.com",
+        ).forEach { assertEquals(it, it, validate(it)) }
+    }
+
+    @Test
     fun `google search url is accepted`() {
         assertNotNull(validate("https://www.google.com/search?q=kotlin+coroutines"))
     }

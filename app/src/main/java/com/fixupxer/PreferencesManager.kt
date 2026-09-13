@@ -33,6 +33,9 @@ import com.fixupxer.utils.ProxyRoster
 import com.fixupxer.utils.RetiredFrontendMigration
 import com.fixupxer.utils.TikTokProxyStore
 import com.fixupxer.processing.UrlNormalizer
+import com.fixupxer.processing.BrowserConversionMode
+import com.fixupxer.processing.BrowserFrontendPolicy
+import com.fixupxer.processing.BrowserFrontendPreference
 import com.fixupxer.backup.RememberedRoute
 import com.fixupxer.backup.RememberedRouteKind
 import com.fixupxer.backup.RememberedRouteValidator
@@ -44,11 +47,14 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import timber.log.Timber
+import java.security.MessageDigest
 
 /**
  * Manages user preferences for the app
  */
 class PreferencesManager(context: Context) {
+    @Volatile
+    private var browserPreferenceWriteFailed = false
     companion object {
 
         // Preference keys (internal for reactive Flow consumers in the data layer)
@@ -133,6 +139,14 @@ class PreferencesManager(context: Context) {
         private fun keyForBrowserPrivacyTarget(platform: ProxyPlatform): String =
             "browser_privacy_target_${platform.name.lowercase()}"
 
+        private fun keyForBrowserFrontendMode(platform: ProxyPlatform): String =
+            "browser_frontend_mode_${platform.name.lowercase()}"
+
+        private fun keyForBrowserFrontendTarget(platform: ProxyPlatform): String =
+            "browser_frontend_target_${platform.name.lowercase()}"
+
+        private const val KEY_BROWSER_FRONTEND_MIGRATED = "browser_frontend_preferences_v2_migrated"
+
         internal const val KEY_REMEMBERED_ROUTES = "remembered_routes"
 
         private const val PREFS_NAME = "FixupXerPrefs"
@@ -160,7 +174,46 @@ class PreferencesManager(context: Context) {
         enforceTrackingCleaningEnabled()
         migrateConvertFacebookIfNeeded()
         migrateRetiredFrontendsIfNeeded()
+        migrateBrowserFrontendPreferencesIfNeeded()
         seedProxyRosterFromPrefs()
+    }
+
+    private fun migrateBrowserFrontendPreferencesIfNeeded() {
+        if (prefs.getBoolean(KEY_BROWSER_FRONTEND_MIGRATED, false)) return
+
+        val legacyToggles = mapOf(
+            ProxyPlatform.X to KEY_BROWSER_CONVERT_TWITTER,
+            ProxyPlatform.BLUESKY to KEY_BROWSER_CONVERT_BLUESKY,
+            ProxyPlatform.REDDIT to KEY_BROWSER_CONVERT_REDDIT,
+            ProxyPlatform.PINTEREST to KEY_BROWSER_CONVERT_PINTEREST,
+        )
+        val editor = prefs.edit()
+        ProxyPlatform.entries.forEach { platform ->
+            val enabled = legacyToggles[platform]?.let { prefs.getBoolean(it, false) } == true
+            val rawTargetId = legacyToggles[platform]?.let {
+                prefs.getString(keyForBrowserPrivacyTarget(platform), null)
+            }
+            val target = rawTargetId?.let(AlternativeFrontendCatalog::byId)
+            val targetId = rawTargetId.takeIf {
+                target?.platform == platform && target.role == FrontendRole.READER
+            }
+            val preference = if (enabled) {
+                BrowserFrontendPreference(BrowserConversionMode.READER, targetId)
+            } else {
+                BrowserFrontendPreference(BrowserConversionMode.CLEAN_ONLY, targetId)
+            }
+            editor.putString(keyForBrowserFrontendMode(platform), preference.mode.name)
+            if (preference.targetId == null) {
+                editor.remove(keyForBrowserFrontendTarget(platform))
+            } else {
+                editor.putString(keyForBrowserFrontendTarget(platform), preference.targetId)
+            }
+        }
+        editor.putBoolean(KEY_BROWSER_FRONTEND_MIGRATED, true)
+        if (!editor.commit()) {
+            browserPreferenceWriteFailed = true
+            Timber.w("Browser frontend preference migration could not be committed")
+        }
     }
 
     private fun enforceTrackingCleaningEnabled() {
@@ -301,6 +354,7 @@ class PreferencesManager(context: Context) {
     fun getCustomProxies(platform: ProxyPlatform): List<String> =
         readCsvList(keyForCustomProxies(platform))
 
+    @Synchronized
     fun addCustomProxy(platform: ProxyPlatform, domain: String) {
         if (matchesRetiredFrontendDomain(domain)) return
         val current = getCustomProxies(platform)
@@ -308,12 +362,37 @@ class PreferencesManager(context: Context) {
         persistCustomProxies(platform, current + domain)
     }
 
+    @Synchronized
     fun removeCustomProxy(platform: ProxyPlatform, domain: String) {
-        persistCustomProxies(platform, getCustomProxies(platform) - domain)
+        val current = getCustomProxies(platform)
+        if (domain !in current) return
+        val updated = current - domain
+        val browserPreference = readBrowserFrontendPreference(platform)
+        val clearsBrowserChoice = browserPreference.targetId == "custom:$domain"
+        val editor = prefs.edit()
+        if (updated.isEmpty()) editor.remove(keyForCustomProxies(platform))
+        else editor.putString(keyForCustomProxies(platform), updated.joinToString(","))
+        if (clearsBrowserChoice) {
+            editor.putString(
+                keyForBrowserFrontendMode(platform),
+                BrowserConversionMode.CLEAN_ONLY.name,
+            )
+            editor.remove(keyForBrowserFrontendTarget(platform))
+        }
+        if (!editor.commit()) return
+        updateProxyRosterCustoms(platform, updated)
+        BrowserViewGate.invalidate()
     }
 
     private fun persistCustomProxies(platform: ProxyPlatform, proxies: List<String>) {
-        prefs.edit { putString(keyForCustomProxies(platform), proxies.joinToString(",")) }
+        if (!prefs.edit().putString(keyForCustomProxies(platform), proxies.joinToString(",")).commit()) {
+            return
+        }
+        updateProxyRosterCustoms(platform, proxies)
+        BrowserViewGate.invalidate()
+    }
+
+    private fun updateProxyRosterCustoms(platform: ProxyPlatform, proxies: List<String>) {
         ProxyRoster.setCustomProxies(platform, proxies)
         when (platform) {
             ProxyPlatform.INSTAGRAM -> InstagramProxyStore.setCustomProxies(proxies)
@@ -325,6 +404,7 @@ class PreferencesManager(context: Context) {
     fun getDisabledBuiltIns(platform: ProxyPlatform): Set<String> =
         readCsvSet(keyForDisabledBuiltIns(platform))
 
+    @Synchronized
     fun disableBuiltIn(platform: ProxyPlatform, id: String) {
         val current = getDisabledBuiltIns(platform)
         if (id in current) return
@@ -337,30 +417,39 @@ class PreferencesManager(context: Context) {
         val needsReselect = disabledTarget != null && storedSelection == disabledTarget.domain
         val nextSelection = if (needsReselect) resolveActiveSelection(platform, null) else null
 
-        prefs.edit {
-            putString(keyForDisabledBuiltIns(platform), newDisabled.joinToString(","))
-            if (needsReselect) {
-                if (nextSelection != null) {
-                    putString(selectionKey, nextSelection)
-                } else {
-                    remove(selectionKey)
-                }
+        val editor = prefs.edit().putString(
+            keyForDisabledBuiltIns(platform),
+            newDisabled.joinToString(","),
+        )
+        if (needsReselect) {
+            if (nextSelection != null) {
+                editor.putString(selectionKey, nextSelection)
+            } else {
+                editor.remove(selectionKey)
             }
+        }
+        if (!editor.commit()) {
+            ProxyRoster.setDisabledBuiltIns(platform, current)
+            return
         }
         BrowserViewGate.invalidate()
     }
 
+    @Synchronized
     fun enableBuiltIn(platform: ProxyPlatform, id: String) {
         val current = getDisabledBuiltIns(platform)
         if (id !in current) return
         val updated = current - id
         ProxyRoster.setDisabledBuiltIns(platform, updated)
-        prefs.edit {
-            if (updated.isEmpty()) {
-                remove(keyForDisabledBuiltIns(platform))
-            } else {
-                putString(keyForDisabledBuiltIns(platform), updated.joinToString(","))
-            }
+        val editor = prefs.edit()
+        if (updated.isEmpty()) {
+            editor.remove(keyForDisabledBuiltIns(platform))
+        } else {
+            editor.putString(keyForDisabledBuiltIns(platform), updated.joinToString(","))
+        }
+        if (!editor.commit()) {
+            ProxyRoster.setDisabledBuiltIns(platform, current)
+            return
         }
         BrowserViewGate.invalidate()
     }
@@ -369,8 +458,9 @@ class PreferencesManager(context: Context) {
         prefs.edit { remove(keyForSelection(platform)) }
     }
 
+    @Synchronized
     fun restoreBuiltIns(platform: ProxyPlatform) {
-        prefs.edit { remove(keyForDisabledBuiltIns(platform)) }
+        if (!prefs.edit().remove(keyForDisabledBuiltIns(platform)).commit()) return
         ProxyRoster.setDisabledBuiltIns(platform, emptySet())
         BrowserViewGate.invalidate()
     }
@@ -380,6 +470,7 @@ class PreferencesManager(context: Context) {
      * automatic targets stay disabled: Browser privacy recovery needs Readers and must
      * not resurrect targets the user removed from the Main/Share pickers.
      */
+    @Synchronized
     fun restoreBuiltInReaders(platform: ProxyPlatform) {
         val readerIds = AlternativeFrontendCatalog.builtInReaders(platform).map { it.id }.toSet()
         setDisabledBuiltIns(platform, getDisabledBuiltIns(platform) - readerIds)
@@ -389,16 +480,14 @@ class PreferencesManager(context: Context) {
      * Overwrites the disabled built-in set for [platform] in both prefs and
      * [ProxyRoster]. Used to roll back an unsaved in-dialog roster restore.
      */
+    @Synchronized
     fun setDisabledBuiltIns(platform: ProxyPlatform, ids: Set<String>) {
         if (ids == getDisabledBuiltIns(platform)) return
+        val editor = prefs.edit()
+        if (ids.isEmpty()) editor.remove(keyForDisabledBuiltIns(platform))
+        else editor.putString(keyForDisabledBuiltIns(platform), ids.joinToString(","))
+        if (!editor.commit()) return
         ProxyRoster.setDisabledBuiltIns(platform, ids)
-        prefs.edit {
-            if (ids.isEmpty()) {
-                remove(keyForDisabledBuiltIns(platform))
-            } else {
-                putString(keyForDisabledBuiltIns(platform), ids.joinToString(","))
-            }
-        }
         BrowserViewGate.invalidate()
     }
 
@@ -739,59 +828,176 @@ class PreferencesManager(context: Context) {
         BrowserViewGate.invalidate()
     }
     
-    /**
-     * Check if Twitter/X URL conversion is enabled for browser mode
-     */
-    fun isBrowserConvertTwitterEnabled(): Boolean {
-        return prefs.getBoolean(KEY_BROWSER_CONVERT_TWITTER, false)
+    fun getBrowserFrontendPreferences(): Map<ProxyPlatform, BrowserFrontendPreference> =
+        ProxyPlatform.entries.associateWith(::readBrowserFrontendPreference)
+
+    private fun readBrowserFrontendPreference(platform: ProxyPlatform): BrowserFrontendPreference {
+        val mode = prefs.getString(keyForBrowserFrontendMode(platform), null)
+            ?.let { raw -> BrowserConversionMode.entries.firstOrNull { it.name == raw } }
+            ?: BrowserConversionMode.CLEAN_ONLY
+        val targetId = prefs.getString(keyForBrowserFrontendTarget(platform), null)
+        val candidate = BrowserFrontendPreference(mode, targetId)
+        return candidate.takeIf {
+            BrowserFrontendPolicy.isCombinationAllowed(platform, it, knownBrowserTargets(platform))
+        } ?: BrowserFrontendPreference.CLEAN_ONLY
     }
-    
-    /**
-     * Set whether Twitter/X URL conversion is enabled for browser mode
-     */
-    fun setBrowserConvertTwitterEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_BROWSER_CONVERT_TWITTER, enabled) }
-        BrowserViewGate.invalidate()
+
+    /** True when persisted Browser state cannot be interpreted without silently changing it. */
+    fun hasInvalidBrowserFrontendPreferences(): Boolean = browserPreferenceWriteFailed || ProxyPlatform.entries.any { platform ->
+        val rawMode = prefs.getString(keyForBrowserFrontendMode(platform), null)
+        val mode = rawMode?.let { value ->
+            BrowserConversionMode.entries.firstOrNull { it.name == value }
+        } ?: return@any true
+        val targetId = prefs.getString(keyForBrowserFrontendTarget(platform), null)
+        !BrowserFrontendPolicy.isCombinationAllowed(
+            platform,
+            BrowserFrontendPreference(mode, targetId),
+            knownBrowserTargets(platform),
+        )
     }
-    
-    /**
-     * Check if Bluesky post URL conversion is enabled for browser mode.
-     */
-    fun isBrowserConvertBlueskyEnabled(): Boolean {
-        return prefs.getBoolean(KEY_BROWSER_CONVERT_BLUESKY, false)
+
+    private fun knownBrowserTargets(
+        platform: ProxyPlatform,
+        customDomains: List<String> = getCustomProxies(platform),
+    ): List<FrontendTarget> = AlternativeFrontendCatalog.builtIn(platform) + customDomains.map { domain ->
+        FrontendTarget(
+            id = "custom:$domain",
+            platform = platform,
+            domain = domain,
+            role = FrontendRole.READER,
+            allowNativeApp = false,
+        )
     }
 
     /**
-     * Set whether Bluesky post URL conversion is enabled for browser mode.
+     * Atomically saves only touched Browser choices and optional built-in restores.
+     * The write is rejected if any touched platform changed since [expected] was captured.
      */
-    fun setBrowserConvertBlueskyEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_BROWSER_CONVERT_BLUESKY, enabled) }
+    @Synchronized
+    fun saveBrowserFrontendPreferences(
+        changes: Map<ProxyPlatform, BrowserFrontendPreference>,
+        expected: Map<ProxyPlatform, BrowserFrontendPreference>,
+        restoreBuiltInIds: Map<ProxyPlatform, Set<String>> = emptyMap(),
+    ): Boolean {
+        val touched = changes.keys + restoreBuiltInIds.keys
+        val current = getBrowserFrontendPreferences()
+        if (touched.any { expected[it] == null || expected[it] != current[it] }) return false
+
+        touched.forEach { platform ->
+            val desired = changes[platform] ?: current.getValue(platform)
+            require(
+                BrowserFrontendPolicy.isCombinationAllowed(
+                    platform,
+                    desired,
+                    knownBrowserTargets(platform),
+                )
+            ) { "Invalid Browser frontend preference for $platform" }
+            val restoredIds = restoreBuiltInIds[platform].orEmpty()
+            restoredIds.forEach { id ->
+                val target = requireNotNull(AlternativeFrontendCatalog.byId(id)) {
+                    "Invalid built-in restore for $platform"
+                }
+                require(target.platform == platform) { "Invalid built-in restore for $platform" }
+                require(
+                    target in BrowserFrontendPolicy.allowedTargets(
+                        platform,
+                        AlternativeFrontendCatalog.builtIn(platform),
+                    ) && target.role in setOf(FrontendRole.READER, FrontendRole.EMBED)
+                ) { "Built-in restore is outside the selected Browser category" }
+            }
+        }
+
+        if (touched.isEmpty()) return true
+        val editor = prefs.edit()
+        changes.forEach { (platform, preference) ->
+            editor.putString(keyForBrowserFrontendMode(platform), preference.mode.name)
+            if (preference.targetId == null) {
+                editor.remove(keyForBrowserFrontendTarget(platform))
+            } else {
+                editor.putString(keyForBrowserFrontendTarget(platform), preference.targetId)
+            }
+        }
+        val updatedDisabled = restoreBuiltInIds.mapValues { (platform, ids) ->
+            getDisabledBuiltIns(platform) - ids
+        }
+        updatedDisabled.forEach { (platform, ids) ->
+            if (ids.isEmpty()) editor.remove(keyForDisabledBuiltIns(platform))
+            else editor.putString(keyForDisabledBuiltIns(platform), ids.sorted().joinToString(","))
+        }
+        val committed = editor.commit()
+        browserPreferenceWriteFailed = !committed
         BrowserViewGate.invalidate()
+        if (committed) {
+            updatedDisabled.forEach { (platform, ids) -> ProxyRoster.setDisabledBuiltIns(platform, ids) }
+        }
+        return committed
     }
 
+    fun browserFrontendFingerprint(): String {
+        val browser = getBrowserFrontendPreferences()
+        val canonical = buildString {
+            append("v2|")
+            append(isBrowserModeEnabled()).append('|')
+            append(getActionMode()).append('|')
+            append(getActionPriority().joinToString(",")).append('|')
+            append(areCustomRulesEnabled()).append('|')
+            getRememberedRoutes().toSortedMap().forEach { (host, route) ->
+                append(host).append(':')
+                append(route.kind.wireName).append(':')
+                append(route.packageName).append('|')
+            }
+            ProxyPlatform.entries.forEach { platform ->
+                val preference = browser.getValue(platform)
+                append(platform.name).append(':')
+                append(preference.mode.name).append(':')
+                append(preference.targetId.orEmpty()).append(':')
+                append(getCustomProxies(platform).joinToString(",")).append(':')
+                append(getDisabledBuiltIns(platform).sorted().joinToString(",")).append('|')
+            }
+        }
+        return MessageDigest.getInstance("SHA-256")
+            .digest(canonical.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+    }
+
+    // Compatibility adapters for callers being migrated to the map API.
+    fun isBrowserConvertTwitterEnabled(): Boolean = isBrowserPrivacyConversionEnabled(ProxyPlatform.X)
+    fun setBrowserConvertTwitterEnabled(enabled: Boolean) =
+        setLegacyBrowserReaderEnabled(ProxyPlatform.X, enabled)
+    fun isBrowserConvertBlueskyEnabled(): Boolean =
+        isBrowserPrivacyConversionEnabled(ProxyPlatform.BLUESKY)
+    fun setBrowserConvertBlueskyEnabled(enabled: Boolean) =
+        setLegacyBrowserReaderEnabled(ProxyPlatform.BLUESKY, enabled)
     fun isBrowserConvertRedditEnabled(): Boolean =
-        prefs.getBoolean(KEY_BROWSER_CONVERT_REDDIT, false)
-
-    fun setBrowserConvertRedditEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_BROWSER_CONVERT_REDDIT, enabled) }
-        BrowserViewGate.invalidate()
-    }
-
+        isBrowserPrivacyConversionEnabled(ProxyPlatform.REDDIT)
+    fun setBrowserConvertRedditEnabled(enabled: Boolean) =
+        setLegacyBrowserReaderEnabled(ProxyPlatform.REDDIT, enabled)
     fun isBrowserConvertPinterestEnabled(): Boolean =
-        prefs.getBoolean(KEY_BROWSER_CONVERT_PINTEREST, false)
+        isBrowserPrivacyConversionEnabled(ProxyPlatform.PINTEREST)
+    fun setBrowserConvertPinterestEnabled(enabled: Boolean) =
+        setLegacyBrowserReaderEnabled(ProxyPlatform.PINTEREST, enabled)
 
-    fun setBrowserConvertPinterestEnabled(enabled: Boolean) {
-        prefs.edit { putBoolean(KEY_BROWSER_CONVERT_PINTEREST, enabled) }
-        BrowserViewGate.invalidate()
+    private fun setLegacyBrowserReaderEnabled(platform: ProxyPlatform, enabled: Boolean) {
+        val expected = getBrowserFrontendPreferences()
+        val previous = expected.getValue(platform)
+        val preference = if (enabled) {
+            val retainedReaderId = previous.targetId?.takeIf { id ->
+                AlternativeFrontendCatalog.byId(id)?.let { target ->
+                    target.platform == platform && target.role == FrontendRole.READER
+                } == true
+            }
+            BrowserFrontendPreference(
+                BrowserConversionMode.READER,
+                retainedReaderId,
+            )
+        } else {
+            BrowserFrontendPreference(BrowserConversionMode.CLEAN_ONLY, previous.targetId)
+        }
+        saveBrowserFrontendPreferences(mapOf(platform to preference), expected)
     }
 
-    fun isBrowserPrivacyConversionEnabled(platform: ProxyPlatform): Boolean = when (platform) {
-        ProxyPlatform.X -> isBrowserConvertTwitterEnabled()
-        ProxyPlatform.BLUESKY -> isBrowserConvertBlueskyEnabled()
-        ProxyPlatform.REDDIT -> isBrowserConvertRedditEnabled()
-        ProxyPlatform.PINTEREST -> isBrowserConvertPinterestEnabled()
-        else -> false
-    }
+    fun isBrowserPrivacyConversionEnabled(platform: ProxyPlatform): Boolean =
+        getBrowserFrontendPreferences()[platform]?.mode == BrowserConversionMode.READER
 
     fun setBrowserPrivacyTargetId(platform: ProxyPlatform, targetId: String) {
         val target = AlternativeFrontendCatalog.byId(targetId)
@@ -799,31 +1005,41 @@ class PreferencesManager(context: Context) {
             Timber.w("Ignoring invalid browser privacy target id=%s for platform=%s", targetId, platform)
             return
         }
-        prefs.edit { putString(keyForBrowserPrivacyTarget(platform), targetId) }
-        BrowserViewGate.invalidate()
+        val expected = getBrowserFrontendPreferences()
+        saveBrowserFrontendPreferences(
+            mapOf(platform to BrowserFrontendPreference(BrowserConversionMode.READER, targetId)),
+            expected,
+        )
     }
 
     fun getBrowserPrivacyTargetId(platform: ProxyPlatform): String? =
-        prefs.getString(keyForBrowserPrivacyTarget(platform), null)
+        getBrowserFrontendPreferences()[platform]
+            ?.targetId
+            ?.takeIf { id ->
+                AlternativeFrontendCatalog.byId(id)?.let { target ->
+                    target.platform == platform && target.role == FrontendRole.READER
+                } == true
+            }
 
     fun resolveBrowserPrivacyTarget(platform: ProxyPlatform): FrontendTarget? {
         val storedId = getBrowserPrivacyTargetId(platform)
-        if (storedId != null) {
-            val stored = AlternativeFrontendCatalog.byId(storedId)
-            if (stored != null &&
-                stored.platform == platform &&
-                stored.role == FrontendRole.READER &&
-                storedId !in getDisabledBuiltIns(platform)
-            ) {
-                return stored
-            }
-        }
-        return AlternativeFrontendCatalog.builtInReaders(platform)
-            .firstOrNull { it.id !in getDisabledBuiltIns(platform) }
+        return BrowserFrontendPolicy.resolve(
+            platform,
+            BrowserFrontendPreference(BrowserConversionMode.READER, storedId),
+            ProxyRoster.activeTargets(platform),
+        )
     }
 
-    fun resolveBrowserPrivacySelections(): Map<ProxyPlatform, String?> =
-        ProxyPlatform.entries.associateWith { resolveBrowserPrivacyTarget(it)?.domain }
+    fun resolveBrowserPrivacySelections(): Map<ProxyPlatform, String?> {
+        val preferences = getBrowserFrontendPreferences()
+        return ProxyPlatform.entries.associateWith { platform ->
+            BrowserFrontendPolicy.resolve(
+                platform,
+                preferences.getValue(platform),
+                ProxyRoster.activeTargets(platform),
+            )?.domain
+        }
+    }
 
     fun normalizeRoutingHost(raw: String?): String? = RememberedRouteValidator.normalizeHost(raw)
 
@@ -881,14 +1097,10 @@ class PreferencesManager(context: Context) {
         showConfigurationStatusWidget = isConfigurationStatusWidgetEnabled(),
         actionMode = getActionMode(),
         actionPriority = getActionPriority(),
-        browserConvertTwitter = isBrowserConvertTwitterEnabled(),
-        browserConvertBluesky = isBrowserConvertBlueskyEnabled(),
-        browserConvertReddit = isBrowserConvertRedditEnabled(),
-        browserConvertPinterest = isBrowserConvertPinterestEnabled(),
         proxySelections = ProxyPlatform.entries.associateWith { getSelectedProxyDomain(it) },
         customProxies = ProxyPlatform.entries.associateWith { getCustomProxies(it) },
         disabledBuiltIns = ProxyPlatform.entries.associateWith { getDisabledBuiltIns(it) },
-        browserPrivacyTargetIds = ProxyPlatform.entries.associateWith { getBrowserPrivacyTargetId(it) },
+        browserFrontends = getBrowserFrontendPreferences(),
         rememberedRoutes = getRememberedRoutes(),
     )
 
@@ -897,6 +1109,7 @@ class PreferencesManager(context: Context) {
      * up front (throwing on any semantic problem, including own-package routes)
      * so an invalid snapshot is never partially written.
      */
+    @Synchronized
     fun replaceSettingsSnapshot(snapshot: SettingsSnapshot): Boolean {
         SettingsSnapshotValidator.validate(snapshot, ownPackageName = appContext.packageName)
         val editor = prefs.edit()
@@ -924,11 +1137,6 @@ class PreferencesManager(context: Context) {
         )
         editor.putString(KEY_ACTION_MODE, snapshot.actionMode)
         editor.putString(KEY_ACTION_PRIORITY, snapshot.actionPriority.joinToString(","))
-        editor.putBoolean(KEY_BROWSER_CONVERT_TWITTER, snapshot.browserConvertTwitter)
-        editor.putBoolean(KEY_BROWSER_CONVERT_BLUESKY, snapshot.browserConvertBluesky)
-        editor.putBoolean(KEY_BROWSER_CONVERT_REDDIT, snapshot.browserConvertReddit)
-        editor.putBoolean(KEY_BROWSER_CONVERT_PINTEREST, snapshot.browserConvertPinterest)
-
         ProxyPlatform.entries.forEach { platform ->
             val selection = snapshot.proxySelections[platform]
             if (selection.isNullOrBlank()) {
@@ -948,13 +1156,15 @@ class PreferencesManager(context: Context) {
             } else {
                 editor.putString(keyForDisabledBuiltIns(platform), disabled.joinToString(","))
             }
-            val privacyTarget = snapshot.browserPrivacyTargetIds[platform]
-            if (privacyTarget.isNullOrBlank()) {
-                editor.remove(keyForBrowserPrivacyTarget(platform))
+            val browserFrontend = snapshot.browserFrontends.getValue(platform)
+            editor.putString(keyForBrowserFrontendMode(platform), browserFrontend.mode.name)
+            if (browserFrontend.targetId.isNullOrBlank()) {
+                editor.remove(keyForBrowserFrontendTarget(platform))
             } else {
-                editor.putString(keyForBrowserPrivacyTarget(platform), privacyTarget)
+                editor.putString(keyForBrowserFrontendTarget(platform), browserFrontend.targetId)
             }
         }
+        editor.putBoolean(KEY_BROWSER_FRONTEND_MIGRATED, true)
 
         val routesJson = JSONObject()
         snapshot.rememberedRoutes.forEach { (host, route) ->
@@ -968,6 +1178,7 @@ class PreferencesManager(context: Context) {
         editor.putString(KEY_REMEMBERED_ROUTES, routesJson.toString())
 
         val committed = editor.commit()
+        browserPreferenceWriteFailed = !committed
         if (committed) {
             seedProxyRosterFromPrefs()
         }

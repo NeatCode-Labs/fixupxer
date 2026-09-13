@@ -48,6 +48,7 @@ class PostCleanRunnerRouteTest {
     fun setup() {
         ProxyRoster.reset()
         context = RuntimeEnvironment.getApplication().applicationContext
+        context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE).edit().clear().commit()
         preferencesManager = PreferencesManager(context)
         preferencesManager.clearRememberedRoutes()
         runner = PostCleanRunner(context, preferencesManager)
@@ -89,7 +90,7 @@ class PostCleanRunnerRouteTest {
     }
 
     @Test
-    fun `incompatible native route is deleted and falls back`() {
+    fun `incompatible native route is retained and falls back`() {
         preferencesManager.setRememberedRoute(
             "twitter.com",
             RememberedRoute(RememberedRouteKind.NATIVE, "com.twitter.android"),
@@ -102,11 +103,11 @@ class PostCleanRunnerRouteTest {
         )
 
         assertFalse(handled)
-        assertNull(preferencesManager.getRememberedRoute("twitter.com"))
+        assertNotNull(preferencesManager.getRememberedRoute("twitter.com"))
     }
 
     @Test
-    fun `run falls back exactly once after route deletion`() {
+    fun `failed fallback retains route and does not complete`() {
         preferencesManager.setBrowserModeEnabled(true)
         preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_ASK)
         preferencesManager.setRememberedRoute(
@@ -119,8 +120,38 @@ class PostCleanRunnerRouteTest {
             completions++
         }
 
-        assertEquals(1, completions)
-        assertNull(preferencesManager.getRememberedRoute("twitter.com"))
+        assertEquals(0, completions)
+        assertNotNull(preferencesManager.getRememberedRoute("twitter.com"))
+    }
+
+    @Test
+    fun `exhausted priority reports failure instead of success`() {
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(listOf(PreferencesManager.ACTION_NATIVE_APP))
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+        runner.runGuarded(Uri.parse("https://example.com/"), null, { true }, outcomes::add)
+        assertEquals(listOf(PostCleanRunner.Outcome.FAILED), outcomes)
+    }
+
+    @Test
+    fun `configuration changed while dialog open prevents clipboard dispatch`() {
+        val controller = Robolectric.buildActivity(AppCompatActivity::class.java)
+        val activity = controller.get()
+        activity.setTheme(R.style.Theme_FixupXer)
+        controller.setup()
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_ASK)
+        val activityRunner = PostCleanRunner(activity, preferencesManager)
+        var current = true
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("old", "unchanged"))
+        activityRunner.runGuarded(Uri.parse("https://example.com/new"), null, { current }, outcomes::add)
+        current = false
+        val dialog = ShadowDialog.getLatestDialog() as androidx.appcompat.app.AlertDialog
+        dialog.listView.performItemClick(null, 3, 3)
+        assertEquals(listOf(PostCleanRunner.Outcome.STALE), outcomes)
+        assertEquals("unchanged", clipboard.primaryClip?.getItemAt(0)?.text?.toString())
+        controller.destroy()
     }
 
     @Test
@@ -187,7 +218,7 @@ class PostCleanRunnerRouteTest {
             completions++
         }
 
-        assertEquals(1, completions)
+        assertEquals(0, completions)
         assertNotNull(preferencesManager.getRememberedRoute("twitter.com"))
         assertFalse(
             shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity?.`package` ==
@@ -256,6 +287,182 @@ class PostCleanRunnerRouteTest {
         assertTrue(candidates.none { it.kind == RememberedRouteKind.NATIVE })
     }
 
+    @Test
+    fun `stale before dialog creation reports once without showing a dialog`() {
+        val controller = Robolectric.buildActivity(AppCompatActivity::class.java)
+        controller.get().setTheme(R.style.Theme_FixupXer)
+        val activity = controller.setup().get()
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_ASK)
+        var checks = 0
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+        PostCleanRunner(activity, preferencesManager).runGuarded(
+            Uri.parse("https://example.org/a"), "example.org", { ++checks == 1 }, outcomes::add,
+        )
+        assertEquals(listOf(PostCleanRunner.Outcome.STALE), outcomes)
+        assertTrue(ShadowDialog.getShownDialogs().none { it.isShowing })
+        controller.pause().stop().destroy()
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun `share targets exclude self and preserve exact final text`() {
+        val uri = "https://vm.tnktok.com/Z123/?keep=%2B#part"
+        val intent = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, uri)
+        val pm = shadowOf(context.packageManager)
+        pm.addResolveInfoForIntent(intent, resolveInfoFor(context.packageName).apply { activityInfo.exported = true })
+        pm.addResolveInfoForIntent(intent, resolveInfoFor("test.receiver").apply { activityInfo.exported = true })
+        val targets = runner.resolveExternalShareIntents(intent)
+        assertEquals(listOf("test.receiver"), targets.map { it.component?.packageName })
+        assertEquals(uri, targets.single().getStringExtra(Intent.EXTRA_TEXT))
+    }
+
+    @Test
+    fun `share with no external destination fails and does not launch empty chooser`() {
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(listOf(PreferencesManager.ACTION_SHARE_MENU))
+        var outcome: PostCleanRunner.Outcome? = null
+        runner.runGuarded(Uri.parse("https://example.org/a"), "example.org", { true }) { outcome = it }
+        assertEquals(PostCleanRunner.Outcome.FAILED, outcome)
+        assertNull(shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity)
+    }
+
+    @Test
+    fun `cancelling stale ask dialog reports stale once`() = withActivity { activity ->
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_ASK)
+        var current = true
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+        PostCleanRunner(activity, preferencesManager).runGuarded(
+            Uri.parse("https://example.org/a"), null, { current }, outcomes::add,
+        )
+        current = false
+        ShadowDialog.getLatestDialog().cancel()
+        shadowOf(android.os.Looper.getMainLooper()).idle()
+        assertEquals(listOf(PostCleanRunner.Outcome.STALE), outcomes)
+        assertNull(shadowOf(activity).nextStartedActivity)
+    }
+
+    @Test
+    fun `cancelling stale remembered destination dialog reports stale`() = withActivity { activity ->
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_ASK)
+        var current = true
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+        PostCleanRunner(activity, preferencesManager).runGuarded(
+            Uri.parse("https://example.org/a"), "example.org", { current }, outcomes::add,
+        )
+        latestDialog().listView.performItemClick(null, 4, 4)
+        current = false
+        latestDialog().cancel()
+        shadowOf(android.os.Looper.getMainLooper()).idle()
+        assertEquals(listOf(PostCleanRunner.Outcome.STALE), outcomes)
+        assertNull(preferencesManager.getRememberedRoute("example.org"))
+    }
+
+    @Test
+    fun `browser chooser is pending until selection and cancel does not fall through`() = withActivity { activity ->
+        val uri = Uri.parse("https://vm.tnktok.com/a/?keep=%2B#fragment")
+        registerBrowser("first.browser", uri)
+        registerBrowser("second.browser", uri)
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(listOf(PreferencesManager.ACTION_BROWSER, PreferencesManager.ACTION_CLIPBOARD))
+        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("old", "unchanged"))
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+        PostCleanRunner(activity, preferencesManager).runGuarded(uri, null, { true }, outcomes::add)
+        assertTrue(outcomes.isEmpty())
+        assertNull(shadowOf(activity).nextStartedActivity)
+        latestDialog().cancel()
+        shadowOf(android.os.Looper.getMainLooper()).idle()
+        assertEquals(listOf(PostCleanRunner.Outcome.CANCELLED), outcomes)
+        assertEquals("unchanged", clipboard.primaryClip?.getItemAt(0)?.text?.toString())
+    }
+
+    @Test
+    fun `browser destination selection launches exact uri and then succeeds`() = withActivity { activity ->
+        val uri = Uri.parse("https://vm.tnktok.com/a/?keep=%2B#fragment")
+        registerBrowser("first.browser", uri)
+        registerBrowser("second.browser", uri)
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(listOf(PreferencesManager.ACTION_BROWSER))
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+        PostCleanRunner(activity, preferencesManager).runGuarded(uri, null, { true }, outcomes::add)
+        assertTrue(outcomes.isEmpty())
+        latestDialog().listView.performItemClick(null, 1, 1)
+        assertEquals(listOf(PostCleanRunner.Outcome.SUCCESS), outcomes)
+        val sent = shadowOf(activity).nextStartedActivity
+        assertEquals(Intent.ACTION_VIEW, sent.action)
+        assertEquals(uri, sent.data)
+        assertEquals("second.browser", sent.component?.packageName)
+    }
+
+    @Test
+    fun `share selection launches exact text and never launches system chooser`() = withActivity { activity ->
+        val uri = Uri.parse("https://vm.tnktok.com/a/?keep=%2B#fragment")
+        registerShare("test.receiver")
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(listOf(PreferencesManager.ACTION_SHARE_MENU))
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+        PostCleanRunner(activity, preferencesManager).runGuarded(uri, null, { true }, outcomes::add)
+        assertTrue(outcomes.isEmpty())
+        assertNull(shadowOf(activity).nextStartedActivity)
+        latestDialog().listView.performItemClick(null, 0, 0)
+        assertEquals(listOf(PostCleanRunner.Outcome.SUCCESS), outcomes)
+        val sent = shadowOf(activity).nextStartedActivity
+        assertEquals(Intent.ACTION_SEND, sent.action)
+        assertEquals(uri.toString(), sent.getStringExtra(Intent.EXTRA_TEXT))
+        assertEquals("test.receiver", sent.component?.packageName)
+    }
+
+    @Test
+    fun `share dialog checks stale context on cancel and never falls through`() = withActivity { activity ->
+        registerShare("test.receiver")
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(listOf(PreferencesManager.ACTION_SHARE_MENU, PreferencesManager.ACTION_CLIPBOARD))
+        var current = true
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+        PostCleanRunner(activity, preferencesManager).runGuarded(Uri.parse("https://example.org/a"), null, { current }, outcomes::add)
+        current = false
+        latestDialog().cancel()
+        shadowOf(android.os.Looper.getMainLooper()).idle()
+        assertEquals(listOf(PostCleanRunner.Outcome.STALE), outcomes)
+        assertNull(shadowOf(activity).nextStartedActivity)
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun `removed share target falls through with same processed uri`() = withActivity { activity ->
+        val uri = Uri.parse("https://vm.tnktok.com/a/?keep=%2B#fragment")
+        registerShare("test.receiver")
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(listOf(PreferencesManager.ACTION_SHARE_MENU, PreferencesManager.ACTION_CLIPBOARD))
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+        PostCleanRunner(activity, preferencesManager).runGuarded(uri, null, { true }, outcomes::add)
+        shadowOf(context.packageManager).removeResolveInfosForIntent(Intent(Intent.ACTION_SEND).setType("text/plain"), "test.receiver")
+        latestDialog().listView.performItemClick(null, 0, 0)
+        assertEquals(listOf(PostCleanRunner.Outcome.SUCCESS), outcomes)
+        assertNull(shadowOf(activity).nextStartedActivity)
+        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        assertEquals(uri.toString(), clipboard.primaryClip?.getItemAt(0)?.text?.toString())
+    }
+
+    private fun latestDialog() = ShadowDialog.getLatestDialog() as androidx.appcompat.app.AlertDialog
+
+    private fun withActivity(test: (AppCompatActivity) -> Unit) {
+        val controller = Robolectric.buildActivity(AppCompatActivity::class.java)
+        controller.get().setTheme(R.style.Theme_FixupXer)
+        val activity = controller.setup().get()
+        try { test(activity) } finally {
+            ShadowDialog.getShownDialogs().forEach { it.dismiss() }
+            controller.pause().stop().destroy()
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun registerShare(packageName: String) {
+        shadowOf(context.packageManager).addResolveInfoForIntent(
+            Intent(Intent.ACTION_SEND).setType("text/plain"), resolveInfoFor(packageName),
+        )
+    }
+
     private fun registerBrowser(packageName: String, uri: Uri) {
         registerBrowserWithoutViewSupport(packageName)
         registerViewTarget(packageName, uri)
@@ -284,6 +491,7 @@ class PostCleanRunnerRouteTest {
         val activity = ActivityInfo().apply {
             this.packageName = packageName
             name = "$packageName.MainActivity"
+            exported = true
             applicationInfo = ApplicationInfo().apply { this.packageName = packageName }
         }
         return ResolveInfo().apply { activityInfo = activity }

@@ -11,6 +11,7 @@
 
 package com.fixupxer.backup
 
+import com.fixupxer.processing.BrowserFrontendPreference
 import com.fixupxer.utils.ProxyPlatform
 
 /**
@@ -38,13 +39,9 @@ data class SettingsSnapshot(
     val showConfigurationStatusWidget: Boolean,
     val actionMode: String,
     val actionPriority: List<String>,
-    val browserConvertTwitter: Boolean,
-    val browserConvertBluesky: Boolean,
-    val browserConvertReddit: Boolean,
-    val browserConvertPinterest: Boolean,
     val proxySelections: Map<ProxyPlatform, String?>,
     val customProxies: Map<ProxyPlatform, List<String>>,
     val disabledBuiltIns: Map<ProxyPlatform, Set<String>>,
-    val browserPrivacyTargetIds: Map<ProxyPlatform, String?>,
+    val browserFrontends: Map<ProxyPlatform, BrowserFrontendPreference>,
     val rememberedRoutes: Map<String, RememberedRoute>,
 )

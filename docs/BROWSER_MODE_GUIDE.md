@@ -10,9 +10,9 @@ eligible HTTP(S) link that Android routes to FixupXer, the flow is:
 Android → FixupXer local processing → selected after-clean action → external app
 ```
 
-FixupXer cleans the URL, optionally applies Browser-specific rules and privacy
-conversion, then hands the resulting URL to a browser, native app, Android
-share sheet, or clipboard. The receiving app—not FixupXer—loads any page.
+FixupXer cleans the URL, optionally applies Browser-specific rules and frontend
+conversion, then hands the resulting URL to a browser, native app, sharing
+app, or clipboard. The receiving app loads any page.
 
 Browser mode does not intercept every link. Android decides which app receives
 each intent, and some links never reach the system default browser.
@@ -82,8 +82,8 @@ FixupXer shows its own action dialog with:
    Manage or delete them with **Saved app choices** on the Browser mode
    screen.
 
-The key is the exact cleaned host immediately before an optional Reader
-conversion, so changing Reader instances does not create a different route.
+The key is the exact cleaned host immediately before an optional frontend
+conversion, so changing frontend instances does not create a different route.
 `example.com` and `www.example.com` are separate keys. A route can be created
 and used only with Browser mode and **Ask what to do**. It remains saved but
 inactive after switching to **Try actions automatically** or disabling Browser
@@ -104,49 +104,57 @@ clipboard provide later fallbacks when ordered there.
 FixupXer excludes its own package from browser candidates, so handing off a
 cleaned URL cannot select FixupXer again and create a browser loop. In Browser
 mode with **Ask what to do**, saved app choices are checked before the action
-picker; invalid, disabled, or incompatible saved choices are removed and the
-normal flow runs once. Reader-only privacy frontends skip a saved native route
-without deleting it. Redirect
+picker; temporarily unavailable or incompatible saved choices remain saved and
+the normal flow is offered. Reader and custom frontends skip native shortcuts.
+Every destination receives the same final URI, and Share also excludes FixupXer.
+If all attempts fail, the result remains in the app for an explicit **Retry**.
+Rotation or recreation does not automatically repeat a failed action. Redirect
 extraction in the URL pipeline also has cycle detection and a five-hop limit.
 
-## Browser privacy readers
+## Browser frontends
 
-Open **Settings > Configure Browser mode** and select **Configure privacy
-readers**. The **Browser privacy readers** dialog supports optional reader
-conversions for exactly four platforms:
+Open **Settings > Configure Browser mode > Configure Browser frontends**.
+Use **Change frontend** for a platform and then **Save** in the parent dialog.
+Browser choices are separate from Main/Share selections, including when Android
+offers **Open with > FixupXer** instead of using FixupXer as its default browser.
 
-- X / Twitter
-- Bluesky
-- Reddit
-- Pinterest
+| Platform | Browser choices |
+|---|---|
+| TikTok, Instagram | Clean only, built-in embed, existing custom frontend |
+| X / Twitter, Bluesky | Clean only, built-in reader, built-in embed, existing custom frontend |
+| Reddit, Pinterest | Clean only, built-in reader, existing custom frontend |
+| Facebook | Clean only, existing custom frontend |
+| YouTube, Threads | Clean only |
 
-Each enabled platform uses a built-in target with the **Reader** role. Browser
-mode does not use custom or embed-oriented targets. Its saved reader choices
-are separate from the embed-friendly frontend choices used by the Main and
-Share screens.
+The picker groups **Privacy readers**, **Embed frontends**, and **Custom
+frontends** separately. Experimental and retired targets are not offered.
+Add or delete custom domains under **Settings > Link processing > Alternative
+frontends**. Custom targets are not presented as verified privacy readers.
 
-A conversion runs only when its platform toggle is enabled and an active
-Reader target exists. If conversions are all off, eligible links are still
-cleaned normally.
+New conversions start off. Upgrades preserve the four older Browser reader
+choices, including their remembered target when switched off. **Clean only**
+skips frontend conversion and leaves an existing frontend host intact; cleaning
+and explicitly enabled custom rules still apply.
 
-### Restore a platform with no active Reader
+**Copy**, **Share**, and **Open** use the same final processed URL. For example,
+select TikTok's `tnktok.com` embed, save, and open
+`https://vm.tiktok.com/Z123/?utm_source=example` with FixupXer: the local result
+is `https://vm.tnktok.com/Z123/`. This example demonstrates string processing;
+the placeholder is not a live video or an availability check.
 
-If every built-in Reader for a platform was disabled:
+### Unavailable choices and restoring a category
 
-1. Open **Browser privacy readers**.
-2. On the affected platform, select **Change** even though its conversion
-   switch is unavailable.
-3. In the empty picker, select **Restore built-in readers**. This re-enables
-   only the platform's built-in Readers; embed frontends you removed from the
-   Main/Share pickers stay removed.
-4. Choose a Reader, return to the conversion dialog, enable the platform if
-   desired, and select **Save**.
+A reader uses its saved active target, otherwise the first active reader, or
+Clean only when none is active. A temporary fallback does not overwrite the
+remembered target. An unavailable embed is never silently replaced. Deleting
+a custom domain clears that platform's active or remembered Browser selection.
 
-The restore is part of the dialog draft: **Save** keeps it, while **Cancel**,
-Back, or dismissing the dialog rolls the Reader roster back to its previous
-state. The conversion switch remains unavailable until an active Reader can be
-selected. Configuration status marks an enabled conversion with no active
-Reader as needing attention.
+Use **Restore built-in readers** or **Restore built-in embed frontends** in
+the picker to restore only that category. Restores and selections remain drafts
+until **Save**. **Cancel**, Back, dismissing or recreating the dialog does not
+save them. The roster is shared, so an explicitly restored target can become
+available in Main/Share as well. If a changed platform was edited elsewhere,
+Save keeps the newer settings and asks you to review the refreshed choices.
 
 ## Read Configuration status
 
@@ -158,10 +166,9 @@ dialog with:
   browser role.
 - **Default browser** reports FixupXer, another/unset browser, or **Unable to
   verify**. Unable to verify is informational—check Android settings manually.
-- **Privacy readers** lists active platform → Reader routes. **None
-  enabled** means cleaning-only and is not an error. **Broken** means enabled
-  routes have no active Reader; **mixed** means some routes work and some need
-  attention.
+- **Browser frontends** lists configured platform routes and unavailable choices.
+  **None enabled** means Clean only and is not an error. A route describes local
+  configuration, not a successful network or privacy check.
 - **Custom rules** shows whether the master switch is on and how many rules are
   enabled.
 - **After-clean behavior** shows **Ask what to do** or **Try actions
@@ -180,13 +187,13 @@ The Browser pipeline uses the same three ordered phases:
 
 1. **Before built-in cleaning**
 2. built-in cleaning, then **After built-in cleaning**
-3. optional Browser Reader conversion, then **After domain conversion**
+3. optional Browser frontend conversion, then **After domain conversion**
 
 Rules run in their saved order within each phase. Redirect targets re-enter the
 bounded pipeline so normal cleaning can still apply.
 
 In the rule editor, **Test Lab > Browser** simulates this processing profile
-with current Browser privacy settings and the unsaved draft. Draft preview
+with current Browser frontend settings and the unsaved rule draft. Draft preview
 intentionally runs even when the custom-rules master switch is off. Test Lab
 does not make FixupXer the default browser, invoke the after-clean action, or
 prove that Android will route a real link through FixupXer.
@@ -198,7 +205,7 @@ phases, traces, and safe testing.
 
 ### Clean browser navigation before it opens
 
-Set FixupXer as default, leave privacy conversions off, and choose **Open in
+Set FixupXer as default, leave frontend conversions off, and choose **Open in
 browser**. Eligible links Android sends to FixupXer are cleaned locally, then
 opened by an external browser.
 
@@ -211,7 +218,7 @@ cleaned URL, the next configured action is tried.
 
 ### Open supported social links through privacy readers
 
-Enable a Browser privacy conversion for X, Bluesky, Reddit, or Pinterest and
+Enable a Browser reader conversion for X, Bluesky, Reddit, or Pinterest and
 select an active Reader. FixupXer rewrites the URL locally; the external app
 that receives the Reader URL performs the network request.
 
@@ -253,15 +260,23 @@ rules determine eligibility.
 
 ### A supported social link is cleaned but not converted
 
-Open **Browser privacy readers** through **Configure privacy readers** and
-verify that the platform is one of X, Bluesky, Reddit, or Pinterest, its switch
-is enabled, and an active Reader is selected. Main/Share conversion toggles do
-not control Browser mode.
+Open **Configure Browser frontends** and verify the platform, enabled switch and
+selected target. Main/Share conversion toggles do not control Browser mode.
+Some targets accept only particular link paths. Unsupported paths, credentials
+in the URL authority, or nonstandard ports remain local instead of being
+converted lossily and dispatched automatically.
 
-### A conversion says no active privacy frontend
+### A conversion says the selected frontend is unavailable
 
-Use **Change > Restore built-in readers**, select a Reader, then enable the
-platform and save. Cancelling the dialog instead discards the restore.
+Use **Change frontend**, restore the appropriate built-in category or choose
+another target, then save. Cancelling discards the draft restore.
+
+### Processing stopped or settings changed while a dialog was open
+
+FixupXer keeps the result locally when processing is incomplete, a target is
+unsupported, configuration changed, or an external action failed. Review the
+settings and choose **Retry** to run the Browser flow again. It does not send
+the original URL automatically as a substitute for a failed result.
 
 ### A cleaned link opens in a browser instead of a native app
 
@@ -271,7 +286,7 @@ action.
 
 ### The wrong YouTube app opens
 
-Browser privacy conversion does not apply to YouTube. Put **Open in native
+Browser frontend conversion does not apply to YouTube. Put **Open in native
 app** first if you want FixupXer to try compatible YouTube/ReVanced handlers
 before the official YouTube app.
 
@@ -280,3 +295,13 @@ before the official YouTube app.
 FixupXer could not determine the Android default-browser role on that device.
 This is not proof of failure. Check **Default apps > Browser app** manually and
 test an eligible link.
+
+
+### Cancelling an action
+
+Browser mode keeps the processed link in FixupXer when you cancel the action or
+app destination picker. Tap **Retry** to choose again. Share and multi-browser
+choices use a FixupXer destination dialog; the action completes only after the
+selected app is launched. Cancelling never triggers the next priority action.
+If an app disappears before selection, the action fails locally or the next
+configured priority action receives the same processed URL.

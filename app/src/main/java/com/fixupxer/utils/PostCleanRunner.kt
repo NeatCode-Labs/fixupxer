@@ -43,6 +43,25 @@ class PostCleanRunner(
     private val preferencesManager: PreferencesManager? = null
 ) {
     private var activeDialog: AlertDialog? = null
+    enum class Outcome { SUCCESS, CANCELLED, FAILED, STALE }
+    private var isCurrent: () -> Boolean = { true }
+    private var outcomeCallback: (Outcome) -> Unit = {}
+    private var reported = false
+
+    private fun report(outcome: Outcome) {
+        if (reported) return
+        reported = true
+        // No delivery has happened for a cancellation or failure. Recheck even
+        // these callbacks: the configuration may have changed while a dialog was open.
+        outcomeCallback(if (outcome != Outcome.SUCCESS && !isCurrent()) Outcome.STALE else outcome)
+    }
+
+    private fun checkCurrent(): Boolean {
+        if (reported) return false
+        if (isCurrent()) return true
+        report(Outcome.STALE)
+        return false
+    }
 
     data class RouteCandidate(
         val packageName: String,
@@ -58,6 +77,17 @@ class PostCleanRunner(
     }
 
     fun run(cleanedUri: Uri, routingHost: String?, onComplete: (() -> Unit)? = null) {
+        runGuarded(cleanedUri, routingHost, { true }) { outcome ->
+            if (outcome == Outcome.SUCCESS) onComplete?.invoke()
+        }
+    }
+
+    fun runGuarded(cleanedUri: Uri, routingHost: String?, isCurrent: () -> Boolean, onOutcome: (Outcome) -> Unit) {
+        this.isCurrent = isCurrent
+        outcomeCallback = onOutcome
+        reported = false
+        if (!checkCurrent()) return
+        val onComplete: () -> Unit = { report(Outcome.SUCCESS) }
         Timber.d(
             "PostCleanRunner.run called (host=${cleanedUri.host ?: "unknown"}, " +
                 "length=${cleanedUri.toString().length})"
@@ -65,7 +95,7 @@ class PostCleanRunner(
 
         if (preferencesManager == null) {
             Timber.e("PreferencesManager is null")
-            onComplete?.invoke()
+            report(Outcome.FAILED)
             return
         }
 
@@ -76,7 +106,7 @@ class PostCleanRunner(
             actionMode == PreferencesManager.ACTION_MODE_ASK &&
             tryRememberedRoute(cleanedUri, routingHost)
         ) {
-            onComplete?.invoke()
+            onComplete()
             return
         }
 
@@ -86,8 +116,8 @@ class PostCleanRunner(
             }
             PreferencesManager.ACTION_MODE_PRIORITY -> {
                 runPriorityMode(cleanedUri)
-                onComplete?.invoke()
             }
+            else -> report(Outcome.FAILED)
         }
     }
 
@@ -118,8 +148,9 @@ class PostCleanRunner(
         }
 
         if (!valid) {
-            Timber.d("Remembered route invalid; removing host mapping")
-            pm.removeRememberedRoute(host)
+            // A different final frontend URI may be temporarily incompatible.
+            // Preserve the user's mapping; malformed stored routes are validated by prefs.
+            Timber.d("Remembered route cannot handle this destination")
             return false
         }
 
@@ -127,7 +158,6 @@ class PostCleanRunner(
             Timber.d("Launched remembered route for host")
             true
         } else {
-            pm.removeRememberedRoute(host)
             false
         }
     }
@@ -143,8 +173,7 @@ class PostCleanRunner(
     ) {
         val activity = context as? Activity
         if (activity == null || activity.isFinishing) {
-            showAppChooser(uri)
-            onComplete?.invoke()
+            report(Outcome.FAILED)
             return
         }
 
@@ -161,24 +190,21 @@ class PostCleanRunner(
             MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.post_clean_action_title)
             .setItems(actionNames) { _, which ->
-                when (which) {
-                    0 -> {
-                        if (!launchNativeApp(uri)) {
-                            launchBrowser(uri)
-                        }
-                    }
-                    1 -> launchBrowser(uri)
-                    2 -> share(uri)
-                    3 -> copyToClipboard(uri)
-                    4 -> showRememberCandidatePicker(uri, routingHost, onComplete)
-                    else -> share(uri)
+                if (!checkCurrent()) return@setItems
+                if (which == 4) {
+                    showRememberCandidatePicker(uri, routingHost, onComplete)
+                    return@setItems
                 }
-                if (which != 4) {
-                    onComplete?.invoke()
+                when (which) {
+                    0 -> if (launchNativeApp(uri)) report(Outcome.SUCCESS) else launchBrowser(uri, ::report)
+                    1 -> launchBrowser(uri, ::report)
+                    2 -> share(uri, ::report)
+                    3 -> report(if (copyToClipboard(uri)) Outcome.SUCCESS else Outcome.FAILED)
+                    else -> report(Outcome.FAILED)
                 }
             }
             .setOnCancelListener {
-                onComplete?.invoke()
+                report(Outcome.CANCELLED)
             }
         )
     }
@@ -188,15 +214,16 @@ class PostCleanRunner(
         routingHost: String?,
         onComplete: (() -> Unit)?,
     ) {
+        if (!checkCurrent()) return
         val activity = context as? Activity
         if (activity == null || activity.isFinishing) {
-            onComplete?.invoke()
+            report(Outcome.FAILED)
             return
         }
         val host = preferencesManager?.normalizeRoutingHost(routingHost ?: uri.host)
         if (host.isNullOrBlank()) {
             Toast.makeText(activity, R.string.remembered_route_host_invalid, Toast.LENGTH_SHORT).show()
-            onComplete?.invoke()
+            report(Outcome.FAILED)
             return
         }
 
@@ -206,8 +233,8 @@ class PostCleanRunner(
                 MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.remembered_route_picker_title)
                 .setMessage(R.string.remembered_route_picker_empty)
-                .setPositiveButton(android.R.string.ok) { _, _ -> onComplete?.invoke() }
-                .setOnCancelListener { onComplete?.invoke() }
+                .setPositiveButton(android.R.string.ok) { _, _ -> report(Outcome.FAILED) }
+                .setOnCancelListener { report(Outcome.CANCELLED) }
             )
             return
         }
@@ -224,31 +251,31 @@ class PostCleanRunner(
             MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.remembered_route_picker_title)
             .setItems(labels) { _, index ->
+                if (!checkCurrent()) return@setItems
                 val candidate = candidates[index]
+                if (!launchPackage(uri, candidate.packageName)) {
+                    report(Outcome.FAILED)
+                    return@setItems
+                }
                 val saved = preferencesManager?.setRememberedRoute(
                     host,
                     RememberedRoute(candidate.kind, candidate.packageName),
                 ) == true
-                if (saved && launchPackage(uri, candidate.packageName)) {
+                if (saved) {
                     Timber.d("Saved and launched remembered route")
                     onComplete?.invoke()
-                } else if (!saved) {
+                } else {
                     Toast.makeText(activity, R.string.remembered_route_save_failed, Toast.LENGTH_SHORT).show()
                     onComplete?.invoke()
-                } else {
-                    // Launch failed right after saving: delete the route and fall
-                    // back to the Ask dialog directly — no recursive route lookup.
-                    preferencesManager?.removeRememberedRoute(host)
-                    Toast.makeText(activity, R.string.remembered_route_launch_failed, Toast.LENGTH_SHORT).show()
-                    showAskEveryTimeDialog(uri, routingHost, onComplete)
                 }
             }
-            .setNegativeButton(R.string.cancel) { _, _ -> onComplete?.invoke() }
-            .setOnCancelListener { onComplete?.invoke() }
+            .setNegativeButton(R.string.cancel) { _, _ -> report(Outcome.CANCELLED) }
+            .setOnCancelListener { report(Outcome.CANCELLED) }
         )
     }
 
     private fun showTrackedDialog(builder: MaterialAlertDialogBuilder) {
+        if (!checkCurrent()) return
         val dialog = builder.create()
         activeDialog = dialog
         dialog.setOnDismissListener {
@@ -303,31 +330,28 @@ class PostCleanRunner(
      * Run actions in priority mode based on preferences
      */
     private fun runPriorityMode(uri: Uri) {
-        val actionStrings = preferencesManager?.getActionPriority() ?: listOf(
-            "native_app",
-            "browser",
-            "share_menu",
-            "clipboard"
-        )
-
-        Timber.d("Running actions in priority: $actionStrings")
-
-        for (actionName in actionStrings) {
-            val success = when (actionName) {
-                "native_app" -> launchNativeApp(uri)
-                "browser" -> launchBrowser(uri)
-                "share_menu" -> share(uri)
-                "clipboard" -> copyToClipboard(uri)
-                else -> false
+        val actions = preferencesManager?.getActionPriority().orEmpty()
+        fun attempt(index: Int) {
+            if (!checkCurrent()) return
+            if (index >= actions.size) {
+                report(Outcome.FAILED)
+                return
             }
-
-            if (success) {
-                Timber.d("Action $actionName succeeded")
-                break
-            } else {
-                Timber.d("Action $actionName failed, trying next")
+            val onResult: (Outcome) -> Unit = { outcome ->
+                // A failed destination may fall through to the next action. An
+                // explicit cancellation must never trigger an unexpected action.
+                if (outcome == Outcome.FAILED && checkCurrent()) attempt(index + 1)
+                else report(outcome)
+            }
+            when (actions[index]) {
+                PreferencesManager.ACTION_NATIVE_APP -> onResult(if (launchNativeApp(uri)) Outcome.SUCCESS else Outcome.FAILED)
+                PreferencesManager.ACTION_BROWSER -> launchBrowser(uri, onResult)
+                PreferencesManager.ACTION_SHARE_MENU -> share(uri, onResult)
+                PreferencesManager.ACTION_CLIPBOARD -> onResult(if (copyToClipboard(uri)) Outcome.SUCCESS else Outcome.FAILED)
+                else -> onResult(Outcome.FAILED)
             }
         }
+        attempt(0)
     }
 
     /**
@@ -356,6 +380,7 @@ class PostCleanRunner(
     }
 
     private fun launchPackage(uri: Uri, packageName: String): Boolean {
+        if (!checkCurrent() || packageName == context.packageName) return false
         val intent = Intent(Intent.ACTION_VIEW, uri).apply {
             setPackage(packageName)
             addCategory(Intent.CATEGORY_BROWSABLE)
@@ -372,211 +397,111 @@ class PostCleanRunner(
     }
 
     /**
-     * Show system app chooser
+     * Own the destination dialog on every supported Android version. Starting a
+     * system chooser is not delivery: cancellation must retain the local result.
+     * The selected target is resolved again before launching the exact final URI.
      */
-    private fun showAppChooser(uri: Uri): Boolean {
-        return try {
-            val viewIntent = Intent(Intent.ACTION_VIEW, uri)
-
-            val activities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                context.packageManager.queryIntentActivities(
-                    viewIntent,
-                    PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong())
-                )
-            } else {
-                @Suppress("DEPRECATION")
-                context.packageManager.queryIntentActivities(viewIntent, PackageManager.MATCH_DEFAULT_ONLY)
-            }
-
-            val filteredActivities = activities.filter {
-                it.activityInfo.packageName != context.packageName
-            }
-
-            val targetIntents = mutableListOf<Intent>()
-
-            filteredActivities.forEach { resolveInfo ->
-                val targetIntent = Intent(Intent.ACTION_VIEW, uri).apply {
-                    setClassName(
-                        resolveInfo.activityInfo.packageName,
-                        resolveInfo.activityInfo.name
-                    )
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-                targetIntents.add(targetIntent)
-            }
-
-            val url = uri.toString()
-            val manuallyAddedApps = mutableListOf<String>()
-
-            Timber.d("Checking URL host for manual app addition: ${uri.host ?: "unknown"}")
-
-            if (url.startsWith("http://") || url.startsWith("https://")) {
-                tryAddManualApp("com.android.chrome", uri, targetIntents, manuallyAddedApps)
-            }
-
-            NativeAppMapping.packagesFor(url, uri.host?.lowercase()).forEach { packageName ->
-                Timber.d("Native app mapping selected package for manual chooser addition")
-                tryAddManualApp(packageName, uri, targetIntents, manuallyAddedApps)
-            }
-
-            if (targetIntents.isEmpty()) {
-                Timber.d("No apps available to handle URL host=${uri.host ?: "unknown"}")
-                return false
-            }
-
-            val chooser = if (targetIntents.isNotEmpty()) {
-                val firstIntent = targetIntents.removeAt(0)
-                Intent.createChooser(firstIntent, context.getString(R.string.chooser_open_with)).apply {
-                    if (targetIntents.isNotEmpty()) {
-                        putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toTypedArray())
-                    }
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-            } else {
-                Intent.createChooser(viewIntent, context.getString(R.string.chooser_open_with)).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-            }
-
-            context.startActivity(chooser)
-            val totalApps = filteredActivities.size + manuallyAddedApps.size
-            Timber.d("Showed system chooser with $totalApps apps (excluding FixupXer)")
-            true
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to show app chooser")
-            false
-        }
-    }
-
-    /**
-     * Try to manually add an app to the chooser if it's installed
-     */
-    private fun tryAddManualApp(
-        packageName: String,
-        uri: Uri,
-        targetIntents: MutableList<Intent>,
-        addedApps: MutableList<String>
+    private fun chooseDestination(
+        title: Int,
+        alwaysAsk: Boolean,
+        resolveTargets: () -> List<Intent>,
+        onResult: (Outcome) -> Unit,
     ) {
-        Timber.d("tryAddManualApp called for package")
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                context.packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
-            } else {
-                @Suppress("DEPRECATION")
-                context.packageManager.getPackageInfo(packageName, 0)
-            }
-
-            val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-                setPackage(packageName)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-
-            val canHandle = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                context.packageManager.queryIntentActivities(
-                    intent,
-                    PackageManager.ResolveInfoFlags.of(0)
-                ).isNotEmpty()
-            } else {
-                @Suppress("DEPRECATION")
-                context.packageManager.queryIntentActivities(intent, 0).isNotEmpty()
-            }
-
-            if (canHandle) {
-                targetIntents.add(intent)
-                addedApps.add(packageName)
-                Timber.d("Manually added package to chooser")
-            }
-        } catch (_: PackageManager.NameNotFoundException) {
-            Timber.d("App not installed")
+        if (!checkCurrent()) return
+        val targets = runCatching(resolveTargets).getOrElse {
+            Timber.w(it, "Could not resolve Browser action destinations")
+            onResult(Outcome.FAILED)
+            return
         }
+        if (targets.isEmpty()) {
+            onResult(Outcome.FAILED)
+            return
+        }
+        fun launch(target: Intent) {
+            if (!checkCurrent()) return
+            // Re-resolve from the original query, not an explicit intent whose
+            // component could bypass a changed intent filter or disabled app.
+            val available = runCatching { resolveTargets().any { it.filterEquals(target) } }.getOrDefault(false)
+            if (!available) {
+                onResult(Outcome.FAILED)
+                return
+            }
+            if (!checkCurrent()) return
+            val success = try {
+                context.startActivity(target)
+                true
+            } catch (error: RuntimeException) {
+                Timber.w(error, "Could not launch Browser action destination")
+                false
+            }
+            onResult(if (success) Outcome.SUCCESS else Outcome.FAILED)
+        }
+        if (!alwaysAsk && targets.size == 1) {
+            launch(targets.single())
+            return
+        }
+        val activity = context as? Activity
+        if (activity == null || activity.isFinishing) {
+            onResult(Outcome.FAILED)
+            return
+        }
+        val labels = targets.map { target ->
+            val packageName = target.component?.packageName ?: target.`package`.orEmpty()
+            activity.getString(R.string.remembered_route_candidate_label, appLabel(context.packageManager, packageName), packageName)
+        }.toTypedArray()
+        showTrackedDialog(
+            MaterialAlertDialogBuilder(activity)
+                .setTitle(title)
+                .setItems(labels) { _, index -> launch(targets[index]) }
+                .setNegativeButton(R.string.cancel) { _, _ ->
+                    if (checkCurrent()) onResult(Outcome.CANCELLED)
+                }
+                .setOnCancelListener { if (checkCurrent()) onResult(Outcome.CANCELLED) }
+        )
     }
 
-    /**
-     * Launch in browser
-     */
-    private fun launchBrowser(uri: Uri): Boolean {
-        Timber.d("launchBrowser: trying to launch browser (host=${uri.host ?: "unknown"})")
-        try {
-            val browserIntents = resolveExternalBrowserIntents(uri)
-            if (browserIntents.isEmpty()) {
-                Timber.d("No browser target available after excluding FixupXer")
-                return false
-            }
+    private fun launchBrowser(uri: Uri, onResult: (Outcome) -> Unit) = chooseDestination(
+        R.string.chooser_open_with_browser, false, { resolveExternalBrowserIntents(uri) }, onResult,
+    )
 
-            if (browserIntents.size == 1) {
-                context.startActivity(browserIntents.first())
-                Timber.d("Launched the only external browser")
-                return true
-            }
-
-            val firstIntent = browserIntents.first()
-            val extraIntents = browserIntents.drop(1).toTypedArray()
-            val chooser = Intent.createChooser(firstIntent, context.getString(R.string.chooser_open_with_browser)).apply {
-                putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents)
+    private fun resolveExternalBrowserIntents(uri: Uri): List<Intent> =
+        RememberedRouteValidator.browserPackages(context).flatMap { packageName ->
+            val viewIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+                setPackage(packageName)
+                addCategory(Intent.CATEGORY_BROWSABLE)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            context.startActivity(chooser)
-            Timber.d("Showed browser-only chooser with ${browserIntents.size} browsers")
-            return true
+            queryExternalTargets(viewIntent)
+        }.distinctBy { it.component }
 
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to launch browser")
-            Toast.makeText(context, context.getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
-            return false
+    private fun share(uri: Uri, onResult: (Outcome) -> Unit) {
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, uri.toString())
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
-    }
-
-    private fun resolveExternalBrowserIntents(uri: Uri): List<Intent> {
-        val browserIntent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_APP_BROWSER)
-        }
-        val browsers = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.packageManager.queryIntentActivities(
-                browserIntent,
-                PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong())
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            context.packageManager.queryIntentActivities(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
-        }
-
-        return browsers
-            .filter { it.activityInfo.packageName != context.packageName }
-            .distinctBy { it.activityInfo.packageName }
-            .map { resolveInfo ->
-                Intent(Intent.ACTION_VIEW, uri).apply {
-                    setPackage(resolveInfo.activityInfo.packageName)
-                    addCategory(Intent.CATEGORY_BROWSABLE)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-            }
-    }
-
-    /**
-     * Show share menu
-     */
-    private fun share(uri: Uri): Boolean {
-        return try {
-            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, uri.toString())
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            val chooser = Intent.createChooser(shareIntent, context.getString(R.string.share_via))
-            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(chooser)
-            Timber.d("Showed share menu")
-            true
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to show share menu")
-            false
-        }
+        chooseDestination(R.string.share_via, true, { resolveExternalShareIntents(shareIntent) }, onResult)
     }
 
     /**
      * Copy URL to clipboard
      */
+    internal fun resolveExternalShareIntents(shareIntent: Intent): List<Intent> = queryExternalTargets(shareIntent)
+
+    private fun queryExternalTargets(intent: Intent): List<Intent> {
+        val activities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.packageManager.queryIntentActivities(intent, PackageManager.ResolveInfoFlags.of(0))
+        } else {
+            @Suppress("DEPRECATION")
+            context.packageManager.queryIntentActivities(intent, 0)
+        }
+        return activities.filter { it.activityInfo.packageName != context.packageName && it.activityInfo.exported }
+            .distinctBy { "${it.activityInfo.packageName}/${it.activityInfo.name}" }
+            .map { resolved -> Intent(intent).setClassName(resolved.activityInfo.packageName, resolved.activityInfo.name) }
+    }
+
     private fun copyToClipboard(uri: Uri): Boolean {
+        if (!checkCurrent()) return false
         return try {
             UrlClipboard.copy(context, uri.toString())
             if (UrlClipboard.needsAppFeedback) {

@@ -21,6 +21,7 @@
 package com.fixupxer.cleaners.cache
 
 import com.fixupxer.processing.ChangeOperation
+import com.fixupxer.processing.PipelineStatus
 import java.util.Collections
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,7 +29,8 @@ import javax.inject.Singleton
 data class CachedCleanResult(
     val cleanedUrl: String,
     val operations: List<ChangeOperation>,
-    val totalPasses: Int
+    val totalPasses: Int,
+    val status: PipelineStatus = PipelineStatus.COMPLETE,
 )
 
 /**
@@ -41,9 +43,11 @@ class CleanerCache @Inject constructor() {
     }
     
     // Thread-safe LRU cache implementation
-    private val cache: MutableMap<String, CacheEntry> = Collections.synchronizedMap(
-        object : LinkedHashMap<String, CacheEntry>(16, 0.75f, true) {
-            override fun removeEldestEntry(eldest: Map.Entry<String, CacheEntry>): Boolean {
+    private data class Key(val url: String, val namespace: String)
+    private var generation = 0L
+    private val cache: MutableMap<Key, CacheEntry> = Collections.synchronizedMap(
+        object : LinkedHashMap<Key, CacheEntry>(16, 0.75f, true) {
+            override fun removeEldestEntry(eldest: Map.Entry<Key, CacheEntry>): Boolean {
                 return size > MAX_CACHE_SIZE
             }
         }
@@ -52,17 +56,22 @@ class CleanerCache @Inject constructor() {
     /**
      * Get a cleaned URL result from cache or compute it.
      */
-    fun getOrCompute(url: String, compute: () -> CachedCleanResult): CachedCleanResult {
-        // Check cache first
-        cache[url]?.let { entry ->
-            if (!entry.isExpired()) {
-                return entry.result
+    fun getOrCompute(url: String, namespace: String = "", compute: () -> CachedCleanResult): CachedCleanResult {
+        val key = Key(url, namespace)
+        val startedGeneration = synchronized(cache) {
+            cache[key]?.let { entry ->
+                if (!entry.isExpired()) return entry.result
             }
+            generation
         }
         
         // Compute and cache
         val result = compute()
-        cache[url] = CacheEntry(result, System.currentTimeMillis())
+        synchronized(cache) {
+            if (startedGeneration == generation) {
+                cache[key] = CacheEntry(result, System.currentTimeMillis())
+            }
+        }
         return result
     }
     
@@ -70,21 +79,28 @@ class CleanerCache @Inject constructor() {
      * Clear the entire cache
      */
     fun clear() {
-        cache.clear()
+        synchronized(cache) {
+            generation++
+            cache.clear()
+        }
     }
 
     /**
      * Remove one input URL after later pipeline stages expose sensitive output.
      */
     fun remove(url: String) {
-        cache.remove(url)
+        synchronized(cache) {
+            // Also prevents an in-flight calculation from resurrecting sensitive data.
+            generation++
+            cache.keys.removeAll { it.url == url }
+        }
     }
     
     /**
      * Get cache statistics
      */
     fun getStats(): CacheStats {
-        val entries = cache.values.toList()
+        val entries = synchronized(cache) { cache.values.toList() }
         return CacheStats(
             size = entries.size,
             maxSize = MAX_CACHE_SIZE,
@@ -117,4 +133,4 @@ class CleanerCache @Inject constructor() {
         val maxSize: Int,
         val hitRate: Float
     )
-} 
+}

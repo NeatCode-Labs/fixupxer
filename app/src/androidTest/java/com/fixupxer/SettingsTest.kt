@@ -38,6 +38,11 @@ import org.hamcrest.CoreMatchers.not
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.Before
+import org.junit.After
+import com.fixupxer.backup.SettingsSnapshot
+import com.fixupxer.utils.BrowserModeUtils
+import com.fixupxer.utils.ProxyRoster
 import org.junit.runner.RunWith
 import androidx.test.espresso.matcher.ViewMatchers.hasSibling
 import com.fixupxer.ui.BrowserSettingsActivity
@@ -45,16 +50,39 @@ import com.fixupxer.ui.SettingsActivity
 import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.processing.BrowserConversionMode
 import android.view.View
 import androidx.test.espresso.matcher.RootMatchers.isDialog
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.delay
 import androidx.test.espresso.matcher.ViewMatchers.isNotChecked
+import androidx.recyclerview.widget.RecyclerView
+import androidx.test.espresso.contrib.RecyclerViewActions
 /**
  * Settings related UI tests
  */
 @RunWith(AndroidJUnit4::class)
 class SettingsTest {
+    private lateinit var originalSettings: SettingsSnapshot
+    private var originalAliasEnabled = false
+
+    @Before
+    fun isolateSettings() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        originalSettings = PreferencesManager(context).exportSettingsSnapshot()
+        originalAliasEnabled = BrowserModeUtils.isBrowserAliasEnabled(context)
+        context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE).edit().clear().commit()
+        ProxyRoster.reset()
+        PreferencesManager(context) // Initialize all migration keys before launching injected consumers.
+        BrowserModeUtils.setBrowserAliasEnabled(context, false)
+    }
+
+    @After
+    fun restoreSettings() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        assertTrue(PreferencesManager(context).replaceSettingsSnapshot(originalSettings))
+        BrowserModeUtils.setBrowserAliasEnabled(context, originalAliasEnabled)
+    }
     
     private fun launchMainActivity() {
         ActivityScenario.launch(MainActivity::class.java)
@@ -308,9 +336,9 @@ class SettingsTest {
         )
             .inRoot(isDialog())
             .perform(scrollTo())
-            .check(matches(allOf(isDisplayed(), withText(containsString("Privacy reader:")))))
+            .check(matches(allOf(isDisplayed(), withText(R.string.browser_frontend_clean_only))))
 
-        // Exactly four supported platforms (X, Bluesky, Reddit, Pinterest).
+        // All seven platforms with Browser conversions are represented.
         onView(withId(R.id.switchBrowserTwitter))
             .inRoot(isDialog())
             .perform(scrollTo())
@@ -330,6 +358,9 @@ class SettingsTest {
             .inRoot(isDialog())
             .perform(scrollTo())
             .check(matches(isDisplayed()))
+        onView(withId(R.id.switchBrowserInstagram)).inRoot(isDialog()).perform(scrollTo()).check(matches(isDisplayed()))
+        onView(withId(R.id.switchBrowserTikTok)).inRoot(isDialog()).perform(scrollTo()).check(matches(isDisplayed()))
+        onView(withId(R.id.switchBrowserFacebook)).inRoot(isDialog()).perform(scrollTo()).check(matches(isDisplayed()))
     }
 
     @Test
@@ -399,7 +430,7 @@ class SettingsTest {
 
         onView(isRoot()).perform(waitFor(500))
 
-        onView(allOf(withText(R.string.browser_privacy_restore_readers), isDisplayed()))
+        onView(allOf(withText(R.string.browser_frontend_restore_readers), isDisplayed()))
             .perform(click())
 
         onView(isRoot()).perform(waitFor(500))
@@ -416,9 +447,9 @@ class SettingsTest {
         onView(isRoot()).perform(waitFor(300))
 
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
-        assertEquals("x_nitter_net", prefs.getString("browser_privacy_target_x", null))
-        assertEquals(true, prefs.getBoolean("browser_convert_twitter", false))
+        val saved = PreferencesManager(context).getBrowserFrontendPreferences().getValue(ProxyPlatform.X)
+        assertEquals("x_nitter_net", saved.targetId)
+        assertEquals(BrowserConversionMode.READER, saved.mode)
     }
 
     @Test
@@ -457,7 +488,7 @@ class SettingsTest {
 
             onView(isRoot()).perform(waitFor(500))
 
-            onView(allOf(withText(R.string.browser_privacy_restore_readers), isDisplayed()))
+            onView(allOf(withText(R.string.browser_frontend_restore_readers), isDisplayed()))
                 .perform(click())
 
             onView(isRoot()).perform(waitFor(500))
@@ -490,6 +521,7 @@ class SettingsTest {
                 .clear()
                 .putBoolean("browser_convert_twitter", true)
                 .commit()
+            PreferencesManager(context)
             delay(100)
         }
 
@@ -516,11 +548,17 @@ class SettingsTest {
                 .check(matches(isDisplayed()))
         }
 
-        // Selection-only privacy picker: no embed/automatic targets, no section
-        // header for embeds and no management actions may be present.
-        onView(withText(containsString(Constants.FIXUPX_DOMAIN))).check(doesNotExist())
+        // Browser picker includes eligible embed and reader targets but no automatic
+        // target or custom-roster management actions.
+        onView(withId(R.id.recyclerViewProxyPicker)).perform(
+            RecyclerViewActions.scrollTo<RecyclerView.ViewHolder>(
+                hasDescendant(withText(containsString(Constants.FIXUPX_DOMAIN)))
+            )
+        )
+        onView(withText(containsString(Constants.FIXUPX_DOMAIN))).check(matches(isDisplayed()))
         onView(withText(containsString(Constants.TWIIIT_DOMAIN))).check(doesNotExist())
-        onView(withText(R.string.proxy_section_embed)).check(doesNotExist())
+        onView(withText(R.string.browser_frontend_group_embeds)).check(matches(isDisplayed()))
+        onView(withText(R.string.browser_frontend_group_readers)).check(matches(isDisplayed()))
         // Empty-state Add custom button is always in the hierarchy but must stay hidden.
         onView(withText(R.string.proxy_action_add_custom)).check(matches(not(isDisplayed())))
         onView(withText(R.string.proxy_action_edit)).check(doesNotExist())
@@ -541,9 +579,11 @@ class SettingsTest {
             .perform(click())
 
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
         awaitAssertion {
-            assertEquals("x_nitter_net", prefs.getString("browser_privacy_target_x", null))
+            assertEquals(
+                "x_nitter_net",
+                PreferencesManager(context).getBrowserFrontendPreferences()[ProxyPlatform.X]?.targetId,
+            )
         }
     }
 
@@ -555,6 +595,7 @@ class SettingsTest {
             .clear()
             .putBoolean("browser_convert_twitter", true)
             .commit()
+        PreferencesManager(instrumentation.targetContext)
 
         ActivityScenario.launch(BrowserSettingsActivity::class.java).use {
             onView(withId(R.id.buttonConversionDefaults))
@@ -592,13 +633,11 @@ class SettingsTest {
         runBlocking {
             // Set initial states
             val context = InstrumentationRegistry.getInstrumentation().targetContext
-            val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
-            prefs.edit()
-                .putBoolean("browser_convert_twitter", true)
-                .putBoolean("browser_convert_bluesky", true)
-                .putBoolean("browser_convert_reddit", true)
-                .putBoolean("browser_convert_pinterest", true)
-                .commit()
+            val manager = PreferencesManager(context)
+            manager.setBrowserConvertTwitterEnabled(true)
+            manager.setBrowserConvertBlueskyEnabled(true)
+            manager.setBrowserConvertRedditEnabled(true)
+            manager.setBrowserConvertPinterestEnabled(true)
             
             delay(100)
         }
@@ -659,13 +698,11 @@ class SettingsTest {
     fun testConversionDefaultsCancel() {
         runBlocking {
             val context = InstrumentationRegistry.getInstrumentation().targetContext
-            val prefs = context.getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
-            prefs.edit()
-                .putBoolean("browser_convert_twitter", true)
-                .putBoolean("browser_convert_bluesky", true)
-                .putBoolean("browser_convert_reddit", true)
-                .putBoolean("browser_convert_pinterest", true)
-                .commit()
+            val manager = PreferencesManager(context)
+            manager.setBrowserConvertTwitterEnabled(true)
+            manager.setBrowserConvertBlueskyEnabled(true)
+            manager.setBrowserConvertRedditEnabled(true)
+            manager.setBrowserConvertPinterestEnabled(true)
             
             delay(100)
         }

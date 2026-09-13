@@ -13,9 +13,11 @@ package com.fixupxer.backup
 
 import com.fixupxer.PreferencesManager
 import com.fixupxer.processing.UrlNormalizer
+import com.fixupxer.processing.BrowserFrontendPolicy
 import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.FrontendRole
+import com.fixupxer.utils.FrontendTarget
 import com.fixupxer.utils.ProxyPlatform
 import com.fixupxer.utils.ProxyRoster
 
@@ -42,8 +44,8 @@ object SettingsSnapshotValidator {
         require(snapshot.proxySelections.keys == platforms) { "Incomplete proxy selections" }
         require(snapshot.customProxies.keys == platforms) { "Incomplete custom proxy map" }
         require(snapshot.disabledBuiltIns.keys == platforms) { "Incomplete disabled built-ins map" }
-        require(snapshot.browserPrivacyTargetIds.keys == platforms) {
-            "Incomplete browser privacy target map"
+        require(snapshot.browserFrontends.keys == platforms) {
+            "Incomplete Browser frontend map"
         }
         require(
             snapshot.maxHistoryEntries in
@@ -75,7 +77,7 @@ object SettingsSnapshotValidator {
 
         validateCustomProxies(snapshot)
         validateDisabledBuiltIns(snapshot)
-        validatePrivacyTargets(snapshot)
+        validateBrowserFrontends(snapshot)
         validateSelections(snapshot)
 
         require(snapshot.rememberedRoutes.size <= Constants.MAX_REMEMBERED_ROUTES) {
@@ -140,12 +142,26 @@ object SettingsSnapshotValidator {
         }
     }
 
-    private fun validatePrivacyTargets(snapshot: SettingsSnapshot) {
+    private fun validateBrowserFrontends(snapshot: SettingsSnapshot) {
         ProxyPlatform.entries.forEach { platform ->
-            val targetId = snapshot.browserPrivacyTargetIds[platform] ?: return@forEach
-            val target = AlternativeFrontendCatalog.byId(targetId)
-            require(target != null && target.platform == platform && target.role == FrontendRole.READER) {
-                "Browser privacy target must be a READER of its platform"
+            val knownTargets = AlternativeFrontendCatalog.builtIn(platform) +
+                snapshot.customProxies[platform].orEmpty().map { domain ->
+                    FrontendTarget(
+                        id = "custom:$domain",
+                        platform = platform,
+                        domain = domain,
+                        role = FrontendRole.READER,
+                        allowNativeApp = false,
+                    )
+                }
+            require(
+                BrowserFrontendPolicy.isCombinationAllowed(
+                    platform,
+                    snapshot.browserFrontends.getValue(platform),
+                    knownTargets,
+                )
+            ) {
+                "Invalid Browser frontend preference for $platform"
             }
         }
     }

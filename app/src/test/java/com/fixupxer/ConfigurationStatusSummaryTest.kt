@@ -157,7 +157,7 @@ class ConfigurationStatusSummaryTest {
     }
 
     @Test
-    fun `privacy route state works for all four reader platforms`() {
+    fun `browser frontend route state works for all reader platforms`() {
         val platforms = listOf(
             ProxyPlatform.X to { preferencesManager.setBrowserConvertTwitterEnabled(true) },
             ProxyPlatform.BLUESKY to { preferencesManager.setBrowserConvertBlueskyEnabled(true) },
@@ -241,7 +241,7 @@ class ConfigurationStatusSummaryTest {
         val privacyLine = buildDetails().first {
             it.text.contains(context.getString(R.string.platform_name_x))
         }
-        assertTrue(privacyLine.text.contains("restore built-in readers"))
+        assertTrue(privacyLine.text.contains("restore its category"))
         assertEquals(DetailSemanticType.ATTENTION, privacyLine.semanticType)
     }
 
@@ -252,6 +252,7 @@ class ConfigurationStatusSummaryTest {
             ConfigurationStatusDialogHelper.hasPrivacyRecoveryPath(ProxyPlatform.X, preferencesManager),
         )
 
+        preferencesManager.setBrowserConvertTwitterEnabled(true)
         disableAllReaders(ProxyPlatform.X)
         assertEquals(
             true,

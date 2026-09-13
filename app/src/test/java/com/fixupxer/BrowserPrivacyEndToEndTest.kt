@@ -55,6 +55,7 @@ class BrowserPrivacyEndToEndTest {
     private lateinit var database: FixupXerDatabase
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var repository: UrlRepositoryImpl
+    private lateinit var customRules: CustomRuleRepository
 
     @Before
     fun setUp() {
@@ -94,6 +95,7 @@ class BrowserPrivacyEndToEndTest {
             RuleVectorRunner(compiler, ruleEngine),
             preferencesManager,
         )
+        customRules = customRuleRepository
         val orchestrator = UrlProcessingOrchestrator(
             RawUrlExtractor(),
             normalizer,
@@ -164,6 +166,81 @@ class BrowserPrivacyEndToEndTest {
             "https://${selectedReader.domain}/profile/a/post/b",
             repository.processUrlForBrowser("https://bsky.app/profile/a/post/b").url,
         )
+    }
+
+    private fun enableTikTokEmbed() {
+        val before = preferencesManager.getBrowserFrontendPreferences()
+        val target = AlternativeFrontendCatalog.builtIn(ProxyPlatform.TIKTOK).first()
+        check(preferencesManager.saveBrowserFrontendPreferences(
+            mapOf(ProxyPlatform.TIKTOK to com.fixupxer.processing.BrowserFrontendPreference(com.fixupxer.processing.BrowserConversionMode.EMBED, target.id)), before,
+        ))
+    }
+
+    @Test
+    fun `offline wrapper changes platform before Browser conversion`() = runTest {
+        enableTikTokEmbed()
+        val target = AlternativeFrontendCatalog.builtIn(ProxyPlatform.TIKTOK).first().domain
+        val wrapped = "https://l.facebook.com/l.php?u=" + java.net.URLEncoder.encode("https://vm.tiktok.com/Z123/?utm_source=test&keep=1", "UTF-8")
+        val result = repository.processUrlForBrowser(wrapped)
+        assertEquals("https://vm.$target/Z123/?keep=1", result.url)
+        assertEquals(com.fixupxer.processing.PipelineStatus.COMPLETE, result.status)
+        assertEquals("vm.tiktok.com", result.routingHost)
+    }
+
+    @Test
+    fun `post clean custom rule changes platform before Browser conversion`() = runTest {
+        enableTikTokEmbed()
+        preferencesManager.setCustomRulesEnabled(true)
+        customRules.save(com.fixupxer.rules.CustomUrlRule(
+            name = "Browser stage fixture",
+            phase = com.fixupxer.rules.RulePhase.POST_CLEAN,
+            includeScope = com.fixupxer.rules.RuleScope.ExactHost("example.org"),
+            action = com.fixupxer.rules.RuleAction.TemplateRewrite("https://vm.tiktok.com/Z123/?keep=1"),
+        ))
+        val target = AlternativeFrontendCatalog.builtIn(ProxyPlatform.TIKTOK).first().domain
+        assertEquals("https://vm.$target/Z123/?keep=1", repository.processUrlForBrowser("https://example.org/start").url)
+    }
+
+    @Test
+    fun `Browser clean only leaves already converted host intact`() = runTest {
+        val result = repository.processUrlForBrowser("https://vm.tnktok.com/Z123/?utm_source=test&keep=1")
+        assertEquals("https://vm.tnktok.com/Z123/?keep=1", result.url)
+        assertEquals(com.fixupxer.processing.PipelineStatus.COMPLETE, result.status)
+    }
+
+    @Test
+    fun `invalid custom output blocks Browser completion even with tracing disabled`() = runTest {
+        preferencesManager.setCustomRulesEnabled(true)
+        customRules.save(com.fixupxer.rules.CustomUrlRule(
+            name = "Missing redirect fixture",
+            phase = com.fixupxer.rules.RulePhase.POST_CONVERSION,
+            includeScope = com.fixupxer.rules.RuleScope.ExactHost("example.org"),
+            action = com.fixupxer.rules.RuleAction.ExtractRedirect("destination"),
+        ))
+        val input = "https://example.org/start?keep=1"
+        val result = repository.processUrlForBrowser(input)
+        assertEquals(input, result.url)
+        assertEquals(com.fixupxer.processing.PipelineStatus.INVALID_RESULT, result.status)
+    }
+
+    @Test
+    fun `custom redirect cycle cannot report a completed Browser result`() = runTest {
+        preferencesManager.setCustomRulesEnabled(true)
+        customRules.save(com.fixupxer.rules.CustomUrlRule(
+            name = "Cycle wrapper",
+            phase = com.fixupxer.rules.RulePhase.PRE_CLEAN,
+            includeScope = com.fixupxer.rules.RuleScope.ExactHost("example.org"),
+            action = com.fixupxer.rules.RuleAction.TemplateRewrite(
+                "https://wrapper.example/redirect?destination=https%3A%2F%2Fexample.org%2Fstart"),
+        ))
+        customRules.save(com.fixupxer.rules.CustomUrlRule(
+            name = "Cycle unwrap",
+            phase = com.fixupxer.rules.RulePhase.PRE_CLEAN,
+            includeScope = com.fixupxer.rules.RuleScope.ExactHost("wrapper.example"),
+            action = com.fixupxer.rules.RuleAction.ExtractRedirect("destination"),
+        ))
+        val result = repository.processUrlForBrowser("https://example.org/start")
+        assertEquals(com.fixupxer.processing.PipelineStatus.CYCLE, result.status)
     }
 
     private data class BrowserCase(

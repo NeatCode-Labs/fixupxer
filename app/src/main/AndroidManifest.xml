@@ -13,6 +13,11 @@
     
     <!-- Package visibility for Android 11+ -->
     <queries>
+        <!-- Resolve external text-share targets while excluding our own share entry. -->
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="text/plain" />
+        </intent>
         <!-- Query for browsers -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
@@ -161,4 +166,4 @@
         
     </application>
 
-</manifest> 
+</manifest>

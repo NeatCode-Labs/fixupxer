@@ -34,6 +34,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class CleanerRegistry @Inject constructor() {
+    @Volatile
+    var revision: Long = 0L
+        private set
     // Domain → Cleaners mapping for O(1) lookup
     private val domainMap = ConcurrentHashMap<String, MutableList<UrlCleaner>>()
     
@@ -48,6 +51,7 @@ class CleanerRegistry @Inject constructor() {
             allCleaners.add(cleaner)
             // Pre-compute domain associations if possible
             precomputeDomainAssociations(cleaner)
+            revision++
         }
     }
     
@@ -187,4 +191,4 @@ class CleanerRegistry @Inject constructor() {
             list.add(cleaner)
         }
     }
-} 
+}

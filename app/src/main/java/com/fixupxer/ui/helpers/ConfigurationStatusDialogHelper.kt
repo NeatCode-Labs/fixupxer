@@ -25,12 +25,15 @@ import android.view.LayoutInflater
 import android.widget.LinearLayout
 import com.fixupxer.PreferencesManager
 import com.fixupxer.R
+import com.fixupxer.processing.BrowserConversionMode
+import com.fixupxer.processing.BrowserFrontendPolicy
 import com.fixupxer.databinding.DialogConfigurationStatusBinding
 import com.fixupxer.databinding.ItemConfigurationStatusRowBinding
 import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.CustomRulesEffectiveStatus
 import com.fixupxer.utils.DefaultBrowserStatus
 import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.utils.ProxyRoster
 import com.fixupxer.utils.SettingsStatusResolver
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -86,11 +89,18 @@ object ConfigurationStatusDialogHelper {
 
     fun resolvePrivacyRouteState(preferencesManager: PreferencesManager): PrivacyRouteState {
         var activeCount = 0
-        var brokenCount = 0
+        var brokenCount = if (preferencesManager.hasInvalidBrowserFrontendPreferences()) 1 else 0
+        val preferences = preferencesManager.getBrowserFrontendPreferences()
 
         BrowserConversionDefaultsHelper.entries.forEach { entry ->
-            if (!entry.getter(preferencesManager)) return@forEach
-            if (preferencesManager.resolveBrowserPrivacyTarget(entry.platform) != null) {
+            val preference = preferences.getValue(entry.platform)
+            if (preference.mode == BrowserConversionMode.CLEAN_ONLY) return@forEach
+            if (BrowserFrontendPolicy.resolve(
+                    entry.platform,
+                    preference,
+                    ProxyRoster.activeTargets(entry.platform),
+                ) != null
+            ) {
                 activeCount++
             } else {
                 brokenCount++
@@ -344,10 +354,16 @@ object ConfigurationStatusDialogHelper {
         val activeParts = mutableListOf<PrivacyDetailPart>()
         val brokenParts = mutableListOf<PrivacyDetailPart>()
 
+        val preferences = preferencesManager.getBrowserFrontendPreferences()
         BrowserConversionDefaultsHelper.entries.forEach { entry ->
-            if (!entry.getter(preferencesManager)) return@forEach
+            val preference = preferences.getValue(entry.platform)
+            if (preference.mode == BrowserConversionMode.CLEAN_ONLY) return@forEach
             val platformName = context.getString(FrontendDisplayHelper.platformNameRes(entry.platform))
-            val target = preferencesManager.resolveBrowserPrivacyTarget(entry.platform)
+            val target = BrowserFrontendPolicy.resolve(
+                entry.platform,
+                preference,
+                ProxyRoster.activeTargets(entry.platform),
+            )
             if (target != null) {
                 activeParts += PrivacyDetailPart(
                     platform = entry.platform,
@@ -364,6 +380,14 @@ object ConfigurationStatusDialogHelper {
         }
 
         if (activeParts.isEmpty() && brokenParts.isEmpty()) {
+            if (preferencesManager.hasInvalidBrowserFrontendPreferences()) {
+                return listOf(
+                    DetailLine(
+                        context.getString(R.string.configuration_status_browser_frontends_invalid),
+                        DetailSemanticType.ATTENTION,
+                    )
+                )
+            }
             return listOf(
                 DetailLine(
                     context.getString(R.string.configuration_status_privacy_none),
@@ -401,10 +425,15 @@ object ConfigurationStatusDialogHelper {
         platform: ProxyPlatform,
         preferencesManager: PreferencesManager,
     ): Boolean {
-        // Restore in the Browser privacy picker re-enables built-in Readers only,
-        // so recovery guidance applies only when a disabled Reader exists.
+        val preference = preferencesManager.getBrowserFrontendPreferences().getValue(platform)
+        if (preference.mode !in setOf(BrowserConversionMode.READER, BrowserConversionMode.EMBED)) {
+            return false
+        }
         val disabled = preferencesManager.getDisabledBuiltIns(platform)
-        return AlternativeFrontendCatalog.builtInReaders(platform).any { it.id in disabled }
+        return AlternativeFrontendCatalog.builtIn(platform).any { target ->
+            target.id in disabled &&
+                runCatching { BrowserFrontendPolicy.modeFor(target) }.getOrNull() == preference.mode
+        }
     }
 
     private fun customRulesDetail(

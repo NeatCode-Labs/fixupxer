@@ -38,6 +38,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -75,9 +76,43 @@ class MainViewModel @Inject constructor(
         observeCustomRuleChanges()
     }
 
-    fun getCompletedViewTransaction(originalUrl: String): CompletedViewTransaction? {
+    suspend fun browserRuleFingerprint(): String {
+        val content = customRuleRepository?.awaitSnapshot()?.rules
+            ?.map { it.rule }?.sortedBy { it.id }?.toString().orEmpty()
+        return java.security.MessageDigest.getInstance("SHA-256").digest(content.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+    }
+
+    fun browserRulesRevision(): Long = customRuleRepository?.revision?.value ?: 0L
+
+    fun hasInterruptedBrowserTransaction(): Boolean =
+        savedStateHandle.get<Boolean>(KEY_VIEW_TX_PENDING) == true && inflightViewJob == null
+
+    fun hasCompletedBrowserTransaction(): Boolean = savedStateHandle.contains(KEY_VIEW_TX_PROCESSED)
+
+    fun markBrowserAttention(originalUrl: String, displayUrl: String, transactionId: String) {
+        savedStateHandle[KEY_VIEW_ATTENTION_ORIGINAL] = originalUrl
+        savedStateHandle[KEY_VIEW_ATTENTION_DISPLAY] = displayUrl
+        savedStateHandle[KEY_VIEW_ATTENTION_ID] = transactionId
+    }
+
+    fun browserAttention(originalUrl: String, transactionId: String): String? =
+        if (savedStateHandle.get<String>(KEY_VIEW_ATTENTION_ORIGINAL) == originalUrl &&
+            savedStateHandle.get<String>(KEY_VIEW_ATTENTION_ID) == transactionId) {
+            savedStateHandle[KEY_VIEW_ATTENTION_DISPLAY]
+        } else null
+
+    fun clearBrowserAttention() {
+        savedStateHandle.remove<String>(KEY_VIEW_ATTENTION_ORIGINAL)
+        savedStateHandle.remove<String>(KEY_VIEW_ATTENTION_DISPLAY)
+        savedStateHandle.remove<String>(KEY_VIEW_ATTENTION_ID)
+    }
+
+    fun getCompletedViewTransaction(originalUrl: String, fingerprint: String = "", transactionId: String = ""): CompletedViewTransaction? {
         val storedOriginal = savedStateHandle.get<String>(KEY_VIEW_TX_ORIGINAL) ?: return null
         if (storedOriginal != originalUrl) return null
+        if (savedStateHandle.get<String>(KEY_VIEW_TX_FINGERPRINT).orEmpty() != fingerprint) return null
+        if (savedStateHandle.get<String>(KEY_VIEW_TX_ID).orEmpty() != transactionId) return null
         val processedUrl = savedStateHandle.get<String>(KEY_VIEW_TX_PROCESSED) ?: return null
         val routingHost = savedStateHandle.get<String>(KEY_VIEW_TX_ROUTING_HOST)
         return CompletedViewTransaction(storedOriginal, processedUrl, routingHost)
@@ -87,9 +122,14 @@ class MainViewModel @Inject constructor(
         originalUrl: String,
         processedUrl: String,
         routingHost: String?,
+        fingerprint: String = "",
+        transactionId: String = "",
     ) {
         savedStateHandle[KEY_VIEW_TX_ORIGINAL] = originalUrl
         savedStateHandle[KEY_VIEW_TX_PROCESSED] = processedUrl
+        savedStateHandle[KEY_VIEW_TX_FINGERPRINT] = fingerprint
+        savedStateHandle[KEY_VIEW_TX_ID] = transactionId
+        savedStateHandle[KEY_VIEW_TX_PENDING] = false
         if (routingHost != null) {
             savedStateHandle[KEY_VIEW_TX_ROUTING_HOST] = routingHost
         } else {
@@ -98,24 +138,31 @@ class MainViewModel @Inject constructor(
     }
 
     fun clearCompletedViewTransaction() {
+        clearBrowserAttention()
         savedStateHandle.remove<String>(KEY_VIEW_TX_ORIGINAL)
         savedStateHandle.remove<String>(KEY_VIEW_TX_PROCESSED)
         savedStateHandle.remove<String>(KEY_VIEW_TX_ROUTING_HOST)
+        savedStateHandle.remove<String>(KEY_VIEW_TX_FINGERPRINT)
+        savedStateHandle.remove<Boolean>(KEY_VIEW_TX_PENDING)
+        savedStateHandle.remove<String>(KEY_VIEW_TX_ID)
     }
 
-    fun browserViewResult(originalUrl: String): Deferred<BrowserViewProcessingResult> {
+    fun browserViewResult(originalUrl: String, fingerprint: String = "", transactionId: String = ""): Deferred<BrowserViewProcessingResult> {
+        val requestKey = "$transactionId\n$fingerprint\n$originalUrl"
         inflightViewJob?.let { (inflightUrl, deferred) ->
             // A completed (non-cancelled) deferred is reused too: awaiting it again
             // replays the cached result. Recreating it would reprocess the URL and
             // write a duplicate history row when the job finishes between the
             // Activity's transaction lookup and its coroutine dispatch.
-            if (inflightUrl == originalUrl && !deferred.isCancelled) return deferred
+            if (inflightUrl == requestKey && !deferred.isCancelled) return deferred
             deferred.cancel()
         }
 
+        savedStateHandle[KEY_VIEW_TX_PENDING] = true
+        savedStateHandle[KEY_VIEW_TX_ID] = transactionId
         return viewModelScope.async(start = CoroutineStart.DEFAULT) {
-            // Validation is a gate only. Its output is URL-decoded, while the
-            // processing pipeline decodes again, so process the original string.
+            // Validation is a gate; the pipeline receives the original input
+            // so extraction and component encoding follow the shared path.
             val validated = withContext(Dispatchers.Default) {
                 InputValidator.validateAndSanitizeInput(originalUrl)
             }
@@ -123,15 +170,19 @@ class MainViewModel @Inject constructor(
                 BrowserViewProcessingResult.ValidationRejected
             } else {
                 val result = urlRepository.processUrlForBrowser(originalUrl)
-                storeCompletedViewTransaction(
+                // Non-cancellable repository work must not complete a newer VIEW.
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                if (result.status == com.fixupxer.processing.PipelineStatus.COMPLETE) storeCompletedViewTransaction(
                     originalUrl = originalUrl,
                     processedUrl = result.url,
                     routingHost = result.routingHost,
+                    fingerprint = fingerprint,
+                    transactionId = transactionId,
                 )
                 BrowserViewProcessingResult.Success(result)
             }
         }.also { deferred ->
-            inflightViewJob = originalUrl to deferred
+            inflightViewJob = requestKey to deferred
         }
     }
 
@@ -625,6 +676,12 @@ class MainViewModel @Inject constructor(
         private const val KEY_VIEW_TX_ORIGINAL = "view_tx_original"
         private const val KEY_VIEW_TX_PROCESSED = "view_tx_processed"
         private const val KEY_VIEW_TX_ROUTING_HOST = "view_tx_routing_host"
+        private const val KEY_VIEW_TX_FINGERPRINT = "view_tx_fingerprint"
+        private const val KEY_VIEW_TX_PENDING = "view_tx_pending"
+        private const val KEY_VIEW_TX_ID = "view_tx_id"
+        private const val KEY_VIEW_ATTENTION_ORIGINAL = "view_attention_original"
+        private const val KEY_VIEW_ATTENTION_DISPLAY = "view_attention_display"
+        private const val KEY_VIEW_ATTENTION_ID = "view_attention_id"
     }
 }
 
@@ -691,4 +748,4 @@ private data class PlatformDetection(
     val isPinterestUrl: Boolean,
     val isThreadsUrl: Boolean,
     val detectedPlatform: ProxyPlatform?,
-) 
+)

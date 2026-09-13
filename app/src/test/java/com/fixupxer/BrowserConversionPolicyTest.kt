@@ -14,7 +14,7 @@ package com.fixupxer
 import androidx.lifecycle.SavedStateHandle
 import com.fixupxer.domain.repository.UrlRepository
 import com.fixupxer.presentation.rules.RuleEditorViewModel
-import com.fixupxer.processing.BrowserConversionPolicy
+import com.fixupxer.processing.BrowserFrontendPolicy
 import com.fixupxer.processing.PipelineProcessingResult
 import com.fixupxer.processing.ProcessingOptions
 import com.fixupxer.processing.ProcessingProfile
@@ -44,27 +44,13 @@ import org.mockito.kotlin.whenever
 class BrowserConversionPolicyTest {
 
     @Test
-    fun `policy matrix requires reader platform enabled toggle and active target`() {
-        ProxyPlatform.entries.forEach { platform ->
-            listOf(false, true).forEach { toggleEnabled ->
-                listOf(false, true).forEach { hasActiveTarget ->
-                    val expected =
-                        platform in AlternativeFrontendCatalog.privacyCapablePlatforms() &&
-                            toggleEnabled &&
-                            hasActiveTarget
-                    assertEquals(
-                        "$platform toggle=$toggleEnabled target=$hasActiveTarget",
-                        expected,
-                        BrowserConversionPolicy.shouldConvert(
-                            platform,
-                            toggleEnabled,
-                            hasActiveTarget,
-                        ),
-                    )
-                }
-            }
+    fun `experimental platforms cannot expose built in or custom Browser targets`() {
+        listOf(ProxyPlatform.YOUTUBE, ProxyPlatform.THREADS).forEach { platform ->
+            val custom = com.fixupxer.utils.FrontendTarget(
+                "custom:example.org", platform, "example.org", role = com.fixupxer.utils.FrontendRole.READER, allowNativeApp = false,
+            )
+            assertTrue(BrowserFrontendPolicy.allowedTargets(platform, AlternativeFrontendCatalog.builtIn(platform) + custom).isEmpty())
         }
-        assertFalse(BrowserConversionPolicy.shouldConvert(null, true, true))
     }
 
     @Test
@@ -81,6 +67,9 @@ class BrowserConversionPolicyTest {
         whenever(urlRepository.isTwitterUrl(URL)).thenReturn(true)
         whenever(preferences.isBrowserPrivacyConversionEnabled(ProxyPlatform.X)).thenReturn(true)
         whenever(preferences.resolveBrowserPrivacyTarget(ProxyPlatform.X)).thenReturn(target)
+        whenever(preferences.getBrowserFrontendPreferences()).thenReturn(mapOf(
+            ProxyPlatform.X to com.fixupxer.processing.BrowserFrontendPreference(com.fixupxer.processing.BrowserConversionMode.READER, target.id),
+        ))
         whenever(preferences.resolveBrowserPrivacySelections()).thenReturn(
             mapOf(ProxyPlatform.X to target.domain),
         )
@@ -112,7 +101,8 @@ class BrowserConversionPolicyTest {
 
         val options = argumentCaptor<ProcessingOptions>()
         verify(orchestrator).process(eq(URL), options.capture(), any())
-        assertTrue(options.firstValue.convertDomains)
+        assertFalse(options.firstValue.convertDomains)
+        assertEquals(target.domain, java.net.URI(options.firstValue.browserFrontends!!.convert(URL).url).host)
     }
 
     private companion object {

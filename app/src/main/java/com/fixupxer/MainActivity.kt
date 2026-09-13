@@ -78,6 +78,10 @@ class MainActivity : BaseActivity() {
     private var inputDraftBlocked = false
     private var viewIntentJob: Job? = null
     private var activePostCleanRunner: PostCleanRunner? = null
+    private var viewRequestId = 0L
+    private var viewTransactionId = java.util.UUID.randomUUID().toString()
+    private var browserRetryUrl: String? = null
+    private var restoringViewState = false
     
     @Inject
     lateinit var historyRepository: HistoryRepository
@@ -87,6 +91,7 @@ class MainActivity : BaseActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewTransactionId = savedInstanceState?.getString("browser_transaction_id") ?: viewTransactionId
         Timber.d("MainActivity onCreate started")
         
         // Edge-to-edge is now handled in BaseActivity
@@ -103,7 +108,7 @@ class MainActivity : BaseActivity() {
         observeViewModel()
         setupSmartFooter()
         
-        if (intent?.action != Intent.ACTION_VIEW) {
+        if (intent?.action != Intent.ACTION_VIEW || savedInstanceState == null) {
             viewModel.clearCompletedViewTransaction()
         }
 
@@ -122,14 +127,24 @@ class MainActivity : BaseActivity() {
     
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        viewTransactionId = java.util.UUID.randomUUID().toString()
         setIntent(intent)
         viewModel.cancelInflightViewProcessing()
         viewModel.clearCompletedViewTransaction()
+        ++viewRequestId
+        viewIntentJob?.cancel()
+        activePostCleanRunner?.dismissActiveDialog()
+        activePostCleanRunner = null
+        browserRetryUrl = null
+        binding.buttonProcess.setText(R.string.process_url)
         handleViewIntentIfPresent(intent)
     }
     
-    private fun handleViewIntentIfPresent(intent: Intent?) {
+    private fun handleViewIntentIfPresent(intent: Intent?, retrying: Boolean = false) {
         if (intent?.action == Intent.ACTION_VIEW && intent.data != null) {
+            browserRetryUrl = null
+            binding.buttonProcess.setText(R.string.process_url)
+            val requestId = ++viewRequestId
             viewIntentJob?.cancel()
             activePostCleanRunner?.dismissActiveDialog()
             activePostCleanRunner = null
@@ -144,23 +159,54 @@ class MainActivity : BaseActivity() {
                 val originalUrl = uri.toString()
                 val preferenceEnabled = preferencesManager.isBrowserModeEnabled()
                 val aliasEnabled = BrowserModeUtils.isBrowserAliasEnabled(this)
-                val gateSnapshot = BrowserViewGate.begin(preferenceEnabled, aliasEnabled)
-                if (gateSnapshot == null) {
-                    Timber.w(
-                        "Skipping VIEW processing because Browser mode state is inconsistent " +
-                            "(preference=$preferenceEnabled, alias=$aliasEnabled)"
-                    )
+                if (!preferenceEnabled) {
                     handoffOriginalUrl(originalUrl)
                     return
                 }
-
-                val completedTransaction = viewModel.getCompletedViewTransaction(originalUrl)
+                if (retrying) viewModel.clearBrowserAttention() else {
+                    viewModel.browserAttention(originalUrl, viewTransactionId)?.let { retained ->
+                        showBrowserFailure(originalUrl, retained)
+                        return
+                    }
+                }
+                val interrupted = !retrying && viewModel.hasInterruptedBrowserTransaction()
+                val invalidPreferences = preferencesManager.hasInvalidBrowserFrontendPreferences()
+                if (!aliasEnabled || interrupted || invalidPreferences) {
+                    Timber.w("Browser requires attention: alias=%s, interrupted=%s, invalidPreferences=%s", aliasEnabled, interrupted, invalidPreferences)
+                    showBrowserFailure(originalUrl)
+                    return
+                }
 
                 viewIntentJob = lifecycleScope.launch {
                     try {
+                        val ruleFingerprint = viewModel.browserRuleFingerprint()
+                        val preferencesFingerprint = preferencesManager.browserFrontendFingerprint()
+                        val fingerprint = "$preferencesFingerprint:${BuildConfig.VERSION_CODE}:$ruleFingerprint"
+                        val rulesRevision = viewModel.browserRulesRevision()
+                        val gateSnapshot = BrowserViewGate.begin(
+                            preferencesManager.isBrowserModeEnabled(), BrowserModeUtils.isBrowserAliasEnabled(this@MainActivity),
+                        )
+                        if (gateSnapshot == null) {
+                            Timber.w("Browser dispatch paused during settings recovery")
+                            showBrowserFailure(originalUrl)
+                            return@launch
+                        }
+                        val current = {
+                            requestId == viewRequestId && !isFinishing && !isDestroyed &&
+                                isBrowserViewGateValid(gateSnapshot) &&
+                                preferencesFingerprint == preferencesManager.browserFrontendFingerprint() &&
+                                rulesRevision == viewModel.browserRulesRevision()
+                        }
+                        val completedTransaction = viewModel.getCompletedViewTransaction(originalUrl, fingerprint, viewTransactionId)
+                        if (completedTransaction == null && viewModel.hasCompletedBrowserTransaction()) {
+                            if (retrying) viewModel.clearCompletedViewTransaction() else {
+                                showBrowserFailure(originalUrl)
+                                return@launch
+                            }
+                        }
                         if (!isBrowserViewGateValid(gateSnapshot)) {
                             Timber.w("Browser VIEW gate changed before URL processing")
-                            handoffOriginalUrl(originalUrl)
+                            showBrowserFailure(originalUrl)
                             return@launch
                         }
 
@@ -169,14 +215,16 @@ class MainActivity : BaseActivity() {
                             dispatchBrowserPostClean(
                                 processedUrl = completedTransaction.processedUrl,
                                 routingHost = completedTransaction.routingHost,
+                                originalUrl = originalUrl,
+                                isCurrent = current,
                             )
                             return@launch
                         }
 
-                        val processingResult = viewModel.browserViewResult(originalUrl).await()
+                        val processingResult = viewModel.browserViewResult(originalUrl, fingerprint, viewTransactionId).await()
                         if (processingResult is BrowserViewProcessingResult.ValidationRejected) {
                             Timber.w("VIEW intent URL rejected by validator")
-                            handoffOriginalUrl(originalUrl)
+                            showBrowserFailure(originalUrl)
                             return@launch
                         }
 
@@ -188,37 +236,46 @@ class MainActivity : BaseActivity() {
                                 "length=${result.url.length})"
                         )
 
-                        if (!isBrowserViewGateValid(gateSnapshot)) {
+                        if (!current() || result.status != com.fixupxer.processing.PipelineStatus.COMPLETE) {
                             Timber.w("Browser VIEW gate changed before after-clean dispatch")
-                            handoffOriginalUrl(originalUrl)
+                            showBrowserFailure(originalUrl, result.url, result.status.takeUnless {
+                                it == com.fixupxer.processing.PipelineStatus.COMPLETE
+                            })
                             return@launch
                         }
 
                         dispatchBrowserPostClean(
                             processedUrl = result.url,
                             routingHost = result.routingHost,
+                            originalUrl = originalUrl,
+                            isCurrent = current,
                         )
                     } catch (e: kotlinx.coroutines.CancellationException) {
                         throw e
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to handle VIEW intent")
-                        handoffOriginalUrl(originalUrl)
+                        if (requestId == viewRequestId) showBrowserFailure(originalUrl)
                     }
                 }
             }
         }
     }
 
-    private fun dispatchBrowserPostClean(processedUrl: String, routingHost: String?) {
+    private fun dispatchBrowserPostClean(processedUrl: String, routingHost: String?, originalUrl: String, isCurrent: () -> Boolean) {
         val postCleanRunner = PostCleanRunner(this, preferencesManager)
         activePostCleanRunner = postCleanRunner
-        postCleanRunner.run(Uri.parse(processedUrl), routingHost) {
-            // Finish only after the user has made a choice in ask mode. A stale
-            // runner's late callback must not clear a newer intent's transaction.
+        postCleanRunner.runGuarded(Uri.parse(processedUrl), routingHost, isCurrent) { outcome ->
+            // Only a delivered action ends this transaction. Cancellation keeps
+            // the result locally; a stale callback cannot clear a newer intent.
             if (activePostCleanRunner === postCleanRunner) {
-                viewModel.clearCompletedViewTransaction()
                 activePostCleanRunner = null
-                finish()
+                if (outcome == PostCleanRunner.Outcome.SUCCESS) {
+                    viewModel.clearCompletedViewTransaction()
+                    finish()
+                } else {
+                    showBrowserFailure(originalUrl, processedUrl, messageOverride =
+                        R.string.browser_action_cancelled.takeIf { outcome == PostCleanRunner.Outcome.CANCELLED })
+                }
             }
         }
     }
@@ -230,6 +287,27 @@ class MainActivity : BaseActivity() {
         preferenceEnabled = preferencesManager.isBrowserModeEnabled(),
         aliasEnabled = BrowserModeUtils.isBrowserAliasEnabled(this),
     )
+
+    private fun showBrowserFailure(
+        originalUrl: String,
+        displayUrl: String = originalUrl,
+        status: com.fixupxer.processing.PipelineStatus? = null,
+        messageOverride: Int? = null,
+    ) {
+        viewModel.markBrowserAttention(originalUrl, displayUrl, viewTransactionId)
+        browserRetryUrl = originalUrl
+        textValidationJob?.cancel()
+        inputDraftBlocked = false
+        binding.editTextUrl.removeTextChangedListener(urlTextWatcher)
+        binding.editTextUrl.setText(displayUrl)
+        binding.editTextUrl.addTextChangedListener(urlTextWatcher)
+        viewModel.showOriginalForManualFallback(displayUrl)
+        binding.buttonProcess.setText(R.string.browser_retry)
+        updateProcessButtonState()
+        val message = messageOverride ?: status?.let(com.fixupxer.ui.helpers.PipelineStatusTextHelper::messageRes)
+            ?: R.string.browser_processing_not_completed
+        SnackbarHelper.showShort(binding.root, getString(message))
+    }
 
     private fun handoffOriginalUrl(originalUrl: String) {
         viewModel.clearCompletedViewTransaction()
@@ -332,6 +410,20 @@ class MainActivity : BaseActivity() {
         )
     }
     
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("browser_transaction_id", viewTransactionId)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        restoringViewState = true
+        try {
+            super.onRestoreInstanceState(savedInstanceState)
+        } finally {
+            restoringViewState = false
+        }
+    }
+
     override fun onDestroy() {
         viewIntentJob?.cancel()
         viewIntentJob = null
@@ -354,6 +446,15 @@ class MainActivity : BaseActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
+                // Android restores EditText after onCreate; this is not a new user edit.
+                if (restoringViewState && intent?.action == Intent.ACTION_VIEW) return
+                // Editing a retained Browser result starts a manual transaction.
+                if (browserRetryUrl != null) {
+                    browserRetryUrl = null
+                    binding.buttonProcess.setText(R.string.process_url)
+                    viewModel.cancelInflightViewProcessing()
+                    viewModel.clearCompletedViewTransaction()
+                }
                 val raw = s?.toString() ?: ""
                 // Cancel any in-flight validation so rapid typing can't deliver
                 // out-of-order results to the ViewModel.
@@ -409,7 +510,13 @@ class MainActivity : BaseActivity() {
         // Button listeners
         binding.textInputLayoutUrl.setEndIconOnClickListener { pasteFromClipboard() }
         binding.buttonProcess.setOnClickListener {
-            if (!inputDraftBlocked) viewModel.processUrl()
+            if (!inputDraftBlocked) {
+                val retryUrl = browserRetryUrl
+                if (retryUrl != null) {
+                    viewModel.cancelInflightViewProcessing()
+                    handleViewIntentIfPresent(Intent(Intent.ACTION_VIEW, Uri.parse(retryUrl)), retrying = true)
+                } else viewModel.processUrl()
+            }
         }
         binding.buttonShare.setOnClickListener {
             UrlActionHelper.shareUrl(binding.root, this, viewModel.uiState.value.actionUrl)

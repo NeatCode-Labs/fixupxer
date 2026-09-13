@@ -45,6 +45,8 @@ class LocalBackupManager @Inject constructor(
     private val historyRepository: HistoryRepository,
 ) {
     private val restoreMutex = Mutex()
+    @Volatile
+    private var recoveryPauseHeld = false
     private val rollbackFile
         get() = context.filesDir.resolve(Constants.RESTORE_ROLLBACK_FILE_NAME)
     private val rollbackTempFile
@@ -87,11 +89,20 @@ class LocalBackupManager @Inject constructor(
             currentCoroutineContext().ensureActive()
             restoreMutex.withLock {
                 withContext(NonCancellable + Dispatchers.IO) {
+                    check(!rollbackFile.exists() && !recoveryPauseHeld) {
+                        "Interrupted restore recovery must complete before a new restore"
+                    }
                     BrowserViewGate.pause()
                     try {
                         applyBundle(bundle)
                     } finally {
-                        BrowserViewGate.resume()
+                        // A retained rollback record means persistent state is not known-good.
+                        // Keep VIEW dispatch blocked until startup recovery succeeds.
+                        if (rollbackFile.exists()) {
+                            recoveryPauseHeld = true
+                        } else {
+                            BrowserViewGate.resume()
+                        }
                     }
                 }
             }
@@ -111,16 +122,21 @@ class LocalBackupManager @Inject constructor(
                 if (!rollbackFile.exists()) {
                     return@withContext Result.success(false)
                 }
+                if (!recoveryPauseHeld) {
+                    BrowserViewGate.pause()
+                    recoveryPauseHeld = true
+                }
                 try {
                     val rollback = readRollbackSnapshot()
                     applyRollbackSnapshotForRecovery(rollback)
+                    clearRollbackSnapshot()
+                    BrowserViewGate.resume()
+                    recoveryPauseHeld = false
                     Timber.w("Recovered settings after an interrupted local restore")
                     Result.success(true)
                 } catch (error: Throwable) {
                     Timber.e(error, "Failed to recover interrupted local restore")
                     Result.failure(error)
-                } finally {
-                    clearRollbackSnapshotBestEffort()
                 }
             }
         }

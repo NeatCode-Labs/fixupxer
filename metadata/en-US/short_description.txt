@@ -1,1 +1,1 @@
-Clean URL tracking, fix embeds (X, IG, FB, TikTok, Bluesky), catch link leaks
+Clean tracking, choose link frontends, and spot sensitive data in URLs

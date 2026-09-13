@@ -25,7 +25,6 @@ import com.fixupxer.UrlProcessor
 import com.fixupxer.domain.model.ProcessedUrlResult
 import com.fixupxer.domain.repository.UrlRepository
 import com.fixupxer.domain.repository.HistoryRepository
-import com.fixupxer.processing.BrowserConversionPolicy
 import com.fixupxer.processing.LinkLeakAnalyzer
 import com.fixupxer.processing.PlatformDomainConverter
 import com.fixupxer.processing.ProcessingOptions
@@ -266,7 +265,6 @@ class UrlRepositoryImpl @Inject constructor(
         val inputFindings = LinkLeakAnalyzer.analyze(url)
         val isInstagram = urlProcessor.isInstagramUrl(url)
         val isFacebook = urlProcessor.isFacebookUrl(url)
-        val isTwitter = urlProcessor.isTwitterUrl(url)
         val isTikTok = urlProcessor.isTikTokUrl(url)
         val isBluesky = urlProcessor.isBlueskyUrl(url)
         val isReddit = urlProcessor.isRedditUrl(url)
@@ -276,18 +274,6 @@ class UrlRepositoryImpl @Inject constructor(
         val cleanTracking = isInstagram ||
             forceCleanTracking ||
             preferencesManager.isCleanTrackingEnabled()
-        val browserPlatform = when {
-            isInstagram -> ProxyPlatform.INSTAGRAM
-            isFacebook -> ProxyPlatform.FACEBOOK
-            isTwitter -> ProxyPlatform.X
-            isTikTok -> ProxyPlatform.TIKTOK
-            isBluesky -> ProxyPlatform.BLUESKY
-            isReddit -> ProxyPlatform.REDDIT
-            isYouTube -> ProxyPlatform.YOUTUBE
-            isPinterest -> ProxyPlatform.PINTEREST
-            isThreads -> ProxyPlatform.THREADS
-            else -> null
-        }
         val convertDomains = when (profile) {
             ProcessingProfile.MAIN, ProcessingProfile.SHARE -> when {
                 isInstagram -> preferencesManager.isConvertInstagramEnabled()
@@ -300,15 +286,7 @@ class UrlRepositoryImpl @Inject constructor(
                 isThreads -> preferencesManager.isConvertThreadsEnabled()
                 else -> preferencesManager.isConvertTwitterEnabled()
             }
-            ProcessingProfile.BROWSER -> BrowserConversionPolicy.shouldConvert(
-                platform = browserPlatform,
-                toggleEnabled = browserPlatform?.let {
-                    preferencesManager.isBrowserPrivacyConversionEnabled(it)
-                } == true,
-                hasActiveTarget = browserPlatform?.let {
-                    preferencesManager.resolveBrowserPrivacyTarget(it)
-                } != null,
-            )
+            ProcessingProfile.BROWSER -> false // Resolved per URL/hop in the orchestrator.
         }
         val result = orchestrator.process(
             rawInput = url,
@@ -319,7 +297,10 @@ class UrlRepositoryImpl @Inject constructor(
                 proxySelections = buildProxySelections(profile),
                 customRulesEnabled = preferencesManager.areCustomRulesEnabled(),
                 persistHistory = persistHistory,
-                useCache = inputFindings.isEmpty()
+                useCache = inputFindings.isEmpty(),
+                browserFrontends = if (profile == ProcessingProfile.BROWSER) {
+                    com.fixupxer.processing.BrowserFrontendSnapshot(preferencesManager.getBrowserFrontendPreferences())
+                } else null,
             )
         )
         val outputFindings = LinkLeakAnalyzer.analyze(result.url)
@@ -330,7 +311,7 @@ class UrlRepositoryImpl @Inject constructor(
             result.cleanerCacheKeys.forEach(orchestrator::evictFromCleanerCache)
         }
 
-        val historyGatesPass = persistHistory &&
+        val historyGatesPass = persistHistory && result.status == com.fixupxer.processing.PipelineStatus.COMPLETE &&
             preferencesManager.isHistoryEnabled() &&
             if (previousProcessedUrl != null) {
                 result.url != previousProcessedUrl
@@ -363,6 +344,7 @@ class UrlRepositoryImpl @Inject constructor(
             operations = result.operations,
             leakFindings = outputFindings,
             routingHost = if (profile == ProcessingProfile.BROWSER) result.routingHost else null,
+            status = result.status,
         )
     }
     
@@ -502,4 +484,4 @@ class UrlRepositoryImpl @Inject constructor(
             )
         }
 
-} 
+}

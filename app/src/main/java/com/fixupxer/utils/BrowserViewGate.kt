@@ -26,6 +26,13 @@ object BrowserViewGate {
     private val revision = AtomicLong(0L)
     private val pauseDepth = AtomicInteger(0)
 
+    /** Isolates disposable unit/instrumentation fixtures after simulated failed recovery. */
+    @androidx.annotation.VisibleForTesting
+    internal fun resetForTests() {
+        pauseDepth.set(0)
+        invalidate()
+    }
+
     fun invalidate() {
         revision.incrementAndGet()
     }

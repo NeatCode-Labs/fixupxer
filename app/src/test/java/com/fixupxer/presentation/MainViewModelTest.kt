@@ -44,6 +44,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -207,6 +208,40 @@ class MainViewModelTest {
         finishProcessing.complete(ProcessedUrlResult(originalUrl, true))
         first.await()
         assertEquals(1, urlRepository.browserProcessCalls)
+    }
+
+    @Test
+    fun `completed transaction cannot replay with different configuration after process restoration`() = runTest(testDispatcher) {
+        val state = SavedStateHandle()
+        val original = createViewModel(savedStateHandle = state)
+        original.storeCompletedViewTransaction("https://example.com/a", "https://example.com/b", "example.com", "config-a")
+        val restored = createViewModel(savedStateHandle = state)
+        assertNull(restored.getCompletedViewTransaction("https://example.com/a", "config-b"))
+        assertEquals("https://example.com/b", restored.getCompletedViewTransaction("https://example.com/a", "config-a")?.processedUrl)
+    }
+
+    @Test
+    fun `unfinished restored transaction requires explicit retry`() = runTest(testDispatcher) {
+        val restored = createViewModel(savedStateHandle = SavedStateHandle(mapOf("view_tx_pending" to true)))
+        assertTrue(restored.hasInterruptedBrowserTransaction())
+        restored.clearCompletedViewTransaction()
+        assertFalse(restored.hasInterruptedBrowserTransaction())
+    }
+
+    @Test
+    fun `identical URL and configuration cannot replay a different VIEW transaction`() = runTest(testDispatcher) {
+        val state = SavedStateHandle()
+        val first = createViewModel(savedStateHandle = state)
+        first.storeCompletedViewTransaction("https://example.com/a", "https://example.com/b", "example.com", "config", "first")
+        first.markBrowserAttention("https://example.com/a", "https://example.com/b", "first")
+        val restored = createViewModel(savedStateHandle = state)
+        assertEquals("https://example.com/b", restored.getCompletedViewTransaction("https://example.com/a", "config", "first")?.processedUrl)
+        assertNull(restored.getCompletedViewTransaction("https://example.com/a", "config", "new"))
+        assertEquals("https://example.com/b", restored.browserAttention("https://example.com/a", "first"))
+        assertNull(restored.browserAttention("https://example.com/a", "new"))
+        restored.clearBrowserAttention()
+        assertNull(restored.browserAttention("https://example.com/a", "first"))
+        assertNotNull(restored.getCompletedViewTransaction("https://example.com/a", "config", "first"))
     }
 
     @Test

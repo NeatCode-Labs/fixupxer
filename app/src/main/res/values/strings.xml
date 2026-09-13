@@ -36,7 +36,7 @@
     <string name="no_frontend_active_title">No frontend configured</string>
     <string name="alternative_frontends_title">Alternative frontends</string>
     <string name="alternative_frontends_settings_description">Choose which frontend each platform converts to</string>
-    <string name="alternative_frontends_intro">These choices apply when processing links on the Main screen and in Share. Browser mode privacy frontends are configured separately under Browser integration.</string>
+    <string name="alternative_frontends_intro">These choices apply when processing links on the Main screen and in Share. Browser mode frontends are configured separately under Browser integration.</string>
     <string name="frontend_not_configured">No frontend configured</string>
     <string name="frontend_platform_row_desc">%1$s frontend settings. Currently: %2$s</string>
     <string name="alternative_frontends_row_content_description">Alternative frontends. Choose which frontend each platform converts to.</string>
@@ -206,7 +206,7 @@
     <string name="close">Close</string>
     <string name="chooser_open_with">Open with</string>
     <string name="chooser_open_with_browser">Open with browser</string>
-    <string name="browser_conversion_settings_saved">Privacy reader settings saved</string>
+    <string name="browser_conversion_settings_saved">Browser frontend settings saved</string>
     
     <!-- About and Report Bug -->
     <string name="about">About</string>
@@ -336,25 +336,28 @@
     <string name="action_browser">Open in browser</string>
     <string name="action_share_menu">Share menu</string>
     <string name="action_clipboard">Copy to clipboard</string>
-    <string name="post_clean_action_title">Open cleaned link with</string>
+    <string name="post_clean_action_title">Choose an action</string>
+    <string name="browser_retry">Retry</string>
+    <string name="browser_action_cancelled">Action cancelled. Your processed link is available here. Tap Retry to choose an action again.</string>
+    <string name="browser_processing_not_completed">The Browser action could not be completed. Check your frontend settings and retry. The link has not been opened automatically.</string>
     <string name="drag_handle_description">Drag to reorder</string>
     <string name="action_move_up">Move action up</string>
     <string name="action_move_down">Move action down</string>
     <string name="action_moved_announcement">%1$s moved to position %2$d of %3$d</string>
     
     <!-- Additional missing strings -->
-    <string name="conversion_defaults">Configure privacy readers</string>
-    <string name="conversion_defaults_title">Browser privacy readers</string>
+    <string name="conversion_defaults">Configure Browser frontends</string>
+    <string name="conversion_defaults_title">Browser frontends</string>
     <string name="configuration_status">Configuration status</string>
     <string name="configuration_status_title">Configuration status</string>
     <string name="configuration_status_description">Review link cleaning, Custom Rules, Browser mode, and after-clean behavior.</string>
     <string name="configuration_status_navigation_content_description">Configuration status. Review link cleaning, Custom Rules, Browser mode, and after-clean behavior.</string>
     <string name="status_value_on">On</string>
     <string name="status_value_off">Off</string>
-    <string name="configuration_status_summary_active_with_conversions">Browser integration is active. Eligible web links you open can be routed through FixupXer and converted to privacy frontends.</string>
-    <string name="configuration_status_summary_active_cleaning_only">Browser integration is active. Eligible links are still cleaned when routed through FixupXer; privacy conversions are optional and none are enabled.</string>
-    <string name="configuration_status_summary_operational_broken">Browser integration is active, but an enabled privacy conversion has no active reader and cannot run until you fix it.</string>
-    <string name="configuration_status_summary_operational_mixed">Browser integration is active, but some enabled privacy conversions are working while others need attention.</string>
+    <string name="configuration_status_summary_active_with_conversions">Browser integration is active. Eligible web links you open can be routed through FixupXer and converted to selected frontends.</string>
+    <string name="configuration_status_summary_active_cleaning_only">Browser integration is active. Eligible links are cleaned when routed through FixupXer; no Browser frontends are enabled.</string>
+    <string name="configuration_status_summary_operational_broken">Browser integration is active, but an enabled Browser frontend is unavailable and needs attention.</string>
+    <string name="configuration_status_summary_operational_mixed">Browser integration is active, but some enabled Browser frontends work while others need attention.</string>
     <string name="configuration_status_summary_alias_on_not_default">Browser integration is on, but FixupXer is not your default browser, so links will not be routed through it.</string>
     <string name="configuration_status_summary_alias_on_unverified">Browser integration is on. Whether FixupXer is your default browser could not be verified on this device.</string>
     <string name="configuration_status_summary_alias_off_is_default">FixupXer holds the default browser role, but browser integration is switched off, so links open without processing.</string>
@@ -369,11 +372,11 @@
     <string name="configuration_status_detail_default_other">Default browser: Other or not selected</string>
     <string name="configuration_status_detail_default_other_attention">Default browser: Other or not selected — FixupXer is not your default browser, so links will not be routed</string>
     <string name="configuration_status_detail_default_unknown">Default browser: Unable to verify — check your system default browser settings manually</string>
-    <string name="configuration_status_label_privacy_conversions">Privacy readers</string>
-    <string name="configuration_status_privacy_none">Privacy readers: None enabled (optional)</string>
-    <string name="configuration_status_privacy_route">Privacy readers: %1$s → %2$s</string>
-    <string name="configuration_status_privacy_broken">Privacy readers: %1$s is enabled but has no active reader — open Browser privacy readers and choose one</string>
-    <string name="configuration_status_privacy_broken_restore">Privacy readers: %1$s is enabled but has no active reader — open Browser privacy readers, restore built-in readers, then choose one</string>
+    <string name="configuration_status_label_privacy_conversions">Browser frontends</string>
+    <string name="configuration_status_privacy_none">Browser frontends: None enabled (optional)</string>
+    <string name="configuration_status_privacy_route">Browser frontends: %1$s → %2$s</string>
+    <string name="configuration_status_privacy_broken">Browser frontends: %1$s is enabled but unavailable — open Browser frontends and choose another</string>
+    <string name="configuration_status_privacy_broken_restore">Browser frontends: %1$s is enabled but unavailable — open Browser frontends and restore its category or choose another</string>
     <string name="configuration_status_label_custom_rules">Custom rules</string>
     <string name="configuration_status_custom_rules_on">Custom rules: On (%1$s)</string>
     <string name="configuration_status_custom_rules_off">Custom rules: Off (optional)</string>
@@ -399,11 +402,11 @@
     <string name="configuration_status_tracking_on">Tracking cleaning: On for eligible links</string>
     <string name="configuration_status_verified_links_note">Apps with Verified App Links may open eligible links directly and bypass the Android default browser. FixupXer only processes links Android routes to it.</string>
     <string name="action_priority_instructions">Drag actions or use Move up and Move down. FixupXer tries them from top to bottom and stops after the first success.</string>
-    <string name="conversion_defaults_explanation">Choose which platforms Browser mode rewrites into privacy readers. A reader is a third-party frontend: it receives your IP address like any website, and availability is not guaranteed.</string>
-    <string name="conversion_defaults_browser_note">These Browser-only readers are separate from the embed frontends used on the Main and Share screens.</string>
+    <string name="conversion_defaults_explanation">Choose clean-only processing or a Browser frontend for each platform. FixupXer rewrites URLs offline; third-party frontend availability is not guaranteed.</string>
+    <string name="conversion_defaults_browser_note">These Browser choices are separate from the frontends used on the Main and Share screens. Add or remove custom domains under Alternative frontends.</string>
     <string name="browser_privacy_frontend_label">Privacy reader: %1$s</string>
     <string name="browser_privacy_no_frontend">No active privacy reader — restore a built-in reader in the picker.</string>
-    <string name="privacy_readers_summary_none">No privacy readers enabled</string>
+    <string name="privacy_readers_summary_none">All supported platforms use Clean only</string>
     <plurals name="privacy_readers_summary_active">
         <item quantity="one">%1$d active</item>
         <item quantity="other">%1$d active</item>
@@ -414,9 +417,31 @@
     </plurals>
     <string name="privacy_readers_summary_mixed">%1$s · %2$s</string>
     <string name="convert_twitter_browser">Convert Twitter/X links</string>
+    <string name="convert_instagram_browser">Convert Instagram links</string>
+    <string name="convert_tiktok_browser">Convert TikTok links</string>
+    <string name="convert_facebook_browser">Convert Facebook links</string>
     <string name="convert_bluesky_browser">Convert Bluesky post links</string>
     <string name="convert_reddit_browser">Convert Reddit links</string>
     <string name="convert_pinterest_browser">Convert Pinterest links</string>
+    <string name="change_browser_frontend">Change frontend</string>
+    <string name="change_browser_frontend_desc">Change Browser frontend for %1$s</string>
+    <string name="browser_frontend_clean_only">Clean only</string>
+    <string name="browser_frontend_clean_only_description">Remove supported tracking without converting to another frontend.</string>
+    <string name="browser_frontend_selected">Frontend: %1$s</string>
+    <string name="browser_frontend_reader_fallback">Reader fallback: %1$s (saved %2$s is unavailable)</string>
+    <string name="browser_frontend_unavailable">Selected frontend unavailable</string>
+    <string name="browser_frontend_unavailable_help">Choose another frontend, restore the selected category, or use Clean only.</string>
+    <string name="browser_frontend_picker_title">Choose %1$s Browser frontend</string>
+    <string name="browser_frontend_info_title">About Browser frontends</string>
+    <string name="browser_frontend_info_message">FixupXer cleans and rewrites the URL offline. Opening a rewritten URL contacts the selected third-party service, whose availability and privacy practices are outside FixupXer.</string>
+    <string name="browser_frontend_group_clean">Clean only</string>
+    <string name="browser_frontend_group_readers">Privacy readers</string>
+    <string name="browser_frontend_group_embeds">Embed frontends</string>
+    <string name="browser_frontend_group_custom">Custom frontends</string>
+    <string name="browser_frontend_restore_readers">Restore built-in readers</string>
+    <string name="browser_frontend_restore_embeds">Restore built-in embed frontends</string>
+    <string name="browser_frontend_save_conflict">Changes could not be saved. Settings may have changed elsewhere; review the latest choices and save again.</string>
+    <string name="configuration_status_browser_frontends_invalid">Browser frontend settings need attention. Open Browser frontends and save a valid choice.</string>
     <string name="cancel">Cancel</string>
     <string name="save">Save</string>
 
@@ -655,4 +680,11 @@
     <string name="remembered_route_save_failed">Could not save destination</string>
     <string name="remembered_route_launch_failed">Saved destination could not be opened</string>
     
+    <string name="pipeline_status_complete">Local processing completed.</string>
+    <string name="pipeline_status_frontend_unavailable">The selected frontend is unavailable. Choose an active frontend or Clean only, then retry.</string>
+    <string name="pipeline_status_unsupported_conversion">The selected frontend does not support this URL. Choose another frontend or Clean only, then retry.</string>
+    <string name="pipeline_status_invalid_result">Processing produced an invalid URL. Review custom rules before retrying.</string>
+    <string name="pipeline_status_cycle">Processing found a redirect cycle. Review custom rules before retrying.</string>
+    <string name="pipeline_status_hop_limit">Processing reached the redirect limit. Review the link and custom rules before retrying.</string>
+    <string name="pipeline_status_stale_configuration">Settings changed during processing. Retry to use the current settings.</string>
 </resources>

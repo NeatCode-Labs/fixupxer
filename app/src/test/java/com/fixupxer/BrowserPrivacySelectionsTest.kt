@@ -60,12 +60,15 @@ class BrowserPrivacySelectionsTest {
             .thenReturn(AlternativeFrontendCatalog.byId("x_xcancel"))
         whenever(fixture.preferences.isBrowserPrivacyConversionEnabled(ProxyPlatform.X))
             .thenReturn(true)
+        whenever(fixture.preferences.getBrowserFrontendPreferences()).thenReturn(mapOf(
+            ProxyPlatform.X to com.fixupxer.processing.BrowserFrontendPreference(com.fixupxer.processing.BrowserConversionMode.READER, "x_xcancel"),
+        ))
 
         fixture.repository.processUrlForBrowser(X_STATUS_URL)
 
         val options = captureOptions(fixture.orchestrator)
-        assertTrue(options.convertDomains)
-        assertEquals(Constants.XCANCEL_DOMAIN, options.proxySelections.domainFor(ProxyPlatform.X))
+        assertFalse(options.convertDomains)
+        assertEquals(Constants.XCANCEL_DOMAIN, java.net.URI(options.browserFrontends!!.convert(X_STATUS_URL).url).host)
     }
 
     @Test

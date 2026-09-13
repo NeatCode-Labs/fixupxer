@@ -240,6 +240,7 @@ class CustomRuleEngine @Inject constructor(
         var current = url
         var changed = false
         var redirect = false
+        var invalidOutput = false
         val trace = mutableListOf<RuleTraceStep>()
 
         snapshot.rules
@@ -262,6 +263,7 @@ class CustomRuleEngine @Inject constructor(
                     else -> {
                         val result = executor.execute(compiled, current)
                         if (result.error != null) {
+                            invalidOutput = true
                             status = RuleTraceStatus.INVALID_OUTPUT
                             message = result.error
                         } else if (result.url == current) {
@@ -287,11 +289,11 @@ class CustomRuleEngine @Inject constructor(
                     )
                 }
                 if (status == RuleTraceStatus.APPLIED && rule.stopAfterMatch) {
-                    return RuleEngineResult(current, changed, redirect, trace)
+                    return RuleEngineResult(current, changed, redirect, trace, invalidOutput)
                 }
             }
 
-        return RuleEngineResult(current, changed, redirect, trace)
+        return RuleEngineResult(current, changed, redirect, trace, invalidOutput)
     }
 
     private inline fun <T> Iterable<T>.anyIndexed(predicate: (Int, T) -> Boolean): Boolean {

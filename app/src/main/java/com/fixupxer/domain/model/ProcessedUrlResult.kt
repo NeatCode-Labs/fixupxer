@@ -34,4 +34,5 @@ data class ProcessedUrlResult(
     val operations: List<ChangeOperation> = emptyList(),
     val leakFindings: List<LeakFinding> = emptyList(),
     val routingHost: String? = null,
+    val status: com.fixupxer.processing.PipelineStatus = com.fixupxer.processing.PipelineStatus.COMPLETE,
 )

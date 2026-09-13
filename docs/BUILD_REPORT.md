@@ -1,5 +1,30 @@
 # FixupXer Build Report
 
+## v2.7.0 release candidate — September 13, 2026
+
+Version **2.7.0 / code 50** adds separate Browser frontend choices for seven
+platforms, shared final Copy/Share/Open URLs, schema-v2 backup migration and
+transaction-aware Android handoff. YouTube and Threads remain Clean only.
+The root Play AAB and distribution mirror APK use the same application source;
+Play ownership and dependency metadata remain restricted to the root build.
+
+Development gates passed: **757 debug + 757 release unit/integration tests**,
+**271/271 cold-boot API35 instrumentation tests**, no failures/errors/skips,
+and lint with zero errors and 43 warnings. Final artifact hashes, source
+identities, reproducibility and publication are pending the remaining gates.
+`TESTING_REPORT.md` separates debug-device evidence from signed-artifact checks.
+
+During API 36 testing, a cold-start validation timeout exposed redundant URL
+heuristic work and DebugTree stack-trace overhead inside the 50-ms detection
+deadline. The redundant scan and debug logging were removed without changing
+the acceptance conditions or the 100-ms overall validation limit.
+
+Upstream F-Droid metadata incorrectly listed MIT although the project uses
+GPL-3.0-or-later. A [license-only correction](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/48797)
+preserves all historical build recipes. Its CI passed and F-Droid merged it
+as `9fb0e99d7f41b7a73f8ffb46ca498e1dd38d5cfc`. Upstream app build and
+F-Droid availability remain separate from the metadata correction.
+
 ## v2.6.7 release — September 11, 2026
 
 **Version: 2.6.7 / code 49. GitHub release published; signed artifact checks passed.**

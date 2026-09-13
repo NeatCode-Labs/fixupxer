@@ -1,5 +1,40 @@
 # FixupXer Testing Report
 
+## v2.7.0 verification in progress — September 13, 2026
+
+The Browser matrix covers every eligible built-in target, custom targets on
+seven platforms, Clean only on all nine, reader fallback and unavailable
+embed behavior, TikTok full/vm/vt links, host-only replacement, custom-rule
+phase order and redirect reentry, cache isolation, schema-v1/v2 migration,
+draft settings and Android transaction/recreation/action behavior.
+
+Final unit/lint gates passed **757 unit/integration tests in each debug and
+release variant**, with no skipped tests or failures, and lint with zero errors
+and 43 warnings. The final full cold-boot API 35 gate passed **271/271**,
+with no failures or skipped tests, in 8m57s. Earlier 252/252 and 268/268 runs
+preceded the final cancellation fixes and remain historical development evidence.
+
+API 21: all 11 Browser settings tests, five backup codec/migration tests and
+11 frontend flow tests passed. The first flow run failed in its test setup:
+Android 5 ClipboardManager must be initialized on a Looper thread. The test
+now obtains it on the main thread, and the repeated flow class passed.
+
+API 36 revealed cold-start URL validation timeouts. The redundant heuristic
+and debug-logging overhead were removed; **32/32 targeted tests** and **4/4
+interrupted-restore recovery tests** then passed. One new phase-order fixture was corrected to preserve a tracking
+parameter explicitly introduced by POST_CLEAN: a template rewrite does not
+itself restart cleaning. The production phase order is unchanged.
+
+Final cancellation fixes passed 35/35 focused unit checks and 14/14 API 35
+frontend flow tests. The tests cover stale dialog cancellation, retained local
+Retry, destination selection, exact URI delivery and priority fallback.
+
+Instrumentation runs test the **debug variant**. Separate external UI and
+receiver checks must verify the final signed mirror APK and root-AAB-derived
+installation, including clean installs and upgrades. Receiver receipts prove
+the exact handed-off URI; browser rendering, service availability and TikTok
+banner observations are distinct evidence and are not inferred from receipts.
+
 ## v2.6.7 release verification — September 11, 2026
 
 Source version **2.6.7 / code 49**:

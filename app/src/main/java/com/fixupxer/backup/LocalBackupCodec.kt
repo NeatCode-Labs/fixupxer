@@ -12,8 +12,11 @@
 package com.fixupxer.backup
 
 import com.fixupxer.BuildConfig
+import com.fixupxer.processing.BrowserConversionMode
+import com.fixupxer.processing.BrowserFrontendPreference
 import com.fixupxer.rules.RuleBundle
 import com.fixupxer.rules.RuleBundleCodec
+import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.ProxyPlatform
 import com.fixupxer.utils.RetiredFrontendMigration
@@ -46,7 +49,7 @@ class LocalBackupCodec @Inject constructor(
 ) {
     companion object {
         const val FORMAT_ID = "fixupxer-local-backup"
-        const val SCHEMA_VERSION = 1
+        const val SCHEMA_VERSION = 2
     }
 
     fun encode(settings: SettingsSnapshot, rulesJson: String): String {
@@ -76,8 +79,8 @@ class LocalBackupCodec @Inject constructor(
         val root = JSONObject(json)
         require(root.getString("format") == FORMAT_ID) { "Unsupported backup format" }
         val schemaVersion = root.getInt("schemaVersion")
-        require(schemaVersion == SCHEMA_VERSION) { "Unsupported backup schema: $schemaVersion" }
-        val settings = decodeSettings(root.getJSONObject("settings"))
+        require(schemaVersion in 1..SCHEMA_VERSION) { "Unsupported backup schema: $schemaVersion" }
+        val settings = decodeSettings(root.getJSONObject("settings"), schemaVersion)
         val rules = ruleBundleCodec.decodeBundle(root.getJSONObject("customRules").toString())
         return LocalBackupBundle(
             schemaVersion = schemaVersion,
@@ -121,17 +124,19 @@ class LocalBackupCodec @Inject constructor(
         .put("showConfigurationStatusWidget", snapshot.showConfigurationStatusWidget)
         .put("actionMode", snapshot.actionMode)
         .put("actionPriority", JSONArray(snapshot.actionPriority))
-        .put("browserConvertTwitter", snapshot.browserConvertTwitter)
-        .put("browserConvertBluesky", snapshot.browserConvertBluesky)
-        .put("browserConvertReddit", snapshot.browserConvertReddit)
-        .put("browserConvertPinterest", snapshot.browserConvertPinterest)
         .put("proxySelections", encodePlatformStringMap(snapshot.proxySelections))
         .put("customProxies", encodePlatformListMap(snapshot.customProxies))
         .put("disabledBuiltIns", encodePlatformSetMap(snapshot.disabledBuiltIns))
-        .put("browserPrivacyTargets", encodePlatformStringMap(snapshot.browserPrivacyTargetIds))
+        .put("browserFrontends", encodeBrowserFrontends(snapshot.browserFrontends))
         .put("rememberedRoutes", encodeRememberedRoutes(snapshot.rememberedRoutes))
 
-    private fun decodeSettings(json: JSONObject): SettingsSnapshot {
+    private fun decodeSettings(json: JSONObject, schemaVersion: Int): SettingsSnapshot {
+        val customProxies = decodePlatformListMap(json.getJSONObject("customProxies"))
+        val browserFrontends = if (schemaVersion == 1) {
+            decodeV1BrowserFrontends(json)
+        } else {
+            decodeBrowserFrontends(json.getJSONObject("browserFrontends"), customProxies)
+        }
         val snapshot = SettingsSnapshot(
             cleanTracking = json.getBoolean("cleanTracking"),
             convertTwitter = json.getBoolean("convertTwitter"),
@@ -152,19 +157,54 @@ class LocalBackupCodec @Inject constructor(
             showConfigurationStatusWidget = json.optBoolean("showConfigurationStatusWidget", true),
             actionMode = json.getString("actionMode"),
             actionPriority = json.getJSONArray("actionPriority").strings(),
-            browserConvertTwitter = json.getBoolean("browserConvertTwitter"),
-            browserConvertBluesky = json.getBoolean("browserConvertBluesky"),
-            browserConvertReddit = json.getBoolean("browserConvertReddit"),
-            browserConvertPinterest = json.getBoolean("browserConvertPinterest"),
             proxySelections = decodePlatformStringMap(json.getJSONObject("proxySelections")),
-            customProxies = decodePlatformListMap(json.getJSONObject("customProxies")),
+            customProxies = customProxies,
             disabledBuiltIns = decodePlatformSetMap(json.getJSONObject("disabledBuiltIns")),
-            browserPrivacyTargetIds = decodePlatformStringMap(json.getJSONObject("browserPrivacyTargets")),
+            browserFrontends = browserFrontends,
             rememberedRoutes = decodeRememberedRoutes(json.getJSONObject("rememberedRoutes")),
         )
-        val migrated = RetiredFrontendMigration.migrateSnapshot(snapshot)
+        val migrated = migrateRetiredBrowserFrontends(
+            RetiredFrontendMigration.migrateSnapshot(snapshot)
+        )
         SettingsSnapshotValidator.validate(migrated)
         return migrated
+    }
+
+    private fun decodeV1BrowserFrontends(json: JSONObject): Map<ProxyPlatform, BrowserFrontendPreference> {
+        val targetIds = decodePlatformStringMap(json.getJSONObject("browserPrivacyTargets"))
+        val enabledByPlatform = mapOf(
+            ProxyPlatform.X to json.getBoolean("browserConvertTwitter"),
+            ProxyPlatform.BLUESKY to json.getBoolean("browserConvertBluesky"),
+            ProxyPlatform.REDDIT to json.getBoolean("browserConvertReddit"),
+            ProxyPlatform.PINTEREST to json.getBoolean("browserConvertPinterest"),
+        )
+        return ProxyPlatform.entries.associateWith { platform ->
+            if (enabledByPlatform[platform] == true) {
+                BrowserFrontendPreference(BrowserConversionMode.READER, targetIds[platform])
+            } else {
+                BrowserFrontendPreference(
+                    BrowserConversionMode.CLEAN_ONLY,
+                    targetIds[platform].takeIf { platform in enabledByPlatform },
+                )
+            }
+        }
+    }
+
+    private fun migrateRetiredBrowserFrontends(snapshot: SettingsSnapshot): SettingsSnapshot {
+        val migrated = snapshot.browserFrontends.mapValues { (platform, preference) ->
+            when (preference.targetId) {
+                RetiredFrontendMigration.RETIRED_INSTAGRAM_DISABLED_ID -> {
+                    require(platform == ProxyPlatform.INSTAGRAM) { "Retired Browser target belongs to a different platform" }
+                    BrowserFrontendPreference.CLEAN_ONLY
+                }
+                RetiredFrontendMigration.RETIRED_FACEBOOK_DISABLED_ID -> {
+                    require(platform == ProxyPlatform.FACEBOOK) { "Retired Browser target belongs to a different platform" }
+                    BrowserFrontendPreference.CLEAN_ONLY
+                }
+                else -> preference
+            }
+        }
+        return snapshot.copy(browserFrontends = migrated)
     }
 
     private fun encodeRememberedRoutes(routes: Map<String, RememberedRoute>): JSONObject =
@@ -232,6 +272,38 @@ class LocalBackupCodec @Inject constructor(
     private fun decodePlatformSetMap(json: JSONObject): Map<ProxyPlatform, Set<String>> =
         ProxyPlatform.entries.associateWith { platform ->
             json.getJSONArray(platform.name.lowercase()).strings().toSet()
+        }
+
+    private fun encodeBrowserFrontends(
+        values: Map<ProxyPlatform, BrowserFrontendPreference>,
+    ): JSONObject = JSONObject().apply {
+        ProxyPlatform.entries.forEach { platform ->
+            val preference = values.getValue(platform)
+            put(
+                platform.name.lowercase(),
+                JSONObject()
+                    .put("mode", preference.mode.name)
+                    .put("targetId", preference.targetId ?: JSONObject.NULL),
+            )
+        }
+    }
+
+    private fun decodeBrowserFrontends(
+        json: JSONObject,
+        customProxies: Map<ProxyPlatform, List<String>>,
+    ): Map<ProxyPlatform, BrowserFrontendPreference> =
+        ProxyPlatform.entries.associateWith { platform ->
+            val item = json.getJSONObject(platform.name.lowercase())
+            val rawMode = item.getString("mode")
+            val mode = BrowserConversionMode.entries.firstOrNull { it.name == rawMode }
+                ?: throw IllegalArgumentException("Unknown Browser conversion mode")
+            val targetId = if (item.isNull("targetId")) null else item.getString("targetId")
+            if (mode == BrowserConversionMode.CUSTOM && targetId != null) {
+                require(targetId.removePrefix("custom:") in customProxies[platform].orEmpty()) {
+                    "Browser custom target is absent from imported roster"
+                }
+            }
+            BrowserFrontendPreference(mode, targetId)
         }
 
     private fun JSONArray.strings(): List<String> = buildList {

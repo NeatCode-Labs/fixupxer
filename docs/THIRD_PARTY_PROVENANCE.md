@@ -23,6 +23,30 @@ Léon.
 
 ## Source registry
 
+### Follow-up review: 2026-09-13
+
+Reviewed the 63 upstream commits after the original pin through
+`006888279b5dc03e1554140f801cce7e7bb4ea2b`, including the six new sanitizer
+behaviors below. No upstream code, patterns or fixtures were imported in this
+Browser frontend release. Sources: the [pinned comparison](https://github.com/leon-cleaning-services/leon/compare/3d26d22aa828ce4ed2dc5b227fdb194f7c7309db...006888279b5dc03e1554140f801cce7e7bb4ea2b).
+
+| New behavior | Decision for this release |
+|---|---|
+| Amazon Sponsored Products: recover a product path from the `url` parameter | Deferred. Needs independently verified ASIN, relative-path and duplicate-parameter fixtures; broad path matching and query deletion are not adopted. |
+| Facebook Redirect: unwrap `u` on warning paths | Existing conservative `/l.php` support retained. Broader subdomain/path-prefix matching and `/flx/warn` expansion deferred pending exact-wrapper fixtures. |
+| Libération | Whole-query deletion rejected; generic known tracking keys still clean normally. |
+| Humble Bundle | Whole-query deletion rejected; functional/unknown parameters remain intact. |
+| Il Sole 24 Ore | Whole-query deletion rejected; no additional independently verified keys adopted. |
+| AvantLink: unwrap `url` on `/click.php` | Deferred pending exact host/path, duplicate, encoding and unsafe-target fixtures. |
+
+Reviewed related fixes for Instagram `igsi`/`stkn`, Substack article references,
+host-boundary matching and URL decoding. FixupXer already removes those Instagram
+keys and retains unknown/functional parameters. Its existing Substack behavior
+does not adopt the upstream allow-list or publication-host rewrite. Browser host
+conversion and encoded query/fragment preservation are covered by this release's
+own tests. The upstream declarative-catalog and multiplatform refactors do not
+change this provenance policy.
+
 | Source | Project URL | License | Upstream revision / date | Status and what FixupXer takes |
 |---|---|---|---|---|
 | Léon | https://github.com/leon-cleaning-services/leon | GPL-3.0-or-later | `3d26d22aa828ce4ed2dc5b227fdb194f7c7309db`, 2026-07-07 | **Adapted (behaviour).** The audited parameter-removal, canonicalisation, and offline redirect-unwrapping behaviour in the table below. |

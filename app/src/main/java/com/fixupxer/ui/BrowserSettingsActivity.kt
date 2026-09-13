@@ -369,14 +369,14 @@ class BrowserSettingsActivity : BaseActivity() {
         val dialogBinding = DialogConversionDefaultsBinding.inflate(layoutInflater)
         val draft = BrowserConversionDefaultsHelper.createDraft(preferencesManager)
 
-        lateinit var rows: List<BrowserConversionDefaultsHelper.BrowserPrivacyRow>
+        lateinit var rows: List<BrowserConversionDefaultsHelper.BrowserFrontendRow>
         rows = BrowserConversionDefaultsHelper.populateContainer(
             context = this,
             layoutInflater = layoutInflater,
             container = dialogBinding.browserPlatformTogglesContainer,
             draft = draft,
-            onChangePrivacyTarget = { platform ->
-                openBrowserPrivacyTargetPicker(platform, draft, rows)
+            onChangeTarget = { platform ->
+                openBrowserFrontendPicker(platform, draft, rows)
             },
         )
 
@@ -387,14 +387,29 @@ class BrowserSettingsActivity : BaseActivity() {
             .create()
 
         dialogBinding.btnSave.setOnClickListener {
-            draft.apply(preferencesManager)
-            renderState()
-            SnackbarHelper.showShort(
-                binding.root,
-                getString(R.string.browser_conversion_settings_saved),
-            )
-            Timber.d("Browser privacy reader settings saved for ${rows.size} platforms")
-            dialog.dismiss()
+            if (draft.apply()) {
+                renderState()
+                SnackbarHelper.showShort(
+                    binding.root,
+                    getString(R.string.browser_conversion_settings_saved),
+                )
+                Timber.d("Browser frontend settings saved for ${rows.size} platforms")
+                dialog.dismiss()
+            } else {
+                draft.refreshFromPreferences()
+                BrowserConversionDefaultsHelper.refreshRows(
+                    this,
+                    rows,
+                    draft,
+                    onChangeTarget = { platform ->
+                        openBrowserFrontendPicker(platform, draft, rows)
+                    },
+                )
+                SnackbarHelper.showShort(
+                    binding.root,
+                    getString(R.string.browser_frontend_save_conflict),
+                )
+            }
         }
         dialogBinding.btnCancel.setOnClickListener { dialog.dismiss() }
         dialog.setOnDismissListener {
@@ -405,34 +420,34 @@ class BrowserSettingsActivity : BaseActivity() {
         dialog.show()
     }
 
-    private fun openBrowserPrivacyTargetPicker(
+    private fun openBrowserFrontendPicker(
         platform: ProxyPlatform,
         draft: BrowserConversionDefaultsHelper.DraftState,
-        rows: List<BrowserConversionDefaultsHelper.BrowserPrivacyRow>,
+        rows: List<BrowserConversionDefaultsHelper.BrowserFrontendRow>,
     ) {
         fun refreshOuterRows() {
             BrowserConversionDefaultsHelper.refreshRows(
                 context = this,
                 rows = rows,
                 draft = draft,
-                onChangePrivacyTarget = { selectedPlatform ->
-                    openBrowserPrivacyTargetPicker(selectedPlatform, draft, rows)
+                onChangeTarget = { selectedPlatform ->
+                    openBrowserFrontendPicker(selectedPlatform, draft, rows)
                 },
             )
         }
 
-        ProxyPickerDialogHelper.showPrivacySelection(
+        ProxyPickerDialogHelper.showBrowserSelection(
             context = this,
             layoutInflater = layoutInflater,
             platform = platform,
-            selectedTargetId = draft.draftTargetIds[platform],
-            disabledBuiltIns = { draft.disabledBuiltIns(platform) },
-            onRestoreReaders = {
-                draft.restoreBuiltInReaders(platform)
+            selectedPreference = draft.preference(platform),
+            disabledBuiltIns = { draft.disabledBuiltIns[platform].orEmpty() },
+            onRestoreCategory = { mode ->
+                draft.restoreCategory(platform, mode)
                 refreshOuterRows()
             },
-        ) { target ->
-            draft.updateDraftTarget(platform, target)
+        ) { preference ->
+            draft.select(platform, preference)
             refreshOuterRows()
         }
     }

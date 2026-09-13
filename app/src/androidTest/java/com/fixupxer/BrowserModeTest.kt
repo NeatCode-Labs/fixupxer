@@ -26,6 +26,7 @@ import android.net.Uri
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -33,6 +34,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiSelector
 import com.fixupxer.ui.BrowserSettingsActivity
+import com.fixupxer.processing.BrowserFrontendPreference
 import com.fixupxer.utils.BrowserModeUtils
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.ProxyPlatform
@@ -63,13 +65,12 @@ class BrowserModeTest {
         preferencesManager.setBrowserModeEnabled(false)
         BrowserModeUtils.setBrowserAliasEnabled(context, false)
 
-        // Other tests (e.g. the Settings picker flow) persist explicit browser
-        // privacy targets; drop them so resolver tests see catalog defaults.
-        val editor = context.getSharedPreferences("FixupXerPrefs", android.content.Context.MODE_PRIVATE).edit()
-        ProxyPlatform.entries.forEach { platform ->
-            editor.remove("browser_privacy_target_${platform.name.lowercase()}")
-        }
-        editor.commit()
+        // Isolate Browser frontend choices from other instrumentation classes.
+        val expected = preferencesManager.getBrowserFrontendPreferences()
+        preferencesManager.saveBrowserFrontendPreferences(
+            ProxyPlatform.entries.associateWith { BrowserFrontendPreference.CLEAN_ONLY },
+            expected,
+        )
     }
     
     @After
@@ -146,6 +147,19 @@ class BrowserModeTest {
 
             Thread.sleep(500) // Allow time for preference update
             assertFalse(preferencesManager.isBrowserModeEnabled())
+        }
+    }
+
+    @Test
+    fun testBrowserFrontendDialogListsAllConfigurablePlatforms() {
+        ActivityScenario.launch(BrowserSettingsActivity::class.java).use {
+            onView(withId(R.id.buttonConversionDefaults)).perform(nestedScrollTo(), click())
+            listOf(R.id.switchBrowserTwitter, R.id.switchBrowserInstagram,
+                R.id.switchBrowserTikTok, R.id.switchBrowserFacebook,
+                R.id.switchBrowserBluesky, R.id.switchBrowserReddit,
+                R.id.switchBrowserPinterest).forEach { id ->
+                onView(withId(id)).perform(scrollTo()).check(matches(isDisplayed()))
+            }
         }
     }
     
@@ -289,6 +303,7 @@ class BrowserModeTest {
         val priority = listOf(
             PreferencesManager.ACTION_NATIVE_APP,
             PreferencesManager.ACTION_BROWSER,
+            PreferencesManager.ACTION_SHARE_MENU,
             PreferencesManager.ACTION_CLIPBOARD
         )
         preferencesManager.setActionPriority(priority)
@@ -297,4 +312,4 @@ class BrowserModeTest {
         assertEquals(PreferencesManager.ACTION_MODE_PRIORITY, preferencesManager.getActionMode())
         assertEquals(priority, preferencesManager.getActionPriority())
     }
-} 
+}

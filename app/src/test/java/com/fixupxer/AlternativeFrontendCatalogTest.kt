@@ -145,9 +145,11 @@ class AlternativeFrontendCatalogTest {
     }
 
     @Test
-    fun `browser conversion defaults map every privacy capable platform`() {
+    fun `browser conversion defaults expose exactly the seven supported platforms`() {
         assertEquals(
-            AlternativeFrontendCatalog.privacyCapablePlatforms(),
+            listOf(ProxyPlatform.X, ProxyPlatform.INSTAGRAM, ProxyPlatform.TIKTOK,
+                ProxyPlatform.FACEBOOK, ProxyPlatform.BLUESKY, ProxyPlatform.REDDIT,
+                ProxyPlatform.PINTEREST),
             BrowserConversionDefaultsHelper.entries.map { it.platform },
         )
     }

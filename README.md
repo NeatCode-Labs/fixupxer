@@ -7,7 +7,7 @@
 <h3 align="center">Clean tracking from links. Improve social previews. Build your own offline URL rules.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.6.7"><img src="https://img.shields.io/badge/version-2.6.7-blue?style=flat-square" alt="Version 2.6.7"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.7.0"><img src="https://img.shields.io/badge/version-2.7.0-blue?style=flat-square" alt="Version 2.7.0"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>
@@ -98,9 +98,10 @@ Enable **Browser mode** under **Settings > Configure Browser mode**, then
 select FixupXer under Android **Default apps > Browser app**. FixupXer does
 not render pages: it locally processes eligible HTTP(S) links Android sends
 to it, then hands the result to your selected external action. Verified App
-Links may bypass the default browser. Browser-only privacy Reader conversions
-support X, Bluesky, Reddit, and Pinterest and are separate from Main/Share
-embed targets. With **Ask what to do** you can save a per-host app choice
+Links may bypass the default browser. **Configure Browser frontends** provides
+separate reader, embed and existing custom choices for seven platforms, including
+TikTok and Instagram. YouTube and Threads use Clean only. Copy, Share and Open
+receive the same final processed URL. With **Ask what to do** you can save a per-host app choice
 that is applied automatically on future links. Setup, action order,
 conversions, and troubleshooting are in the
 **[Browser Mode Guide](docs/BROWSER_MODE_GUIDE.md)**.
@@ -192,6 +193,15 @@ Android's system file picker. The file contains whitelisted preferences, custom
 rules, and remembered Browser-mode destinations. Restoring validates the whole
 file first, then replaces those backed-up items; it never imports URL history or
 rule rollback snapshots.
+
+Backup schema v2 includes all nine Browser frontend choices, separately from
+Main/Share selections. Older v1 backups still import: their four reader choices
+are migrated and all newly supported conversions start off. Import replaces the
+entire Browser map, so existing v2 embed/custom choices cannot remain enabled
+accidentally. Invalid files are rejected before settings change. Interrupted
+restores retain a recovery journal and block Browser handoff until recovery succeeds.
+
+See the [Local backup guide](docs/LOCAL_BACKUP_GUIDE.md) for migration and recovery details.
 
 ## Privacy and safety
 

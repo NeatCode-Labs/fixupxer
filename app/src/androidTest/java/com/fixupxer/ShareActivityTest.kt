@@ -387,6 +387,8 @@ class ShareActivityTest {
                 .clear()
                 .commit()
 
+            // A fresh installation initializes the v2 map and roster before any settings write.
+            preferencesManager = PreferencesManager(context)
             preferencesManager.setConvertTwitterEnabled(true)
             preferencesManager.setBrowserConvertTwitterEnabled(true)
             preferencesManager.setSelectedProxyDomain(ProxyPlatform.X, Constants.FIXUPX_DOMAIN)

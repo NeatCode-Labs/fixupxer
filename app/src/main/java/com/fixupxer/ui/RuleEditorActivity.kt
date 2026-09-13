@@ -251,6 +251,8 @@ class RuleEditorActivity : BaseActivity() {
                     binding.textTestResult.text = buildString {
                         append(getString(R.string.custom_rule_test_result, result.url))
                         append("\n\n")
+                        append(getString(com.fixupxer.ui.helpers.PipelineStatusTextHelper.messageRes(result.status)))
+                        append("\n\n")
                         append(getString(R.string.custom_rule_test_trace, trace))
                     }
                     binding.textTestResult.isVisible = true

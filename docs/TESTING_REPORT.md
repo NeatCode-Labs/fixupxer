@@ -97,6 +97,14 @@ browser picker and Chrome. Chrome displayed the public sample on TikTok with
 an Open app header, a promotional Watch now dialog and a cookie banner. The
 optional cookies were declined. These observed banners belong to the external
 site; changing the URL locally cannot guarantee their removal or video playback.
+
+The initial Chrome observation used Clean only. After explicitly restoring the
+tnktok fixture and confirming its success, the final mirror APK passed one
+additional VIEW -> Ask -> Open -> Chrome check: Android's activity record shows
+the exact incoming `https://www.tnktok.com/@scout2015/video/6718335390845095173`.
+Chrome subsequently displayed the original TikTok URL, video content and an
+Open app button. The earlier cookie choice persisted, so the absence of that
+cookie overlay in this later screenshot is not attributed to the frontend.
 The previous Play 49.aab was downloaded from Play Console and its SHA-256
 matches the local 2.6.7 AAB used for the older derived installation. A local
 AAB-derived installation is still distinct from a Play-delivered installation.

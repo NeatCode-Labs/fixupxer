@@ -837,7 +837,7 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.6.6 | 48 | YouTube Music share tracking cleanup with functional query preservation | ✅ Released |
 | v2.6.7 | 49 | Result status renamed to No changes made; opaque redirect regression coverage | ✅ Released |
 | v2.7.0 | 50 | Separate Browser frontend choices, backup v2 and guarded external delivery | ✅ Released |
-| v2.8.0 | 51 | Browser frontend management and preferred browser | Validation in progress |
+| v2.8.0 | 51 | Browser frontend management and preferred browser | All local release gates passed; publication pending |
 
 ### Build Artifacts (v2.6.7):
 - **Google Play AAB:** `FixupXer-v2.6.7-release.aab` — signed root bundle; signature, manifest and bundletool validation passed. Play submission status is recorded in BUILD_REPORT.md.

@@ -1,6 +1,6 @@
 # FixupXer Build Report
 
-## v2.8.0 release preparation — September 14, 2026
+## v2.8.0 release — September 14, 2026
 
 Version **2.8.0 / code 51** adds frontend management directly in Browser
 settings and a preferred external browser. Browser frontend edits remain drafts
@@ -17,9 +17,31 @@ failures/errors/skips, in 9m21s. Four initial test failures were resolved by
 scrolling to existing controls and updating the obsolete Browser Add/Edit
 expectation; a focused 20/20 pass preceded the fresh full run.
 
-Signed artifacts, final-artifact UI checks, independent Linux reproducibility
-and publication are not yet verified for this version. Earlier releases below
-are historical evidence.
+The signed Play AAB and mirror APK passed package/version/certificate checks
+and contain zero permissions. The mirror APK was built from a fresh clone of
+tag `v2.8.0` at `e7738545e9fbde121df6606240b1ea05d0347ebf`; the root AAB
+uses source commit `17ed1c40a63373a6c4de1b1d3ca66c1b8b374d4f`.
+
+Independent Linux rebuilding with the current upstream F-Droid recipe passed
+`verify_apks` and apksigcopier comparison. The signature-copied Linux APK matches
+the signed mirror APK byte for byte. Mirror parity passed 384 file pairs and
+REUSE passed 462/462 files.
+
+| Artifact | SHA-256 |
+|---|---|
+| Play AAB | `039435e411f9d5bdb9b7c74fa08e05a695408e02120e73812edb5f95a288038f` |
+| GitHub/F-Droid APK | `b50f276e4f2eee256a7081351d4160adf5a1d1c4016a8399a6aad6c4868ff2a2` |
+| Local AAB-derived test APK | `fde9ebc9018928feca43a2707cadc35d79b5f230b6bf765ad2ecaf54aea3a1ef` |
+
+Both final artifacts passed bounded API35 public-UI checks after clean installs
+and same-channel upgrades from v2.7.0. The mirror additionally passed public
+backup export/restore, a landscape/font-scale-1.3 browser picker check, and two
+direct handoffs to the real API21 stock browser. `TESTING_REPORT.md` records the
+coverage and limitations, including the resumed mirror frontend run.
+
+Final readiness verification passed: artifact hashes, frozen application source,
+unit/lint/device reports, Linux rebuild and signed-artifact UI summaries agree.
+Publication remains pending. Earlier releases below are historical evidence.
 
 ## v2.7.0 release — September 14, 2026
 

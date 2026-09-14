@@ -19,8 +19,39 @@ rejection. The full cold-boot API35 gate passes **276/276**, with no
 failures/errors/skips, in 9m21s. Four initial test failures were confined to
 off-screen controls and an obsolete Add/Edit expectation. Corrected tests first
 passed a focused 20/20 run, followed by the full gate on a fresh cold boot.
-Final signed-artifact clean-install/upgrade checks and publication evidence
-are still pending.
+The exact final mirror APK passes bounded API35 public-UI checks after both
+clean installation and same-channel upgrade from v2.7.0. Coverage includes
+frontend Add/Edit/Delete, built-in replacement and restore, Cancel/Save,
+independent Main/Share choices, Use once, remembered direct handoffs, unavailable
+browser cancellation/recovery and return to Always ask. The upgrade frontend
+run was resumed across documented external-driver corrections; it is not
+reported as one uninterrupted run.
+
+Public backup export/import preserves the custom Browser target and preferred
+browser, followed by a successful direct external URI handoff. The browser
+picker also passed landscape operation with font scale 1.3; the screenshot
+shows all three actions and both browser choices. Emulator layout settings were
+restored afterward. These are bounded checks, not exhaustive layout coverage.
+
+The exact APK derived from the final Play AAB also passed clean-install and
+same-channel upgrade checks. The completed bounded matrix is:
+
+| Final artifact | Installation | Passed public-UI checks |
+|---|---|---|
+| Mirror APK | Clean | 9 core checks |
+| Mirror APK | Upgrade from v2.7.0 | 15 frontend/retention checks across reviewed resumptions, then 8 browser checks |
+| Play AAB-derived APK | Clean | 13 frontend checks, then 8 browser checks |
+| Play AAB-derived APK | Upgrade from v2.7.0 | 10 core/retention checks |
+
+The final mirror APK additionally delivered two distinct cleaned HTTP test URLs
+directly to the real API21 stock browser. Its full address bar and foreground
+activity confirmed delivery without a browser picker. An earlier xcancel HTTPS
+probe encountered the old browser's certificate warning; navigation was
+cancelled. No warning was bypassed. This does not certify third-party frontend
+content availability, video playback, physical devices or Brave.
+
+Final evidence consistency verification passed; publication is recorded in
+`BUILD_REPORT.md`. The task-owned emulators were stopped after these checks.
 
 ## v2.7.0 release verification — September 14, 2026
 

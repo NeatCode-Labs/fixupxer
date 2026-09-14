@@ -12,8 +12,13 @@ Two new Android backup codec tests cover absent/null optional preferred-browser
 fields, valid package roundtrips and strict JSON value typing. The full cold-boot
 API35 device gate passes **276/276**, with no failures/errors/skips. Existing UI
 tests now scroll to controls and assert the new Browser Add/Edit actions.
-Final signed-artifact UI checks remain pending; unit and debug-device results
-do not certify the signed release artifacts.
+Separate public-UI checks on the exact final signed mirror APK and AAB-derived
+Play APK passed after clean installation and same-channel upgrade. Coverage
+includes frontend CRUD and draft cancellation, separate selections, preferred
+browser handoff/recovery and Always ask. Additional mirror checks cover public
+backup export/import, landscape/font scale 1.3 and two real API21 stock-browser
+handoffs. `TESTING_REPORT.md` records the bounded matrix and limitations; these
+results are distinct from the unit and debug-device gates above.
 
 ## v2.7.0 coverage additions — September 13, 2026
 

@@ -290,8 +290,9 @@ the original social-media domain.
 - Modular cleaner registry with O(1) domain dispatch
 - Raw-preserving URL processing with immutable per-request rule snapshots
 - RE2/J 1.8 for user-authored regular expressions
-- Release verification: 707 unit tests per build variant and 241 instrumentation
-  tests passed; details are recorded in the build report.
+- Release verification: 757 unit tests per build variant and 274 instrumentation
+  tests passed. Each final artifact also passed 300 external UI checks; channel
+  checks and evidence boundaries are recorded in the build and testing reports.
 - Release lint, zero-permission manifest regression test, and REUSE
   compliance
 

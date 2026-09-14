@@ -10,8 +10,12 @@ Play ownership and dependency metadata remain restricted to the root build.
 
 Development gates passed: **757 debug + 757 release unit/integration tests**,
 **274/274 cold-boot API35 instrumentation tests**, no failures/errors/skips,
-and lint with zero errors and 43 warnings. Final artifact hashes, source
-identities, reproducibility and publication are pending the remaining gates.
+and lint with zero errors and 43 warnings. Artifact identity and independent
+Linux reproducibility passed. Both final artifacts passed all 300 named API35
+external UI checks each. API21/API36 clean installs and same-channel upgrades
+passed eight combinations and 56 named checks. Four additional clipboard probes
+passed with unique sentinels, proving each Copy writes a new value. Publication
+remains pending; real-browser observations are documented separately.
 `TESTING_REPORT.md` separates debug-device evidence from signed-artifact checks.
 
 During API 36 testing, a cold-start validation timeout exposed redundant URL
@@ -30,6 +34,36 @@ GPL-3.0-or-later. A [license-only correction](https://gitlab.com/fdroid/fdroidda
 preserves all historical build recipes. Its CI passed and F-Droid merged it
 as `9fb0e99d7f41b7a73f8ffb46ca498e1dd38d5cfc`. Upstream app build and
 F-Droid availability remain separate from the metadata correction.
+
+The final application source is root commit
+`6c7065f473275ed4029a77d8b2fdc3526cf1fa2c` and mirror commit
+`a6dbc9493542059109050b5da5d4f75767738104` (local annotated tag `v2.7.0`).
+Mirror parity passed for 384 file pairs; REUSE passed for all 461 files.
+Later report-only commits do not change these source identities or artifacts.
+
+| Final artifact | Bytes | SHA-256 |
+|---|---:|---|
+| Play AAB | 5,508,258 | `890588625115a0a261291e81d569e8472e71774a7316dfc8458b36d62db52f5f` |
+| Mirror APK | 4,318,572 | `4f525c780c573131c74e63e9ad2295478a20569a1c5ff8137b819cd2d22f8154` |
+| Local AAB-derived universal APK | 4,439,795 | `461e17801c0d521937a01c3b1c7727a807ef52474891ac04faf2ceed5bfa6be5` |
+
+All three artifacts have the expected signing certificate, package
+`com.fixupxer`, version 2.7.0/50, minSdk 21, targetSdk 36 and zero permissions.
+The root AAB contains the expected Play ownership asset and dependency metadata;
+the mirror APK contains neither. The locally derived APK is not a Play-delivered
+installation. The earlier candidate was archived after the settings regression
+was confirmed; its UI receipts do not certify these final artifacts.
+
+An independent Linux build of the exact mirror commit passed using the current
+F-Droid recipe from fdroiddata commit
+`aa2efefc293a17a9920349a9e992e07ebf243c1d`. The recipe SHA-256 is
+`4874b483cde8b56a417c55693e96a384c779f0d3c726e4fa89aba9f8103393ac`.
+Its upstream prebuild, srclib and postbuild operations were retained. Because the
+tag was still local, verification used the local signed release reference in
+`fdroidserver.common.verify_apks`, followed by apksigcopier comparison and a
+byte-identical signature-copy check. The copied APK hash equals the mirror APK
+hash above. This proves local reproducibility, not completion of F-Droid's later
+upstream build or publication.
 
 ## v2.6.7 release — September 11, 2026
 

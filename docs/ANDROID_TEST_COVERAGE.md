@@ -17,9 +17,11 @@ external routes and Main/Share/Test Lab parity. Tests reset the global roster;
 disposable emulator instances preserve the user's existing AVD data.
 
 Final development gates pass **757 debug + 757 release unit/integration tests**
-and **271/271 API35 instrumentation tests**, with zero failures/errors/skips.
-Lint reports zero errors and 43 warnings. Signed-artifact verification remains
-a separate gate; see `TESTING_REPORT.md` and `BUILD_REPORT.md`. Earlier
+and **274/274 API35 instrumentation tests**, with zero failures/errors/skips.
+The three final additions cover theme and Browser preferences during Android
+view-state restoration. Lint reports zero errors and 43 warnings. Each final
+signed artifact separately passes 300 named external API35 UI checks; see
+`TESTING_REPORT.md` and `BUILD_REPORT.md` for channel and evidence boundaries. Earlier
 releases below are historical records, not evidence for this candidate.
 
 ## v2.6.7 release gate (September 11, 2026)

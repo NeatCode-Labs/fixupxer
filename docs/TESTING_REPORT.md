@@ -1,6 +1,6 @@
 # FixupXer Testing Report
 
-## v2.7.0 verification in progress — September 13, 2026
+## v2.7.0 release verification — September 14, 2026
 
 The Browser matrix covers every eligible built-in target, custom targets on
 seven platforms, Clean only on all nine, reader fallback and unavailable
@@ -35,11 +35,73 @@ Final cancellation fixes passed 35/35 focused unit checks and 14/14 API 35
 frontend flow tests. The tests cover stale dialog cancellation, retained local
 Retry, destination selection, exact URI delivery and priority fallback.
 
-Instrumentation runs test the **debug variant**. Separate external UI and
-receiver checks must verify the final signed mirror APK and root-AAB-derived
-installation, including clean installs and upgrades. Receiver receipts prove
-the exact handed-off URI; browser rendering, service availability and TikTok
-banner observations are distinct evidence and are not inferred from receipts.
+Instrumentation runs test the **debug variant**. On isolated API35, the final
+signed mirror APK (`4f525c780c573131c74e63e9ad2295478a20569a1c5ff8137b819cd2d22f8154`)
+and final root-AAB-derived APK
+(`461e17801c0d521937a01c3b1c7727a807ef52474891ac04faf2ceed5bfa6be5`)
+each passed **300/300 named external UI checks**, with no missing or unresolved
+failed case IDs. These checks use the unmodified release artifacts with release
+optimizations and an external receiver; no test hooks are added to the app.
+
+| Final-artifact group | Mirror APK | Local AAB-derived APK |
+|---|---:|---:|
+| Platform/profile/action matrix | 267/267 | 267/267 |
+| Settings, draft and visual cases | 5/5 | 5/5 |
+| Rules, raw URLs and pipeline outcomes | 15/15 | 15/15 |
+| Process death and public backup recovery | 2/2 | 2/2 |
+| Browser-disabled, Test Lab and history regressions | 3/3 | 3/3 |
+| Cancellation, rotation and destination actions | 6/6 | 6/6 |
+| External VIEW callers with Settings open | 2/2 | 2/2 |
+
+The mirror matrix resumed after external-driver navigation and Android guest
+failures; only concrete later passing receipts count, never filtered/skipped
+rows. The AAB-derived matrix passed all 267 checks in one fresh run. Both final
+verifiers require every declared case and the exact installed artifact hash.
+Visual checks cover Light/Dark, long domains, empty choices and a 320x568dp
+screen at font scale 1.5, including an actual last-platform picker click.
+
+History remains one record per VIEW transaction: rotation does not create an
+extra record; a second explicit VIEW of the same URL creates the second record.
+The external UI checks assert the intermediate count of one and final count of
+two. Test Lab checks assert exact results, profile selection and draft traces.
+
+API21 and API36 each passed clean installation and a 2.6.7/49 -> 2.7.0/50
+upgrade for both final artifacts: **eight combinations, 56/56 named checks**.
+Each upgrade first restored a valid old-schema fixture in the previous release,
+then used install-with-replacement without clearing settings. Checks verify two
+active readers, two dormant reader selections, ignored old Instagram/TikTok
+toggles, the new TikTok picker and exact Copy/Share/Open URIs. Each clean-install
+run separately verifies the picker and the three actions.
+
+API21 driver failures were resolved without application changes: use a writable
+shell-owned directory for UI dumps, scroll offscreen nodes into the viewport,
+tap the actual DocumentsUI row rather than its ListView ancestor, and replace
+the unsupported shell `am -p` invocation with the existing external Activity's
+ACTION_VIEW/BROWSABLE/package-scoped caller. Failed attempts are preserved and
+superseded only by actual completed runs.
+
+Four additional Copy probes passed on API21/API36 with both final artifacts.
+Each first seeded a unique unrelated clipboard value, then required a newer
+receiver sequence containing the exact processed URL. This closes the ambiguity
+of repeatedly checking a clipboard that already contains the expected value.
+API35 action/recreation checks already use sentinel assertions.
+
+The API21 stock Browser opened the official public TikTok sample directly.
+After 35 seconds, the URL and TikTok shell were visible, but the content area
+was mostly blank. No banner, explicit error, TLS warning or CAPTCHA was visible.
+This is a bounded external-site observation, not a successful video-rendering
+test or reproduction of the reporter's exact URL, which was not supplied.
+
+On API35, the final mirror APK's public VIEW -> Ask -> Open flow reached the
+browser picker and Chrome. Chrome displayed the public sample on TikTok with
+an Open app header, a promotional Watch now dialog and a cookie banner. The
+optional cookies were declined. These observed banners belong to the external
+site; changing the URL locally cannot guarantee their removal or video playback.
+The previous Play 49.aab was downloaded from Play Console and its SHA-256
+matches the local 2.6.7 AAB used for the older derived installation. A local
+AAB-derived installation is still distinct from a Play-delivered installation.
+Receiver receipts prove the exact handed-off URI; browser rendering, service
+availability and TikTok banner observations remain separate evidence.
 
 ## v2.6.7 release verification — September 11, 2026
 

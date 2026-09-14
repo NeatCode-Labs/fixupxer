@@ -69,12 +69,15 @@ GitHub release [v2.7.0](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v
 was published on September 14, 2026 at 08:56:08 UTC. Remote tag `v2.7.0`
 resolves to the exact tested mirror commit above; GitHub's published APK digest
 matches `4f525c780c573131c74e63e9ad2295478a20569a1c5ff8137b819cd2d22f8154`.
-The root AAB was accepted by Play as version 50 (2.7.0). On September 14,
-Google accepted the submission of that Production release and the updated
-en-US full description. Publishing overview shows Changes in review with
-initial quick checks in progress; Production publication is not yet confirmed.
-Rollout is 100% across the existing 177 countries, with Managed publishing off.
-F-Droid's upstream app build remains pending.
+Google Play publication was confirmed on September 14 at 10:13 UTC. Release 26,
+`FixupXer v2.7.0`, shows **Available on Google Play — Production**, version code
+50 and **100% rollout** in the existing 177 countries. The console displays
+`Released on Sep 14 11:31 AM`; Managed publishing remains off. Publishing
+overview confirms the update was published and has no remaining review changes.
+The submitted AAB is unchanged and matches the hash above. Console publication
+is verified; availability on an individual user's device may still propagate.
+F-Droid's refreshed upstream metadata still lists 2.6.7/49, so its later 2.7.0
+build and distribution remain separate and are not claimed complete.
 
 ## v2.6.7 release — September 11, 2026
 

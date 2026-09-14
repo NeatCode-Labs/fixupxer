@@ -1,6 +1,6 @@
 # FixupXer Build Report
 
-## v2.7.0 release candidate — September 13, 2026
+## v2.7.0 release — September 14, 2026
 
 Version **2.7.0 / code 50** adds separate Browser frontend choices for seven
 platforms, shared final Copy/Share/Open URLs, schema-v2 backup migration and
@@ -15,7 +15,7 @@ Linux reproducibility passed. Both final artifacts passed all 300 named API35
 external UI checks each. API21/API36 clean installs and same-channel upgrades
 passed eight combinations and 56 named checks. Four additional clipboard probes
 passed with unique sentinels, proving each Copy writes a new value. Publication
-remains pending; real-browser observations are documented separately.
+is recorded below; real-browser observations are documented separately.
 `TESTING_REPORT.md` separates debug-device evidence from signed-artifact checks.
 
 During API 36 testing, a cold-start validation timeout exposed redundant URL
@@ -64,6 +64,17 @@ tag was still local, verification used the local signed release reference in
 byte-identical signature-copy check. The copied APK hash equals the mirror APK
 hash above. This proves local reproducibility, not completion of F-Droid's later
 upstream build or publication.
+
+GitHub release [v2.7.0](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.7.0)
+was published on September 14, 2026 at 08:56:08 UTC. Remote tag `v2.7.0`
+resolves to the exact tested mirror commit above; GitHub's published APK digest
+matches `4f525c780c573131c74e63e9ad2295478a20569a1c5ff8137b819cd2d22f8154`.
+The root AAB was accepted by Play as version 50 (2.7.0). On September 14,
+Google accepted the submission of that Production release and the updated
+en-US full description. Publishing overview shows Changes in review with
+initial quick checks in progress; Production publication is not yet confirmed.
+Rollout is 100% across the existing 177 countries, with Managed publishing off.
+F-Droid's upstream app build remains pending.
 
 ## v2.6.7 release — September 11, 2026
 

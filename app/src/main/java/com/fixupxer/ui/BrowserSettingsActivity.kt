@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fixupxer.PreferencesManager
 import com.fixupxer.R
+import com.fixupxer.backup.RememberedRouteValidator
 import com.fixupxer.databinding.ActivityBrowserSettingsBinding
 import com.fixupxer.databinding.DialogConversionDefaultsBinding
 import com.fixupxer.ui.adapters.ActionPriorityAdapter
@@ -145,6 +146,9 @@ class BrowserSettingsActivity : BaseActivity() {
                 chooseDefaultBrowser()
             }
         }
+        binding.buttonPreferredBrowser.setOnClickListener {
+            showPreferredBrowserPicker()
+        }
         binding.buttonBrowserModeGuide.setOnClickListener {
             UrlActionHelper.openUrlInExternalBrowser(
                 binding.root,
@@ -185,6 +189,7 @@ class BrowserSettingsActivity : BaseActivity() {
             BrowserStatusTextHelper.statusTextRes(state.effectiveStatus)
         )
         renderDefaultBrowserButton(state)
+        renderPreferredBrowser()
         renderPrivacySummary(state.privacySummary)
         renderSavedChoicesStatus(state)
     }
@@ -213,6 +218,61 @@ class BrowserSettingsActivity : BaseActivity() {
             }
         )
     }
+
+    private fun renderPreferredBrowser() {
+        val selectedPackage = preferencesManager.getPreferredBrowserPackage()
+        val availablePackages = RememberedRouteValidator.browserPackages(this)
+        binding.textPreferredBrowser.text = when {
+            selectedPackage == null -> getString(R.string.preferred_browser_always_ask)
+            selectedPackage !in availablePackages -> getString(R.string.preferred_browser_unavailable)
+            else -> getString(
+                R.string.preferred_browser_selected,
+                browserLabel(selectedPackage),
+            )
+        }
+    }
+
+    private fun showPreferredBrowserPicker() {
+        val packages = RememberedRouteValidator.browserPackages(this)
+            .sortedBy { browserLabel(it).lowercase() }
+        val labels = buildList {
+            add(getString(R.string.preferred_browser_always_ask))
+            packages.forEach { packageName ->
+                add(
+                    getString(
+                        R.string.preferred_browser_candidate_label,
+                        browserLabel(packageName),
+                        packageName,
+                    )
+                )
+            }
+        }.toTypedArray()
+        val current = preferencesManager.getPreferredBrowserPackage()
+        var selectedIndex = packages.indexOf(current).takeIf { it >= 0 }?.plus(1) ?: 0
+        val builder = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.preferred_browser_picker_title)
+            .setSingleChoiceItems(labels, selectedIndex) { _, which ->
+                selectedIndex = which
+            }
+            .setPositiveButton(R.string.save) { _, _ ->
+                val selected = packages.getOrNull(selectedIndex - 1)
+                if (preferencesManager.setPreferredBrowserPackage(selected)) {
+                    renderState()
+                    SnackbarHelper.showShort(
+                        binding.root,
+                        getString(R.string.browser_preferred_saved),
+                    )
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+        builder.show()
+    }
+
+    private fun browserLabel(packageName: String): String = runCatching {
+        packageManager.getApplicationLabel(
+            packageManager.getApplicationInfo(packageName, 0)
+        ).toString()
+    }.getOrDefault(packageName)
 
     private fun renderPrivacySummary(summary: BrowserPrivacySummary) {
         val active = resources.getQuantityString(
@@ -455,12 +515,8 @@ class BrowserSettingsActivity : BaseActivity() {
             context = this,
             layoutInflater = layoutInflater,
             platform = platform,
-            selectedPreference = draft.preference(platform),
-            disabledBuiltIns = { draft.disabledBuiltIns[platform].orEmpty() },
-            onRestoreCategory = { mode ->
-                draft.restoreCategory(platform, mode)
-                refreshOuterRows()
-            },
+            draft = draft,
+            onDraftChanged = { refreshOuterRows() },
         ) { preference ->
             draft.select(platform, preference)
             refreshOuterRows()

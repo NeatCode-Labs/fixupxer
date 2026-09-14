@@ -460,9 +460,103 @@ class PostCleanRunner(
         )
     }
 
-    private fun launchBrowser(uri: Uri, onResult: (Outcome) -> Unit) = chooseDestination(
-        R.string.chooser_open_with_browser, false, { resolveExternalBrowserIntents(uri) }, onResult,
-    )
+    private fun launchBrowser(uri: Uri, onResult: (Outcome) -> Unit) {
+        val preferredPackage = preferencesManager?.getPreferredBrowserPackage()
+        if (preferredPackage != null &&
+            RememberedRouteValidator.isBrowserRouteValid(context, uri, preferredPackage) &&
+            launchPackage(uri, preferredPackage)
+        ) {
+            onResult(Outcome.SUCCESS)
+            return
+        }
+        chooseBrowserDestination(
+            uri = uri,
+            preferredWasUnavailable = preferredPackage != null,
+            onResult = onResult,
+        )
+    }
+
+    private fun chooseBrowserDestination(
+        uri: Uri,
+        preferredWasUnavailable: Boolean,
+        onResult: (Outcome) -> Unit,
+    ) {
+        if (!checkCurrent()) return
+        val targets = runCatching { resolveExternalBrowserIntents(uri) }.getOrElse {
+            Timber.w(it, "Could not resolve Browser action destinations")
+            onResult(Outcome.FAILED)
+            return
+        }
+        if (targets.isEmpty()) {
+            onResult(Outcome.FAILED)
+            return
+        }
+        val activity = context as? Activity
+        if (activity == null || activity.isFinishing) {
+            onResult(Outcome.FAILED)
+            return
+        }
+        var selectedIndex = 0
+        val labels = targets.map { target ->
+            val packageName = target.component?.packageName ?: target.`package`.orEmpty()
+            activity.getString(
+                R.string.remembered_route_candidate_label,
+                appLabel(context.packageManager, packageName),
+                packageName,
+            )
+        }.toTypedArray()
+
+        fun launch(target: Intent, remember: Boolean) {
+            if (!checkCurrent()) return
+            val available = runCatching {
+                resolveExternalBrowserIntents(uri).any { it.filterEquals(target) }
+            }.getOrDefault(false)
+            if (!available) {
+                onResult(Outcome.FAILED)
+                return
+            }
+            if (!checkCurrent()) return
+            val success = try {
+                context.startActivity(target)
+                true
+            } catch (error: RuntimeException) {
+                Timber.w(error, "Could not launch selected browser")
+                false
+            }
+            if (success && remember) {
+                val packageName = target.component?.packageName
+                if (packageName != null &&
+                    preferencesManager?.setPreferredBrowserPackage(packageName) == false
+                ) {
+                    Timber.w("Could not save preferred browser package")
+                }
+            }
+            onResult(if (success) Outcome.SUCCESS else Outcome.FAILED)
+        }
+
+        val builder = MaterialAlertDialogBuilder(activity)
+            .setTitle(
+                if (preferredWasUnavailable) {
+                    R.string.preferred_browser_picker_title_unavailable
+                } else {
+                    R.string.chooser_open_with_browser
+                }
+            )
+            .setSingleChoiceItems(labels, selectedIndex) { _, which ->
+                selectedIndex = which
+            }
+            .setPositiveButton(R.string.browser_use_once) { _, _ ->
+                launch(targets[selectedIndex], remember = false)
+            }
+            .setNeutralButton(R.string.browser_always_use) { _, _ ->
+                launch(targets[selectedIndex], remember = true)
+            }
+            .setNegativeButton(R.string.cancel) { _, _ ->
+                if (checkCurrent()) onResult(Outcome.CANCELLED)
+            }
+            .setOnCancelListener { if (checkCurrent()) onResult(Outcome.CANCELLED) }
+        showTrackedDialog(builder)
+    }
 
     private fun resolveExternalBrowserIntents(uri: Uri): List<Intent> =
         RememberedRouteValidator.browserPackages(context).flatMap { packageName ->
@@ -495,7 +589,12 @@ class PostCleanRunner(
             @Suppress("DEPRECATION")
             context.packageManager.queryIntentActivities(intent, 0)
         }
-        return activities.filter { it.activityInfo.packageName != context.packageName && it.activityInfo.exported }
+        return activities.filter {
+            it.activityInfo.packageName != context.packageName &&
+                it.activityInfo.exported &&
+                it.activityInfo.enabled &&
+                it.activityInfo.applicationInfo?.enabled != false
+        }
             .distinctBy { "${it.activityInfo.packageName}/${it.activityInfo.name}" }
             .map { resolved -> Intent(intent).setClassName(resolved.activityInfo.packageName, resolved.activityInfo.name) }
     }

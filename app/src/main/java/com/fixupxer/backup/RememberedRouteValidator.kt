@@ -17,6 +17,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import com.fixupxer.utils.NativeAppMapping
+import com.fixupxer.utils.Constants
+import androidx.core.net.toUri
 
 object RememberedRouteValidator {
 
@@ -68,20 +70,18 @@ object RememberedRouteValidator {
     }
 
     fun browserPackages(context: Context): Set<String> {
-        val browserIntent = Intent(Intent.ACTION_MAIN).apply {
+        val packageManager = context.packageManager
+        val browserCategoryIntent = Intent(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_APP_BROWSER)
         }
-        val browsers = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.packageManager.queryIntentActivities(
-                browserIntent,
-                PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong())
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            context.packageManager.queryIntentActivities(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
+        val neutralViewIntent = Intent(
+            Intent.ACTION_VIEW,
+            Constants.BROWSER_PROBE_URL.toUri(),
+        ).apply {
+            addCategory(Intent.CATEGORY_BROWSABLE)
         }
-        return browsers
-            .map { it.activityInfo.packageName }
+        return (queryPackages(packageManager, browserCategoryIntent, PackageManager.MATCH_DEFAULT_ONLY) +
+            queryPackages(packageManager, neutralViewIntent, 0))
             .filter { it != context.packageName }
             .toSet()
     }
@@ -115,18 +115,43 @@ object RememberedRouteValidator {
     }
 
     fun canLaunchPackage(context: Context, uri: Uri, packageName: String): Boolean {
+        if (!canSaveRoute(context, packageName)) return false
         val intent = Intent(Intent.ACTION_VIEW, uri).apply {
             setPackage(packageName)
             addCategory(Intent.CATEGORY_BROWSABLE)
         }
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.packageManager.queryIntentActivities(
-                intent,
-                PackageManager.ResolveInfoFlags.of(0)
-            ).isNotEmpty()
-        } else {
-            @Suppress("DEPRECATION")
-            context.packageManager.queryIntentActivities(intent, 0).isNotEmpty()
+        return queryActivities(context.packageManager, intent, 0)
+            .any { resolveInfo ->
+                resolveInfo.activityInfo?.let(::isEnabledExported) == true
+            }
+    }
+
+    private fun queryPackages(
+        packageManager: PackageManager,
+        intent: Intent,
+        flags: Int,
+    ): List<String> = queryActivities(packageManager, intent, flags)
+        .mapNotNull { resolveInfo ->
+            val activityInfo = resolveInfo.activityInfo ?: return@mapNotNull null
+            activityInfo.packageName.takeIf { isEnabledExported(activityInfo) }
         }
+
+    private fun isEnabledExported(activityInfo: android.content.pm.ActivityInfo): Boolean =
+        activityInfo.exported &&
+            activityInfo.enabled &&
+            activityInfo.applicationInfo?.enabled != false
+
+    private fun queryActivities(
+        packageManager: PackageManager,
+        intent: Intent,
+        flags: Int,
+    ) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        packageManager.queryIntentActivities(
+            intent,
+            PackageManager.ResolveInfoFlags.of(flags.toLong()),
+        )
+    } else {
+        @Suppress("DEPRECATION")
+        packageManager.queryIntentActivities(intent, flags)
     }
 }

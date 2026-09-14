@@ -29,6 +29,7 @@ import android.os.Build
 import android.view.View
 import androidx.core.net.toUri
 import com.fixupxer.R
+import com.fixupxer.backup.RememberedRouteValidator
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.UrlClipboard
 import timber.log.Timber
@@ -104,7 +105,12 @@ object UrlActionHelper {
      * Opens an HTTP(S) URL outside FixupXer. Explicit external components prevent
      * BrowserAlias from intercepting guides or defensive VIEW-intent handoffs.
      */
-    fun openUrlInExternalBrowser(anchor: View, activity: Activity, url: String): Boolean {
+    fun openUrlInExternalBrowser(
+        anchor: View,
+        activity: Activity,
+        url: String,
+        preferredBrowserPackage: String? = null,
+    ): Boolean {
         if (url.isEmpty()) {
             SnackbarHelper.showShort(anchor, activity.getString(R.string.no_url_to_open))
             return false
@@ -114,20 +120,49 @@ object UrlActionHelper {
             val baseIntent = Intent(Intent.ACTION_VIEW, url.toUri())
                 .addCategory(Intent.CATEGORY_BROWSABLE)
             val packageManager = activity.packageManager
+            val preferredPackage = preferredBrowserPackage
+                ?.takeIf { RememberedRouteValidator.isBrowserRouteValid(activity, url.toUri(), it) }
+            if (preferredPackage != null) {
+                val preferredIntent = Intent(baseIntent).setPackage(preferredPackage)
+                val preferredTarget = packageManager.queryIntentActivities(preferredIntent, 0)
+                    .firstOrNull { resolveInfo ->
+                        resolveInfo.activityInfo?.let { info ->
+                            info.exported && info.enabled && info.applicationInfo?.enabled != false
+                        } == true
+                    }
+                    ?.activityInfo
+                    ?.let { ComponentName(it.packageName, it.name) }
+                if (preferredTarget != null) {
+                    try {
+                        activity.startActivity(Intent(baseIntent).setComponent(preferredTarget))
+                        return true
+                    } catch (error: RuntimeException) {
+                        Timber.w(error, "Preferred browser could not launch; showing browser choices")
+                    }
+                }
+            }
             val selectorPackages = packageManager.queryIntentActivities(
                 Intent.makeMainSelectorActivity(
                     Intent.ACTION_MAIN,
                     Intent.CATEGORY_APP_BROWSER,
                 ),
                 0,
-            ).mapNotNull { it.activityInfo?.packageName }
+            ).mapNotNull { resolveInfo ->
+                resolveInfo.activityInfo?.takeIf { info ->
+                    info.exported && info.enabled && info.applicationInfo?.enabled != false
+                }?.packageName
+            }
             // Some OEM browsers do not advertise CATEGORY_APP_BROWSER. A neutral
             // browsable HTTP VIEW probe safely discovers those packages.
             val actionViewPackages = packageManager.queryIntentActivities(
                 Intent(Intent.ACTION_VIEW, Constants.BROWSER_PROBE_URL.toUri())
                     .addCategory(Intent.CATEGORY_BROWSABLE),
                 0,
-            ).mapNotNull { it.activityInfo?.packageName }
+            ).mapNotNull { resolveInfo ->
+                resolveInfo.activityInfo?.takeIf { info ->
+                    info.exported && info.enabled && info.applicationInfo?.enabled != false
+                }?.packageName
+            }
             val browserPackages = mergeExternalBrowserPackages(
                 selectorPackages,
                 actionViewPackages,
@@ -138,6 +173,9 @@ object UrlActionHelper {
                 .mapNotNull { resolveInfo ->
                     val activityInfo = resolveInfo.activityInfo ?: return@mapNotNull null
                     if (activityInfo.packageName == activity.packageName) return@mapNotNull null
+                    if (!activityInfo.exported || !activityInfo.enabled ||
+                        activityInfo.applicationInfo?.enabled == false
+                    ) return@mapNotNull null
                     if (activityInfo.packageName !in browserPackages) return@mapNotNull null
                     Intent(baseIntent).setComponent(
                         ComponentName(activityInfo.packageName, activityInfo.name)
@@ -148,6 +186,8 @@ object UrlActionHelper {
                 val activityInfo = packageManager.resolveActivity(fallback, 0)?.activityInfo
                     ?: return@mapNotNull null
                 if (activityInfo.packageName == activity.packageName ||
+                    !activityInfo.exported || !activityInfo.enabled ||
+                    activityInfo.applicationInfo?.enabled == false ||
                     activityInfo.packageName !in browserPackages
                 ) {
                     return@mapNotNull null

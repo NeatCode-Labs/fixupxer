@@ -33,6 +33,12 @@ import com.fixupxer.processing.UrlNormalizer
  */
 object ProxyRoster {
 
+    enum class CustomProxyValidationError {
+        INVALID_DOMAIN,
+        RESERVED_DOMAIN,
+        DUPLICATE,
+    }
+
     data class Snapshot(
         val revision: Long,
         val activeTargets: Map<ProxyPlatform, List<FrontendTarget>>,
@@ -186,8 +192,12 @@ object ProxyRoster {
      * so parent domains (e.g. catsarch.com) and subdomains (e.g. sub.fixupx.com) are
      * rejected without the old substring false positives.
      */
-    fun isReservedDomain(domain: String): Boolean {
-        val reserved = buildReservedDomainList()
+    fun isReservedDomain(
+        domain: String,
+        customProxies: Map<ProxyPlatform, List<String>> = currentCustomProxies(),
+        includeCustomDomains: Boolean = true,
+    ): Boolean {
+        val reserved = buildReservedDomainList(customProxies, includeCustomDomains)
         return reserved.any { reservedEntry ->
             UrlNormalizer.hostMatchesDomain(domain, reservedEntry) ||
                 UrlNormalizer.hostMatchesDomain(reservedEntry, domain)
@@ -202,14 +212,92 @@ object ProxyRoster {
         return domain in known
     }
 
-    private fun buildReservedDomainList(): List<String> {
+    /**
+     * Validates a custom domain against an optional staged roster. Browser settings
+     * uses this before Save so nested picker edits do not touch the live roster.
+     */
+    fun validateCustomProxy(
+        platform: ProxyPlatform,
+        raw: String,
+        customProxies: Map<ProxyPlatform, List<String>> = currentCustomProxies(),
+        excludingDomain: String? = null,
+    ): CustomProxyValidationError? {
+        val domain = normalizeCustomProxyInput(raw)
+        if (!isValidProxyDomainFormat(domain)) {
+            return CustomProxyValidationError.INVALID_DOMAIN
+        }
+
+        val staged = customProxies.mapValues { (_, values) ->
+            values
+        }
+            .toMutableMap()
+            .apply {
+                if (excludingDomain != null) {
+                    this[platform] = this[platform].orEmpty().filterNot { it == excludingDomain }
+                }
+            }
+        if (isReservedDomain(domain, staged, includeCustomDomains = false)) {
+            return CustomProxyValidationError.RESERVED_DOMAIN
+        }
+        val overlaps = staged.values.flatten().any { existing ->
+            UrlNormalizer.hostMatchesDomain(domain, existing) ||
+                UrlNormalizer.hostMatchesDomain(existing, domain)
+        }
+        if (overlaps) return CustomProxyValidationError.DUPLICATE
+        val duplicate = AlternativeFrontendCatalog.builtIn(platform).any { it.domain == domain } ||
+            AlternativeFrontendCatalog.legacyDomains(platform).contains(domain) ||
+            staged.values.flatten().any { it == domain }
+        if (duplicate) return CustomProxyValidationError.DUPLICATE
+        return null
+    }
+
+    /** Validates a complete staged custom roster before it is committed atomically. */
+    fun validateCustomProxyMap(customProxies: Map<ProxyPlatform, List<String>>) {
+        ProxyPlatform.entries.forEach { platform ->
+            val values = customProxies[platform].orEmpty()
+            require(values == values.map(::normalizeCustomProxyInput)) {
+                "Custom proxy domain is not normalized"
+            }
+            require(values.size == values.toSet().size) {
+                "Duplicate custom proxy for $platform"
+            }
+            values.forEach { domain ->
+                require(isValidProxyDomainFormat(domain)) {
+                    "Invalid custom proxy domain format"
+                }
+                require(!isReservedDomain(domain, customProxies, includeCustomDomains = false)) {
+                    "Custom proxy collides with a reserved domain"
+                }
+            }
+        }
+        ProxyPlatform.entries.forEach { platform ->
+            val values = customProxies[platform].orEmpty()
+            val otherValues = ProxyPlatform.entries
+                .filter { it != platform }
+                .flatMap { customProxies[it].orEmpty() }
+            values.forEach { domain ->
+                require(otherValues.none { other ->
+                    UrlNormalizer.hostMatchesDomain(domain, other) ||
+                        UrlNormalizer.hostMatchesDomain(other, domain)
+                }) { "Custom proxy collides with another platform's custom proxy" }
+            }
+        }
+    }
+
+    private fun currentCustomProxies(): Map<ProxyPlatform, List<String>> =
+        ProxyPlatform.entries.associateWith(::getCustomProxies)
+
+    private fun buildReservedDomainList(
+        customProxies: Map<ProxyPlatform, List<String>> = currentCustomProxies(),
+        includeCustomDomains: Boolean = true,
+    ): List<String> {
         val entries = mutableListOf<String>()
         entries += Constants.FARSIDE_DOMAIN
         ProxyPlatform.entries.forEach { platform ->
             entries += AlternativeFrontendCatalog.sourceDomains(platform)
             entries += AlternativeFrontendCatalog.builtIn(platform).map { it.domain }
             entries += AlternativeFrontendCatalog.legacyDomains(platform)
-            entries += getCustomProxies(platform)
+            if (includeCustomDomains) entries += customProxies[platform].orEmpty()
         }
         entries += Constants.RETIRED_UNSAFE_FRONTEND_DOMAINS
         return entries.distinct()

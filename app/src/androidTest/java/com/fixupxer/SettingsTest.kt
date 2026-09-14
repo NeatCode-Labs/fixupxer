@@ -541,15 +541,15 @@ class SettingsTest {
             .inRoot(isDialog())
             .perform(click())
 
-        // Anchor on a reader target being rendered first: the absence checks below would
+        // Anchor on a reader target being rendered first: the checks below would
         // pass trivially against the previous dialog if they ran before the picker appeared.
         awaitAssertion {
             onView(allOf(withText(containsString(Constants.NITTER_NET_DOMAIN)), isDisplayed()))
                 .check(matches(isDisplayed()))
         }
 
-        // Browser picker includes eligible embed and reader targets but no automatic
-        // target or custom-roster management actions.
+        // Browser picker includes eligible embed/readers and shared-roster actions.
+        // Experimental automatic targets remain excluded.
         onView(withId(R.id.recyclerViewProxyPicker)).perform(
             RecyclerViewActions.scrollTo<RecyclerView.ViewHolder>(
                 hasDescendant(withText(containsString(Constants.FIXUPX_DOMAIN)))
@@ -559,10 +559,22 @@ class SettingsTest {
         onView(withText(containsString(Constants.TWIIIT_DOMAIN))).check(doesNotExist())
         onView(withText(R.string.browser_frontend_group_embeds)).check(matches(isDisplayed()))
         onView(withText(R.string.browser_frontend_group_readers)).check(matches(isDisplayed()))
-        // Empty-state Add custom button is always in the hierarchy but must stay hidden.
-        onView(withText(R.string.proxy_action_add_custom)).check(matches(not(isDisplayed())))
-        onView(withText(R.string.proxy_action_edit)).check(doesNotExist())
+        onView(withId(R.id.buttonEmptyAddCustom)).check(matches(not(isDisplayed())))
+        listOf(R.string.proxy_action_add_custom, R.string.proxy_action_edit).forEach { label ->
+            onView(withId(R.id.recyclerViewProxyPicker)).perform(
+                RecyclerViewActions.scrollTo<RecyclerView.ViewHolder>(
+                    allOf(withId(R.id.buttonProxyAction), withText(label)),
+                )
+            )
+            onView(allOf(withId(R.id.buttonProxyAction), withText(label), isDisplayed()))
+                .check(matches(isDisplayed()))
+        }
 
+        onView(withId(R.id.recyclerViewProxyPicker)).perform(
+            RecyclerViewActions.scrollTo<RecyclerView.ViewHolder>(
+                hasDescendant(withText(containsString(Constants.NITTER_NET_DOMAIN))),
+            )
+        )
         onView(allOf(withText(containsString(Constants.NITTER_NET_DOMAIN)), isDisplayed()))
             .perform(click())
 

@@ -88,6 +88,39 @@ class BrowserBackupCodecDeviceTest {
     }
 
     @Test
+    fun schemaTwoMissingOrNullPreferredBrowserPackageDefaultsToAsk() {
+        val missing = codec.decode(validBackup(schemaVersion = 2).toString())
+        assertNull(missing.settings.preferredBrowserPackage)
+
+        val explicitNull = validBackup(schemaVersion = 2)
+        explicitNull.getJSONObject("settings")
+            .put("preferredBrowserPackage", JSONObject.NULL)
+        assertNull(codec.decode(explicitNull.toString()).settings.preferredBrowserPackage)
+        val encoded = codec.encode(missing.settings, RuleBundleCodec().encodeBundle(emptyList()))
+        assertNull(codec.decode(encoded).settings.preferredBrowserPackage)
+    }
+
+    @Test
+    fun schemaTwoPreferredBrowserPackageRoundTripsAndRejectsNonString() {
+        val valid = validBackup(schemaVersion = 2)
+        valid.getJSONObject("settings")
+            .put("preferredBrowserPackage", "com.brave.browser")
+        val encoded = codec.encode(
+            codec.decode(valid.toString()).settings,
+            RuleBundleCodec().encodeBundle(emptyList()),
+        )
+        assertEquals(
+            "com.brave.browser",
+            codec.decode(encoded).settings.preferredBrowserPackage,
+        )
+
+        val invalid = validBackup(schemaVersion = 2)
+        invalid.getJSONObject("settings")
+            .put("preferredBrowserPackage", 42)
+        assertTrue(runCatching { codec.decode(invalid.toString()) }.isFailure)
+    }
+
+    @Test
     fun schemaOneMigratesEnabledAndDormantReadersAndIgnoresLegacyNonReaderToggles() {
         val root = validBackup(schemaVersion = 1)
         val settings = root.getJSONObject("settings")

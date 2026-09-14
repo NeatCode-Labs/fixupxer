@@ -1,0 +1,1 @@
+Add, edit and delete frontends directly in Browser settings. Save applies frontend changes together; Cancel discards them. Browser and Main/Share keep separate selections. Choose a preferred browser once, or use a browser temporarily without changing your saved choice. Unavailable browsers offer a replacement. Offline processing and zero permissions are unchanged.

@@ -244,6 +244,24 @@ class PostCleanRunnerRouteTest {
     }
 
     @Test
+    fun `preferred browser launches exact uri directly without showing a dialog`() = withActivity { activity ->
+        val uri = Uri.parse("https://vm.tnktok.com/preferred/?keep=%2B#fragment")
+        registerBrowser("preferred.browser", uri)
+        preferencesManager.setPreferredBrowserPackage("preferred.browser")
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(listOf(PreferencesManager.ACTION_BROWSER))
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+
+        PostCleanRunner(activity, preferencesManager).runGuarded(uri, null, { true }, outcomes::add)
+
+        assertEquals(listOf(PostCleanRunner.Outcome.SUCCESS), outcomes)
+        val sent = shadowOf(activity).nextStartedActivity
+        assertEquals(uri, sent?.data)
+        assertEquals("preferred.browser", sent?.`package`)
+        assertTrue(ShadowDialog.getShownDialogs().none { it.isShowing })
+    }
+
+    @Test
     fun `candidates are empty when nothing can open the final uri`() {
         val candidates = runner.buildRememberCandidates(
             Uri.parse("https://fixupx.com/user/status/1"),
@@ -377,6 +395,55 @@ class PostCleanRunnerRouteTest {
     }
 
     @Test
+    fun `unavailable preferred browser shows replacement list and cancel does not dispatch`() = withActivity { activity ->
+        val uri = Uri.parse("https://vm.tnktok.com/a/?keep=%2B#fragment")
+        registerBrowser("first.browser", uri)
+        registerBrowser("second.browser", uri)
+        preferencesManager.setPreferredBrowserPackage("missing.browser")
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(listOf(PreferencesManager.ACTION_BROWSER))
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+
+        PostCleanRunner(activity, preferencesManager).runGuarded(uri, null, { true }, outcomes::add)
+
+        val dialog = latestDialog()
+        assertTrue(dialog.isShowing)
+        assertTrue(dialog.listView.isShown)
+        assertEquals(2, dialog.listView.adapter?.count ?: 0)
+        assertTrue(outcomes.isEmpty())
+        dialog.cancel()
+        shadowOf(android.os.Looper.getMainLooper()).idle()
+
+        assertEquals(listOf(PostCleanRunner.Outcome.CANCELLED), outcomes)
+        assertNull(shadowOf(activity).nextStartedActivity)
+        assertEquals("missing.browser", preferencesManager.getPreferredBrowserPackage())
+    }
+
+    @Test
+    fun `single browser still asks and saves Always use only after launch`() = withActivity { activity ->
+        val uri = Uri.parse("https://vm.tnktok.com/a/?keep=%2B#fragment")
+        registerBrowser("only.browser", uri)
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(listOf(PreferencesManager.ACTION_BROWSER))
+        val initialFingerprint = preferencesManager.browserFrontendFingerprint()
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+
+        PostCleanRunner(activity, preferencesManager).runGuarded(uri, null, { true }, outcomes::add)
+
+        assertTrue(outcomes.isEmpty())
+        assertNull(preferencesManager.getPreferredBrowserPackage())
+        latestDialog()
+            .getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEUTRAL)
+            .performClick()
+        shadowOf(android.os.Looper.getMainLooper()).idle()
+
+        assertEquals(listOf(PostCleanRunner.Outcome.SUCCESS), outcomes)
+        assertEquals("only.browser", preferencesManager.getPreferredBrowserPackage())
+        assertNotNull(preferencesManager.getPreferredBrowserPackage())
+        assertFalse(initialFingerprint == preferencesManager.browserFrontendFingerprint())
+    }
+
+    @Test
     fun `browser destination selection launches exact uri and then succeeds`() = withActivity { activity ->
         val uri = Uri.parse("https://vm.tnktok.com/a/?keep=%2B#fragment")
         registerBrowser("first.browser", uri)
@@ -387,7 +454,12 @@ class PostCleanRunnerRouteTest {
         PostCleanRunner(activity, preferencesManager).runGuarded(uri, null, { true }, outcomes::add)
         assertTrue(outcomes.isEmpty())
         latestDialog().listView.performItemClick(null, 1, 1)
+        latestDialog()
+            .getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
+            .performClick()
+        shadowOf(android.os.Looper.getMainLooper()).idle()
         assertEquals(listOf(PostCleanRunner.Outcome.SUCCESS), outcomes)
+        assertNull(preferencesManager.getPreferredBrowserPackage())
         val sent = shadowOf(activity).nextStartedActivity
         assertEquals(Intent.ACTION_VIEW, sent.action)
         assertEquals(uri, sent.data)
@@ -492,7 +564,11 @@ class PostCleanRunnerRouteTest {
             this.packageName = packageName
             name = "$packageName.MainActivity"
             exported = true
-            applicationInfo = ApplicationInfo().apply { this.packageName = packageName }
+            enabled = true
+            applicationInfo = ApplicationInfo().apply {
+                this.packageName = packageName
+                enabled = true
+            }
         }
         return ResolveInfo().apply { activityInfo = activity }
     }

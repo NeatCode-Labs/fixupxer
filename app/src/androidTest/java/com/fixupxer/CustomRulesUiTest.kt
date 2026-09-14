@@ -45,9 +45,11 @@ class CustomRulesUiTest {
         PreferencesManager(context).setCustomRulesEnabled(false)
 
         ActivityScenario.launch(SettingsActivity::class.java).use {
-            onView(withId(R.id.buttonCustomRulesHowTo)).check(matches(isDisplayed()))
+            onView(withId(R.id.buttonCustomRulesHowTo))
+                .perform(nestedScrollTo())
+                .check(matches(isDisplayed()))
             onView(withId(R.id.switchCustomRules)).check(matches(isNotChecked()))
-            onView(withId(R.id.buttonCustomRules)).perform(click())
+            onView(withId(R.id.buttonCustomRules)).perform(nestedScrollTo(), click())
             onView(withText(R.string.custom_rules_title)).check(matches(isDisplayed()))
             onView(withId(R.id.switchCustomRules)).check(doesNotExist())
             onView(withId(R.id.buttonAddRule)).check { view, noViewFound ->
@@ -93,7 +95,7 @@ class CustomRulesUiTest {
     @Test
     fun testVectorsCanRunDeleteAndBlockActivation() {
         ActivityScenario.launch(SettingsActivity::class.java).use {
-            onView(withId(R.id.buttonCustomRules)).perform(click())
+            onView(withId(R.id.buttonCustomRules)).perform(nestedScrollTo(), click())
             onView(withId(R.id.buttonClear)).perform(click())
             onView(withText(R.string.custom_rules_clear)).perform(click())
             onView(withId(R.id.buttonAddRule)).perform(click())
@@ -133,7 +135,7 @@ class CustomRulesUiTest {
     @Test
     fun teachFromExampleCardInfersDraftFields() {
         ActivityScenario.launch(SettingsActivity::class.java).use {
-            onView(withId(R.id.buttonCustomRules)).perform(click())
+            onView(withId(R.id.buttonCustomRules)).perform(nestedScrollTo(), click())
             onView(withId(R.id.buttonClear)).perform(click())
             onView(withText(R.string.custom_rules_clear)).perform(click())
             onView(withId(R.id.buttonAddRule)).perform(click())

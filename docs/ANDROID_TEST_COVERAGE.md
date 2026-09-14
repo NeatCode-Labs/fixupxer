@@ -1,5 +1,20 @@
 # Android Test Coverage for FixupXer
 
+## v2.8.0 coverage additions — September 14, 2026
+
+Twelve new unit cases cover Browser frontend draft mutations, shared-reference
+updates, dormant selections, concurrent changes and preferred-browser delivery,
+cancellation and persistence. Full debug and release unit gates each pass
+**769/769**, with no failures/errors/skips; release lint has zero errors and
+43 warnings.
+
+Two new Android backup codec tests cover absent/null optional preferred-browser
+fields, valid package roundtrips and strict JSON value typing. The full cold-boot
+API35 device gate passes **276/276**, with no failures/errors/skips. Existing UI
+tests now scroll to controls and assert the new Browser Add/Edit actions.
+Final signed-artifact UI checks remain pending; unit and debug-device results
+do not certify the signed release artifacts.
+
 ## v2.7.0 coverage additions — September 13, 2026
 
 New Browser coverage exercises each allowed built-in target and seven custom

@@ -92,6 +92,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_BROWSER_ENABLED = "browser_enabled"
         private const val KEY_ACTION_MODE = "action_mode"
         private const val KEY_ACTION_PRIORITY = "action_priority"
+        private const val KEY_PREFERRED_BROWSER_PACKAGE = "preferred_browser_package"
         private const val KEY_SHOW_CONFIGURATION_STATUS_WIDGET = "show_configuration_status_widget"
         
         // Browser mode conversion keys
@@ -827,6 +828,26 @@ class PreferencesManager(context: Context) {
         prefs.edit { putString(KEY_ACTION_PRIORITY, priority.joinToString(",")) }
         BrowserViewGate.invalidate()
     }
+
+    /**
+     * Package selected for Browser actions. A null value means that Browser actions
+     * should ask every time; the package is intentionally retained even when it is
+     * temporarily unavailable so an uninstall does not silently rewrite user intent.
+     */
+    fun getPreferredBrowserPackage(): String? =
+        prefs.getString(KEY_PREFERRED_BROWSER_PACKAGE, null)?.takeIf { it.isNotBlank() }
+
+    fun setPreferredBrowserPackage(packageName: String?): Boolean {
+        if (packageName != null && !RememberedRouteValidator.canSaveRoute(appContext, packageName)) {
+            return false
+        }
+        val editor = prefs.edit()
+        if (packageName.isNullOrBlank()) editor.remove(KEY_PREFERRED_BROWSER_PACKAGE)
+        else editor.putString(KEY_PREFERRED_BROWSER_PACKAGE, packageName)
+        val committed = editor.commit()
+        if (committed) BrowserViewGate.invalidate()
+        return committed
+    }
     
     fun getBrowserFrontendPreferences(): Map<ProxyPlatform, BrowserFrontendPreference> =
         ProxyPlatform.entries.associateWith(::readBrowserFrontendPreference)
@@ -878,22 +899,89 @@ class PreferencesManager(context: Context) {
         changes: Map<ProxyPlatform, BrowserFrontendPreference>,
         expected: Map<ProxyPlatform, BrowserFrontendPreference>,
         restoreBuiltInIds: Map<ProxyPlatform, Set<String>> = emptyMap(),
+        customProxyOverrides: Map<ProxyPlatform, List<String>> = emptyMap(),
+        expectedCustomProxies: Map<ProxyPlatform, List<String>> = emptyMap(),
+        disabledBuiltInOverrides: Map<ProxyPlatform, Set<String>> = emptyMap(),
+        expectedDisabledBuiltIns: Map<ProxyPlatform, Set<String>> = emptyMap(),
+        selectedProxyDomains: Map<ProxyPlatform, String?> = emptyMap(),
+        expectedSelectedProxyDomains: Map<ProxyPlatform, String?> = emptyMap(),
     ): Boolean {
-        val touched = changes.keys + restoreBuiltInIds.keys
+        val touched = (
+            changes.keys +
+                restoreBuiltInIds.keys +
+                customProxyOverrides.keys +
+                disabledBuiltInOverrides.keys +
+                selectedProxyDomains.keys
+            ).toSet()
         val current = getBrowserFrontendPreferences()
         if (touched.any { expected[it] == null || expected[it] != current[it] }) return false
 
-        touched.forEach { platform ->
-            val desired = changes[platform] ?: current.getValue(platform)
+        val currentCustom = ProxyPlatform.entries.associateWith { getCustomProxies(it) }
+        if (customProxyOverrides.keys.any { platform ->
+                !expectedCustomProxies.containsKey(platform) ||
+                    expectedCustomProxies[platform] != currentCustom[platform]
+            }
+        ) return false
+
+        val currentDisabled = ProxyPlatform.entries.associateWith { getDisabledBuiltIns(it) }
+        if (disabledBuiltInOverrides.keys.any { platform ->
+                !expectedDisabledBuiltIns.containsKey(platform) ||
+                    expectedDisabledBuiltIns[platform] != currentDisabled[platform]
+            }
+        ) return false
+
+        val currentSelections = ProxyPlatform.entries.associateWith { getSelectedProxyDomain(it) }
+        if (selectedProxyDomains.keys.any { platform ->
+                !expectedSelectedProxyDomains.containsKey(platform) ||
+                    expectedSelectedProxyDomains[platform] != currentSelections[platform]
+            }
+        ) return false
+
+        if (touched.isEmpty()) return true
+
+        val finalCustom = currentCustom.toMutableMap().apply {
+            putAll(customProxyOverrides)
+        }
+        val finalDisabled = currentDisabled.toMutableMap().apply {
+            putAll(disabledBuiltInOverrides)
+            restoreBuiltInIds.forEach { (platform, ids) ->
+                put(platform, this[platform].orEmpty() - ids)
+            }
+        }
+        val finalSelections = currentSelections.toMutableMap().apply {
+            putAll(selectedProxyDomains)
+        }
+        ProxyRoster.validateCustomProxyMap(finalCustom)
+
+        ProxyPlatform.entries.forEach { platform ->
+            val activeDomains = AlternativeFrontendCatalog.builtIn(platform)
+                .filterNot { it.id in finalDisabled[platform].orEmpty() }
+                .map { it.domain } + finalCustom[platform].orEmpty()
+            require(finalSelections[platform].isNullOrBlank() ||
+                finalSelections[platform] in activeDomains
+            ) { "Invalid selected proxy domain for $platform" }
+        }
+
+        val finalBrowser = current.toMutableMap().apply { putAll(changes) }
+        ProxyPlatform.entries.forEach { platform ->
+            val knownTargets = AlternativeFrontendCatalog.builtIn(platform) +
+                finalCustom[platform].orEmpty().map { domain ->
+                    FrontendTarget(
+                        id = "custom:$domain",
+                        platform = platform,
+                        domain = domain,
+                        role = FrontendRole.READER,
+                        allowNativeApp = false,
+                    )
+                }
+            val desired = finalBrowser.getValue(platform)
             require(
-                BrowserFrontendPolicy.isCombinationAllowed(
-                    platform,
-                    desired,
-                    knownBrowserTargets(platform),
-                )
+                BrowserFrontendPolicy.isCombinationAllowed(platform, desired, knownTargets)
             ) { "Invalid Browser frontend preference for $platform" }
-            val restoredIds = restoreBuiltInIds[platform].orEmpty()
-            restoredIds.forEach { id ->
+        }
+
+        restoreBuiltInIds.forEach { (platform, ids) ->
+            ids.forEach { id ->
                 val target = requireNotNull(AlternativeFrontendCatalog.byId(id)) {
                     "Invalid built-in restore for $platform"
                 }
@@ -907,7 +995,6 @@ class PreferencesManager(context: Context) {
             }
         }
 
-        if (touched.isEmpty()) return true
         val editor = prefs.edit()
         changes.forEach { (platform, preference) ->
             editor.putString(keyForBrowserFrontendMode(platform), preference.mode.name)
@@ -917,17 +1004,27 @@ class PreferencesManager(context: Context) {
                 editor.putString(keyForBrowserFrontendTarget(platform), preference.targetId)
             }
         }
-        val updatedDisabled = restoreBuiltInIds.mapValues { (platform, ids) ->
-            getDisabledBuiltIns(platform) - ids
+        val rosterPlatforms = (customProxyOverrides.keys + disabledBuiltInOverrides.keys + restoreBuiltInIds.keys).toSet()
+        customProxyOverrides.forEach { (platform, values) ->
+            if (values.isEmpty()) editor.remove(keyForCustomProxies(platform))
+            else editor.putString(keyForCustomProxies(platform), values.joinToString(","))
         }
+        val updatedDisabled = rosterPlatforms.associateWith { platform -> finalDisabled[platform].orEmpty() }
         updatedDisabled.forEach { (platform, ids) ->
             if (ids.isEmpty()) editor.remove(keyForDisabledBuiltIns(platform))
             else editor.putString(keyForDisabledBuiltIns(platform), ids.sorted().joinToString(","))
+        }
+        selectedProxyDomains.forEach { (platform, domain) ->
+            if (domain.isNullOrBlank()) editor.remove(keyForSelection(platform))
+            else editor.putString(keyForSelection(platform), domain)
         }
         val committed = editor.commit()
         browserPreferenceWriteFailed = !committed
         BrowserViewGate.invalidate()
         if (committed) {
+            customProxyOverrides.forEach { (platform, values) ->
+                updateProxyRosterCustoms(platform, values)
+            }
             updatedDisabled.forEach { (platform, ids) -> ProxyRoster.setDisabledBuiltIns(platform, ids) }
         }
         return committed
@@ -940,6 +1037,7 @@ class PreferencesManager(context: Context) {
             append(isBrowserModeEnabled()).append('|')
             append(getActionMode()).append('|')
             append(getActionPriority().joinToString(",")).append('|')
+            append(getPreferredBrowserPackage().orEmpty()).append('|')
             append(areCustomRulesEnabled()).append('|')
             getRememberedRoutes().toSortedMap().forEach { (host, route) ->
                 append(host).append(':')
@@ -1102,6 +1200,7 @@ class PreferencesManager(context: Context) {
         disabledBuiltIns = ProxyPlatform.entries.associateWith { getDisabledBuiltIns(it) },
         browserFrontends = getBrowserFrontendPreferences(),
         rememberedRoutes = getRememberedRoutes(),
+        preferredBrowserPackage = getPreferredBrowserPackage(),
     )
 
     /**
@@ -1137,6 +1236,11 @@ class PreferencesManager(context: Context) {
         )
         editor.putString(KEY_ACTION_MODE, snapshot.actionMode)
         editor.putString(KEY_ACTION_PRIORITY, snapshot.actionPriority.joinToString(","))
+        if (snapshot.preferredBrowserPackage.isNullOrBlank()) {
+            editor.remove(KEY_PREFERRED_BROWSER_PACKAGE)
+        } else {
+            editor.putString(KEY_PREFERRED_BROWSER_PACKAGE, snapshot.preferredBrowserPackage)
+        }
         ProxyPlatform.entries.forEach { platform ->
             val selection = snapshot.proxySelections[platform]
             if (selection.isNullOrBlank()) {

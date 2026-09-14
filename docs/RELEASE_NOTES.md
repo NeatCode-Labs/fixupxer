@@ -1,3 +1,30 @@
+# FixupXer v2.8.0 - Browser Frontend Management
+
+## What's New
+
+- Add, edit and delete custom frontends directly from Browser frontend settings.
+  Replace or disable built-in entries and restore them when needed. Browser and
+  Main/Share keep separate selections from the same frontend list.
+- Frontend list changes and Browser choices stay unsaved until Save. Cancel
+  discards the draft, including additions, edits, removals and restores.
+- Choose a preferred external browser once. Browser-directed links open there
+  without repeating the browser picker; Use once and Always use this browser
+  let you choose whether to remember a destination.
+- If a selected browser becomes unavailable, choose a replacement. Existing
+  per-host app choices and after-clean action priorities keep their behavior.
+
+FixupXer remains offline with zero permissions. The receiving browser loads the
+page; frontend availability is controlled by the third-party service.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 51
+- versionName: 2.8.0
+
+---
+
 # FixupXer v2.7.0 - Browser Frontend Choices
 
 ## What's New

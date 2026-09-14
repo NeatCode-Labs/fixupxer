@@ -88,6 +88,27 @@ class LocalBackupCodecTest {
     }
 
     @Test
+    fun `preferred browser package round trips and old backup defaults to ask`() {
+        val settings = validSettings().copy(preferredBrowserPackage = "com.brave.browser")
+        val encoded = codec.encode(settings, ruleCodec.encodeBundle(emptyList()))
+        assertEquals(
+            "com.brave.browser",
+            codec.decode(encoded).settings.preferredBrowserPackage,
+        )
+
+        val oldRoot = JSONObject(codec.encode(validSettings(), ruleCodec.encodeBundle(emptyList())))
+        oldRoot.getJSONObject("settings").remove("preferredBrowserPackage")
+        assertNull(codec.decode(oldRoot.toString()).settings.preferredBrowserPackage)
+    }
+
+    @Test
+    fun `preferred browser package must be encoded as a string`() {
+        val root = JSONObject(encodeValid())
+        root.getJSONObject("settings").put("preferredBrowserPackage", 42)
+        assertTrue(runCatching { codec.decode(root.toString()) }.isFailure)
+    }
+
+    @Test
     fun `preview exposes restored history contract`() {
         val settings = validSettings().copy(
             historyEnabled = false,
@@ -546,7 +567,7 @@ class LocalBackupCodecTest {
             "maxHistoryEntries", "themeMode", "dominantHand", "browserEnabled",
             "showConfigurationStatusWidget", "actionMode", "actionPriority",
             "proxySelections", "customProxies", "disabledBuiltIns", "browserFrontends",
-            "rememberedRoutes",
+            "rememberedRoutes", "preferredBrowserPackage",
         )
         assertEquals(expected, keys)
         assertFalse(encoded.contains("url_history"))

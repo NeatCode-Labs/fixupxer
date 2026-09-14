@@ -84,6 +84,14 @@ object SettingsSnapshotValidator {
             "Too many remembered routes"
         }
         RememberedRouteValidator.requireValidSnapshotRoutes(snapshot.rememberedRoutes, ownPackageName)
+        snapshot.preferredBrowserPackage?.let { packageName ->
+            require(RememberedRouteValidator.isValidPackageName(packageName)) {
+                "Invalid preferred browser package"
+            }
+            require(ownPackageName == null || packageName != ownPackageName) {
+                "Preferred browser must not target FixupXer itself"
+            }
+        }
     }
 
     private fun validateCustomProxies(snapshot: SettingsSnapshot) {

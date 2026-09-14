@@ -162,6 +162,118 @@ class BrowserConversionDefaultsRecoveryTest {
     }
 
     @Test
+    fun `browser picker CRUD stays staged until save and updates shared references`() {
+        val expected = preferences.getBrowserFrontendPreferences()
+        assertTrue(
+            preferences.saveBrowserFrontendPreferences(
+                mapOf(
+                    ProxyPlatform.X to BrowserFrontendPreference(
+                        BrowserConversionMode.READER,
+                        "x_xcancel",
+                    )
+                ),
+                expected,
+            )
+        )
+        preferences.setSelectedProxyDomain(
+            ProxyPlatform.X,
+            AlternativeFrontendCatalog.builtIn(ProxyPlatform.X)
+                .single { it.id == "x_xcancel" }
+                .domain,
+        )
+
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
+        val target = draft.activeTargets(ProxyPlatform.X).single { it.id == "x_xcancel" }
+
+        assertTrue(draft.editTarget(ProxyPlatform.X, target, "edited-reader.example"))
+        assertEquals(
+            listOf("edited-reader.example"),
+            draft.customProxies[ProxyPlatform.X],
+        )
+        assertEquals("edited-reader.example", draft.selectedProxyDomains[ProxyPlatform.X])
+        assertEquals(
+            BrowserFrontendPreference(
+                BrowserConversionMode.CUSTOM,
+                "custom:edited-reader.example",
+            ),
+            draft.preference(ProxyPlatform.X),
+        )
+        assertTrue("x_xcancel" !in preferences.getDisabledBuiltIns(ProxyPlatform.X))
+        assertEquals(emptyList<String>(), preferences.getCustomProxies(ProxyPlatform.X))
+
+        assertTrue(draft.apply())
+        assertTrue("x_xcancel" in preferences.getDisabledBuiltIns(ProxyPlatform.X))
+        assertEquals(listOf("edited-reader.example"), preferences.getCustomProxies(ProxyPlatform.X))
+        assertEquals("edited-reader.example", preferences.getSelectedProxyDomain(ProxyPlatform.X))
+        assertEquals(
+            BrowserFrontendPreference(
+                BrowserConversionMode.CUSTOM,
+                "custom:edited-reader.example",
+            ),
+            preferences.getBrowserFrontendPreferences()[ProxyPlatform.X],
+        )
+    }
+
+    @Test
+    fun `editing a dormant target keeps clean mode and re-enables the new custom target`() {
+        preferences.disableBuiltIn(ProxyPlatform.X, "x_xcancel")
+        val expected = preferences.getBrowserFrontendPreferences()
+        assertTrue(
+            preferences.saveBrowserFrontendPreferences(
+                mapOf(
+                    ProxyPlatform.X to BrowserFrontendPreference(
+                        BrowserConversionMode.CLEAN_ONLY,
+                        "x_xcancel",
+                    )
+                ),
+                expected,
+            )
+        )
+
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
+        val target = AlternativeFrontendCatalog.builtIn(ProxyPlatform.X)
+            .single { it.id == "x_xcancel" }
+        assertTrue(draft.editTarget(ProxyPlatform.X, target, "dormant-reader.example"))
+        assertEquals(
+            BrowserFrontendPreference(
+                BrowserConversionMode.CLEAN_ONLY,
+                "custom:dormant-reader.example",
+            ),
+            draft.preference(ProxyPlatform.X),
+        )
+        assertTrue(draft.apply())
+
+        val enableDraft = BrowserConversionDefaultsHelper.createDraft(preferences)
+        enableDraft.setEnabled(ProxyPlatform.X, true)
+        assertTrue(enableDraft.apply())
+        assertEquals(
+            BrowserFrontendPreference(
+                BrowserConversionMode.CUSTOM,
+                "custom:dormant-reader.example",
+            ),
+            preferences.getBrowserFrontendPreferences()[ProxyPlatform.X],
+        )
+    }
+
+    @Test
+    fun `deleting selected target reports replacement before changing shared selections`() {
+        preferences.addCustomProxy(ProxyPlatform.X, "custom-reader.example")
+        preferences.setSelectedProxyDomain(ProxyPlatform.X, "custom-reader.example")
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
+        val target = draft.activeTargets(ProxyPlatform.X).single { it.domain == "custom-reader.example" }
+
+        val impact = draft.removalImpact(ProxyPlatform.X, target)
+        assertEquals("fixupx.com", impact.mainShareReplacement)
+        assertFalse(impact.mainShareUsesCleanOnly)
+        assertFalse(impact.browserUsesCleanOnly)
+
+        draft.deleteTarget(ProxyPlatform.X, target)
+        assertEquals("fixupx.com", draft.selectedProxyDomains[ProxyPlatform.X])
+        assertTrue(draft.apply())
+        assertEquals("fixupx.com", preferences.getSelectedProxyDomain(ProxyPlatform.X))
+    }
+
+    @Test
     fun `stale draft save fails without overwriting newer choice`() {
         val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
         draft.select(
@@ -184,6 +296,47 @@ class BrowserConversionDefaultsRecoveryTest {
             BrowserConversionMode.EMBED,
             preferences.getBrowserFrontendPreferences()[ProxyPlatform.X]?.mode,
         )
+    }
+
+    @Test
+    fun `draft save preserves unrelated newer roster and browser choices`() {
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
+        assertTrue(draft.addCustomProxy(ProxyPlatform.X, "x-reader.example"))
+        preferences.addCustomProxy(ProxyPlatform.INSTAGRAM, "ig-reader.example")
+        val newer = BrowserFrontendPreference(BrowserConversionMode.CUSTOM, "custom:ig-reader.example")
+        assertTrue(preferences.saveBrowserFrontendPreferences(
+            mapOf(ProxyPlatform.INSTAGRAM to newer), preferences.getBrowserFrontendPreferences(),
+        ))
+
+        assertTrue(draft.apply())
+        assertEquals(listOf("x-reader.example"), preferences.getCustomProxies(ProxyPlatform.X))
+        assertEquals(listOf("ig-reader.example"), preferences.getCustomProxies(ProxyPlatform.INSTAGRAM))
+        assertEquals(newer, preferences.getBrowserFrontendPreferences()[ProxyPlatform.INSTAGRAM])
+    }
+
+    @Test
+    fun `new cross platform collision rejects draft without partial writes`() {
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
+        assertTrue(draft.addCustomProxy(ProxyPlatform.X, "reader.example"))
+        preferences.addCustomProxy(ProxyPlatform.INSTAGRAM, "sub.reader.example")
+
+        assertFalse(draft.apply())
+        assertTrue(preferences.getCustomProxies(ProxyPlatform.X).isEmpty())
+        assertEquals(listOf("sub.reader.example"), preferences.getCustomProxies(ProxyPlatform.INSTAGRAM))
+    }
+
+    @Test
+    fun `editing selected frontend cannot overwrite a newer Main choice`() {
+        preferences.setSelectedProxyDomain(ProxyPlatform.X, "xcancel.com")
+        val draft = BrowserConversionDefaultsHelper.createDraft(preferences)
+        val target = draft.activeTargets(ProxyPlatform.X).single { it.id == "x_xcancel" }
+        assertTrue(draft.editTarget(ProxyPlatform.X, target, "replacement.example"))
+        preferences.setSelectedProxyDomain(ProxyPlatform.X, "fixupx.com")
+
+        assertFalse(draft.apply())
+        assertEquals("fixupx.com", preferences.getSelectedProxyDomain(ProxyPlatform.X))
+        assertTrue(preferences.getCustomProxies(ProxyPlatform.X).isEmpty())
+        assertFalse("x_xcancel" in preferences.getDisabledBuiltIns(ProxyPlatform.X))
     }
 
     private companion object { const val PREFS_NAME = "FixupXerPrefs" }

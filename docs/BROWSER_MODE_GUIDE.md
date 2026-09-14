@@ -111,6 +111,24 @@ If all attempts fail, the result remains in the app for an explicit **Retry**.
 Rotation or recreation does not automatically repeat a failed action. Redirect
 extraction in the URL pipeline also has cycle detection and a five-hop limit.
 
+## Preferred browser
+
+Open **Settings > Configure Browser mode > Preferred browser > Choose browser**,
+choose an installed external browser or **Always ask**, then tap **Save**. This is FixupXer's destination
+browser; it does not change Android's default browser. FixupXer can remain the
+default handler that cleans links before passing them to your chosen browser.
+
+When an after-clean action opens a browser, the preferred browser receives the
+final URL directly. The browser picker also offers **Use once** and **Always
+use this browser**. Use once does not replace your saved preference. If the
+saved browser is unavailable, choose another compatible browser; FixupXer is
+never offered as its own destination.
+
+This preference does not skip **Ask what to do**, change action priority or
+override a valid per-host saved app choice. To open browser-directed links
+without either picker, select **Try actions automatically**, put **Open in
+browser** first in **Action order**, and choose a preferred browser.
+
 ## Browser frontends
 
 Open **Settings > Configure Browser mode > Configure Browser frontends**.
@@ -120,16 +138,29 @@ offers **Open with > FixupXer** instead of using FixupXer as its default browser
 
 | Platform | Browser choices |
 |---|---|
-| TikTok, Instagram | Clean only, built-in embed, existing custom frontend |
-| X / Twitter, Bluesky | Clean only, built-in reader, built-in embed, existing custom frontend |
-| Reddit, Pinterest | Clean only, built-in reader, existing custom frontend |
-| Facebook | Clean only, existing custom frontend |
+| TikTok, Instagram | Clean only, built-in embed, custom frontend |
+| X / Twitter, Bluesky | Clean only, built-in reader, built-in embed, custom frontend |
+| Reddit, Pinterest | Clean only, built-in reader, custom frontend |
+| Facebook | Clean only, custom frontend |
 | YouTube, Threads | Clean only |
 
 The picker groups **Privacy readers**, **Embed frontends**, and **Custom
 frontends** separately. Experimental and retired targets are not offered.
-Add or delete custom domains under **Settings > Link processing > Alternative
-frontends**. Custom targets are not presented as verified privacy readers.
+Use **Add custom proxy** directly in this picker. **Edit** reveals the edit and
+delete controls for each frontend. Editing
+a custom entry changes its domain. Editing a built-in entry creates a custom
+replacement; deleting a built-in entry disables it and allows later restoration.
+Custom targets are not presented as verified privacy readers.
+
+The frontend list is shared with **Settings > Link processing > Alternative
+frontends**, but the active Browser and Main/Share choices are separate. Review
+the displayed impact when changing an entry used by either context. Removing
+an active entry must leave an explicit replacement or Clean only choice.
+
+All Browser frontend additions, edits, removals, restores and selections remain
+drafts until **Save** in the parent dialog. Returning from a platform picker
+keeps those drafts available for review. **Cancel**, Back or dismissing the
+parent dialog discards them.
 
 New conversions start off. Upgrades preserve the four older Browser reader
 choices, including their remembered target when switched off. **Clean only**
@@ -270,6 +301,13 @@ converted lossily and dispatched automatically.
 
 Use **Change frontend**, restore the appropriate built-in category or choose
 another target, then save. Cancelling discards the draft restore.
+
+### The browser picker appears for every link
+
+Choose **Preferred browser** in Browser settings, or choose a browser in the
+picker and use **Always use this browser**. **Always ask** deliberately keeps
+the picker. **Ask what to do** is a separate action choice; use automatic
+actions with Open in browser first if you also want to skip that action dialog.
 
 ### Processing stopped or settings changed while a dialog was open
 

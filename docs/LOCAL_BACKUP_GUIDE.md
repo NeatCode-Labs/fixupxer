@@ -2,11 +2,20 @@
 
 Use Settings → Backup & restore to export a JSON file or restore a previously exported file. Backups contain app settings, custom frontend domains, custom rules and saved app choices. URL history is not included. Keep the file somewhere you trust: custom rules and frontend domains may contain information you consider private.
 
-## Browser choices in version 2.7.0
+## Browser choices and preferred browser
 
 New exports use schema v2 and include a Browser preference for each of the nine platforms. TikTok and Instagram support embed and custom targets; X and Bluesky also support readers; Reddit and Pinterest support readers and custom targets; Facebook supports custom targets. YouTube and Threads remain Clean only in Browser mode.
 
 Browser choices are independent of Main/Share choices. Turning a choice off can retain its target for later use. A temporarily unavailable reader may fall back to another active reader without overwriting the saved target. An unavailable embed or custom target is not silently substituted.
+
+Version 2.8.0 also includes the preferred browser package in schema-v2 exports.
+Older files without this field restore **Always ask**. A browser that is not
+installed on the receiving device remains a saved preference, but cannot launch;
+choose an available replacement in Browser settings or when opening a link.
+Malformed package names and FixupXer itself are rejected during validation.
+
+Only saved frontend changes are exported. Uncommitted Browser picker additions,
+edits and removals are discarded when cancelled and never enter a backup.
 
 ## Importing older backups
 

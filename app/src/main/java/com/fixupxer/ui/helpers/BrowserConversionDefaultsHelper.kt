@@ -25,6 +25,7 @@ import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.FrontendTarget
 import com.fixupxer.utils.ProxyPlatform
 import com.fixupxer.utils.ProxyRoster
+import timber.log.Timber
 
 /** Builds the seven Browser frontend rows and owns their unsaved dialog state. */
 object BrowserConversionDefaultsHelper {
@@ -69,11 +70,21 @@ object BrowserConversionDefaultsHelper {
     class DraftState internal constructor(
         private val preferencesManager: PreferencesManager,
     ) {
+        data class RemovalImpact(
+            val mainShareReplacement: String?,
+            val mainShareUsesCleanOnly: Boolean,
+            val browserUsesCleanOnly: Boolean,
+        )
+
         private var expected: Map<ProxyPlatform, BrowserFrontendPreference> = emptyMap()
         private var initialDisabled: Map<ProxyPlatform, Set<String>> = emptyMap()
+        private var initialCustom: Map<ProxyPlatform, List<String>> = emptyMap()
+        private var initialSelections: Map<ProxyPlatform, String?> = emptyMap()
         private var repairInvalidState = false
         val preferences: MutableMap<ProxyPlatform, BrowserFrontendPreference> = mutableMapOf()
         val disabledBuiltIns: MutableMap<ProxyPlatform, Set<String>> = mutableMapOf()
+        val customProxies: MutableMap<ProxyPlatform, List<String>> = mutableMapOf()
+        val selectedProxyDomains: MutableMap<ProxyPlatform, String?> = mutableMapOf()
 
         init { refreshFromPreferences() }
 
@@ -83,21 +94,38 @@ object BrowserConversionDefaultsHelper {
             initialDisabled = ProxyPlatform.entries.associateWith {
                 preferencesManager.getDisabledBuiltIns(it)
             }
+            initialCustom = ProxyPlatform.entries.associateWith {
+                preferencesManager.getCustomProxies(it)
+            }
+            initialSelections = ProxyPlatform.entries.associateWith {
+                preferencesManager.getSelectedProxyDomain(it)
+            }
             preferences.clear()
             preferences.putAll(expected)
             disabledBuiltIns.clear()
             disabledBuiltIns.putAll(initialDisabled)
+            customProxies.clear()
+            customProxies.putAll(initialCustom)
+            selectedProxyDomains.clear()
+            selectedProxyDomains.putAll(initialSelections)
         }
 
         fun preference(platform: ProxyPlatform): BrowserFrontendPreference = preferences.getValue(platform)
 
         fun activeTargets(platform: ProxyPlatform): List<FrontendTarget> {
             val disabled = disabledBuiltIns[platform].orEmpty()
-            val runtime = ProxyRoster.activeTargets(platform).filterNot { it.id in disabled }
-            val restored = AlternativeFrontendCatalog.builtIn(platform).filter { target ->
-                target.id !in disabled && runtime.none { it.id == target.id }
+            val builtIns = AlternativeFrontendCatalog.builtIn(platform)
+                .filterNot { it.id in disabled }
+            val customs = customProxies[platform].orEmpty().map { domain ->
+                FrontendTarget(
+                    id = "custom:$domain",
+                    platform = platform,
+                    domain = domain,
+                    role = com.fixupxer.utils.FrontendRole.READER,
+                    allowNativeApp = false,
+                )
             }
-            return BrowserFrontendPolicy.allowedTargets(platform, runtime + restored)
+            return BrowserFrontendPolicy.allowedTargets(platform, builtIns + customs)
         }
 
         fun effectiveTarget(platform: ProxyPlatform): FrontendTarget? =
@@ -115,7 +143,7 @@ object BrowserConversionDefaultsHelper {
         fun savedTargetLabel(platform: ProxyPlatform): String? {
             val id = preference(platform).targetId ?: return null
             return (AlternativeFrontendCatalog.byId(id)
-                ?: ProxyRoster.activeTargets(platform).firstOrNull { it.id == id })
+                ?: activeTargets(platform).firstOrNull { it.id == id })
                 ?.let(FrontendDisplayHelper::displayLabel)
         }
 
@@ -151,6 +179,145 @@ object BrowserConversionDefaultsHelper {
             preferences[platform] = preference
         }
 
+        fun validateCustomProxy(
+            platform: ProxyPlatform,
+            raw: String,
+            excludingDomain: String? = null,
+        ): ProxyRoster.CustomProxyValidationError? = ProxyRoster.validateCustomProxy(
+            platform = platform,
+            raw = raw,
+            customProxies = customProxies,
+            excludingDomain = excludingDomain,
+        )
+
+        fun addCustomProxy(platform: ProxyPlatform, raw: String): Boolean {
+            val domain = ProxyRoster.normalizeCustomProxyInput(raw)
+            if (validateCustomProxy(platform, domain) != null) return false
+            customProxies[platform] = customProxies[platform].orEmpty() + domain
+            return true
+        }
+
+        /**
+         * Replaces a custom target, or creates a custom replacement for a built-in
+         * target and stages that built-in as disabled. References used by Main/Share
+         * follow an explicit replacement; Browser references become CUSTOM only when
+         * the Browser policy accepts that replacement.
+         */
+        fun editTarget(platform: ProxyPlatform, target: FrontendTarget, raw: String): Boolean {
+            val domain = ProxyRoster.normalizeCustomProxyInput(raw)
+            val excluding = target.domain.takeIf { target.id.startsWith("custom:") }
+            if (validateCustomProxy(platform, domain, excluding) != null) return false
+
+            if (target.id.startsWith("custom:")) {
+                customProxies[platform] = customProxies[platform].orEmpty()
+                    .map { if (it == target.domain) domain else it }
+            } else {
+                customProxies[platform] = customProxies[platform].orEmpty() + domain
+                disabledBuiltIns[platform] = disabledBuiltIns[platform].orEmpty() + target.id
+            }
+            updateReferencesForReplacement(platform, target, domain)
+            return true
+        }
+
+        /** Disables/removes a target and makes affected Browser selections safe. */
+        fun deleteTarget(platform: ProxyPlatform, target: FrontendTarget) {
+            if (target.id.startsWith("custom:")) {
+                customProxies[platform] = customProxies[platform].orEmpty()
+                    .filterNot { it == target.domain }
+            } else {
+                disabledBuiltIns[platform] = disabledBuiltIns[platform].orEmpty() + target.id
+            }
+            val selected = selectedProxyDomains[platform]
+            if (selected == target.domain) {
+                selectedProxyDomains[platform] = allActiveTargets(platform).firstOrNull()?.domain
+            }
+            if (preferences[platform]?.targetId == target.id) {
+                preferences[platform] = BrowserFrontendPreference.CLEAN_ONLY
+            }
+        }
+
+        fun removalImpact(platform: ProxyPlatform, target: FrontendTarget): RemovalImpact =
+            RemovalImpact(
+                mainShareReplacement = if (selectedProxyDomains[platform] == target.domain) {
+                    val remaining = if (target.id.startsWith("custom:")) {
+                        customProxies[platform].orEmpty().filterNot { it == target.domain }
+                    } else {
+                        customProxies[platform].orEmpty()
+                    }
+                    val disabled = if (target.id.startsWith("custom:")) {
+                        disabledBuiltIns[platform].orEmpty()
+                    } else {
+                        disabledBuiltIns[platform].orEmpty() + target.id
+                    }
+                    (AlternativeFrontendCatalog.builtIn(platform)
+                        .filterNot { it.id in disabled }
+                        .map { it.domain } + remaining).firstOrNull()
+                } else null,
+                mainShareUsesCleanOnly = selectedProxyDomains[platform] == target.domain &&
+                    run {
+                        val remaining = if (target.id.startsWith("custom:")) {
+                            customProxies[platform].orEmpty().filterNot { it == target.domain }
+                        } else {
+                            customProxies[platform].orEmpty()
+                        }
+                        val disabled = if (target.id.startsWith("custom:")) {
+                            disabledBuiltIns[platform].orEmpty()
+                        } else {
+                            disabledBuiltIns[platform].orEmpty() + target.id
+                        }
+                        AlternativeFrontendCatalog.builtIn(platform)
+                            .none { it.id !in disabled } && remaining.isEmpty()
+                    },
+                browserUsesCleanOnly = preferences[platform]?.targetId == target.id,
+            )
+
+        private fun updateReferencesForReplacement(
+            platform: ProxyPlatform,
+            target: FrontendTarget,
+            replacementDomain: String,
+        ) {
+            if (selectedProxyDomains[platform] == target.domain) {
+                selectedProxyDomains[platform] = replacementDomain
+            }
+            if (preferences[platform]?.targetId != target.id) return
+            val current = preferences.getValue(platform)
+            val replacementId = "custom:$replacementDomain"
+            val replacement = BrowserFrontendPreference(
+                mode = if (current.mode == BrowserConversionMode.CLEAN_ONLY) {
+                    BrowserConversionMode.CLEAN_ONLY
+                } else {
+                    BrowserConversionMode.CUSTOM
+                },
+                targetId = replacementId,
+            )
+            preferences[platform] = if (
+                BrowserFrontendPolicy.isCombinationAllowed(
+                    platform,
+                    replacement,
+                    activeTargets(platform),
+                )
+            ) {
+                replacement
+            } else {
+                BrowserFrontendPreference.CLEAN_ONLY
+            }
+        }
+
+        private fun allActiveTargets(platform: ProxyPlatform): List<FrontendTarget> {
+            val disabled = disabledBuiltIns[platform].orEmpty()
+            return AlternativeFrontendCatalog.builtIn(platform)
+                .filterNot { it.id in disabled } +
+                customProxies[platform].orEmpty().map { domain ->
+                    FrontendTarget(
+                        id = "custom:$domain",
+                        platform = platform,
+                        domain = domain,
+                        role = com.fixupxer.utils.FrontendRole.READER,
+                        allowNativeApp = false,
+                    )
+                }
+        }
+
         fun restoreCategory(platform: ProxyPlatform, mode: BrowserConversionMode) {
             val ids = AlternativeFrontendCatalog.builtIn(platform)
                 .filter { target ->
@@ -168,7 +335,29 @@ object BrowserConversionDefaultsHelper {
                 val ids = initialDisabled[platform].orEmpty() - disabledBuiltIns[platform].orEmpty()
                 ids.takeIf { it.isNotEmpty() }?.let { platform to it }
             }.toMap()
-            val saved = preferencesManager.saveBrowserFrontendPreferences(changes, expected, restores)
+            val customChanges = customProxies.filter {
+                initialCustom[it.key].orEmpty() != it.value
+            }
+            val disabledChanges = disabledBuiltIns.filter {
+                initialDisabled[it.key].orEmpty() != it.value
+            }
+            val selectionChanges = selectedProxyDomains.filter {
+                initialSelections.containsKey(it.key) && initialSelections[it.key] != it.value
+            }
+            val saved = runCatching {
+                preferencesManager.saveBrowserFrontendPreferences(
+                    changes = changes,
+                    expected = expected,
+                    restoreBuiltInIds = restores,
+                    customProxyOverrides = customChanges,
+                    expectedCustomProxies = customChanges.keys.associateWith { initialCustom.getValue(it) },
+                    disabledBuiltInOverrides = disabledChanges,
+                    expectedDisabledBuiltIns = disabledChanges.keys.associateWith { initialDisabled.getValue(it) },
+                    selectedProxyDomains = selectionChanges,
+                    expectedSelectedProxyDomains = selectionChanges.keys.associateWith { initialSelections[it] },
+                )
+            }.onFailure { Timber.w(it, "Browser staged roster save rejected") }
+                .getOrDefault(false)
             if (saved) refreshFromPreferences()
             return saved
         }

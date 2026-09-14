@@ -119,6 +119,10 @@
     <string name="proxy_action_add_custom">Add custom proxy</string>
     <string name="proxy_action_edit">Edit</string>
     <string name="proxy_action_done_editing">Done editing</string>
+    <string name="proxy_edit_dialog_title">Edit frontend</string>
+    <string name="proxy_edit_builtin_message">Creates a custom frontend and deactivates the built-in one. Selections using it in Main, Share or Browser will follow the new domain. Existing Clean only settings are preserved. Changes apply when you tap Save in Browser frontends.</string>
+    <string name="proxy_edit_custom_message">Selections using this frontend in Main, Share or Browser will follow the new domain. Existing Clean only settings are preserved. Changes apply when you tap Save in Browser frontends.</string>
+    <string name="edit_proxy_button_desc">Edit %1$s</string>
     <string name="proxy_action_restore_builtins">Restore built-in proxies</string>
     <string name="browser_privacy_restore_readers">Restore built-in readers</string>
     <string name="proxy_empty_message">No alternative frontends available. Add a custom proxy or restore built-ins.</string>
@@ -434,6 +438,19 @@
     <string name="browser_frontend_picker_title">Choose %1$s Browser frontend</string>
     <string name="browser_frontend_info_title">About Browser frontends</string>
     <string name="browser_frontend_info_message">FixupXer cleans and rewrites the URL offline. Opening a rewritten URL contacts the selected third-party service, whose availability and privacy practices are outside FixupXer.</string>
+    <string name="browser_frontend_roster_edit_info">This frontend list is shared with Main and Share. Browser selections are separate. Changes apply when you tap Save.</string>
+    <string name="browser_frontend_roster_delete_title">Delete frontend?</string>
+    <string name="browser_frontend_roster_delete_message">Remove or deactivate %1$s?
+
+%2$s
+%3$s
+
+Changes apply when you tap Save.</string>
+    <string name="browser_frontend_roster_main_replacement">Main and Share: selected target will move to %1$s.</string>
+    <string name="browser_frontend_roster_main_clean">Main and Share: no active target remains, so the selection will be cleared.</string>
+    <string name="browser_frontend_roster_main_unchanged">Main and Share: current selection is unchanged.</string>
+    <string name="browser_frontend_roster_browser_clean">Browser: selected target will use Clean only.</string>
+    <string name="browser_frontend_roster_browser_unchanged">Browser: current selection is unchanged.</string>
     <string name="browser_frontend_group_clean">Clean only</string>
     <string name="browser_frontend_group_readers">Privacy readers</string>
     <string name="browser_frontend_group_embeds">Embed frontends</string>
@@ -679,6 +696,21 @@
     <string name="remembered_route_host_invalid">Could not determine a host for this link</string>
     <string name="remembered_route_save_failed">Could not save destination</string>
     <string name="remembered_route_launch_failed">Saved destination could not be opened</string>
+
+    <!-- Preferred external Browser -->
+    <string name="preferred_browser_title">Preferred browser</string>
+    <string name="preferred_browser_description">Choose which installed browser opens Browser actions. This is separate from FixupXer being the Android default browser.</string>
+    <string name="preferred_browser_always_ask">Always ask</string>
+    <string name="preferred_browser_change">Choose browser</string>
+    <string name="preferred_browser_selected">%1$s</string>
+    <string name="preferred_browser_unavailable">Unavailable — choose another browser</string>
+    <string name="preferred_browser_picker_title">Choose preferred browser</string>
+    <string name="preferred_browser_picker_title_unavailable">Preferred browser unavailable — choose another</string>
+    <string name="preferred_browser_picker_empty">No compatible external browsers are installed.</string>
+    <string name="preferred_browser_candidate_label">%1$s (%2$s)</string>
+    <string name="browser_use_once">Use once</string>
+    <string name="browser_always_use">Always use this browser</string>
+    <string name="browser_preferred_saved">Preferred browser saved</string>
     
     <string name="pipeline_status_complete">Local processing completed.</string>
     <string name="pipeline_status_frontend_unavailable">The selected frontend is unavailable. Choose an active frontend or Clean only, then retry.</string>

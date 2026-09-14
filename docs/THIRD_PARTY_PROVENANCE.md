@@ -23,6 +23,14 @@ Léon.
 
 ## Source registry
 
+### Follow-up review: 2026-09-14
+
+The GitHub comparison from `006888279b5dc03e1554140f801cce7e7bb4ea2b` to
+upstream HEAD returned zero new commits and no changed files. The September 13
+sanitizer review below remains current for v2.8.0. This release changes frontend
+management and browser destination selection; no new upstream sanitizer
+behavior, source code, patterns or fixtures were adopted.
+
 ### Follow-up review: 2026-09-13
 
 Reviewed the 63 upstream commits after the original pin through

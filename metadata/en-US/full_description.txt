@@ -3,7 +3,7 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 <b>Key Features</b>
 
 * Private Link Guard: Warns when e-mail addresses, auth tokens, or precise coordinates remain visible in a link — sensitive originals stay out of history and cache, fully cleaned results are kept as redacted entries
-* Browser Mode: Choose separate readers, embeds or existing custom frontends for seven platforms, including TikTok and Instagram. Copy, Share and Open receive the same processed URL, including through Open with. Save per-host app choices; failed or interrupted actions stay local for Retry.
+* Browser Mode: Add, edit or delete frontends for seven platforms, including TikTok and Instagram. Save applies all frontend changes; Browser and Main/Share selections stay separate. Choose a preferred browser to avoid repeated selection, or save per-host app choices. Copy, Share and Open receive the same processed URL; failed actions stay local for Retry.
 * Direct Sharing: Share your links directly to FixupXer, no need to open the main app
 * Clean Link from Selection: Select a URL in any app and choose "Clean link" to clean it in place
 * Privacy Protection: Removes documented tracking keys across 26 host-bound platform cleaners; unknown functional parameters are kept so links do not break
@@ -16,7 +16,7 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 * History Tracking: Optional local history with Undo that restores the original entry and timestamp
 * Private Clipboard Previews: Copied URL contents are marked sensitive for system previews where Android supports it
 * Configurable Actions: Choose what happens after cleaning - open in app, browser, share, or copy to clipboard
-* Backup and Restore: Export settings, Browser frontend choices, custom rules, and saved app choices with schema v2; older v1 backups still import through migration
+* Backup and Restore: Export settings, Browser frontend choices, preferred browser, custom rules, and saved app choices with schema v2; older backups still import safely
 * GitHub Guides: Open detailed Browser mode and Custom URL rules instructions from the How to Use links
 
 <b>Browser Mode Setup</b>

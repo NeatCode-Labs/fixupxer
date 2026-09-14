@@ -323,6 +323,7 @@ class MainActivity : BaseActivity() {
             binding.root,
             this,
             originalUrl,
+            preferredBrowserPackage = preferencesManager.getPreferredBrowserPackage(),
         )
         if (BrowserViewHandoffPolicy.shouldFinish(opened)) {
             finish()

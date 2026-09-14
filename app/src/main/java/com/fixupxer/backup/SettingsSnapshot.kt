@@ -44,4 +44,6 @@ data class SettingsSnapshot(
     val disabledBuiltIns: Map<ProxyPlatform, Set<String>>,
     val browserFrontends: Map<ProxyPlatform, BrowserFrontendPreference>,
     val rememberedRoutes: Map<String, RememberedRoute>,
+    /** Nullable for old backups: null means ask for a browser each time. */
+    val preferredBrowserPackage: String? = null,
 )

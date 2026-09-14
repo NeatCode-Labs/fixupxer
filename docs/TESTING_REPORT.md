@@ -1,5 +1,27 @@
 # FixupXer Testing Report
 
+## v2.8.0 verification — September 14, 2026
+
+The full unit gate passes **769 tests in each debug and release variant**,
+with zero failures/errors/skips. Release lint reports **zero errors and
+43 warnings**. These gates were rerun after fixing the API21 map-access issue.
+
+New regression cases cover staged Browser frontend replacement and removal,
+dormant Clean only selections, separate Main/Browser references, preservation
+of unrelated newer settings, conflicting edits and rejection without partial
+writes. Preferred-browser cases check exact URI delivery, direct opening,
+Use once versus remembering, unavailable-browser cancellation, self exclusion,
+fingerprint invalidation and compatibility with older backups.
+
+Two added device tests exercise the Android JSONObject implementation: absent
+or null preferred-browser fields, a valid package roundtrip and non-string
+rejection. The full cold-boot API35 gate passes **276/276**, with no
+failures/errors/skips, in 9m21s. Four initial test failures were confined to
+off-screen controls and an obsolete Add/Edit expectation. Corrected tests first
+passed a focused 20/20 run, followed by the full gate on a fresh cold boot.
+Final signed-artifact clean-install/upgrade checks and publication evidence
+are still pending.
+
 ## v2.7.0 release verification — September 14, 2026
 
 The Browser matrix covers every eligible built-in target, custom targets on

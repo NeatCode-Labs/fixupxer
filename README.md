@@ -7,7 +7,7 @@
 <h3 align="center">Clean tracking from links. Improve social previews. Build your own offline URL rules.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.7.0"><img src="https://img.shields.io/badge/version-2.7.0-blue?style=flat-square" alt="Version 2.7.0"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.8.0"><img src="https://img.shields.io/badge/version-2.8.0-blue?style=flat-square" alt="Version 2.8.0"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>
@@ -51,6 +51,8 @@ selected.
   user-selectable built-in and custom domains.
 - **Browser Mode** — clean eligible HTTP(S) links that Android routes through
   FixupXer before handing them to a browser, native app, share menu, or clipboard.
+  Manage frontends directly in Browser settings and remember a preferred browser
+  to avoid choosing it again for each browser-directed link.
 - **Process Text** — select a link in any app and choose “Clean link” to clean
   it in place, entirely offline.
 - **Local history** — revisit, copy, share, or delete processed links; Undo
@@ -99,9 +101,12 @@ select FixupXer under Android **Default apps > Browser app**. FixupXer does
 not render pages: it locally processes eligible HTTP(S) links Android sends
 to it, then hands the result to your selected external action. Verified App
 Links may bypass the default browser. **Configure Browser frontends** provides
-separate reader, embed and existing custom choices for seven platforms, including
-TikTok and Instagram. YouTube and Threads use Clean only. Copy, Share and Open
-receive the same final processed URL. With **Ask what to do** you can save a per-host app choice
+separate reader, embed and custom choices for seven platforms, including
+TikTok and Instagram. Add, edit or delete frontends in that picker; all changes
+remain drafts until **Save**. YouTube and Threads use Clean only. Copy, Share and
+Open receive the same final processed URL. Set **Preferred browser** to remember
+which browser should open browser-directed links, or keep **Always ask**.
+With **Ask what to do** you can save a per-host app choice
 that is applied automatically on future links. Setup, action order,
 conversions, and troubleshooting are in the
 **[Browser Mode Guide](docs/BROWSER_MODE_GUIDE.md)**.
@@ -195,7 +200,8 @@ file first, then replaces those backed-up items; it never imports URL history or
 rule rollback snapshots.
 
 Backup schema v2 includes all nine Browser frontend choices, separately from
-Main/Share selections. Older v1 backups still import: their four reader choices
+Main/Share selections, and the preferred browser. Older files without a preferred
+browser restore Always ask. Older v1 backups still import: their four reader choices
 are migrated and all newly supported conversions start off. Import replaces the
 entire Browser map, so existing v2 embed/custom choices cannot remain enabled
 accidentally. Invalid files are rejected before settings change. Interrupted
@@ -290,9 +296,8 @@ the original social-media domain.
 - Modular cleaner registry with O(1) domain dispatch
 - Raw-preserving URL processing with immutable per-request rule snapshots
 - RE2/J 1.8 for user-authored regular expressions
-- Release verification: 757 unit tests per build variant and 274 instrumentation
-  tests passed. Each final artifact also passed 300 external UI checks; channel
-  checks and evidence boundaries are recorded in the build and testing reports.
+- Release verification, test counts, signed-artifact checks and execution
+  boundaries are recorded per version in the build and testing reports.
 - Release lint, zero-permission manifest regression test, and REUSE
   compliance
 

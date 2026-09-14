@@ -129,6 +129,7 @@ class LocalBackupCodec @Inject constructor(
         .put("disabledBuiltIns", encodePlatformSetMap(snapshot.disabledBuiltIns))
         .put("browserFrontends", encodeBrowserFrontends(snapshot.browserFrontends))
         .put("rememberedRoutes", encodeRememberedRoutes(snapshot.rememberedRoutes))
+        .put("preferredBrowserPackage", snapshot.preferredBrowserPackage ?: JSONObject.NULL)
 
     private fun decodeSettings(json: JSONObject, schemaVersion: Int): SettingsSnapshot {
         val customProxies = decodePlatformListMap(json.getJSONObject("customProxies"))
@@ -162,6 +163,14 @@ class LocalBackupCodec @Inject constructor(
             disabledBuiltIns = decodePlatformSetMap(json.getJSONObject("disabledBuiltIns")),
             browserFrontends = browserFrontends,
             rememberedRoutes = decodeRememberedRoutes(json.getJSONObject("rememberedRoutes")),
+            preferredBrowserPackage = when {
+                !json.has("preferredBrowserPackage") || json.isNull("preferredBrowserPackage") -> null
+                else -> {
+                    val value = json.get("preferredBrowserPackage")
+                    require(value is String) { "Preferred browser package must be a string" }
+                    value
+                }
+            },
         )
         val migrated = migrateRetiredBrowserFrontends(
             RetiredFrontendMigration.migrateSnapshot(snapshot)

@@ -1,16 +1,16 @@
 # FixupXer App - Development Summary
 
-## Version Progression: v2.7.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.8.0 → v1.2.1 (Latest to Oldest)
 
-**Versions Documented:** 44 (v2.7.0 through v1.2.1)
-**Current Version:** v2.7.0 (versionCode: 50)
-**Development Period:** v1.2.1 (Initial) → v2.7.0 (Current)
+**Versions Documented:** 45 (v2.8.0 through v1.2.1)
+**Current Version:** v2.8.0 (versionCode: 51)
+**Development Period:** v1.2.1 (Initial) → v2.8.0 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes modifications since v1.2.1, through v2.7.0: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text and custom rules. Browser mode now has separate frontend choices for seven platforms, including TikTok and Instagram. Copy, Share and Open use the same processed URL; incomplete or stale processing stays in the app for Retry. Backup schema v2 migrates existing reader choices and retains v1 import. All processing remains offline with zero permissions.
+This document summarizes modifications since v1.2.1, through v2.8.0: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text and custom rules. Browser mode supports frontend management for seven platforms and a preferred destination browser. Browser and Main/Share keep separate choices; Copy, Share and Open use the same processed URL. Backup schema v2 includes the preferred browser and retains older-file import. All processing remains offline with zero permissions.
 
 ### Key Achievements:
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
@@ -38,6 +38,11 @@ This document summarizes modifications since v1.2.1, through v2.7.0: selective h
 ---
 
 ## 📋 Version History
+
+### v2.7.0 → v2.8.0
+- **Browser frontend management:** add, edit and delete entries directly in the Browser picker. Custom edits update selected references; built-in edits create a custom replacement, and deleted built-ins can be restored. The shared frontend list keeps separate Browser and Main/Share selections.
+- **Save/Cancel:** frontend additions, replacements, removals, restores and Browser selections form one draft. Saving applies the changes together; cancellation does not modify the shared list or active choices.
+- **Preferred browser:** choose an installed browser once in Browser settings or with Always use this browser. Browser-directed links launch the chosen destination directly, while Use once remains temporary. Missing destinations offer another selection; per-host routes and action priorities retain their separate meaning.
 
 ### v2.6.7 → v2.7.0
 - **Browser frontend choices:** separate Clean only/Reader/Embed/Custom preferences across the seven eligible platforms, including TikTok and Instagram; experimental YouTube/Threads conversions stay unavailable. A category restore and selection remain unsaved until Save, and concurrent edits do not overwrite newer choices.
@@ -831,6 +836,8 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.6.5 | 47 | Instagram stkn and ig_rid share tracking removal with functional query preservation | ✅ Released |
 | v2.6.6 | 48 | YouTube Music share tracking cleanup with functional query preservation | ✅ Released |
 | v2.6.7 | 49 | Result status renamed to No changes made; opaque redirect regression coverage | ✅ Released |
+| v2.7.0 | 50 | Separate Browser frontend choices, backup v2 and guarded external delivery | ✅ Released |
+| v2.8.0 | 51 | Browser frontend management and preferred browser | Validation in progress |
 
 ### Build Artifacts (v2.6.7):
 - **Google Play AAB:** `FixupXer-v2.6.7-release.aab` — signed root bundle; signature, manifest and bundletool validation passed. Play submission status is recorded in BUILD_REPORT.md.

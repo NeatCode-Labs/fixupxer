@@ -1,5 +1,26 @@
 # FixupXer Build Report
 
+## v2.8.0 release preparation — September 14, 2026
+
+Version **2.8.0 / code 51** adds frontend management directly in Browser
+settings and a preferred external browser. Browser frontend edits remain drafts
+until Save, with explicit shared-selection effects and separate Browser/Main
+choices. Backups preserve the preferred browser and accept older backups.
+
+The full unit gate passes **769 debug + 769 release tests**, with no
+failures/errors/skips. Release lint passes with **zero errors and 43 warnings**.
+An API21-incompatible `Map.getOrDefault` call found by lint was replaced with
+compatible Kotlin map access before these final gates were rerun.
+
+The full cold-boot API35 instrumentation gate passes **276/276**, with no
+failures/errors/skips, in 9m21s. Four initial test failures were resolved by
+scrolling to existing controls and updating the obsolete Browser Add/Edit
+expectation; a focused 20/20 pass preceded the fresh full run.
+
+Signed artifacts, final-artifact UI checks, independent Linux reproducibility
+and publication are not yet verified for this version. Earlier releases below
+are historical evidence.
+
 ## v2.7.0 release — September 14, 2026
 
 Version **2.7.0 / code 50** adds separate Browser frontend choices for seven

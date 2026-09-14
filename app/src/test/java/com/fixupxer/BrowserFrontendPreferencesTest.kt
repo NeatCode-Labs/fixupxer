@@ -282,6 +282,18 @@ class BrowserFrontendPreferencesTest {
     }
 
     @Test
+    fun `preferred browser package is retained when unavailable and rejects self`() {
+        val manager = PreferencesManager(context)
+
+        assertTrue(manager.setPreferredBrowserPackage("com.brave.browser"))
+        assertEquals("com.brave.browser", manager.getPreferredBrowserPackage())
+        assertFalse(manager.setPreferredBrowserPackage(context.packageName))
+        assertEquals("com.brave.browser", manager.getPreferredBrowserPackage())
+        assertTrue(manager.setPreferredBrowserPackage(null))
+        assertNull(manager.getPreferredBrowserPackage())
+    }
+
+    @Test
     fun `failed commit acknowledgement blocks Browser until settings are saved successfully`() {
         val raw = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         var failWrites = false

@@ -41,7 +41,18 @@ coverage and limitations, including the resumed mirror frontend run.
 
 Final readiness verification passed: artifact hashes, frozen application source,
 unit/lint/device reports, Linux rebuild and signed-artifact UI summaries agree.
-Publication remains pending. Earlier releases below are historical evidence.
+GitHub [v2.8.0](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.8.0)
+was published on September 14 at 14:39:27 UTC. The public APK digest matches
+the final mirror artifact above, and the remote tag points to the tested source.
+
+Google Play accepted the Production release and English description submission
+on September 14 at approximately 14:48 UTC. Publishing overview shows both under
+**Changes in review**, with automated quick checks still running. The requested
+rollout is **100% in the existing 177 countries/regions**. Managed publishing
+remains off, so publication follows approval automatically. **Play availability
+of v2.8.0 is not yet confirmed.** F-Droid processing of the published tag is also
+an external follow-up; the independent local rebuild does not certify its store
+publication. Earlier releases below are historical evidence.
 
 ## v2.7.0 release — September 14, 2026
 

@@ -53,7 +53,12 @@ Final signed-artifact testing passes
 30 API35 clean/upgrade checks, four final-artifact custom-rule flows
 and two API21 stock-browser handoffs.
 
-GitHub and Google Play publication remain pending.
+GitHub v2.8.1 is published and its uploaded APK digest matches the tested file.
+Google Play Production v2.8.1/52 is submitted for review at 100% in the
+existing 177 countries/regions. Managed publishing remains off. Play
+publication and later F-Droid availability are not yet confirmed.
+The Console shows Changes in review; automated quick checks are still
+running before the review request proceeds.
 
 ## v2.8.0 release — September 14, 2026
 

@@ -1,23 +1,35 @@
 # FixupXer Build Report
 
-## v2.8.1 release — September 19, 2026
+## v2.8.1 release status — September 19, 2026
 
-Version **2.8.1 / code 52** removes successfully completed temporary Browser
-tasks from Recents, preventing an old VIEW intent from reopening the same link.
-Launcher and caller tasks retain ordinary activity completion. No permissions,
-network access, URL rules, frontend settings or database behavior changed.
+Version **2.8.1 / code 52** is prepared locally, but publication is **blocked**.
+The Browser fix removes successfully completed temporary tasks from Recents
+while preserving launcher/caller tasks and Cancel/Retry. API21 compatibility
+uses origActivity when Android resolves BrowserAlias to MainActivity.
 
-Fresh full gates pass **777 debug + 777 release unit tests** and **281/281
-API35 instrumentation tests**, with no failures/errors/skips. Release lint has
-**zero errors and 43 existing warnings**. The device gate ran on a cold isolated
-emulator in 12m40s. An initial unit run hit the existing 100 ms input-validator
-timeout once; a full serial rerun passed without changing source or limits.
-Source hashes match across the final gates. Signed artifacts, reproducibility,
-installation checks and publication are still being completed.
+**779 debug + 779 release unit tests pass**, with no failures/errors/skips.
+Release lint has **0 errors / 43 existing warnings**. All five new Browser
+device tests pass, but the complete cold API35 gate is **280/281**, with one
+failure: the unchanged CustomRulesPerformanceTest measured a 1007 ms cold
+path against its 850 ms limit. A separate cold run with identical 2 CPU /
+2 GB resources measured 1401 ms and also failed. No limit was relaxed.
 
-Live Play preflight on September 19 confirms **v2.8.0 / 51 is available on
-Google Play**, at 100% in 177 countries/regions. This supersedes the pending-review
-status recorded at the end of the original September 14 run.
+The test and its rule compiler/engine/matcher/action/normalizer sources are
+unchanged from the pre-release baseline. This does not establish the cause
+of the timing failure. Release requires resolution and a complete passing gate.
+
+Two real API21 stock-browser handoffs pass on the corrected provisional root
+APK. These are development checks, not final distribution-artifact approval.
+The earlier candidate passed API35 artifact checks and Linux comparison, but
+was withdrawn when API21 exposed its alias-recognition gap. Its artifacts and
+evidence remain archived; none is approved for publication.
+
+**No v2.8.1 GitHub push/release or Google Play upload/submission occurred.**
+Production remains v2.8.0/51. Task-owned emulators and the rebuild VM are stopped.
+The Telegram bot is outside this release and has not been changed.
+
+
+A control build of the previous source (863e106891e849e65de5b016981a31637e56558a, v2.8.0) also failed the same cold test: 1782 ms against 850 ms, on a separate cold boot with identical resources. This proves the timing failure can occur without the Browser fix; its precise cause remains unresolved.
 
 ## v2.8.0 release — September 14, 2026
 

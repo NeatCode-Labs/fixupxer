@@ -2,13 +2,11 @@
 
 ## v2.8.1 coverage additions — September 19, 2026
 
-BrowserTaskCompletionTest adds eight unit cases for task ownership and the
-API21 activity-count fallback. BrowserTaskCompletionDeviceTest adds five
-API23+ device cases for completed-task removal, new identical links,
-Cancel/Retry, launcher retention and caller-task preservation. The full release
-gates pass 777 tests in each debug/release unit variant and 281 API35 device
-tests, with no failures/errors/skips. Release lint has zero errors and 43
-existing warnings. Final signed-artifact coverage is recorded in TESTING_REPORT.md.
+Ten new BrowserTaskCompletionTest cases and five BrowserTaskCompletionDeviceTest
+cases pass. Full unit gates pass 779 tests each; the full API35 gate passes
+280 of 281 tests because the existing custom-rule performance test exceeds
+its unchanged 850 ms cold-path limit. Release lint has zero errors and 43
+warnings. Publication is blocked; see TESTING_REPORT.md for current evidence.
 
 ## v2.8.0 coverage additions — September 14, 2026
 

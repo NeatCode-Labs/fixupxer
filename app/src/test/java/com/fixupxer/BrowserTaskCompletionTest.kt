@@ -54,6 +54,40 @@ class BrowserTaskCompletionTest {
 
     @Test
     @Config(sdk = [21])
+    fun `API 21 resolved alias keeps its original Browser entry point`() {
+        val taskId = 53
+        val manager = activityManager(appTask(
+            taskId, Intent.ACTION_VIEW, ComponentName(appPackage, "$appPackage.MainActivity"),
+            numActivities = 1, originalComponent = browserAlias(),
+        ))
+        whenever(manager.getRunningTasks(Int.MAX_VALUE)).thenReturn(listOf(
+            ActivityManager.RunningTaskInfo().apply { id = taskId; numActivities = 1 },
+        ))
+        val activity = activity(manager, taskId, isTaskRoot = true)
+
+        BrowserTaskCompletion.finish(activity)
+
+        verify(activity).finishAndRemoveTask()
+        verify(activity, never()).finish()
+    }
+
+    @Test
+    fun `different original entry point is not treated as browser-owned`() {
+        val taskId = 54
+        val manager = activityManager(appTask(
+            taskId, Intent.ACTION_VIEW, browserAlias(), numActivities = 1,
+            originalComponent = ComponentName(appPackage, "$appPackage.OtherAlias"),
+        ))
+        val activity = activity(manager, taskId, isTaskRoot = true)
+
+        BrowserTaskCompletion.finish(activity)
+
+        verify(activity).finish()
+        verify(activity, never()).finishAndRemoveTask()
+    }
+
+    @Test
+    @Config(sdk = [21])
     fun `API 21 task containing another activity is preserved`() {
         val taskId = 52
         val manager = activityManager(appTask(taskId, Intent.ACTION_VIEW, browserAlias(), 2))
@@ -100,7 +134,8 @@ class BrowserTaskCompletionTest {
     fun `launcher task stays intact when latest activity intent is VIEW`() {
         val taskId = 43
         val manager = activityManager(
-            appTask(taskId, Intent.ACTION_MAIN, ComponentName(appPackage, "$appPackage.MainActivity"), numActivities = 1),
+            appTask(taskId, Intent.ACTION_MAIN, ComponentName(appPackage, "$appPackage.MainActivity"),
+                numActivities = 1, originalComponent = browserAlias()),
         )
         val activity = activity(manager, taskId, isTaskRoot = true)
         whenever(activity.intent).thenReturn(Intent(Intent.ACTION_VIEW, Uri.parse(testUri)))
@@ -174,10 +209,12 @@ class BrowserTaskCompletionTest {
         action: String,
         component: ComponentName,
         numActivities: Int,
+        originalComponent: ComponentName? = null,
     ): ActivityManager.AppTask {
         val taskInfo = ActivityManager.RecentTaskInfo().apply {
             id = taskId
             baseIntent = Intent(action, Uri.parse(testUri)).setComponent(component)
+            origActivity = originalComponent
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) this.numActivities = numActivities
         }
         return mock<ActivityManager.AppTask>().also {

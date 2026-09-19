@@ -44,7 +44,10 @@ object BrowserTaskCompletion {
             // The latest activity intent may be a VIEW delivered to a launcher/caller
             // task. Only the task's original browser entry point establishes ownership.
             val browserAlias = ComponentName(activity.packageName, "${activity.packageName}.BrowserAlias")
-            if (task.baseIntent.action != Intent.ACTION_VIEW || task.baseIntent.component != browserAlias) {
+            // Older Android versions resolve aliases in baseIntent and retain the
+            // original entry point in origActivity instead.
+            val entryPoint = task.origActivity ?: task.baseIntent.component
+            if (task.baseIntent.action != Intent.ACTION_VIEW || entryPoint != browserAlias) {
                 return false
             }
             // RecentTaskInfo only gained numActivities in API 23. On Lollipop,

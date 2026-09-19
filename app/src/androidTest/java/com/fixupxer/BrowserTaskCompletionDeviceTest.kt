@@ -174,7 +174,8 @@ class BrowserTaskCompletionDeviceTest {
                 assertTrue(it.isTaskRoot)
                 taskId = rememberTask(it)
             }
-            assertEquals(viewIntent().component, taskInfo(taskId)?.baseIntent?.component)
+            val info = taskInfo(taskId)
+            assertEquals(viewIntent().component, info?.origActivity ?: info?.baseIntent?.component)
             completeWithClipboard()
             // Assert before ActivityScenario.close(), which also performs cleanup.
             awaitAssertion { assertEquals(null, taskInfo(taskId)) }

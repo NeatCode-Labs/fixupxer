@@ -6,6 +6,8 @@
   Recents that could reopen the same link and create a duplicate browser tab.
 - Existing launcher and caller tasks are preserved. Cancel and Retry still
   keep the result available, and opening the same link again works normally.
+- Speed up custom rule compilation and processing by reusing validated patterns
+  and matching results while the URL stays unchanged.
 
 FixupXer remains offline with zero permissions.
 

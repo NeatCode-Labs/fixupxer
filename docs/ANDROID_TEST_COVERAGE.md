@@ -2,11 +2,22 @@
 
 ## v2.8.1 coverage additions — September 19, 2026
 
-Ten new BrowserTaskCompletionTest cases and five BrowserTaskCompletionDeviceTest
-cases pass. Full unit gates pass 779 tests each; the full API35 gate passes
-280 of 281 tests because the existing custom-rule performance test exceeds
-its unchanged 850 ms cold-path limit. Release lint has zero errors and 43
-warnings. Publication is blocked; see TESTING_REPORT.md for current evidence.
+BrowserTaskCompletionTest adds ten unit cases for ownership and API21
+compatibility. BrowserTaskCompletionDeviceTest adds five API23+ cases for
+completed-task removal, new identical links, Cancel/Retry and preservation
+of launcher/caller tasks. RuleCompilerPatternReuseTest and
+CustomRuleEngineCacheTest add ten cases for compilation reuse, isolation,
+URL cache invalidation and unchanged validation.
+
+Fresh full gates pass **789 debug + 789 release unit tests** and **281/281
+API35 instrumentation tests**, with no failures/errors/skips. Release lint has
+**zero errors and 43 existing warnings**. The full device gate ran on a cold
+isolated emulator (589s); unit/lint ran serially (105s).
+The full device gate uses airplane mode and Wi-Fi off to exclude Play Store
+background updates; final artifact handoffs use normal networking separately.
+Source hashes match the final tested code.
+
+Final signed-artifact coverage and limitations are recorded in TESTING_REPORT.md.
 
 ## v2.8.0 coverage additions — September 14, 2026
 

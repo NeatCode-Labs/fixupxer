@@ -24,16 +24,21 @@ class RuleCompiler @Inject constructor() {
         "scheme", "host", "port", "path", "query", "fragment"
     )
 
-    fun compile(rule: CustomUrlRule): CompiledRule {
+    fun compile(rule: CustomUrlRule): CompiledRule = compile(rule, mutableMapOf())
+
+    private fun compile(
+        rule: CustomUrlRule,
+        patterns: MutableMap<Pair<String, Int>, Pattern>
+    ): CompiledRule {
         validateCommon(rule)
-        val includePattern = compileScopePattern(rule.includeScope)
+        val includePattern = validateScope(rule.includeScope, patterns)
         val excludePatterns = buildMap {
             rule.excludeScopes.forEachIndexed { index, scope ->
-                compileScopePattern(scope)?.let { put(index, it) }
+                validateScope(scope, patterns)?.let { put(index, it) }
             }
         }
         val actionPattern = when (val action = rule.action) {
-            is RuleAction.RegexReplace -> compilePattern(action.pattern, action.ignoreCase).also {
+            is RuleAction.RegexReplace -> compilePattern(action.pattern, action.ignoreCase, patterns).also {
                 validateReplacement(action.replacement, it)
             }
             else -> null
@@ -45,9 +50,12 @@ class RuleCompiler @Inject constructor() {
     fun compileAll(rules: List<CustomUrlRule>): List<CompiledRule> {
         require(rules.size <= Constants.MAX_CUSTOM_RULES) { "Too many custom rules" }
         require(rules.map { it.id }.distinct().size == rules.size) { "Duplicate rule ID" }
+        // Reuse validated patterns only within this bounded compilation operation.
+        // Matchers remain per-use; no cache survives a rule edit or compilation call.
+        val patterns = mutableMapOf<Pair<String, Int>, Pattern>()
         return rules
             .sortedWith(compareBy<CustomUrlRule>({ it.phase.ordinal }, { it.sortOrder }, { it.id }))
-            .map(::compile)
+            .map { compile(it, patterns) }
     }
 
     private fun validateCommon(rule: CustomUrlRule) {
@@ -61,11 +69,9 @@ class RuleCompiler @Inject constructor() {
         require(rule.testVectors.size <= Constants.MAX_TEST_VECTORS_PER_RULE) {
             "Too many test vectors"
         }
-        validateScope(rule.includeScope)
-        rule.excludeScopes.forEach(::validateScope)
     }
 
-    private fun validateScope(scope: RuleScope) {
+    private fun validateScope(scope: RuleScope, patterns: MutableMap<Pair<String, Int>, Pattern>): Pattern? {
         when (scope) {
             RuleScope.AllUrls -> Unit
             is RuleScope.ExactHost -> normalizeHost(scope.host)
@@ -85,22 +91,26 @@ class RuleCompiler @Inject constructor() {
                 }
                 require(normalized.distinct().size == normalized.size) { "Duplicate host" }
             }
-            is RuleScope.UrlRegex -> compilePattern(scope.pattern, scope.ignoreCase)
+            is RuleScope.UrlRegex -> return compilePattern(scope.pattern, scope.ignoreCase, patterns)
         }
+        return null
     }
 
-    private fun compileScopePattern(scope: RuleScope): Pattern? =
-        (scope as? RuleScope.UrlRegex)?.let { compilePattern(it.pattern, it.ignoreCase) }
-
-    private fun compilePattern(source: String, ignoreCase: Boolean): Pattern {
+    private fun compilePattern(
+        source: String,
+        ignoreCase: Boolean,
+        patterns: MutableMap<Pair<String, Int>, Pattern>
+    ): Pattern {
         require(source.isNotEmpty()) { "Regex is required" }
         require(source.length <= Constants.MAX_RULE_PATTERN_LENGTH) { "Regex is too long" }
         val flags = if (ignoreCase) Pattern.CASE_INSENSITIVE else 0
-        val pattern = Pattern.compile(source, flags)
-        require(pattern.programSize() <= Constants.MAX_REGEX_PROGRAM_SIZE) {
-            "Regex is too complex"
+        return patterns.getOrPut(source to flags) {
+            Pattern.compile(source, flags).also { pattern ->
+                require(pattern.programSize() <= Constants.MAX_REGEX_PROGRAM_SIZE) {
+                    "Regex is too complex"
+                }
+            }
         }
-        return pattern
     }
 
     private fun validateAction(action: RuleAction) {

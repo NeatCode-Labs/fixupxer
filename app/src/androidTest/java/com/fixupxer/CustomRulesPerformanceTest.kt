@@ -26,6 +26,7 @@ import com.fixupxer.rules.RuleSnapshot
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import timber.log.Timber
 import kotlin.system.measureTimeMillis
 
 @RunWith(AndroidJUnit4::class)
@@ -45,8 +46,11 @@ class CustomRulesPerformanceTest {
             )
         }
         lateinit var snapshot: RuleSnapshot
+        var compileMillis: Long
         val cold = measureTimeMillis {
-            snapshot = RuleSnapshot(compiler.compileAll(rules), 1)
+            compileMillis = measureTimeMillis {
+                snapshot = RuleSnapshot(compiler.compileAll(rules), 1)
+            }
             engine.applyPhase(
                 "https://example.com/path?id=1&utm_source=test",
                 RulePhase.POST_CLEAN,
@@ -68,6 +72,7 @@ class CustomRulesPerformanceTest {
         }.sorted()
         val p95 = warm[(warm.size * 95 / 100).coerceAtMost(warm.lastIndex)]
 
+        Timber.i("Custom rule performance: cold=%dms, compile=%dms, warmP95=%dms, rules=%d", cold, compileMillis, p95, rules.size)
         assertTrue("Cold custom-rule path took ${cold}ms", cold <= 850)
         assertTrue("Warm p95 custom-rule path took ${p95}ms", p95 <= 850)
     }

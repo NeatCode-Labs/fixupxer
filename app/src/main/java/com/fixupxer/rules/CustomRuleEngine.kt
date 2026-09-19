@@ -12,8 +12,10 @@
 package com.fixupxer.rules
 
 import com.fixupxer.processing.ProcessingProfile
+import com.fixupxer.processing.NormalizedUrl
 import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.utils.Constants
+import com.google.re2j.Pattern
 import java.io.ByteArrayOutputStream
 import java.net.URLDecoder
 import java.nio.ByteBuffer
@@ -34,7 +36,21 @@ class RuleMatcher @Inject constructor(
     private val normalizer: UrlNormalizer
 ) {
     fun matches(compiled: CompiledRule, scope: RuleScope, url: String, excludeIndex: Int? = null): Boolean {
-        val parsed = runCatching { normalizer.normalize(url) }.getOrNull() ?: return false
+        return matchesParsed(compiled, scope, url, parseUrl(url), excludeIndex)
+    }
+
+    internal fun parseUrl(url: String): NormalizedUrl? =
+        runCatching { normalizer.normalize(url) }.getOrNull()
+
+    internal fun matchesParsed(
+        compiled: CompiledRule,
+        scope: RuleScope,
+        url: String,
+        parsed: NormalizedUrl?,
+        excludeIndex: Int? = null,
+        regexMatches: MutableMap<Pattern, Boolean>? = null
+    ): Boolean {
+        if (parsed == null) return false
         return when (scope) {
             RuleScope.AllUrls -> true
             is RuleScope.ExactHost -> parsed.asciiHost == normalizeScopeHost(scope.host)
@@ -56,7 +72,10 @@ class RuleMatcher @Inject constructor(
                 } else {
                     compiled.excludePatterns[excludeIndex]
                 }
-                pattern?.matcher(url)?.find() == true
+                if (pattern == null) false else {
+                    regexMatches?.getOrPut(pattern) { pattern.matcher(url).find() }
+                        ?: pattern.matcher(url).find()
+                }
             }
         }
     }
@@ -73,7 +92,7 @@ class RuleMatcher @Inject constructor(
 class RuleActionExecutor @Inject constructor(
     private val normalizer: UrlNormalizer
 ) {
-    internal fun execute(compiled: CompiledRule, url: String): ActionResult {
+    internal fun execute(compiled: CompiledRule, url: String, inputValidated: Boolean = false): ActionResult {
         val action = compiled.rule.action
         val result = runCatching {
             when (action) {
@@ -101,7 +120,7 @@ class RuleActionExecutor @Inject constructor(
         }.getOrElse { return ActionResult(url, error = it.message ?: "Rule action failed") }
 
         if (result.url.length > Constants.MAX_URL_LENGTH ||
-            !normalizer.isValidHttpUrl(result.url) ||
+            (!(inputValidated && result.url == url) && !normalizer.isValidHttpUrl(result.url)) ||
             (action is RuleAction.RegexReplace ||
                 action is RuleAction.TemplateRewrite ||
                 action is RuleAction.ExtractRedirect) &&
@@ -190,26 +209,30 @@ class RuleActionExecutor @Inject constructor(
             .replace("{fragment}", parsed.rawFragment ?: "")
     }
 
-    private fun strictPercentDecode(value: String): String? = runCatching {
-        val output = ByteArrayOutputStream(value.length)
-        var index = 0
-        while (index < value.length) {
-            if (value[index] == '%') {
-                require(index + 2 < value.length)
-                val byte = value.substring(index + 1, index + 3).toInt(16)
-                output.write(byte)
-                index += 3
-            } else {
-                output.write(value[index].toString().toByteArray(StandardCharsets.UTF_8))
-                index++
+    private fun strictPercentDecode(value: String): String? {
+        // Ordinary ASCII parameter names already are valid UTF-8. Preserve '+'.
+        if (value.all { it.code < 128 && it != '%' }) return value
+        return runCatching {
+            val output = ByteArrayOutputStream(value.length)
+            var index = 0
+            while (index < value.length) {
+                if (value[index] == '%') {
+                    require(index + 2 < value.length)
+                    val byte = value.substring(index + 1, index + 3).toInt(16)
+                    output.write(byte)
+                    index += 3
+                } else {
+                    output.write(value[index].toString().toByteArray(StandardCharsets.UTF_8))
+                    index++
+                }
             }
-        }
-        StandardCharsets.UTF_8.newDecoder()
-            .onMalformedInput(CodingErrorAction.REPORT)
-            .onUnmappableCharacter(CodingErrorAction.REPORT)
-            .decode(ByteBuffer.wrap(output.toByteArray()))
-            .toString()
-    }.getOrNull()
+            StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+                .decode(ByteBuffer.wrap(output.toByteArray()))
+                .toString()
+        }.getOrNull()
+    }
 
     private fun hasMalformedPercent(value: String): Boolean {
         var index = value.indexOf('%')
@@ -242,6 +265,20 @@ class CustomRuleEngine @Inject constructor(
         var redirect = false
         var invalidOutput = false
         val trace = mutableListOf<RuleTraceStep>()
+        // A no-op rule does not invalidate the parsed URL. Keep only the current
+        // input for this phase; every changed URL is parsed before matching again.
+        var parsedInput: String? = null
+        var parsed: NormalizedUrl? = null
+        // Regex results are likewise valid only for this exact current URL.
+        val regexMatches = mutableMapOf<Pattern, Boolean>()
+        fun matchesCurrent(compiled: CompiledRule, scope: RuleScope, excludeIndex: Int? = null): Boolean {
+            if (parsedInput != current) {
+                parsed = matcher.parseUrl(current)
+                parsedInput = current
+                regexMatches.clear()
+            }
+            return matcher.matchesParsed(compiled, scope, current, parsed, excludeIndex, regexMatches)
+        }
 
         snapshot.rules
             .asSequence()
@@ -255,13 +292,15 @@ class CustomRuleEngine @Inject constructor(
                 when {
                     !rule.enabled -> status = RuleTraceStatus.DISABLED
                     profile !in rule.contexts -> status = RuleTraceStatus.CONTEXT_MISS
-                    !matcher.matches(compiled, rule.includeScope, current) ->
+                    !matchesCurrent(compiled, rule.includeScope) ->
                         status = RuleTraceStatus.SCOPE_MISS
                     rule.excludeScopes.anyIndexed { index, scope ->
-                        matcher.matches(compiled, scope, current, index)
+                        matchesCurrent(compiled, scope, index)
                     } -> status = RuleTraceStatus.EXCLUDED
                     else -> {
-                        val result = executor.execute(compiled, current)
+                        // A successful include match guarantees valid input. Reuse
+                        // that validation only if the action leaves the URL intact.
+                        val result = executor.execute(compiled, current, inputValidated = true)
                         if (result.error != null) {
                             invalidOutput = true
                             status = RuleTraceStatus.INVALID_OUTPUT

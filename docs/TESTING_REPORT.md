@@ -2,40 +2,40 @@
 
 ## v2.8.1 verification — September 19, 2026
 
-Version **2.8.1 / code 52** is prepared locally, but publication is **blocked**.
-The Browser fix removes successfully completed temporary tasks from Recents
-while preserving launcher/caller tasks and Cancel/Retry. API21 compatibility
-uses origActivity when Android resolves BrowserAlias to MainActivity.
+Ten new unit cases cover task ownership, API21 activity-count and resolved-alias
+compatibility, non-root callers, launcher intents, unexpected components,
+multiple activities and failed lookup. Five device cases cover completed-task
+removal, new identical URLs, Cancel/Retry, launcher and caller preservation.
+Ten additional unit cases cover regex flags, scope/action pattern reuse,
+cache isolation, validation on cache hits and invalidation after URL changes.
+The 200-rule performance fixture, 25 warm samples and both 850 ms limits
+remain unchanged.
 
-**779 debug + 779 release unit tests pass**, with no failures/errors/skips.
-Release lint has **0 errors / 43 existing warnings**. All five new Browser
-device tests pass, but the complete cold API35 gate is **280/281**, with one
-failure: the unchanged CustomRulesPerformanceTest measured a 1007 ms cold
-path against its 850 ms limit. A separate cold run with identical 2 CPU /
-2 GB resources measured 1401 ms and also failed. No limit was relaxed.
+Fresh full gates pass **789 debug + 789 release unit tests** and **281/281
+API35 instrumentation tests**, with no failures/errors/skips. Release lint has
+**zero errors and 43 existing warnings**. The full device gate ran on a cold
+isolated emulator (589s); unit/lint ran serially (105s).
+The full device gate uses airplane mode and Wi-Fi off to exclude Play Store
+background updates; final artifact handoffs use normal networking separately.
+Source hashes match the final tested code.
 
-The test and its rule compiler/engine/matcher/action/normalizer sources are
-unchanged from the pre-release baseline. This does not establish the cause
-of the timing failure. Release requires resolution and a complete passing gate.
+An earlier candidate opened cleaned URLs on API21 but retained an empty task:
+Android21 resolves BrowserAlias to MainActivity in baseIntent and keeps the
+original alias in origActivity. The corrected guard checks that original
+entry point while preserving ACTION_VIEW, root and single-activity checks.
+The candidate was replaced before publication and all final gates rerun.
+An initial older unit run hit the existing 100 ms validator timeout once;
+no timeout or assertion was relaxed. A corrected-source device run also
+recorded 1007 ms in the unchanged custom-rule performance test (850 ms
+limit); its failed evidence is retained separately from final passing gates.
+A later full run passed performance but failed one Process Text result
+callback after the existing input validator hit its 50 ms URL-detection
+deadline before custom-rule execution. That failed run remains recorded;
+validator limits and test timeouts are unchanged. A separate UI attempt
+left the proxy picker open after a domain-label tap. The test now targets
+the clickable RecyclerView item; selection/deletion assertions are unchanged.
 
-Two real API21 stock-browser handoffs pass on the corrected provisional root
-APK. These are development checks, not final distribution-artifact approval.
-The earlier candidate passed API35 artifact checks and Linux comparison, but
-was withdrawn when API21 exposed its alias-recognition gap. Its artifacts and
-evidence remain archived; none is approved for publication.
-
-**No v2.8.1 GitHub push/release or Google Play upload/submission occurred.**
-Production remains v2.8.0/51. Task-owned emulators and the rebuild VM are stopped.
-The Telegram bot is outside this release and has not been changed.
-
-Ten added unit cases cover ownership, alias compatibility, original-intent
-guards, caller/root/activity-count boundaries and lookup failure. Five new
-device cases cover completed-task removal, new identical URLs, Cancel/Retry,
-launcher preservation and return to a caller. Physical devices and Brave
-were not tested in this release.
-
-
-A control build of the previous source (863e106891e849e65de5b016981a31637e56558a, v2.8.0) also failed the same cold test: 1782 ms against 850 ms, on a separate cold boot with identical resources. This proves the timing failure can occur without the Browser fix; its precise cause remains unresolved.
+Final signed-artifact checks are pending; provisional API21 verification already passes.
 
 ## v2.8.0 verification — September 14, 2026
 

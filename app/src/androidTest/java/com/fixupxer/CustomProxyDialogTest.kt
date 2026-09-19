@@ -243,8 +243,14 @@ class CustomProxyDialogTest {
             onView(allOf(withText(containsString(customProxy)), isDisplayed()))
                 .check(matches(isDisplayed()))
 
-            onView(allOf(withText(containsString(customProxy)), isDisplayed()))
-                .perform(click())
+            // Select the item root, which owns the click handler, after scrolling.
+            // The domain TextView is only a non-clickable child of that row.
+            onView(withId(R.id.recyclerViewProxyPicker)).perform(
+                RecyclerViewActions.actionOnItem<RecyclerView.ViewHolder>(
+                    hasDescendant(allOf(withId(R.id.proxyDomainText), withText(customProxy))),
+                    click(),
+                )
+            )
             awaitAssertion {
                 onView(withId(R.id.textViewPlatformProxyStatus))
                     .check(matches(withText("Active: $customProxy.")))

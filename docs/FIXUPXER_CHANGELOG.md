@@ -41,7 +41,8 @@ This document summarizes modifications since v1.2.1, through v2.8.1: selective h
 
 ### v2.8.0 → v2.8.1
 - **Browser Recents fix:** successfully completed temporary Browser tasks are removed, preventing Recents from recreating the old VIEW intent and opening a duplicate browser tab. Only a task rooted in BrowserAlias with one activity is removed; existing launcher/caller tasks use ordinary activity completion.
-- **Regression coverage:** task ownership, API21 compatibility, cancellation/retry and genuinely new repeated links have dedicated unit and device cases. URL processing, frontend choices and permissions are unchanged.
+- **Custom rule performance:** reuse validated patterns during compilation and parsed URLs/regex matches within each processing phase. Refresh matching after URL changes and preserve all validation and rule semantics.
+- **Regression coverage:** task ownership, API21 compatibility, cancellation/retry and genuinely new repeated links have dedicated unit and device cases. Ten further unit cases cover rule cache isolation, flags, invalidation and validation. Frontend choices and permissions are unchanged.
 
 ### v2.7.0 → v2.8.0
 - **Browser frontend management:** add, edit and delete entries directly in the Browser picker. Custom edits update selected references; built-in edits create a custom replacement, and deleted built-ins can be restored. The shared frontend list keeps separate Browser and Main/Share selections.

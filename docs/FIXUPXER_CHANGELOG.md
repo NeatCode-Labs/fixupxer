@@ -1,16 +1,16 @@
 # FixupXer App - Development Summary
 
-## Version Progression: v2.8.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.8.1 → v1.2.1 (Latest to Oldest)
 
-**Versions Documented:** 45 (v2.8.0 through v1.2.1)
-**Current Version:** v2.8.0 (versionCode: 51)
-**Development Period:** v1.2.1 (Initial) → v2.8.0 (Current)
+**Versions Documented:** 46 (v2.8.1 through v1.2.1)
+**Current Version:** v2.8.1 (versionCode: 52)
+**Development Period:** v1.2.1 (Initial) → v2.8.1 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes modifications since v1.2.1, through v2.8.0: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text and custom rules. Browser mode supports frontend management for seven platforms and a preferred destination browser. Browser and Main/Share keep separate choices; Copy, Share and Open use the same processed URL. Backup schema v2 includes the preferred browser and retains older-file import. All processing remains offline with zero permissions.
+This document summarizes modifications since v1.2.1, through v2.8.1: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text and custom rules. Browser mode supports frontend management for seven platforms and a preferred destination browser, and removes completed temporary tasks from Recents. Browser and Main/Share keep separate choices; Copy, Share and Open use the same processed URL. Backup schema v2 includes the preferred browser and retains older-file import. All processing remains offline with zero permissions.
 
 ### Key Achievements:
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
@@ -38,6 +38,10 @@ This document summarizes modifications since v1.2.1, through v2.8.0: selective h
 ---
 
 ## 📋 Version History
+
+### v2.8.0 → v2.8.1
+- **Browser Recents fix:** successfully completed temporary Browser tasks are removed, preventing Recents from recreating the old VIEW intent and opening a duplicate browser tab. Only a task rooted in BrowserAlias with one activity is removed; existing launcher/caller tasks use ordinary activity completion.
+- **Regression coverage:** task ownership, API21 compatibility, cancellation/retry and genuinely new repeated links have dedicated unit and device cases. URL processing, frontend choices and permissions are unchanged.
 
 ### v2.7.0 → v2.8.0
 - **Browser frontend management:** add, edit and delete entries directly in the Browser picker. Custom edits update selected references; built-in edits create a custom replacement, and deleted built-ins can be restored. The shared frontend list keeps separate Browser and Main/Share selections.
@@ -837,7 +841,8 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.6.6 | 48 | YouTube Music share tracking cleanup with functional query preservation | ✅ Released |
 | v2.6.7 | 49 | Result status renamed to No changes made; opaque redirect regression coverage | ✅ Released |
 | v2.7.0 | 50 | Separate Browser frontend choices, backup v2 and guarded external delivery | ✅ Released |
-| v2.8.0 | 51 | Browser frontend management and preferred browser | GitHub published; Play submitted for review |
+| v2.8.0 | 51 | Browser frontend management and preferred browser | Released on GitHub and Google Play |
+| v2.8.1 | 52 | Remove completed temporary Browser tasks to prevent duplicate opens from Recents | Release verification in progress |
 
 ### Build Artifacts (v2.6.7):
 - **Google Play AAB:** `FixupXer-v2.6.7-release.aab` — signed root bundle; signature, manifest and bundletool validation passed. Play submission status is recorded in BUILD_REPORT.md.

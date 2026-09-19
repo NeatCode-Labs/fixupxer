@@ -1,0 +1,1 @@
+Fix Browser mode reopening the same link from Recents and creating a duplicate browser tab. Completed temporary tasks are removed while existing launcher and caller tasks are preserved. Cancel, Retry and opening the same link again keep their behavior. Offline, with zero permissions.

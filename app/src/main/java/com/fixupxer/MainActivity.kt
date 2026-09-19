@@ -47,6 +47,7 @@ import com.fixupxer.ui.helpers.SnackbarHelper
 import com.fixupxer.ui.helpers.UrlActionHelper
 import com.fixupxer.ui.helpers.UrlDiffHelper
 import com.fixupxer.utils.BrowserModeUtils
+import com.fixupxer.utils.BrowserTaskCompletion
 import com.fixupxer.utils.BrowserViewGate
 import com.fixupxer.utils.BrowserViewHandoffPolicy
 import com.fixupxer.utils.Constants
@@ -271,7 +272,7 @@ class MainActivity : BaseActivity() {
                 activePostCleanRunner = null
                 if (outcome == PostCleanRunner.Outcome.SUCCESS) {
                     viewModel.clearCompletedViewTransaction()
-                    finish()
+                    BrowserTaskCompletion.finish(this)
                 } else {
                     showBrowserFailure(originalUrl, processedUrl, messageOverride =
                         R.string.browser_action_cancelled.takeIf { outcome == PostCleanRunner.Outcome.CANCELLED })

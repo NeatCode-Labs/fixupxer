@@ -1,5 +1,25 @@
 # FixupXer Testing Report
 
+## v2.8.1 verification — September 19, 2026
+
+Eight new unit cases cover ownership of completed Browser tasks, including
+API21–22 compatibility, non-root caller activities, launcher base intents,
+unexpected components, multiple activities and failed task lookup. Five new
+API35 device cases cover removal from Recents, genuinely new repeated URLs,
+Cancel/Retry, retained launcher tasks and returning to a caller activity.
+
+Fresh full gates pass **777 debug + 777 release unit tests** and **281/281
+API35 instrumentation tests**, with no failures/errors/skips. Release lint has
+zero errors and 43 existing warnings. The full device run started on a cold
+isolated Pixel_API_35_Play and completed in 12m40s. Unit/lint rerun took 1m49s.
+All source hashes match the final tested code.
+
+The first debug unit run had 776 passes and one validator timeout in the
+existing MainActivityInputDraftTest. The full unit/lint gate then passed with
+one Gradle worker and the emulator stopped. No validation timeout or assertion
+was relaxed; the failed run remains separate from the final passing results.
+Final signed-artifact checks are still in progress.
+
 ## v2.8.0 verification — September 14, 2026
 
 The full unit gate passes **769 tests in each debug and release variant**,

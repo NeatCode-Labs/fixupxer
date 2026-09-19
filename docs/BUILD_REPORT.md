@@ -1,5 +1,24 @@
 # FixupXer Build Report
 
+## v2.8.1 release — September 19, 2026
+
+Version **2.8.1 / code 52** removes successfully completed temporary Browser
+tasks from Recents, preventing an old VIEW intent from reopening the same link.
+Launcher and caller tasks retain ordinary activity completion. No permissions,
+network access, URL rules, frontend settings or database behavior changed.
+
+Fresh full gates pass **777 debug + 777 release unit tests** and **281/281
+API35 instrumentation tests**, with no failures/errors/skips. Release lint has
+**zero errors and 43 existing warnings**. The device gate ran on a cold isolated
+emulator in 12m40s. An initial unit run hit the existing 100 ms input-validator
+timeout once; a full serial rerun passed without changing source or limits.
+Source hashes match across the final gates. Signed artifacts, reproducibility,
+installation checks and publication are still being completed.
+
+Live Play preflight on September 19 confirms **v2.8.0 / 51 is available on
+Google Play**, at 100% in 177 countries/regions. This supersedes the pending-review
+status recorded at the end of the original September 14 run.
+
 ## v2.8.0 release — September 14, 2026
 
 Version **2.8.0 / code 51** adds frontend management directly in Browser

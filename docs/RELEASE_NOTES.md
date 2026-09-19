@@ -1,3 +1,23 @@
+# FixupXer v2.8.1 - Browser Recents Fix
+
+## What's Fixed
+
+- Completed Browser mode actions no longer leave a temporary FixupXer task in
+  Recents that could reopen the same link and create a duplicate browser tab.
+- Existing launcher and caller tasks are preserved. Cancel and Retry still
+  keep the result available, and opening the same link again works normally.
+
+FixupXer remains offline with zero permissions.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 52
+- versionName: 2.8.1
+
+---
+
 # FixupXer v2.8.0 - Browser Frontend Management
 
 ## What's New

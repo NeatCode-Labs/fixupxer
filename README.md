@@ -7,7 +7,7 @@
 <h3 align="center">Clean tracking from links. Improve social previews. Build your own offline URL rules.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.8.0"><img src="https://img.shields.io/badge/version-2.8.0-blue?style=flat-square" alt="Version 2.8.0"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.8.1"><img src="https://img.shields.io/badge/version-2.8.1-blue?style=flat-square" alt="Version 2.8.1"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>

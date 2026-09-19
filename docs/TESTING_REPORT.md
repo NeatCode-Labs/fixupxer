@@ -35,7 +35,23 @@ validator limits and test timeouts are unchanged. A separate UI attempt
 left the proxy picker open after a domain-label tap. The test now targets
 the clickable RecyclerView item; selection/deletion assertions are unchanged.
 
-Final signed-artifact checks are pending; provisional API21 verification already passes.
+The exact final mirror APK and the APK derived from the final Play AAB each
+pass seven clean-install and eight same-channel upgrade checks from v2.8.0:
+**30 API35 checks**. The two old-version baselines are recorded separately.
+Checks verify Browser/Main frontend choices and exact clipboard output,
+preferred-browser retention, completed-task removal, real Recents return
+after background process death, new identical URLs and Cancel/Retry.
+A separate synthetic receiver captures external deliveries.
+
+Each final artifact additionally passes two saved custom-rule flows
+through public backup restore and clipboard output: all three rule
+phases around cleaning/conversion, and decoded redirect re-entry
+with the selected destination frontend (four checks across both artifacts).
+
+The final mirror APK additionally passes two real API21 stock-browser
+handoffs after clean installation: cleaned addresses match and completed
+tasks disappear. Installed APK hashes are checked before UI claims.
+Physical devices and Brave were not tested in this release.
 
 ## v2.8.0 verification — September 14, 2026
 

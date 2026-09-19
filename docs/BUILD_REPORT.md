@@ -33,7 +33,27 @@ validator limits and test timeouts are unchanged. A separate UI attempt
 left the proxy picker open after a domain-label tap. The test now targets
 the clickable RecyclerView item; selection/deletion assertions are unchanged.
 
-Final artifact builds, reproducibility checks, installation matrix and publication are pending.
+Root source `cb1f39375543a28b0f2cf81def9424dca6c29e8a` produced the signed
+Play AAB. The mirror APK was built from a fresh clone of tag v2.8.1,
+commit `f325d8ddaf8a849759d3c43c3d3f93e03ce477d5`. All artifacts pass package/version,
+API21/36, expected signing certificate and zero-permission checks.
+The AAB includes Play ownership; the mirror has neither ownership nor
+Play dependency metadata.
+
+| Artifact | SHA-256 |
+|---|---|
+| Play AAB | `f9e26817a07ee9f290b26ec0e046deebabc84c6b30ade48915e6053e358dcbc1` |
+| GitHub/F-Droid APK | `55d807db30d5e45fc81477de3e369433365235983b62415b547c48e110ced298` |
+| Local AAB-derived test APK | `2e177533fe2af6662da496b21e7c722d4f1950b086d21a9079cd456895c9d1cf` |
+
+Independent Linux rebuilding with the current upstream F-Droid recipe passes
+verify_apks and apksigcopier comparison; the signature-copied output is
+byte-identical to the signed mirror APK. Mirror parity and REUSE pass.
+Final signed-artifact testing passes
+30 API35 clean/upgrade checks, four final-artifact custom-rule flows
+and two API21 stock-browser handoffs.
+
+GitHub and Google Play publication remain pending.
 
 ## v2.8.0 release — September 14, 2026
 

@@ -851,7 +851,7 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.7.0 | 50 | Separate Browser frontend choices, backup v2 and guarded external delivery | ✅ Released |
 | v2.8.0 | 51 | Browser frontend management and preferred browser | Released on GitHub and Google Play |
 | v2.8.1 | 52 | Remove completed temporary Browser tasks to prevent duplicate opens from Recents | Released on GitHub and Google Play |
-| v2.8.2 | 53 | Native app routing for supported X, Instagram and TikTok embed links | Release verification in progress |
+| v2.8.2 | 53 | Native app routing for supported X, Instagram and TikTok embed links | GitHub published; Play status in BUILD_REPORT.md |
 
 ### Build Artifacts (v2.6.7):
 - **Google Play AAB:** `FixupXer-v2.6.7-release.aab` — signed root bundle; signature, manifest and bundletool validation passed. Play submission status is recorded in BUILD_REPORT.md.

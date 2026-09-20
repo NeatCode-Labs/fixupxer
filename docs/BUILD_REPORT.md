@@ -18,7 +18,24 @@ a cold emulator with airplane mode enabled and Wi-Fi disabled to prevent Play
 Store background updates from affecting this offline app suite. Final artifact
 handoffs use ordinary networking separately. Source hashes match the tested code.
 
-Final signed builds, independent Linux reproduction, clean/upgrade UI and publication are pending.
+The signed mirror APK was built from a fresh clone of tag v2.8.2 at
+`82351ca8574a4e089860b36afa798c6f810ede47`. The root AAB and both APKs pass signature,
+package/version, API21/36 and zero-permission checks. Play ownership appears
+only in the Play artifacts; the mirror APK has no Play dependency metadata.
+
+| Artifact | SHA-256 |
+|---|---|
+| Play AAB | `34bd24f6505878a0fd3d5081cab29b88d3712b841243bb25889454ee56c4523c` |
+| GitHub/F-Droid APK | `b5401d7c9aa3f47d20459611483dea1ae24ee2bb0346d95f8ec2b33106938a28` |
+| AAB-derived local test APK | `34934b466243af83d702e1701f8ce2e5605e2a41f72f5c11f4268fd26cf5364e` |
+
+Independent Linux rebuilding with the current upstream F-Droid recipe passes
+verify_apks and apksigcopier; the signature-copied output is byte-identical to
+the signed mirror APK. Mirror parity and public REUSE checks pass.
+
+Exact artifact installation and UI checks pass; details and limits are in TESTING_REPORT.md.
+
+GitHub and Google Play publication are pending.
 
 ## v2.8.1 release — September 19, 2026
 

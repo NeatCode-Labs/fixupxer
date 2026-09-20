@@ -19,7 +19,21 @@ a cold emulator with airplane mode enabled and Wi-Fi disabled to prevent Play
 Store background updates from affecting this offline app suite. Final artifact
 handoffs use ordinary networking separately. Source hashes match the tested code.
 
-Final signed-artifact verification is pending. Unit/Robolectric evidence is distinct from real native-app handoff.
+The exact signed mirror APK and APK derived from the final Play AAB each pass
+clean-install and same-channel upgrade checks from 2.8.1: **64 final-artifact
+checks**, with old-version baselines recorded separately. Installed APK hashes
+are verified before each run. Real official X and TikTok apps receive native
+handoffs; the isolated browser/share receiver captures exact processed URLs.
+Coverage includes automatic X aliases, TikTok embed/short links, manual native,
+Browser/Share/Copy, saved native choices and reuse. Clean installs additionally
+check unavailable native apps, unsupported forms, Farside and selected
+Embed/Reader behavior. Upgrade checks first run with the old settings intact.
+
+X authentication was unavailable in the emulator. These results prove app
+handoff, not logged-in content loading or the availability of synthetic TikTok
+posts. Instagram uses exact-URI unit coverage and device browser fallback
+without its native app installed. Physical devices and other Android API levels
+were not executed for this release.
 
 ## v2.8.1 verification — September 19, 2026
 

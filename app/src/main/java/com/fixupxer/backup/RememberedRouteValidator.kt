@@ -17,6 +17,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import com.fixupxer.utils.NativeAppMapping
+import com.fixupxer.utils.NativeLaunchResolver
 import com.fixupxer.utils.Constants
 import androidx.core.net.toUri
 
@@ -56,11 +57,15 @@ object RememberedRouteValidator {
      * compatibility are evaluated against the FINAL uri, not the routing key.
      */
     fun isNativeRouteValid(context: Context, finalUri: Uri, packageName: String): Boolean {
-        if (!canSaveRoute(context, packageName)) return false
-        if (shouldSkipNativeWithoutDelete(finalUri)) return false
-        val finalHost = finalUri.host?.lowercase() ?: return false
-        if (packageName !in NativeAppMapping.packagesFor(finalUri.toString(), finalHost)) return false
-        return canLaunchPackage(context, finalUri, packageName)
+        val nativeUri = nativeUriForPackage(context, finalUri, packageName) ?: return false
+        return canLaunchPackage(context, nativeUri, packageName)
+    }
+
+    fun nativeUriForPackage(context: Context, finalUri: Uri, packageName: String): Uri? {
+        if (!canSaveRoute(context, packageName)) return null
+        val resolution = NativeLaunchResolver.resolve(finalUri.toString()) ?: return null
+        if (packageName !in resolution.packageNames) return null
+        return Uri.parse(resolution.uri)
     }
 
     fun isBrowserRouteValid(context: Context, finalUri: Uri, packageName: String): Boolean {
@@ -86,8 +91,9 @@ object RememberedRouteValidator {
             .toSet()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun nativePackagesFor(url: String, host: String): List<String> =
-        NativeAppMapping.packagesFor(url, host)
+        NativeLaunchResolver.resolve(url)?.packageNames.orEmpty()
 
     /**
      * Strict structural validation of snapshot routes: any invalid entry rejects

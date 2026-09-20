@@ -12,6 +12,7 @@
 package com.fixupxer
 
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
@@ -272,17 +273,169 @@ class PostCleanRunnerRouteTest {
     @Test
     fun `candidates use final uri and include only launchable packages`() {
         val uri = Uri.parse("https://fixupx.com/user/status/1")
+        val nativeUri = Uri.parse("https://x.com/user/status/1")
         registerBrowser("com.android.chrome", uri)
         // Second browser installed but unable to open the final uri.
         registerBrowserWithoutViewSupport("org.example.browser")
-        registerViewTarget("com.twitter.android", uri)
+        registerViewTarget("com.twitter.android", nativeUri)
 
         val candidates = runner.buildRememberCandidates(uri)
 
         val byPackage = candidates.associateBy { it.packageName }
         assertEquals(setOf("com.twitter.android", "com.android.chrome"), byPackage.keys)
         assertEquals(RememberedRouteKind.NATIVE, byPackage["com.twitter.android"]?.kind)
+        assertEquals(nativeUri, byPackage["com.twitter.android"]?.launchUri)
         assertEquals(RememberedRouteKind.BROWSER, byPackage["com.android.chrome"]?.kind)
+        assertEquals(uri, byPackage["com.android.chrome"]?.launchUri)
+    }
+
+    @Test
+    fun `priority native launch uses canonical uri accepted by package`() = withActivity { activity ->
+        val finalUri = Uri.parse("https://fxtwitter.com/user/status/1?keep=%2B#part")
+        val nativeUri = Uri.parse("https://x.com/user/status/1?keep=%2B#part")
+        registerViewTarget("com.twitter.android", nativeUri)
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(listOf(PreferencesManager.ACTION_NATIVE_APP))
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+
+        PostCleanRunner(activity, preferencesManager).runGuarded(
+            finalUri,
+            "twitter.com",
+            { true },
+            outcomes::add,
+        )
+
+        assertEquals(listOf(PostCleanRunner.Outcome.SUCCESS), outcomes)
+        val sent = shadowOf(activity).nextStartedActivity
+        assertEquals("com.twitter.android", sent?.`package`)
+        assertEquals(nativeUri, sent?.data)
+    }
+
+    @Test
+    fun `failed native resolution falls through with original final proxy uri`() = withActivity { activity ->
+        val finalUri = Uri.parse("https://vm.tnktok.com/Z123/?keep=%2B#part")
+        registerBrowser("preferred.browser", finalUri)
+        preferencesManager.setPreferredBrowserPackage("preferred.browser")
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(
+            listOf(PreferencesManager.ACTION_NATIVE_APP, PreferencesManager.ACTION_BROWSER),
+        )
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+
+        PostCleanRunner(activity, preferencesManager).runGuarded(
+            finalUri,
+            "tiktok.com",
+            { true },
+            outcomes::add,
+        )
+
+        assertEquals(listOf(PostCleanRunner.Outcome.SUCCESS), outcomes)
+        val sent = shadowOf(activity).nextStartedActivity
+        assertEquals("preferred.browser", sent?.`package`)
+        assertEquals(finalUri, sent?.data)
+    }
+
+    @Test
+    fun `manual native action uses same canonical uri`() = withActivity { activity ->
+        val finalUri = Uri.parse("https://toinstagram.com/p/A%2Fb/?img_index=2#part")
+        val nativeUri = Uri.parse("https://instagram.com/p/A%2Fb/?img_index=2#part")
+        registerViewTarget("com.instagram.android", nativeUri)
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_ASK)
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+
+        PostCleanRunner(activity, preferencesManager).runGuarded(
+            finalUri,
+            "instagram.com",
+            { true },
+            outcomes::add,
+        )
+        latestDialog().listView.performItemClick(null, 0, 0)
+
+        assertEquals(listOf(PostCleanRunner.Outcome.SUCCESS), outcomes)
+        val sent = shadowOf(activity).nextStartedActivity
+        assertEquals("com.instagram.android", sent?.`package`)
+        assertEquals(nativeUri, sent?.data)
+    }
+
+    @Test
+    fun `remembered native route keeps routing key and launches canonical uri`() = withActivity { activity ->
+        val finalUri = Uri.parse("https://vm.tnktok.com/Z123/?keep=%2B#part")
+        val nativeUri = Uri.parse("https://vm.tiktok.com/Z123/?keep=%2B#part")
+        registerViewTarget("com.zhiliaoapp.musically", nativeUri)
+        preferencesManager.setRememberedRoute(
+            "tiktok.com",
+            RememberedRoute(RememberedRouteKind.NATIVE, "com.zhiliaoapp.musically"),
+        )
+        val activityRunner = PostCleanRunner(activity, preferencesManager)
+
+        assertTrue(activityRunner.tryRememberedRoute(finalUri, "tiktok.com"))
+        assertNotNull(preferencesManager.getRememberedRoute("tiktok.com"))
+        assertNull(preferencesManager.getRememberedRoute("tnktok.com"))
+        val sent = shadowOf(activity).nextStartedActivity
+        assertEquals("com.zhiliaoapp.musically", sent?.`package`)
+        assertEquals(nativeUri, sent?.data)
+    }
+
+    @Test
+    fun `remember native candidate launches canonical uri and saves source routing key`() = withActivity { activity ->
+        val finalUri = Uri.parse("https://fxtwitter.com/user/status/1?keep=%2B#part")
+        val nativeUri = Uri.parse("https://x.com/user/status/1?keep=%2B#part")
+        registerViewTarget("com.twitter.android", nativeUri)
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_ASK)
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+
+        PostCleanRunner(activity, preferencesManager).runGuarded(
+            finalUri,
+            "twitter.com",
+            { true },
+            outcomes::add,
+        )
+        latestDialog().listView.performItemClick(null, 4, 4)
+        latestDialog().listView.performItemClick(null, 0, 0)
+
+        assertEquals(listOf(PostCleanRunner.Outcome.SUCCESS), outcomes)
+        assertEquals(
+            RememberedRoute(RememberedRouteKind.NATIVE, "com.twitter.android"),
+            preferencesManager.getRememberedRoute("twitter.com"),
+        )
+        assertNull(preferencesManager.getRememberedRoute("fxtwitter.com"))
+        val sent = shadowOf(activity).nextStartedActivity
+        assertEquals("com.twitter.android", sent?.`package`)
+        assertEquals(nativeUri, sent?.data)
+    }
+
+    @Test
+    fun `native launch exception falls through to browser with original final uri`() {
+        val finalUri = Uri.parse("https://fixupx.com/user/status/1?keep=%2B#part")
+        val nativeUri = Uri.parse("https://x.com/user/status/1?keep=%2B#part")
+        registerViewTarget("com.twitter.android", nativeUri)
+        registerBrowser("preferred.browser", finalUri)
+        preferencesManager.setPreferredBrowserPackage("preferred.browser")
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(
+            listOf(PreferencesManager.ACTION_NATIVE_APP, PreferencesManager.ACTION_BROWSER),
+        )
+        val throwingContext = object : ContextWrapper(context) {
+            override fun startActivity(intent: Intent) {
+                if (intent.`package` == "com.twitter.android") {
+                    throw android.content.ActivityNotFoundException("Native URI rejected")
+                }
+                super.startActivity(intent)
+            }
+        }
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+
+        PostCleanRunner(throwingContext, preferencesManager).runGuarded(
+            finalUri,
+            "twitter.com",
+            { true },
+            outcomes::add,
+        )
+
+        assertEquals(listOf(PostCleanRunner.Outcome.SUCCESS), outcomes)
+        val sent = shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity
+        assertEquals("preferred.browser", sent?.`package`)
+        assertEquals(finalUri, sent?.data)
     }
 
     @Test

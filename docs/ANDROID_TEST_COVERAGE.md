@@ -1,5 +1,24 @@
 # Android Test Coverage for FixupXer
 
+## v2.8.2 coverage additions — September 20, 2026
+
+`NativeLaunchResolverTest` adds seven cases with a multi-domain fixture
+matrix. `PostCleanRunnerRouteTest` adds six cases for exact canonical intents,
+fallback, manual selection and saved-route execution. Its existing candidate
+test now requires the source URI for the native package and the proxy URI for
+the browser. Existing cancellation, stale-work, reader-policy and Share
+exclusion cases remain unchanged.
+
+Fresh full gates pass **802 debug + 802 release unit tests** and **281/281
+API35 instrumentation tests**, with zero failures, errors or skips. Release lint
+has **zero errors and 46 warnings** (43 existing warnings and three
+non-blocking KTX style suggestions on native-URI parsing). Device tests ran on
+a cold emulator with airplane mode enabled and Wi-Fi disabled to prevent Play
+Store background updates from affecting this offline app suite. Final artifact
+handoffs use ordinary networking separately. Source hashes match the tested code.
+
+Final artifact evidence and limits are recorded in TESTING_REPORT.md.
+
 ## v2.8.1 coverage additions — September 19, 2026
 
 BrowserTaskCompletionTest adds ten unit cases for ownership and API21

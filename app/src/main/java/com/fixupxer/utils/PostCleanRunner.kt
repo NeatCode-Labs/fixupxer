@@ -67,6 +67,7 @@ class PostCleanRunner(
         val packageName: String,
         val label: String,
         val kind: RememberedRouteKind,
+        val launchUri: Uri,
     )
 
     /**
@@ -140,21 +141,30 @@ class PostCleanRunner(
             return false
         }
 
-        val valid = when (route.kind) {
-            RememberedRouteKind.NATIVE ->
-                RememberedRouteValidator.isNativeRouteValid(context, uri, route.packageName)
-            RememberedRouteKind.BROWSER ->
+        val launchUri = when (route.kind) {
+            RememberedRouteKind.NATIVE -> {
+                val nativeUri = RememberedRouteValidator.nativeUriForPackage(
+                    context,
+                    uri,
+                    route.packageName,
+                )
+                nativeUri?.takeIf {
+                    RememberedRouteValidator.canLaunchPackage(context, it, route.packageName)
+                }
+            }
+            RememberedRouteKind.BROWSER -> uri.takeIf {
                 RememberedRouteValidator.isBrowserRouteValid(context, uri, route.packageName)
+            }
         }
 
-        if (!valid) {
+        if (launchUri == null) {
             // A different final frontend URI may be temporarily incompatible.
             // Preserve the user's mapping; malformed stored routes are validated by prefs.
             Timber.d("Remembered route cannot handle this destination")
             return false
         }
 
-        return if (launchPackage(uri, route.packageName)) {
+        return if (launchPackage(launchUri, route.packageName)) {
             Timber.d("Launched remembered route for host")
             true
         } else {
@@ -253,7 +263,7 @@ class PostCleanRunner(
             .setItems(labels) { _, index ->
                 if (!checkCurrent()) return@setItems
                 val candidate = candidates[index]
-                if (!launchPackage(uri, candidate.packageName)) {
+                if (!launchPackage(candidate.launchUri, candidate.packageName)) {
                     report(Outcome.FAILED)
                     return@setItems
                 }
@@ -292,17 +302,18 @@ class PostCleanRunner(
         val seen = linkedSetOf<String>()
         val candidates = mutableListOf<RouteCandidate>()
         val packageManager = context.packageManager
-        val finalHost = uri.host?.lowercase()
-
-        if (finalHost != null && !RememberedRouteValidator.shouldSkipNativeWithoutDelete(uri)) {
-            RememberedRouteValidator.nativePackagesFor(uri.toString(), finalHost).forEach { packageName ->
+        val nativeResolution = NativeLaunchResolver.resolve(uri.toString())
+        if (nativeResolution != null) {
+            val nativeUri = Uri.parse(nativeResolution.uri)
+            nativeResolution.packageNames.forEach { packageName ->
                 if (!seen.add(packageName)) return@forEach
                 if (!RememberedRouteValidator.canSaveRoute(context, packageName)) return@forEach
-                if (!RememberedRouteValidator.canLaunchPackage(context, uri, packageName)) return@forEach
+                if (!RememberedRouteValidator.canLaunchPackage(context, nativeUri, packageName)) return@forEach
                 candidates += RouteCandidate(
                     packageName = packageName,
                     label = appLabel(packageManager, packageName),
                     kind = RememberedRouteKind.NATIVE,
+                    launchUri = nativeUri,
                 )
             }
         }
@@ -314,6 +325,7 @@ class PostCleanRunner(
                 packageName = packageName,
                 label = appLabel(packageManager, packageName),
                 kind = RememberedRouteKind.BROWSER,
+                launchUri = uri,
             )
         }
         return candidates
@@ -372,9 +384,11 @@ class PostCleanRunner(
      * Try to launch known native apps for cleaned URLs
      */
     private fun tryLaunchKnownNativeApp(uri: Uri): Boolean {
-        val host = uri.host?.lowercase()
-        for (packageName in NativeAppMapping.packagesFor(uri.toString(), host)) {
-            if (launchPackage(uri, packageName)) return true
+        val resolution = NativeLaunchResolver.resolve(uri.toString()) ?: return false
+        val nativeUri = Uri.parse(resolution.uri)
+        for (packageName in resolution.packageNames) {
+            if (!RememberedRouteValidator.canLaunchPackage(context, nativeUri, packageName)) continue
+            if (launchPackage(nativeUri, packageName)) return true
         }
         return false
     }

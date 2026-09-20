@@ -125,16 +125,19 @@ object NativeAppMapping {
 
     private fun isInstagramNativeHost(host: String): Boolean {
         if (UrlNormalizer.hostMatchesDomain(host, Constants.INSTAGRAM_DOMAIN)) return true
-        return InstagramProxyStore.allKnownProxies().any { proxy ->
-            UrlNormalizer.hostMatchesDomain(host, proxy) &&
-                ProxyRoster.targetByDomain(ProxyPlatform.INSTAGRAM, proxy)?.allowNativeApp != false
+        val nativeBuiltIns = AlternativeFrontendCatalog.builtIn(ProxyPlatform.INSTAGRAM)
+            .filter { it.role == FrontendRole.EMBED && it.allowNativeApp }
+            .map { it.domain }
+        val legacyEmbeds = AlternativeFrontendCatalog.legacyDomains(ProxyPlatform.INSTAGRAM)
+        return (nativeBuiltIns + legacyEmbeds).any { proxy ->
+            UrlNormalizer.hostMatchesDomain(host, proxy)
         }
     }
 
     private fun isTwitterNativeHost(host: String): Boolean {
         if (UrlNormalizer.hostMatchesDomain(host, Constants.X_DOMAIN) ||
             UrlNormalizer.hostMatchesDomain(host, Constants.TWITTER_DOMAIN) ||
-            UrlNormalizer.hostMatchesDomain(host, Constants.FIXUPX_DOMAIN)
+            Constants.TWITTER_PROXY_DOMAINS.any { UrlNormalizer.hostMatchesDomain(host, it) }
         ) {
             return true
         }
@@ -149,9 +152,12 @@ object NativeAppMapping {
 
     private fun isTikTokNativeHost(host: String): Boolean {
         if (UrlNormalizer.hostMatchesDomain(host, Constants.TIKTOK_DOMAIN)) return true
-        return TikTokProxyStore.allKnownProxies().any { proxy ->
-            UrlNormalizer.hostMatchesDomain(host, proxy) &&
-                ProxyRoster.targetByDomain(ProxyPlatform.TIKTOK, proxy)?.allowNativeApp != false
+        val nativeBuiltIns = AlternativeFrontendCatalog.builtIn(ProxyPlatform.TIKTOK)
+            .filter { it.role == FrontendRole.EMBED && it.allowNativeApp }
+            .map { it.domain }
+        val legacyEmbeds = AlternativeFrontendCatalog.legacyDomains(ProxyPlatform.TIKTOK)
+        return (nativeBuiltIns + legacyEmbeds).any { proxy ->
+            UrlNormalizer.hostMatchesDomain(host, proxy)
         }
     }
 

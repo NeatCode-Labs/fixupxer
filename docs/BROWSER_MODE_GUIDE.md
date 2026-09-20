@@ -89,7 +89,12 @@ and used only with Browser mode and **Ask what to do**. It remains saved but
 inactive after switching to **Try actions automatically** or disabling Browser
 mode.
 
-Choosing **Open in native app** tries known compatible installed apps. If none
+Choosing **Open in native app** tries known compatible installed apps. Supported
+X, Instagram and TikTok embed links use the original platform domain for this
+action (for example, `fxtwitter.com/user/status/123` becomes
+`x.com/user/status/123`). TikTok `vm.` and `vt.` short-link subdomains are kept;
+FixupXer does not expand them over the network. The same rule applies to
+automatic native actions and saved native app choices. If no app
 accepts the URL, FixupXer falls back to an external browser. **Open in browser**
 uses only external browser packages and excludes FixupXer itself.
 
@@ -106,7 +111,10 @@ cleaned URL cannot select FixupXer again and create a browser loop. In Browser
 mode with **Ask what to do**, saved app choices are checked before the action
 picker; temporarily unavailable or incompatible saved choices remain saved and
 the normal flow is offered. Reader and custom frontends skip native shortcuts.
-Every destination receives the same final URI, and Share also excludes FixupXer.
+Browser, Share and Copy receive the final processed URI, including any selected
+frontend. Native canonicalization does not change that result or history.
+Unknown/custom frontends, privacy readers and unsupported proxy forms do not
+gain native shortcuts. Share also excludes FixupXer.
 If all attempts fail, the result remains in the app for an explicit **Retry**.
 Rotation or recreation does not automatically repeat a failed action. Redirect
 extraction in the URL pipeline also has cycle detection and a five-hop limit.
@@ -167,10 +175,12 @@ choices, including their remembered target when switched off. **Clean only**
 skips frontend conversion and leaves an existing frontend host intact; cleaning
 and explicitly enabled custom rules still apply.
 
-**Copy**, **Share**, and **Open** use the same final processed URL. For example,
+**Copy**, **Share**, and **Open in browser** use the final processed URL. For example,
 select TikTok's `tnktok.com` embed, save, and open
 `https://vm.tiktok.com/Z123/?utm_source=example` with FixupXer: the local result
-is `https://vm.tnktok.com/Z123/`. This example demonstrates string processing;
+is `https://vm.tnktok.com/Z123/`. **Open in native app** instead tries the
+compatible TikTok app with `https://vm.tiktok.com/Z123/`, retaining the processed
+proxy URL for fallback. This example demonstrates string processing;
 the placeholder is not a live video or an availability check.
 
 ### Unavailable choices and restoring a category

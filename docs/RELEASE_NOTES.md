@@ -1,3 +1,26 @@
+# FixupXer v2.8.2 - Native App Routing for Embed Links
+
+## What's Fixed
+
+- Open supported X, Instagram and TikTok embed-proxy links in their native apps
+  by restoring the original platform domain for the native action.
+- Use the same native destination for automatic actions, manual selection and
+  saved app choices. If the app cannot handle the link, continue with the
+  configured fallback using the processed URL.
+- Browser, Share and Copy keep the processed link. Privacy readers and custom
+  frontends retain their browser destination.
+
+FixupXer remains offline with zero permissions.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 53
+- versionName: 2.8.2
+
+---
+
 # FixupXer v2.8.1 - Browser Recents Fix
 
 ## What's Fixed

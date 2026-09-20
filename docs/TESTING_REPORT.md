@@ -1,5 +1,26 @@
 # FixupXer Testing Report
 
+## v2.8.2 verification — September 20, 2026
+
+Thirteen added unit tests cover exact native URI/package pairs for built-in
+and legacy X/Instagram/TikTok embeds, raw path/query/fragment preservation,
+TikTok vm/vt subdomains, reader/custom/experimental and retired exclusions,
+lookalike/unsupported hosts, existing platform mappings, automatic/manual
+launches, candidate selection, saved routing keys and browser fallback after
+missing or rejected native delivery. Native handlers are registered only for
+the expected canonical URI, and browser fallback only for the original proxy
+URI, so a permissive fake cannot hide the original bug.
+
+Fresh full gates pass **802 debug + 802 release unit tests** and **281/281
+API35 instrumentation tests**, with zero failures, errors or skips. Release lint
+has **zero errors and 46 warnings** (43 existing warnings and three
+non-blocking KTX style suggestions on native-URI parsing). Device tests ran on
+a cold emulator with airplane mode enabled and Wi-Fi disabled to prevent Play
+Store background updates from affecting this offline app suite. Final artifact
+handoffs use ordinary networking separately. Source hashes match the tested code.
+
+Final signed-artifact verification is pending. Unit/Robolectric evidence is distinct from real native-app handoff.
+
 ## v2.8.1 verification — September 19, 2026
 
 Ten new unit cases cover task ownership, API21 activity-count and resolved-alias

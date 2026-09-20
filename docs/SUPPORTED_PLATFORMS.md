@@ -20,6 +20,13 @@ grouped as Recommended, Automatic picker, Community instances, or
 Experimental), and every platform accepts user-added custom domains. Each
 platform remembers its own selection; conversion toggles are off by default.
 
+Browser-mode native actions restore supported X, Instagram and TikTok embed
+hosts to the original platform domain before opening a compatible installed
+app. This includes known legacy embed aliases. X/Instagram accept the bare or
+`www.` proxy host; TikTok also keeps `vm.` and `vt.` short-link subdomains.
+Privacy readers, custom domains and other proxy subdomains retain browser
+handling. Browser, Share and Copy continue to use the final processed URL.
+
 ### Social Media & Communication
 - **Facebook** - Removes known Facebook tracking keys. No embed frontend is bundled — the former `facebookez.com` was retired after it began redirecting to an advertising network — but conversion to a user-added custom frontend is supported
 - **Instagram** - Removes known Instagram tracking keys, including `stkn`, `ig_rid`, `igsi`, `igsh` and `igshid`, while preserving carousel selectors and unknown parameters. Converts to a user-selectable frontend. Embed proxies: `toinstagram.com` (default), `adamlikes.men`, `instagram7.com`, or any user-added custom proxy. Experimental readers: `kittygr.am`, `kg.meowing.de`, `kittygram.kareem.one`. Converted links are sent without the `www.` prefix because these proxies render best at the bare hostname. The legacy proxy `eeinstagram.com` is still recognised in pasted URLs and auto-converted to the active frontend.

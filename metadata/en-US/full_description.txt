@@ -3,7 +3,7 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 <b>Key Features</b>
 
 * Private Link Guard: Warns when e-mail addresses, auth tokens, or precise coordinates remain visible in a link — sensitive originals stay out of history and cache, fully cleaned results are kept as redacted entries
-* Browser Mode: Add, edit or delete frontends for seven platforms, including TikTok and Instagram. Save applies all frontend changes; Browser and Main/Share selections stay separate. Choose a preferred browser to avoid repeated selection, or save per-host app choices. Copy, Share and Open receive the same processed URL; failed actions stay local for Retry.
+* Browser Mode: Add, edit or delete frontends for seven platforms, including TikTok and Instagram. Save applies all frontend changes; Browser and Main/Share selections stay separate. Choose a preferred browser to avoid repeated selection, or save per-host app choices. Native actions restore supported X, Instagram and TikTok embed links to the original platform; Browser, Share and Copy keep the processed URL; failed actions stay local for Retry.
 * Direct Sharing: Share your links directly to FixupXer, no need to open the main app
 * Clean Link from Selection: Select a URL in any app and choose "Clean link" to clean it in place
 * Privacy Protection: Removes documented tracking keys across 26 host-bound platform cleaners; unknown functional parameters are kept so links do not break

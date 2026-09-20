@@ -1,0 +1,2 @@
+• Open supported X, Instagram and TikTok embed links in their native apps.
+• Apply the fix to automatic actions and saved app choices. Browser, Share and Copy keep the processed link; privacy frontends stay in the browser.

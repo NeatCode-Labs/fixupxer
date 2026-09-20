@@ -1,5 +1,25 @@
 # FixupXer Build Report
 
+## v2.8.2 release — September 20, 2026
+
+Version **2.8.2 / code 53** fixes native app handoff for supported X,
+Instagram and TikTok embed proxies. One resolver supplies the original platform
+URI and compatible native packages for automatic actions, manual native opening,
+saved routes and the app-choice picker. Browser fallback, Share, Copy, displayed
+results and history retain the processed URL. Reader/custom destinations and
+unsupported proxy subdomains do not gain native shortcuts. No permissions,
+network access, preference schema or new platform mappings are introduced.
+
+Fresh full gates pass **802 debug + 802 release unit tests** and **281/281
+API35 instrumentation tests**, with zero failures, errors or skips. Release lint
+has **zero errors and 46 warnings** (43 existing warnings and three
+non-blocking KTX style suggestions on native-URI parsing). Device tests ran on
+a cold emulator with airplane mode enabled and Wi-Fi disabled to prevent Play
+Store background updates from affecting this offline app suite. Final artifact
+handoffs use ordinary networking separately. Source hashes match the tested code.
+
+Final signed builds, independent Linux reproduction, clean/upgrade UI and publication are pending.
+
 ## v2.8.1 release — September 19, 2026
 
 Version **2.8.1 / code 52** removes successfully completed temporary Browser

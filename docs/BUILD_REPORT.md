@@ -32,7 +32,11 @@ the signed mirror APK. Mirror parity and public REUSE checks pass.
 
 Exact artifact installation and UI checks pass; see TESTING_REPORT.md for limits.
 
-GitHub and Google Play publication are pending.
+GitHub v2.8.3 is published; the uploaded APK digest matches the tested file.
+Google Play Production 2.8.3/54: **Changes in review**; 100% rollout,
+existing 177 countries preserved and Managed publishing off. Play availability is not yet confirmed.
+Google quick checks were still running when the accepted submission was recorded.
+F-Droid availability follows its external update/build cycle and is not yet confirmed.
 
 ## v2.8.2 release — September 20, 2026
 

@@ -22,6 +22,7 @@ package com.fixupxer.cleaners.impl
 import com.fixupxer.cleaners.PlatformParameterRule
 import com.fixupxer.cleaners.UrlCleaner
 import com.fixupxer.processing.UrlNormalizer
+import java.util.Locale
 
 class CatalogParameterCleaner(
     val rule: PlatformParameterRule
@@ -29,9 +30,20 @@ class CatalogParameterCleaner(
     override val id: String = rule.id
     override val displayName: String = rule.displayName
     override val category = rule.category
+    private val removeKeys = rule.removeKeys.mapTo(mutableSetOf(), ::comparisonKey)
+    private val preserveKeys = rule.preserveKeys.mapTo(mutableSetOf(), ::comparisonKey)
+    private val removePrefixes = rule.removePrefixes.map(::comparisonKey)
 
     override fun matches(url: String): Boolean =
-        UrlNormalizer.urlMatchesAnyDomain(url, rule.domains)
+        if (rule.includeSubdomains) {
+            UrlNormalizer.urlMatchesAnyDomain(url, rule.domains)
+        } else {
+            val host = UrlNormalizer.extractAsciiHost(url)
+            rule.domains.any { it.equals(host, ignoreCase = true) }
+        }
+
+    private fun comparisonKey(key: String): String =
+        if (rule.ignoreKeyCase) key.lowercase(Locale.ROOT) else key
 
     override fun clean(url: String): String {
         if (!matches(url)) return url
@@ -52,11 +64,11 @@ class CatalogParameterCleaner(
             if (query.isEmpty()) return url
 
             val kept = query.split('&').mapNotNull { token ->
-                val key = token.substringBefore('=')
+                val key = comparisonKey(token.substringBefore('='))
                 when {
-                    rule.preserveKeys.contains(key) -> token
-                    rule.removeKeys.contains(key) -> null
-                    rule.removePrefixes.any { key.startsWith(it) } -> null
+                    preserveKeys.contains(key) -> token
+                    removeKeys.contains(key) -> null
+                    removePrefixes.any { key.startsWith(it) } -> null
                     else -> token
                 }
             }.filter { it.isNotEmpty() }

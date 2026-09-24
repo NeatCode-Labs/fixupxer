@@ -117,6 +117,10 @@ object Constants {
     const val GOOGLE_STORE_DOMAIN = "store.google.com"
     const val REDDITMAIL_CLICK_DOMAIN = "click.redditmail.com"
     const val WIKIPEDIA_DOMAIN = "wikipedia.org"
+    const val GUARDIAN_DOMAIN = "theguardian.com"
+    const val GUARDIAN_WWW_DOMAIN = "www.theguardian.com"
+    const val NYTIMES_DOMAIN = "nytimes.com"
+    const val NYTIMES_WWW_DOMAIN = "www.nytimes.com"
     const val THREADS_NET_DOMAIN = "threads.net"
     const val THREADS_COM_DOMAIN = "threads.com"
     const val TWITCH_DOMAIN = "twitch.tv"
@@ -264,4 +268,4 @@ object Constants {
     
     // Tag for logging
     const val LOG_TAG = "FixupXer"
-} 
+}

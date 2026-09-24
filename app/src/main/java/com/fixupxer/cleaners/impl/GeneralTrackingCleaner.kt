@@ -42,9 +42,12 @@ class GeneralTrackingCleaner @Inject constructor() : UrlCleaner {
             "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
             "utm_id", "utm_name", "utm_reader", "utm_brand", "utm_pubreferrer",
             "utm_swu", "utm_viz_id", "utm_referrer", "utm_social", "utm_social-type",
+            "utm_source_platform", "utm_creative_format", "utm_marketing_tactic",
             "fbclid", "gclid", "gclsrc", "gad_source", "dclid", "twclid", "msclkid",
+            "gad_campaignid", "srsltid", "ttclid", "li_fat_id", "sccid", "rdt_cid",
+            "ef_id", "s_kwcid",
             "yclid", "gbraid", "wbraid", "ko_click_id", "epik", "_ga", "_gl",
-            "_hsenc", "_hsmi", "__hssc", "__hstc", "hsctatracking", "mc_cid", "mc_eid",
+            "_hsenc", "_hsmi", "__hssc", "__hstc", "__hsfp", "hsctatracking", "mc_cid", "mc_eid",
             "_openstat", "_ke", "_kx", "__s", "vgo_ee", "rb_clickid", "_bta_tid",
             "_bta_c", "ml_subscriber", "ml_subscriber_hash", "oly_anon_id", "oly_enc_id",
             "vero_conv", "vero_id", "wickedid", "irclickid", "irgwc", "sscid", "zanpid",
@@ -110,4 +113,4 @@ class GeneralTrackingCleaner @Inject constructor() : UrlCleaner {
             return url
         }
     }
-} 
+}

@@ -1,0 +1,3 @@
+• Remove Guardian and New York Times share tracking while preserving access codes and other link parameters.
+• Remove 12 more campaign and click-tracking parameters from shared links.
+• Fully offline, with zero permissions.

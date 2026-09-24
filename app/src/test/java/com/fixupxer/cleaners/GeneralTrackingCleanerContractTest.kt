@@ -28,6 +28,43 @@ class GeneralTrackingCleanerContractTest {
     private val cleaner = GeneralTrackingCleaner()
 
     @Test
+    fun `removes documented campaign and click identifiers on destination websites`() {
+        val keys = listOf(
+            "utm_source_platform", "utm_creative_format", "utm_marketing_tactic",
+            "gad_campaignid", "srsltid", "ttclid", "li_fat_id", "ScCid", "rdt_cid",
+            "ef_id", "s_kwcid", "__hsfp"
+        )
+        keys.forEach { key ->
+            val input = "https://shop.example/product?id=42&$key=one&$key=two" +
+                "&keep=a%2Bb%26c&keep=second#section"
+            val expected = "https://shop.example/product?id=42&keep=a%2Bb%26c&keep=second#section"
+            assertEquals(key, expected, cleaner.clean(input))
+            assertEquals(key, expected, cleaner.clean(cleaner.clean(input)))
+        }
+    }
+
+    @Test
+    fun `new tracking keys are case insensitive but do not match prefixes or values`() {
+        val input = "https://example.com/?TTCLID=one&LI_FAT_ID=two&ScCiD=three&__HSFP=four" +
+            "&ttclid_extra=keep&my_srsltid=keep&value=ef_id&cmp=keep&cid=keep&source=keep"
+        assertEquals(
+            "https://example.com/?ttclid_extra=keep&my_srsltid=keep&value=ef_id&cmp=keep&cid=keep&source=keep",
+            cleaner.clean(input)
+        )
+    }
+
+    @Test
+    fun `new tracking cleanup preserves access tokens and fragment pseudo queries`() {
+        assertEquals(
+            "https://example.com/article?unlocked_article_code=a%2Bb&token=opaque&id=42#ttclid=keep",
+            cleaner.clean("https://example.com/article?ttclid=ad&unlocked_article_code=a%2Bb&token=opaque&id=42#ttclid=keep")
+        )
+        val fragmentUrl = "https://example.com/article#section?ttclid=keep"
+        assertEquals(fragmentUrl, cleaner.clean(fragmentUrl))
+        assertEquals("https://example.com/article#section", cleaner.clean("https://example.com/article?__hsfp=one#section"))
+    }
+
+    @Test
     fun `removes universal trackers but keeps unknown functional parameters`() {
         assertEquals(
             "https://ex.com/?ref=one&source=two&si=three&foo=four",

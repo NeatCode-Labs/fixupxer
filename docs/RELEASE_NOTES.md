@@ -1,3 +1,24 @@
+# FixupXer v2.8.3 - Broader Tracking Cleanup
+
+## What's Fixed
+
+- Remove The Guardian's CMP share tag and The New York Times' smid tag on
+  their public website hosts, while preserving other parameters and access codes.
+- Remove 12 additional documented campaign and click-tracking parameters,
+  including Google campaign/product tags, TikTok, LinkedIn, Snapchat and Reddit
+  click IDs, Adobe advertising IDs and HubSpot cross-domain tracking.
+
+FixupXer remains offline with zero permissions.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 54
+- versionName: 2.8.3
+
+---
+
 # FixupXer v2.8.2 - Native App Routing for Embed Links
 
 ## What's Fixed

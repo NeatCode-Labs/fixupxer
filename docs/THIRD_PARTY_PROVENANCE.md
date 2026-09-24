@@ -23,6 +23,36 @@ Léon.
 
 ## Source registry
 
+### Tracking-parameter patch: 2026-09-24
+
+Guardian `CMP` and NYT `smid` cleanup is independently implemented only on
+the apex and `www` website hosts. The Guardian reporter fixture was reproduced;
+the owner manually compared the NYT publisher URL with and without `smid`
+and confirmed the same article. Automated NYT browser access was blocked, so
+this is owner-observed compatibility evidence. Gift/access token preservation
+is covered by offline synthetic fixtures, not a live gift subscription test.
+Unknown parameters and fragments remain intact. `INTCMP` and `smtyp` are retained.
+
+The [NYT publisher post](https://bsky.app/profile/nytimes.com/post/3mewc4ces2k2v)
+supplies the real share URL. [ClearURLs rules](https://github.com/ClearURLs/Rules)
+were reviewed as a secondary behavior reference for `CMP` and `smid`; no upstream
+source, patterns, catalog data or tests were imported. The existing July Léon
+Guardian whole-query deletion remains rejected; this is a narrower independent rule.
+
+The 12 exact universal keys are documented by their vendors:
+
+- `utm_source_platform`, `utm_creative_format`, `utm_marketing_tactic`: [Google Analytics](https://support.google.com/analytics/answer/11242870?hl=en).
+- `gad_campaignid`: [Google Ads](https://support.google.com/google-ads/answer/16193746?hl=en); `srsltid`: [Google Merchant Center](https://support.google.com/merchants/answer/15191080?hl=en).
+- `ttclid`: [TikTok](https://ads.tiktok.com/resources/help/article/tiktok-click-id?lang=en); `li_fat_id`: [LinkedIn](https://learn.microsoft.com/en-us/linkedin/marketing/conversions/enabling-first-party-cookies?view=li-lms-2026-09).
+- `ScCid`: [Snap](https://www.developers.snap.com/marketing-api/Conversions-API/Introduction); `rdt_cid`: [Reddit](https://business.reddithelp.com/articles/Knowledge/about-match-keys).
+- `ef_id`, `s_kwcid`: [Adobe Advertising](https://experienceleague.adobe.com/en/docs/advertising/integrations/analytics/ids).
+- `__hsfp`: [HubSpot](https://knowledge.hubspot.com/reports/set-up-sources-tracking).
+
+These exact names extend the existing case-insensitive general cleaner without
+adding wildcard prefixes. Synthetic fixtures cover duplicates, raw encodings,
+near matches, unknown keys and access tokens. This is not an assurance of
+compatibility with every third-party website.
+
 ### Follow-up review: 2026-09-14
 
 The GitHub comparison from `006888279b5dc03e1554140f801cce7e7bb4ea2b` to

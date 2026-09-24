@@ -5,7 +5,7 @@ FixupXer removes known tracking parameters from URLs using registered, host-boun
 ## 🚀 Engine Architecture
 
 ### Modular Design
-- **26 domain-specific cleaners + 1 universal cleaner** - each registered platform has its own cleaner
+- **28 domain-specific cleaners + 1 universal cleaner** - each registered platform has its own cleaner
 - **Selective parameter removal** - known tracking keys are removed; unknown and functional keys are preserved
 - **Deep-Clean Technology** - Multi-pass cleaning ensures nothing gets missed
 - **Lightning Fast** - O(1) domain lookup with intelligent caching
@@ -57,6 +57,8 @@ These registered platforms support host-bound tracking parameter removal:
 - **Bilibili** - Removes `vd_source`, `seid`, `share_source`, and `copy_link`; keeps `from` and unknown keys
 
 ### Content & Publishing
+- **The Guardian** - Removes `CMP` (case-insensitive) on `theguardian.com` and `www.theguardian.com`; keeps `INTCMP` and unknown parameters
+- **The New York Times** - Removes `smid` on `nytimes.com` and `www.nytimes.com`; keeps `smtyp`, gift/access codes and unknown parameters
 - **Substack** - Removes known Substack tracking keys while preserving `publication_id` and `post_id`
 - **Wikipedia** - Removes `wprov`
 - **Medium** - Removes `source` and `sk`
@@ -85,11 +87,15 @@ These registered platforms support host-bound tracking parameter removal:
 
 ## General Tracking Cleaner
 
-The GeneralTrackingCleaner removes 71 exact universal tracking keys and 10
+The GeneralTrackingCleaner removes 83 exact universal tracking keys and 10
 tracking-key prefixes from any host. It runs after a matching domain cleaner,
 so universal keys such as `utm_source` are removed on supported platforms too.
 It intentionally preserves non-universal keys such as `ref`, `source`, `si`,
 `from`, and unknown flag parameters.
+
+New exact keys in v2.8.3: `utm_source_platform`, `utm_creative_format`,
+`utm_marketing_tactic`, `gad_campaignid`, `srsltid`, `ttclid`, `li_fat_id`,
+`ScCid`, `rdt_cid`, `ef_id`, `s_kwcid`, and `__hsfp`. Matching is case-insensitive.
 
 ## Performance Features
 

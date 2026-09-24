@@ -1,5 +1,22 @@
 # FixupXer Build Report
 
+## v2.8.3 release — September 24, 2026
+
+Version **2.8.3 / code 54** removes Guardian CMP and NYT smid tags only on
+their exact apex/www website hosts. Guardian key matching is case-insensitive;
+other catalog defaults are unchanged. Twelve documented exact universal keys
+extend general tracking cleanup without adding wildcard prefixes. Unknown
+parameters, raw values, access codes and fragments are preserved. The patch
+does not change preferences, database schemas, frontend selection or handoff.
+
+Fresh full gates pass **815 debug + 815 release unit tests** and **281/281
+API35 instrumentation tests**, with zero failures, errors or skips. Release lint
+has **zero errors and 46 existing warnings**. The device suite ran
+on a cold emulator with airplane mode enabled and Wi-Fi disabled. Source hashes
+match the tested code. The app remains offline and declares zero permissions.
+
+Final signed builds, independent Linux reproduction, clean/upgrade UI and publication are pending.
+
 ## v2.8.2 release — September 20, 2026
 
 Version **2.8.2 / code 53** fixes native app handoff for supported X,

@@ -1,5 +1,20 @@
 # Android Test Coverage for FixupXer
 
+## v2.8.3 coverage additions — September 24, 2026
+
+`GuardianTrackingTest` adds six cases; `NytimesTrackingTest` adds four;
+`GeneralTrackingCleanerContractTest` adds three cases including a 12-key fixture
+matrix. Public-host restrictions are verified through real registry dispatch,
+and complete cleaner-service and UrlProcessor paths are exercised. Existing
+instrumentation cases remain unchanged. Final artifact coverage and limitations
+are recorded in TESTING_REPORT.md.
+
+Fresh full gates pass **815 debug + 815 release unit tests** and **281/281
+API35 instrumentation tests**, with zero failures, errors or skips. Release lint
+has **zero errors and 46 existing warnings**. The device suite ran
+on a cold emulator with airplane mode enabled and Wi-Fi disabled. Source hashes
+match the tested code. The app remains offline and declares zero permissions.
+
 ## v2.8.2 coverage additions — September 20, 2026
 
 `NativeLaunchResolverTest` adds seven cases with a multi-domain fixture

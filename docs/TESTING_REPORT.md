@@ -1,5 +1,26 @@
 # FixupXer Testing Report
 
+## v2.8.3 verification — September 24, 2026
+
+Thirteen added unit cases cover the exact Guardian report, the NYT
+publisher URL, 12 universal campaign/click keys, duplicate keys, encoded values,
+functional/access tokens, fragments, idempotence, cleanTracking disabled,
+exact public hosts, lookalike/subdomain exclusions and unchanged catalog case
+sensitivity. Tests use the real CleanerService and UrlProcessor where applicable.
+
+The owner manually compared the NYT publisher URL with and without smid in the
+browser and confirmed the same article. Agent browser access was blocked.
+Gift/access token preservation uses synthetic offline fixtures; live gift
+entitlements and compatibility with every third-party website were not tested.
+
+Fresh full gates pass **815 debug + 815 release unit tests** and **281/281
+API35 instrumentation tests**, with zero failures, errors or skips. Release lint
+has **zero errors and 46 existing warnings**. The device suite ran
+on a cold emulator with airplane mode enabled and Wi-Fi disabled. Source hashes
+match the tested code. The app remains offline and declares zero permissions.
+
+Final signed-artifact verification is pending.
+
 ## v2.8.2 verification — September 20, 2026
 
 Thirteen added unit tests cover exact native URI/package pairs for built-in

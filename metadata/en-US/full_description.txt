@@ -6,11 +6,11 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 * Browser Mode: Add, edit or delete frontends for seven platforms, including TikTok and Instagram. Save applies all frontend changes; Browser and Main/Share selections stay separate. Choose a preferred browser to avoid repeated selection, or save per-host app choices. Native actions restore supported X, Instagram and TikTok embed links to the original platform; Browser, Share and Copy keep the processed URL; failed actions stay local for Retry.
 * Direct Sharing: Share your links directly to FixupXer, no need to open the main app
 * Clean Link from Selection: Select a URL in any app and choose "Clean link" to clean it in place
-* Privacy Protection: Removes documented tracking keys across 26 host-bound platform cleaners; unknown functional parameters are kept so links do not break
+* Privacy Protection: Removes documented tracking keys across 28 host-bound platform cleaners; unknown functional parameters are kept so links do not break
 * Redirect Unwrapping: Extracts real destinations from Facebook, LinkedIn, YouTube, Google Ads, Reddit, Bluesky, GeoRiot/Geniuslink, and LinkSynergy/Rakuten wrappers — entirely offline
 * Local Processing: Clean links on your device with bounded caching
 * Offline Operation: Cleaning makes no network requests; Open/Share hands the result to the external app you choose
-* Platform Support: Works with 26 platforms including YouTube, Facebook, Amazon, Twitter/X, Instagram, TikTok, Bluesky, Bilibili, Google Search, Google Maps, LinkedIn, Reddit, Spotify, Wikipedia, and more
+* Platform Support: Works with 28 platforms including YouTube, Facebook, Amazon, Twitter/X, Instagram, TikTok, Bluesky, Bilibili, Google Search, Google Maps, LinkedIn, Reddit, Spotify, Wikipedia, The Guardian, The New York Times, and more
 * Smart Conversions: Optional per-platform conversion to embed-friendly alternatives (fixupx.com, fxbsky.app, selectable Instagram and TikTok proxies) or account-free reader frontends (xcancel, Nitter, SkyLib, Redlib, and more), with custom domains for every platform — all pickers reachable anytime from Settings
 * Custom URL Rules: Build ordered offline rules with host or regex scopes, multiple processing phases, Test Lab previews, per-rule test vectors, Teach-from-example drafts, templates, and JSON import/export
 * History Tracking: Optional local history with Undo that restores the original entry and timestamp
@@ -35,7 +35,7 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 
 <b>Technical Excellence</b>
 
-* Modular architecture with 26 host-bound domain cleaners, one universal cleaner, and curated offline redirect unwrapping
+* Modular architecture with 28 host-bound domain cleaners, one universal cleaner, and curated offline redirect unwrapping
 * Thread-safe design optimized for modern Android devices
 * Redesigned Material Design 3 interface with full dark mode and a System/Light/Dark theme picker
 * Targets Android 16 (API 36) with edge-to-edge display support

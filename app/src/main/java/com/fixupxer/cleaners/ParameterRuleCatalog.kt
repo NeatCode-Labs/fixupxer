@@ -28,11 +28,30 @@ data class PlatformParameterRule(
     val domains: List<String>,
     val removeKeys: Set<String>,
     val removePrefixes: List<String> = emptyList(),
-    val preserveKeys: Set<String> = emptySet()
+    val preserveKeys: Set<String> = emptySet(),
+    val includeSubdomains: Boolean = true,
+    val ignoreKeyCase: Boolean = false
 )
 
 object ParameterRuleCatalog {
     val rules: List<PlatformParameterRule> = listOf(
+        PlatformParameterRule(
+            id = "guardian",
+            displayName = "The Guardian",
+            category = CleanerCategory.NEWS_MEDIA,
+            domains = listOf(Constants.GUARDIAN_DOMAIN, Constants.GUARDIAN_WWW_DOMAIN),
+            removeKeys = setOf("cmp"),
+            includeSubdomains = false,
+            ignoreKeyCase = true
+        ),
+        PlatformParameterRule(
+            id = "nytimes",
+            displayName = "The New York Times",
+            category = CleanerCategory.NEWS_MEDIA,
+            domains = listOf(Constants.NYTIMES_DOMAIN, Constants.NYTIMES_WWW_DOMAIN),
+            removeKeys = setOf("smid"),
+            includeSubdomains = false
+        ),
         PlatformParameterRule(
             id = "wikipedia",
             displayName = "Wikipedia",

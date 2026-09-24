@@ -1,16 +1,16 @@
 # FixupXer App - Development Summary
 
-## Version Progression: v2.8.2 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.8.3 → v1.2.1 (Latest to Oldest)
 
-**Versions Documented:** 47 (v2.8.2 through v1.2.1)
-**Current Version:** v2.8.2 (versionCode: 53)
-**Development Period:** v1.2.1 (Initial) → v2.8.2 (Current)
+**Versions Documented:** 48 (v2.8.3 through v1.2.1)
+**Current Version:** v2.8.3 (versionCode: 54)
+**Development Period:** v1.2.1 (Initial) → v2.8.3 (Current)
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes modifications since v1.2.1, through v2.8.2: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text and custom rules. Browser mode supports frontend management for seven platforms and a preferred destination browser, and removes completed temporary tasks from Recents. Browser and Main/Share keep separate choices; Browser, Share and Copy use the processed URL; native actions restore supported X, Instagram and TikTok embed links to their original platform domain. Backup schema v2 includes the preferred browser and retains older-file import. All processing remains offline with zero permissions.
+This document summarizes modifications since v1.2.1, through v2.8.3: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text and custom rules. Browser mode supports frontend management for seven platforms and a preferred destination browser, and removes completed temporary tasks from Recents. Browser and Main/Share keep separate choices; Browser, Share and Copy use the processed URL; native actions restore supported X, Instagram and TikTok embed links to their original platform domain. Backup schema v2 includes the preferred browser and retains older-file import. All processing remains offline with zero permissions.
 
 ### Key Achievements:
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
@@ -26,7 +26,7 @@ This document summarizes modifications since v1.2.1, through v2.8.2: selective h
 - ✅ **Selectable Instagram Embed Proxy** - User-chosen, persistent proxy for Instagram embeds with cross-proxy swap, legacy auto-migration, and bare-hostname conversion
 - ✅ **Cross-OEM Default-Browser Support** - `MAIN + APP_BROWSER` filter so Xiaomi/Redmi/HyperOS (and other non-AOSP pickers) list FixupXer as a browser candidate
 - ✅ **Professional UI/UX** - Polished Material Design 3 interface with perfect text formatting and typography
-- ✅ **Selective Cleaner Catalog** - 26 host-bound domain cleaners plus one universal cleaner preserve unknown and functional parameters
+- ✅ **Selective Cleaner Catalog** - 28 host-bound domain cleaners plus one universal cleaner preserve unknown and functional parameters
 - ✅ **Offline Redirect Unwrapping** - Curated HTTP(S) target extraction with exact host/path checks, strict single decoding and multi-pass destination cleaning
 - ✅ **Efficient Dispatch** - O(1) domain dispatch and bounded smart caching
 - ✅ **International Support** - Full IDN support and zero-width character handling
@@ -38,6 +38,13 @@ This document summarizes modifications since v1.2.1, through v2.8.2: selective h
 ---
 
 ## 📋 Version History
+
+### v2.8.2 → v2.8.3
+- Add exact-host Guardian CMP and NYT smid cleanup, preserving unknown parameters and access codes.
+- Add 12 exact universal tracking keys from Google, TikTok, LinkedIn, Snapchat, Reddit, Adobe and HubSpot.
+- Add opt-in catalog host/case matching without changing existing cleaner behavior.
+- Validation and distribution status: see BUILD_REPORT.md and TESTING_REPORT.md.
+
 
 ### v2.8.1 → v2.8.2
 - **Native embed links:** restore known X, Instagram and TikTok embed hosts only for native-app intents, including legacy aliases and TikTok vm/vt short links.
@@ -852,6 +859,7 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.8.0 | 51 | Browser frontend management and preferred browser | Released on GitHub and Google Play |
 | v2.8.1 | 52 | Remove completed temporary Browser tasks to prevent duplicate opens from Recents | Released on GitHub and Google Play |
 | v2.8.2 | 53 | Native app routing for supported X, Instagram and TikTok embed links | GitHub published; Play status in BUILD_REPORT.md |
+| v2.8.3 | 54 | Guardian and NYT share-tag cleanup plus 12 additional universal tracking keys | Release status in BUILD_REPORT.md |
 
 ### Build Artifacts (v2.6.7):
 - **Google Play AAB:** `FixupXer-v2.6.7-release.aab` — signed root bundle; signature, manifest and bundletool validation passed. Play submission status is recorded in BUILD_REPORT.md.

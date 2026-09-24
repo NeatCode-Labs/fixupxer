@@ -19,7 +19,16 @@ has **zero errors and 46 existing warnings**. The device suite ran
 on a cold emulator with airplane mode enabled and Wi-Fi disabled. Source hashes
 match the tested code. The app remains offline and declares zero permissions.
 
-Final signed-artifact verification is pending.
+The exact signed mirror APK and the APK derived from the final Play AAB each
+pass clean-install and same-channel upgrade checks from v2.8.2: **40
+final-artifact checks**. Old-version baselines are recorded separately.
+Installed APK hashes are verified before each run. Public Main, Share and
+Browser UI actions deliver exact cleaned URLs to an isolated browser/share/
+clipboard receiver, including the Guardian report, NYT smtyp and synthetic
+gift-code preservation, all 12 global keys together and other-host preservation.
+Upgrade runs retain previous-version settings without reimporting a fixture.
+These checks prove offline processing and Android delivery, not network content
+loading. Physical devices and other Android API levels were not executed.
 
 ## v2.8.2 verification — September 20, 2026
 

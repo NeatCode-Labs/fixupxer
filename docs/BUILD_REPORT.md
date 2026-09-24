@@ -15,7 +15,24 @@ has **zero errors and 46 existing warnings**. The device suite ran
 on a cold emulator with airplane mode enabled and Wi-Fi disabled. Source hashes
 match the tested code. The app remains offline and declares zero permissions.
 
-Final signed builds, independent Linux reproduction, clean/upgrade UI and publication are pending.
+The signed mirror APK was built from a fresh clone of tag v2.8.3 at
+`ca87520d8d9a82b042e6a8c611f566c3e899359b`. The root AAB and both APKs pass signature,
+package/version, API21/36 and zero-permission checks. Play ownership appears
+only in Play artifacts; the mirror APK has no Play dependency metadata.
+
+| Artifact | SHA-256 |
+|---|---|
+| Play AAB | `50c8717abf1c91253b06cea9ac9ed07feeae6a58fc9ffd338d0503a8e00551b8` |
+| GitHub/F-Droid APK | `6fc0dc66c4e670a37957ab996f481e88d54c83d27ea260bb16dc4163c3987b7c` |
+| AAB-derived local test APK | `ec662b8da4610c1bf0d92d9e3edcefe2c836dc4af8ba3355478d1c394bb7baae` |
+
+Independent Linux rebuilding with the current upstream F-Droid recipe passes
+verify_apks and apksigcopier; the signature-copied output is byte-identical to
+the signed mirror APK. Mirror parity and public REUSE checks pass.
+
+Exact artifact installation and UI checks pass; see TESTING_REPORT.md for limits.
+
+GitHub and Google Play publication are pending.
 
 ## v2.8.2 release — September 20, 2026
 

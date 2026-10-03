@@ -1,5 +1,25 @@
 # FixupXer Build Report
 
+## v2.9.0 distribution status — October 3, 2026
+
+[GitHub v2.9.0](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.9.0)
+was published at 19:23 UTC. The remote annotated tag resolves to the tested commit
+`494e43958b8816daa4f0c311a101df85e380d7c9`; the published APK digest matches the
+verified artifact below. This is a normal release, not a draft or prerelease.
+
+Google Play accepted version **2.9.0 / 55**, Production **100%**, in the existing
+**178 countries/regions**. At 21:30 CEST the console showed **Changes in review**
+for exactly two changes: the full rollout and the en-US full description. Initial
+quick checks were still running. Managed publishing remains **off**, so successful
+Google review leads to automatic publication. **Availability on Play is not yet
+confirmed.** No existing devices lost support in the release preview.
+
+F-Droid's tag, metadata and reproducibility requirements are prepared and verified;
+distribution still depends on its external update/build cycle. The owned emulator
+and Linux machine are stopped, original emulator network/browser settings restored,
+and temporary signing copies removed. No further build, bump or resubmission is
+needed while external review is pending.
+
 ## v2.9.0 release verification — October 3, 2026
 
 The owner accepted the revision-2 phone test and authorized full distribution.

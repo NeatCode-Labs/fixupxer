@@ -57,10 +57,11 @@
         
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonDonate"
+            android:contentDescription="@string/donate_content_desc"
             style="@style/Widget.Material3.Button.TextButton.Dialog"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/donate" />
+            android:text="@string/donate_browser" />
             
     </LinearLayout>
 

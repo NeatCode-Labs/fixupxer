@@ -43,6 +43,7 @@ This document summarizes modifications since v1.2.1, through v2.9.0: selective h
 - **Unified Help:** one English guide with contents, stable topic links, retained examples and troubleshooting; older guide URLs remain useful entry points.
 - **Contextual access:** Help beside What's new in Main and Share, plus direct topic links throughout settings, frontends, custom proxies, custom rules, Test Lab and History.
 - **Clear external navigation:** external-link icons, an Opens in browser label, accessible descriptions and explicit browser handoff that excludes FixupXer itself.
+- **Phone-test revision 2 (same version):** stronger Settings hierarchy with neutral bold headings, distinct action buttons and smaller underlined Help links; external arrows and browser routing for the other static web links; more beginner examples in Help.
 - No changes to URL cleaning, frontend selection, saved rules, database schemas or permissions. App publication awaits owner testing.
 
 ### v2.8.2 → v2.8.3

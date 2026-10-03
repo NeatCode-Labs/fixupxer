@@ -214,13 +214,7 @@ class ShareActivity : BaseActivity() {
         }
         
         binding.footerTextView.setOnClickListener {
-            try {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.WEBSITE_URL))
-                startActivity(intent)
-            } catch (e: Exception) {
-                Timber.e(e, "Error opening website")
-                SnackbarHelper.showShort(binding.root, getString(R.string.error_browser))
-            }
+            openExternalPage(Constants.WEBSITE_URL)
         }
     }
     

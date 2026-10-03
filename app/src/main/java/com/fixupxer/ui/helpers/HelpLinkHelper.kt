@@ -5,6 +5,7 @@ package com.fixupxer.ui.helpers
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.graphics.Paint
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -23,7 +24,10 @@ object HelpLinkHelper {
             view.visibility = View.GONE
             return
         }
-        view.findViewById<TextView>(R.id.textHelpTitle).setText(title)
+        view.findViewById<TextView>(R.id.textHelpTitle).apply {
+            setText(title)
+            paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
+        }
         view.contentDescription = context.getString(
             R.string.help_link_description, context.getString(title),
         )

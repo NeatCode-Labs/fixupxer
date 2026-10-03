@@ -47,7 +47,7 @@
     <string name="share">Share</string>
     <string name="open">Open</string>
     <string name="donate">Donate</string>
-    <string name="whats_new">What\'s new?</string>
+    <string name="whats_new">What\'s new? ↗</string>
     <string name="history">History</string>
     
     <!-- History strings -->
@@ -223,7 +223,7 @@
     <string name="license_info">This app is free software licensed under the GNU General Public License v3.0 or later. You can view the source code at https://github.com/NeatCode-Labs/fixupxer</string>
     <string name="bug_report_subject">FixupXer Bug Report</string>
     <string name="disclaimer_dialog_title">Disclaimer</string>
-    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not transmit any user data or URLs to external servers. If history is enabled, processed URLs are stored locally on your device only and can be cleared at any time.<br/><br/> <b>History Feature</b><br/> The optional history feature stores your URL conversions locally on your device. This data never leaves your device and can be disabled or cleared at any time through the History settings.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Alternative frontend and proxy services configurable in the app are operated by independent third parties; they receive the request (including your IP address) when you open a converted link, work only for public content, and their availability is not guaranteed.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses any third-party alternative frontend or proxy service you configure in the app, including custom domains you add yourself. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram, TikTok and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.<br/><br/> <b>License</b><br/> FixupXer is free software licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). You have the freedom to use, modify, and distribute this software under the terms of the GPL. Source code is available at https://github.com/NeatCode-Labs/fixupxer]]></string>
+    <string name="disclaimer_text"><![CDATA[<b>Privacy Statement</b><br/> This app processes URLs locally on your device and does not transmit any user data or URLs to external servers. If history is enabled, processed URLs are stored locally on your device only and can be cleared at any time.<br/><br/> <b>History Feature</b><br/> The optional history feature stores your URL conversions locally on your device. This data never leaves your device and can be disabled or cleared at any time through the History settings.<br/><br/> <b>Clipboard Access</b><br/> By using the Paste button, the app reads your last clipboard entry and checks if it\'s a valid link. By using that button, you acknowledge this access.<br/><br/> <b>URL Modifications</b><br/> While we strive to maintain URL functionality, some links may not work as expected after cleaning. Users can always use the original URL if needed. Alternative frontend and proxy services configurable in the app are operated by independent third parties; they receive the request (including your IP address) when you open a converted link, work only for public content, and their availability is not guaranteed.<br/><br/> <b>Third-Party Services</b><br/> This app is not affiliated with nor endorses any third-party alternative frontend or proxy service you configure in the app, including custom domains you add yourself. These services are independent and may have their own terms and privacy policies.<br/><br/> <b>Trademarks</b><br/> Names of the applications such as Facebook, Twitter, X, Instagram, TikTok and others whose links this application cleans from tracking are trademarks of their respective owners. This application is not affiliated with, endorsed by, or associated with those services.<br/><br/> <b>External Links</b><br/> Cleaned URLs will open in your device\'s default browser or the respective app. We are not responsible for content on external websites.<br/><br/> <b>Disclaimer of Warranty</b><br/> This software is provided as is, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.<br/><br/> <b>License</b><br/> FixupXer is free software licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). You have the freedom to use, modify, and distribute this software under the terms of the GPL. <a href="https://github.com/NeatCode-Labs/fixupxer">Source code ↗</a> (opens in browser)]]></string>
     
     <!-- Donate dialog -->
     <string name="donate_message">If you find FixupXer useful, please consider supporting its development. Your donation helps maintain and improve the app.</string>
@@ -246,13 +246,13 @@
     <string name="open_content_desc">Open URL in browser</string>
     <string name="copy_content_desc">Copy URL to clipboard</string>
     <string name="clear_all_content_desc">Clear all fields</string>
-    <string name="donate_content_desc">Open donation page</string>
+    <string name="donate_content_desc">Donate. Opens in browser.</string>
     <string name="about_content_desc">About FixupXer</string>
     <string name="disclaimer_content_desc">View disclaimer</string>
     <string name="report_bug_content_desc">Report a bug</string>
     
     <!-- Footer -->
-    <string name="footer_text">Made by NeatCode Labs</string>
+    <string name="footer_text">Made by NeatCode Labs ↗</string>
     <string name="footer_link_desc">Made by NeatCode Labs. Opens website.</string>
 
     <!-- History accessibility -->
@@ -723,6 +723,8 @@ Changes apply when you tap Save.</string>
     <!-- Help links always open in an external browser. -->
     <string name="help">Help</string>
     <string name="help_menu">Help ↗</string>
+    <string name="whats_new_description">What\'s new? Opens in browser.</string>
+    <string name="donate_browser">Donate ↗</string>
     <string name="help_opens_in_browser">Opens in browser</string>
     <string name="help_link_description">%1$s. Opens in browser.</string>
     <string name="help_menu_description">Help. Opens in browser.</string>

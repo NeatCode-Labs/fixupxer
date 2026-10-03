@@ -65,8 +65,7 @@
                         android:layout_height="wrap_content"
                         android:accessibilityHeading="true"
                         android:text="@string/browser_integration"
-                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="?attr/colorPrimary" />
+                        android:textAppearance="@style/TextAppearance.FixupXer.SettingsHeading" />
 
                     <com.google.android.material.materialswitch.MaterialSwitch
                         android:id="@+id/switchBrowserMode"
@@ -145,7 +144,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/buttonPreferredBrowser"
-                        style="@style/Widget.Material3.Button.TextButton"
+                        style="@style/Widget.FixupXer.SettingsAction"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/padding_small"
@@ -176,8 +175,7 @@
                         android:layout_height="wrap_content"
                         android:accessibilityHeading="true"
                         android:text="@string/conversion_defaults_title"
-                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="?attr/colorPrimary" />
+                        android:textAppearance="@style/TextAppearance.FixupXer.SettingsHeading" />
 
                     <TextView
                         android:id="@+id/textPrivacyReadersSummary"
@@ -189,7 +187,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/buttonConversionDefaults"
-                        style="@style/Widget.Material3.Button.TextButton"
+                        style="@style/Widget.FixupXer.SettingsAction"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/conversion_defaults" />
@@ -219,8 +217,7 @@
                         android:layout_height="wrap_content"
                         android:accessibilityHeading="true"
                         android:text="@string/after_clean_behavior"
-                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="?attr/colorPrimary" />
+                        android:textAppearance="@style/TextAppearance.FixupXer.SettingsHeading" />
 
                     <include
                         android:id="@+id/afterCleanHelp"
@@ -331,7 +328,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/buttonSavedAppChoices"
-                        style="@style/Widget.Material3.Button.TextButton"
+                        style="@style/Widget.FixupXer.SettingsAction"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/saved_app_choices" />

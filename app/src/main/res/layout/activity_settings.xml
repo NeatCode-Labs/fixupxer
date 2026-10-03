@@ -116,8 +116,7 @@
                         android:layout_height="wrap_content"
                         android:accessibilityHeading="true"
                         android:text="@string/appearance"
-                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="?attr/colorPrimary" />
+                        android:textAppearance="@style/TextAppearance.FixupXer.SettingsHeading" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -236,8 +235,7 @@
                         android:layout_height="wrap_content"
                         android:accessibilityHeading="true"
                         android:text="@string/link_processing"
-                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="?attr/colorPrimary" />
+                        android:textAppearance="@style/TextAppearance.FixupXer.SettingsHeading" />
 
                     <include
                         android:id="@+id/linkCleaningHelp"
@@ -280,7 +278,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:minHeight="@dimen/min_touch_target_size"
-                        android:background="?attr/selectableItemBackground"
+                        android:background="@drawable/bg_settings_navigation"
+                        android:paddingStart="@dimen/padding_medium"
+                        android:paddingEnd="@dimen/padding_medium"
                         android:clickable="true"
                         android:contentDescription="@string/custom_rules_manage"
                         android:focusable="true"
@@ -319,7 +319,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:minHeight="@dimen/min_touch_target_size"
-                        android:background="?attr/selectableItemBackground"
+                        android:background="@drawable/bg_settings_navigation"
+                        android:paddingStart="@dimen/padding_medium"
+                        android:paddingEnd="@dimen/padding_medium"
                         android:clickable="true"
                         android:contentDescription="@string/alternative_frontends_row_content_description"
                         android:focusable="true"
@@ -377,8 +379,7 @@
                         android:layout_height="wrap_content"
                         android:accessibilityHeading="true"
                         android:text="@string/browser_integration"
-                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="?attr/colorPrimary" />
+                        android:textAppearance="@style/TextAppearance.FixupXer.SettingsHeading" />
 
                     <LinearLayout
                         android:id="@+id/browserModeNavigation"
@@ -386,7 +387,9 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/padding_small"
                         android:minHeight="@dimen/min_touch_target_size"
-                        android:background="?attr/selectableItemBackground"
+                        android:background="@drawable/bg_settings_navigation"
+                        android:paddingStart="@dimen/padding_medium"
+                        android:paddingEnd="@dimen/padding_medium"
                         android:clickable="true"
                         android:focusable="true"
                         android:gravity="center_vertical"
@@ -444,8 +447,7 @@
                         android:layout_height="wrap_content"
                         android:accessibilityHeading="true"
                         android:text="@string/data_and_backup"
-                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="?attr/colorPrimary" />
+                        android:textAppearance="@style/TextAppearance.FixupXer.SettingsHeading" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -465,14 +467,14 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/buttonBackupSettings"
-                        style="@style/Widget.Material3.Button.TextButton"
+                        style="@style/Widget.FixupXer.SettingsAction"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/local_backup_export" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/buttonRestoreSettings"
-                        style="@style/Widget.Material3.Button.TextButton"
+                        style="@style/Widget.FixupXer.SettingsAction"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/local_backup_restore" />

@@ -25,6 +25,7 @@
     <item
         android:id="@+id/action_whats_new"
         android:title="@string/whats_new"
+        app:contentDescription="@string/whats_new_description"
         app:showAsAction="never" />
     
     <item

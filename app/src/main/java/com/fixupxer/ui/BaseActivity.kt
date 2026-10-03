@@ -34,6 +34,7 @@ import androidx.core.text.HtmlCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.fixupxer.ui.helpers.HelpLinkHelper
+import com.fixupxer.ui.helpers.UrlActionHelper
 import com.fixupxer.R
 import com.fixupxer.utils.Constants
 import timber.log.Timber
@@ -210,7 +211,21 @@ abstract class BaseActivity : AppCompatActivity() {
         val buttonAgreeAndClose = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.buttonAgreeAndClose)
         
         // Set HTML content
-        textViewContent.text = HtmlCompat.fromHtml(getString(R.string.disclaimer_text), HtmlCompat.FROM_HTML_MODE_LEGACY)
+        val content = android.text.SpannableString(
+            HtmlCompat.fromHtml(getString(R.string.disclaimer_text), HtmlCompat.FROM_HTML_MODE_LEGACY),
+        )
+        content.getSpans(0, content.length, android.text.style.URLSpan::class.java).forEach { span ->
+            val start = content.getSpanStart(span)
+            val end = content.getSpanEnd(span)
+            content.removeSpan(span)
+            content.setSpan(object : android.text.style.ClickableSpan() {
+                override fun onClick(widget: View) {
+                    openExternalPage(span.url)
+                }
+            }, start, end, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        textViewContent.text = content
+        textViewContent.movementMethod = android.text.method.LinkMovementMethod.getInstance()
         
         // Set up scroll listener to show button when scrolled to bottom
         scrollView.viewTreeObserver.addOnScrollChangedListener {
@@ -266,13 +281,12 @@ abstract class BaseActivity : AppCompatActivity() {
 
     /** Open the GitHub release notes in an external browser. */
     protected fun openWhatsNew() {
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.RELEASE_NOTES_URL)))
-        } catch (e: Exception) {
-            Timber.e(e, "Error opening release notes URL")
-            Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
-        }
+        openExternalPage(Constants.RELEASE_NOTES_URL)
     }
+
+    /** Static web links must not be intercepted by our Browser mode. */
+    protected fun openExternalPage(url: String): Boolean =
+        UrlActionHelper.openUrlInExternalBrowser(findViewById(android.R.id.content), this, url)
 
     /**
      * Show donate dialog
@@ -291,17 +305,11 @@ abstract class BaseActivity : AppCompatActivity() {
         
         // Set up donate button click
         buttonDonate.setOnClickListener {
-                try {
-                    // Open donation link
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.DONATION_URL))
-                    startActivity(intent)
+            if (openExternalPage(Constants.DONATION_URL)) {
                 alertDialog.dismiss()
-                } catch (e: Exception) {
-                    Timber.e(e, "Error opening donation URL")
-                    Toast.makeText(this, getString(R.string.error_browser), Toast.LENGTH_SHORT).show()
-                }
             }
-        
+        }
+
         // Set up maybe later button click
         buttonMaybeLater.setOnClickListener {
             alertDialog.dismiss()

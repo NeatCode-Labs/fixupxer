@@ -71,7 +71,7 @@ class HelpNavigationTest {
     }
 
     @Suppress("DEPRECATION")
-    private fun assertDestination(fragment: String?) {
+    private fun assertExternalDestination(expectedUrl: String) {
         assertEquals("One external handoff per tap", 1, outgoing.size)
         val launched = outgoing.single()
         val candidates = if (launched.action == Intent.ACTION_CHOOSER) {
@@ -82,12 +82,15 @@ class HelpNavigationTest {
         assertFalse("A browser must be offered", candidates.isEmpty())
         candidates.forEach { intent ->
             assertEquals(Intent.ACTION_VIEW, intent.action)
-            assertEquals(Constants.HELP_URL + (fragment?.let { "#$it" } ?: ""), intent.dataString)
+            assertEquals(expectedUrl, intent.dataString)
             assertTrue("Help must target an external browser explicitly", intent.component != null)
             assertNotEquals(context.packageName, intent.component!!.packageName)
         }
         outgoing.clear()
     }
+
+    private fun assertDestination(fragment: String?) =
+        assertExternalDestination(Constants.HELP_URL + (fragment?.let { "#$it" } ?: ""))
 
     private fun follow(id: Int, fragment: String) {
         onView(withId(id)).perform(nestedScrollTo(), click())
@@ -110,6 +113,58 @@ class HelpNavigationTest {
             openActionBarOverflowOrOptionsMenu(context)
             onView(withText(R.string.help_menu)).perform(click())
             assertDestination(null)
+        }
+    }
+
+    @Test
+    fun markedWebsiteLinksOpenOutsideFixupxerFromMainAndShare() {
+        val checks: List<() -> Unit> = listOf(
+            {
+                openActionBarOverflowOrOptionsMenu(context)
+                onView(withText(R.string.whats_new)).perform(click())
+                assertExternalDestination(Constants.RELEASE_NOTES_URL)
+            },
+            {
+                onView(withId(R.id.footerTextView)).perform(click())
+                assertExternalDestination(Constants.WEBSITE_URL)
+            },
+            {
+                openActionBarOverflowOrOptionsMenu(context)
+                onView(withText(R.string.donate)).perform(click())
+                assertTrue("Donate menu opens an internal dialog", outgoing.isEmpty())
+                onView(withId(R.id.buttonDonate)).check(matches(withText(R.string.donate_browser)))
+                    .perform(click())
+                assertExternalDestination(Constants.DONATION_URL)
+            },
+        )
+        val share = Intent(context, ShareActivity::class.java).apply {
+            action = Intent.ACTION_SEND
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, "https://example.com/help-test")
+        }
+        // Share is intentionally noHistory: each external exit needs a fresh entry.
+        checks.forEach { check ->
+            ActivityScenario.launch(MainActivity::class.java).use { check() }
+            ActivityScenario.launch<ShareActivity>(share).use { check() }
+        }
+    }
+
+    @Test
+    fun disclaimerSourceLinkHasExternalIndicatorAndBrowserHandoff() {
+        ActivityScenario.launch(MainActivity::class.java).use {
+            openActionBarOverflowOrOptionsMenu(context)
+            onView(withText(R.string.disclaimer)).perform(click())
+            onView(withId(R.id.textViewDisclaimerContent)).check { view, error ->
+                if (error != null) throw error
+                val textView = view as android.widget.TextView
+                val text = textView.text as android.text.Spanned
+                val links = text.getSpans(0, text.length, android.text.style.ClickableSpan::class.java)
+                assertEquals(1, links.size)
+                val link = links.single()
+                assertTrue(text.subSequence(text.getSpanStart(link), text.getSpanEnd(link)).contains('↗'))
+                link.onClick(textView)
+            }
+            assertExternalDestination(Constants.GITHUB_REPOSITORY_URL)
         }
     }
 

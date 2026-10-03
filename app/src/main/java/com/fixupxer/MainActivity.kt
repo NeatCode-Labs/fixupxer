@@ -536,14 +536,8 @@ class MainActivity : BaseActivity() {
         binding.buttonHistory.setOnClickListener { showHistoryDialog() }
         
         // Footer click listener
-        binding.footerTextView.setOnClickListener { 
-            try {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.WEBSITE_URL))
-                startActivity(intent)
-            } catch (e: Exception) {
-                Timber.e(e, "Error opening website")
-                SnackbarHelper.showShort(binding.root, getString(R.string.error_browser))
-            }
+        binding.footerTextView.setOnClickListener {
+            openExternalPage(Constants.WEBSITE_URL)
         }
 
         binding.togglesInclude.textViewChangeProxy.setOnClickListener {

@@ -11,6 +11,12 @@ Phone-test candidate; the app release has not been published.
   History and other settings.
 - Recognize external Help links by their external-link icon and
   "Opens in browser" label.
+- Distinguish Settings headings, action buttons and underlined guide links;
+  other static browser links also show an external arrow.
+- Learn unfamiliar concepts through practical examples of frontends, custom
+  domains, Browser choices, Test Lab and backups.
+
+Phone-test revision 2 retains version 2.9.0 / 55.
 
 Link processing remains offline with zero permissions. Reading the online
 Help opens a separate browser and requires a connection there.

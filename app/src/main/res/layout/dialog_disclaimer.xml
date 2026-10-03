@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:textSize="@dimen/text_size_body"
             android:lineSpacingExtra="@dimen/margin_small"
-            android:autoLink="web" />
+            android:linksClickable="true" />
 
     </ScrollView>
 

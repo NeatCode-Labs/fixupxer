@@ -2,6 +2,8 @@
 
 FixupXer processes links locally. It removes known tracking parameters and can optionally rewrite supported social links for another frontend. It does not load web pages or make network requests. This guide covers everyday use, Browser mode, custom frontends, custom URL rules, history, and backups.
 
+Domains such as `shop.example.com`, `news.example.com`, `reader.example`, and `social.example` below are fictional placeholders, not real websites or recommendations.
+
 From **v2.9.0**, open **Help** beside **What's new?** in the Main or Share menu, or use a topic-specific Help link beside a feature. The external-link icon and **Opens in browser** label mean that a separate browser opens this online guide. Older app versions can use this guide too; their menu labels and Help entry points may differ.
 
 ## Contents
@@ -48,7 +50,7 @@ FixupXer's built-in cleaners remove known tracking parameters for supported site
 
 Some supported redirect links can be unwrapped locally when their destination is structurally valid. FixupXer does not visit the original site to resolve a redirect.
 
-For example, with tracking cleaning enabled:
+For example:
 
 ```text
 https://shop.example.com/product/42?color=blue&utm_source=newsletter
@@ -61,7 +63,9 @@ not modify the URL. It does not guarantee that every identifier is harmless
 or that the link contains no tracking.
 
 
-**Private Link Guard** warns when a link still contains information such as an email address, token, or precise coordinates. It runs offline. Sensitive original links are not saved to History; when processing produces a fully cleaned result, History can keep that result with a redacted-input marker. History is optional.
+**Private Link Guard** checks for a short list of high-confidence clues in the URL, such as an email address, sign-in token, or precise latitude and longitude. For example, `https://files.example/share?email=alex@example.org&token=abcdefgh1234` can trigger a warning if those values remain after processing. The check runs offline. It cannot tell whether the data is intentional, encrypt the link, or detect every private value. You can go back, remove a query parameter, or continue anyway.
+
+When History is on, a sensitive original URL is never saved. If processing removes all detected sensitive data and an entry is saved, History stores only the processed result with an **Input redacted for privacy** marker. If detected sensitive data remains in the result, that URL is not saved to History. History is optional.
 
 [Back to contents](#contents)
 
@@ -75,9 +79,23 @@ An alternative frontend is another website that can display supported social con
 - **Privacy readers** focus on reading supported public content without an account. For chat previews, choose an embed frontend; the actual preview depends on the service and receiving app.
 - **Custom frontends** use a domain you provide. FixupXer does not verify that a custom domain is available, trustworthy, or private, and it does not present custom targets as verified privacy readers.
 
+Using an illustrative post URL, the built-in X catalog offers these kinds of destinations:
+
+```text
+Original:       https://x.com/alex/status/123
+Embed example:  https://fixupx.com/alex/status/123
+Reader example: https://xcancel.com/alex/status/123
+```
+
+The host changes while the post path stays the same. These are examples of the current catalog, not service endorsements or availability promises. FixupXer creates the rewritten URL locally. A browser or chat app may contact the selected site when it loads the page or makes a preview.
+
+For example, if you send an X post in a chat and want a preview, an embed frontend is designed for that use; the chat and service may or may not show one. If you open a public post in a browser to read it, a reader frontend is designed to display the content. What you can see still depends on the reader and the post.
+
 Availability depends on the platform and processing context. Main and Share choices are configured separately from Browser mode choices. For the current platform-specific options, see [Supported Platforms](https://github.com/NeatCode-Labs/fixupxer/blob/main/docs/SUPPORTED_PLATFORMS.md).
 
-For links on the Main or Share screen, use the platform's conversion toggle and **Change** link. You can also manage those selections under **Settings > Link processing > Alternative frontends**. Each platform remembers its choice. Turn off the conversion toggle to keep the original host. In Browser mode, **Clean only** skips frontend conversion while cleaning and enabled custom rules still apply.
+For links on the Main screen or when another app sends a link to FixupXer with Android's Share action, use the platform's conversion toggle and **Change** link. You can also manage those selections under **Settings > Link processing > Alternative frontends**. Each platform remembers its choice. Turn off the conversion toggle to keep the original host. In Browser mode, **Clean only** skips frontend conversion while cleaning and enabled custom rules still apply.
+
+**Main/Share** settings apply to links processed on the Main screen or received from another app through Android's Share action. **Browser** settings apply when Android routes an eligible web link to FixupXer as a browser handler. The choices are saved separately. For example, you can use the X embed for Main/Share and an X reader for Browser mode; changing one choice does not change the other.
 
 [Back to contents](#contents)
 
@@ -85,7 +103,19 @@ For links on the Main or Share screen, use the platform's conversion toggle and 
 
 ## Add custom proxies
 
-A custom proxy is a frontend domain that you add yourself. To add one for Main and Share:
+A custom proxy is a frontend domain that you add yourself. Here, "proxy" means an alternate website host for supported links; it is not a VPN and does not route the phone's general internet traffic.
+
+For a fictional example, imagine a compatible X frontend at `social.example`. If you add and select it, this supported link:
+
+`https://x.com/alex/status/123`
+
+becomes:
+
+`https://social.example/alex/status/123`
+
+FixupXer changes the host in that URL; it does not check whether the service works or route the phone's general internet traffic. A VPN changes the network route instead of rewriting this supported link.
+
+To add one for Main and Share:
 
 1. Open **Settings > Link processing > Alternative frontends**.
 2. Choose a platform.
@@ -175,6 +205,16 @@ Re-enable the setting at any time to restore direct native-app handling.
 Open **FixupXer > Settings > Configure Browser mode** and find the **After
 processing an opened link** card.
 
+This setting chooses what happens after local processing; it does not choose
+the frontend domain. **Ask what to do** pauses for your choice. **Try actions
+automatically** tries the configured actions in order.
+
+For example, set **Try actions automatically** with **Open in native app** first
+and **Open in browser** second. FixupXer tries a compatible app for the cleaned
+link; if no app can open it, FixupXer continues to the browser action and then
+any remaining actions in the configured order. It stops after the first action
+that succeeds.
+
 #### Ask what to do
 
 FixupXer shows its own action dialog with:
@@ -241,6 +281,11 @@ use this browser**. Use once does not replace your saved preference. If the
 saved browser is unavailable, choose another compatible browser; FixupXer is
 never offered as its own destination.
 
+For example, if Firefox is installed and selected under **Preferred browser**,
+the **Open in browser** action sends the final URL to Firefox. Choose **Always
+ask** if you want to pick a browser for each handoff. This is the general
+browser destination, not a frontend choice or Android's default-browser setting.
+
 This preference does not skip **Ask what to do**, change action priority or
 override a valid per-host saved app choice. To open browser-directed links
 without either picker, select **Try actions automatically**, put **Open in
@@ -253,6 +298,9 @@ browser** first in **Action order**, and choose a preferred browser.
 A saved choice sends links for one exact website host to the compatible native app or external browser you picked. Create one from **Always use app for this host** in the **Ask what to do** dialog. Manage or delete choices from **Saved app choices** on the Browser mode settings screen.
 
 Saved choices apply only when Browser mode is enabled and **Ask what to do** is selected. They do not affect Paste or Share. The host is matched before optional frontend conversion, so `example.com` and `www.example.com` are separate choices. If a saved app is unavailable or cannot handle a link, FixupXer offers the normal action flow and keeps the saved choice for later.
+
+Example: in **Ask what to do**, choose **Always use app for this host** for `news.example` and select a compatible app or browser. Future Browser-mode links for exactly `news.example` use that saved destination first. `blog.news.example` is a different host. This host-specific choice is separate from **Preferred browser**, and it does not change Paste or Share.
+
 <a id="browser-frontends"></a>
 
 ### Browser frontends
@@ -938,6 +986,15 @@ different URL shapes.
 
 ### Test Lab
 
+Test Lab is a local preview in the rule editor. It runs the processing pipeline
+with your unsaved rule draft and shows the result plus a trace; it does not open
+the URL in another app. For example, enter
+`https://shop.example.com/item/7?article=42&campaign_code=spring` in the Main
+profile and test a draft **Remove named parameters** action for
+`campaign_code`. This fictional parameter is not removed by a built-in cleaner:
+the expected result is `https://shop.example.com/item/7?article=42`, with the
+draft rule marked **APPLIED** in the trace.
+
 Before saving:
 
 1. Enter a representative URL under **Test Lab**.
@@ -967,6 +1024,16 @@ When creating a new rule, expand **Teach from example** and enter one original
 URL plus the exact URL you want. FixupXer can safely infer only two narrow
 cases: removing named query parameters while preserving every surviving raw
 query token and its order, or extracting one unambiguous redirect parameter.
+
+For example, give Teach this original URL and the exact result you want:
+
+```text
+https://shop.example.com/read?article=42&newsletter_id=weekly
+https://shop.example.com/read?article=42
+```
+
+Because the only difference is removal of a named query parameter, Teach can
+draft a rule to remove `newsletter_id`. It cannot infer every kind of rewrite.
 
 The generated draft is deliberately disabled, scoped to the original exact
 host, limited to the Main screen, and placed before built-in cleaning. It also
@@ -1197,6 +1264,8 @@ When you delete a History entry, **Undo** restores the same entry and its origin
 Open **Settings > Data & backup > Backup & restore** to export or restore a manual backup. A backup is a versioned, **unencrypted JSON file**. Store it somewhere you trust. It can include settings, the History on/off setting and limit, custom rules, frontend and reader rosters, and saved app choices. It does not contain URL history entries, Android's default-browser role, installed apps, or rule-import rollback snapshots.
 
 Restoring replaces the settings and rules included in the backup. It does not restore URL history; entries already on the device remain and may be trimmed if the restored History limit is lower. Older backup versions are supported with migration behavior described below.
+
+For example, if you delete a History row, tap **Undo** while that action is offered to restore the row. Exporting or restoring a backup cannot bring the row back: a backup includes the History setting and limit, not the URL entries. A restore may trim entries already on the device if the restored limit is lower.
 
 ### Browser choices and preferred browser
 

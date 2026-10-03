@@ -210,6 +210,12 @@
                             android:layout_weight="1"
                             android:text="@string/dominant_hand_right" />
                     </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                    <include
+                        android:id="@+id/appSettingsHelp"
+                        layout="@layout/view_help_link"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -232,6 +238,12 @@
                         android:text="@string/link_processing"
                         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
                         android:textColor="?attr/colorPrimary" />
+
+                    <include
+                        android:id="@+id/linkCleaningHelp"
+                        layout="@layout/view_help_link"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -290,32 +302,11 @@
                             android:src="@drawable/ic_chevron_right" />
                     </LinearLayout>
 
-                    <LinearLayout
+                    <include
                         android:id="@+id/buttonCustomRulesHowTo"
+                        layout="@layout/view_help_link"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:minHeight="@dimen/min_touch_target_size"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:contentDescription="@string/custom_rules_guide"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:importantForAccessibility="no"
-                            android:text="@string/custom_rules_guide"
-                            android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/ic_chevron_right" />
-                    </LinearLayout>
+                        android:layout_height="wrap_content" />
 
                     <com.google.android.material.divider.MaterialDivider
                         android:layout_width="match_parent"
@@ -485,6 +476,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/local_backup_restore" />
+
+                    <include
+                        android:id="@+id/historyBackupHelp"
+                        layout="@layout/view_help_link"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
             </LinearLayout>

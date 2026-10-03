@@ -57,6 +57,12 @@
                     android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
+                <include
+                    android:id="@+id/frontendsHelp"
+                    layout="@layout/view_help_link"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

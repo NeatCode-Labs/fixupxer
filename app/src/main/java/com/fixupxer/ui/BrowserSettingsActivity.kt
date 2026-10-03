@@ -25,6 +25,8 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fixupxer.PreferencesManager
+import com.fixupxer.ui.helpers.HelpLinkHelper
+import com.fixupxer.utils.HelpTopic
 import com.fixupxer.R
 import com.fixupxer.backup.RememberedRouteValidator
 import com.fixupxer.databinding.ActivityBrowserSettingsBinding
@@ -134,6 +136,8 @@ class BrowserSettingsActivity : BaseActivity() {
     }
 
     private fun setupViews() {
+        HelpLinkHelper.bind(binding.browserFrontendsHelp.root, this, R.string.help_browser_frontends, HelpTopic.BROWSER_FRONTENDS)
+        HelpLinkHelper.bind(binding.afterCleanHelp.root, this, R.string.help_after_clean, HelpTopic.AFTER_CLEAN)
         binding.switchBrowserMode.setOnCheckedChangeListener(browserModeListener)
         binding.radioGroupActionMode.setOnCheckedChangeListener(actionModeListener)
         binding.buttonDefaultBrowser.setOnClickListener {
@@ -149,13 +153,7 @@ class BrowserSettingsActivity : BaseActivity() {
         binding.buttonPreferredBrowser.setOnClickListener {
             showPreferredBrowserPicker()
         }
-        binding.buttonBrowserModeGuide.setOnClickListener {
-            UrlActionHelper.openUrlInExternalBrowser(
-                binding.root,
-                this,
-                Constants.BROWSER_MODE_GUIDE_URL,
-            )
-        }
+        HelpLinkHelper.bind(binding.buttonBrowserModeGuide.root, this, R.string.browser_mode_guide, HelpTopic.BROWSER_MODE)
         binding.buttonConversionDefaults.setOnClickListener {
             showConversionDefaultsDialog()
         }

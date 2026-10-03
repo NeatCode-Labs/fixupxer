@@ -33,6 +33,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.fixupxer.ui.helpers.HelpLinkHelper
 import com.fixupxer.R
 import com.fixupxer.utils.Constants
 import timber.log.Timber
@@ -257,8 +258,13 @@ abstract class BaseActivity : AppCompatActivity() {
     }
     
     /**
-     * Open the GitHub release notes in an external browser.
+     * Open the Help contents outside FixupXer, including from the Share menu.
      */
+    protected fun openHelp() {
+        HelpLinkHelper.open(this)
+    }
+
+    /** Open the GitHub release notes in an external browser. */
     protected fun openWhatsNew() {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Constants.RELEASE_NOTES_URL)))
@@ -332,4 +338,4 @@ abstract class BaseActivity : AppCompatActivity() {
             Timber.d("App title header set to: ${getString(R.string.app_title)}")
         }
     }
-} 
+}

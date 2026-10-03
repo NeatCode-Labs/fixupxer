@@ -33,6 +33,8 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fixupxer.PreferencesManager
+import com.fixupxer.ui.helpers.HelpLinkHelper
+import com.fixupxer.utils.HelpTopic
 import com.fixupxer.R
 import com.fixupxer.databinding.DialogProxyPickerBinding
 import com.fixupxer.databinding.ItemProxyActionBinding
@@ -96,6 +98,7 @@ object ProxyPickerDialogHelper {
         onChanged: () -> Unit,
     ) {
         val binding = DialogProxyPickerBinding.inflate(layoutInflater)
+        HelpLinkHelper.bind(binding.frontendsHelp.root, context, R.string.help_frontends, HelpTopic.ALTERNATIVE_FRONTENDS)
         var editMode = false
         var dialog: AnimatedBottomSheetDialog? = null
 
@@ -224,6 +227,7 @@ object ProxyPickerDialogHelper {
         onSelected: (FrontendTarget) -> Unit,
     ) {
         val binding = DialogProxyPickerBinding.inflate(layoutInflater)
+        HelpLinkHelper.bind(binding.frontendsHelp.root, context, R.string.help_frontends, HelpTopic.ALTERNATIVE_FRONTENDS)
         var dialog: AnimatedBottomSheetDialog? = null
 
         lateinit var adapter: ProxyPickerAdapter
@@ -302,6 +306,7 @@ object ProxyPickerDialogHelper {
         onSelected: (BrowserFrontendPreference) -> Unit,
     ) {
         val binding = DialogProxyPickerBinding.inflate(layoutInflater)
+        HelpLinkHelper.bind(binding.frontendsHelp.root, context, R.string.help_frontends, HelpTopic.ALTERNATIVE_FRONTENDS)
         var dialog: AnimatedBottomSheetDialog? = null
         var editMode = false
         lateinit var adapter: ProxyPickerAdapter
@@ -467,6 +472,7 @@ object ProxyPickerDialogHelper {
         messageRes: Int? = null,
     ) {
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_add_custom_proxy, null)
+        HelpLinkHelper.bind(view.findViewById(R.id.customProxyHelp), context, R.string.help_custom_proxies, HelpTopic.CUSTOM_PROXIES)
         val inputLayout = view.findViewById<TextInputLayout>(R.id.customProxyInputLayout)
         val input = view.findViewById<TextInputEditText>(R.id.customProxyInput)
         input.setText(initialDomain.orEmpty())

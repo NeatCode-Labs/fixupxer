@@ -22,6 +22,8 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.fixupxer.ui.helpers.HelpLinkHelper
+import com.fixupxer.utils.HelpTopic
 import com.fixupxer.R
 import com.fixupxer.databinding.ActivityRuleEditorBinding
 import com.fixupxer.databinding.DialogRuleTestVectorBinding
@@ -88,6 +90,9 @@ class RuleEditorActivity : BaseActivity() {
             }
         )
 
+        HelpLinkHelper.bind(binding.customRulesHelp.root, this, R.string.custom_rules_guide, HelpTopic.CUSTOM_RULES)
+        HelpLinkHelper.bind(binding.testLabHelp.root, this, R.string.help_test_lab, HelpTopic.TEST_LAB)
+        HelpLinkHelper.bind(binding.teachExampleHelp.root, this, R.string.help_teach_example, HelpTopic.TEACH_FROM_EXAMPLE)
         restoreVectors(savedInstanceState)
         setupSpinners()
         setupActions()

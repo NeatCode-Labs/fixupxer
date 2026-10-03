@@ -25,6 +25,8 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fixupxer.BuildConfig
+import com.fixupxer.ui.helpers.HelpLinkHelper
+import com.fixupxer.utils.HelpTopic
 import com.fixupxer.R
 import com.fixupxer.databinding.ActivityCustomRulesBinding
 import com.fixupxer.presentation.rules.CustomRulesViewModel
@@ -109,6 +111,7 @@ class CustomRulesActivity : BaseActivity() {
     }
 
     private fun setupActions() {
+        HelpLinkHelper.bind(binding.customRulesHelp.root, this, R.string.custom_rules_guide, HelpTopic.CUSTOM_RULES)
         binding.buttonAddRule.setOnClickListener { openEditor(null) }
         binding.buttonImport.setOnClickListener {
             MaterialAlertDialogBuilder(this)

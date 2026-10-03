@@ -15,6 +15,8 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import com.fixupxer.PreferencesManager
+import com.fixupxer.ui.helpers.HelpLinkHelper
+import com.fixupxer.utils.HelpTopic
 import com.fixupxer.R
 import com.fixupxer.databinding.ActivityFrontendSettingsBinding
 import com.fixupxer.databinding.ItemFrontendPlatformBinding
@@ -42,6 +44,7 @@ class FrontendSettingsActivity : BaseActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        HelpLinkHelper.bind(binding.frontendsHelp.root, this, R.string.help_frontends, HelpTopic.ALTERNATIVE_FRONTENDS)
         inflatePlatformRows()
     }
 

@@ -26,6 +26,8 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.fixupxer.PreferencesManager
+import com.fixupxer.ui.helpers.HelpLinkHelper
+import com.fixupxer.utils.HelpTopic
 import com.fixupxer.R
 import com.fixupxer.domain.model.UrlHistory
 import com.fixupxer.databinding.DialogHistoryBinding
@@ -70,6 +72,7 @@ class HistoryDialogHelper(
     }
     
     private fun setupUI() {
+        HelpLinkHelper.bind(binding.historyHelp.root, context, R.string.help_history_backup, HelpTopic.HISTORY_AND_BACKUP)
         adapter = HistoryAdapter(
             onItemClick = onEntrySelected?.let { callback ->
                 { item ->

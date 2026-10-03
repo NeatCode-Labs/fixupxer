@@ -17,7 +17,7 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 * Private Clipboard Previews: Copied URL contents are marked sensitive for system previews where Android supports it
 * Configurable Actions: Choose what happens after cleaning - open in app, browser, share, or copy to clipboard
 * Backup and Restore: Export settings, Browser frontend choices, preferred browser, custom rules, and saved app choices with schema v2; older backups still import safely
-* GitHub Guides: Open detailed Browser mode and Custom URL rules instructions from the How to Use links
+* Unified Help: Open one guide with contents, examples and troubleshooting from the Main or Share menu, or jump to a topic from a clearly marked external Help link
 
 <b>Browser Mode Setup</b>
 

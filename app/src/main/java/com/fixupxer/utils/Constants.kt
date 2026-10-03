@@ -38,11 +38,10 @@ object Constants {
     private const val BUG_REPORT_EMAIL_LOCAL_PART = "neatcodelabs"
     private const val BUG_REPORT_EMAIL_DOMAIN = "gmail.com"
     val BUG_REPORT_EMAIL = "$BUG_REPORT_EMAIL_LOCAL_PART@$BUG_REPORT_EMAIL_DOMAIN"
-    const val BROWSER_MODE_GUIDE_URL =
-        "$GITHUB_REPOSITORY_URL/blob/main/docs/BROWSER_MODE_GUIDE.md"
+    const val HELP_URL = "$GITHUB_REPOSITORY_URL/blob/main/docs/HELP.md"
+    const val BROWSER_MODE_GUIDE_URL = "$HELP_URL#browser-mode"
     const val BROWSER_PROBE_URL = "http://example.com"
-    const val CUSTOM_RULES_GUIDE_URL =
-        "$GITHUB_REPOSITORY_URL/blob/main/docs/CUSTOM_URL_RULES_GUIDE.md"
+    const val CUSTOM_RULES_GUIDE_URL = "$HELP_URL#custom-rules"
     
     // Domain identifiers
     const val INSTAGRAM_DOMAIN = "instagram.com"

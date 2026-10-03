@@ -28,6 +28,13 @@
         app:showAsAction="never" />
     
     <item
+        android:id="@+id/action_help"
+        android:title="@string/help_menu"
+        android:icon="@drawable/ic_open_external"
+        app:contentDescription="@string/help_menu_description"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_about"
         android:title="@string/about"
         app:showAsAction="never" />

@@ -1,5 +1,31 @@
 # FixupXer Testing Report
 
+## v2.9.0 phone-test candidate — October 3, 2026
+
+The app release is pending owner testing. Unified English Help has a table of
+contents and stable section links; Main and Share menus and contextual links
+open an external browser explicitly. Existing guide URLs retain their original
+heading destinations and lead to the matching section of Help.
+
+Fresh gates pass **815 debug + 815 release unit tests** and **285/285 API35
+instrumentation tests**, with zero failures, errors or skips. Release lint has
+**zero errors and 47 warnings**: 46 pre-existing warnings and one new advisory
+that the rule editor exceeds the recommended view count after Help links were
+added. The full device suite ran once on a cold Pixel_API_35_Play emulator
+with airplane mode enabled and Wi-Fi disabled.
+
+Four new device tests cover Main/Share Help menus, exact external destinations
+with the Browser alias enabled, visible/accessibility wording, contextual
+Settings/Browser/frontend links and unsaved rule-editor input across background
+and resume. These tests intercept outbound intents; they do not prove live
+GitHub loading. Share intentionally retains its existing one-shot lifecycle.
+
+No URL-processing behavior, permissions, preference schema or database schema
+was changed. Physical-device acceptance is pending. Play AAB generation,
+independent Linux rebuilding, Play-channel artifact checks, release tags,
+GitHub app release and Play publication are deferred until the owner approves
+continuation. This checkpoint is not a completed full release.
+
 ## v2.8.3 verification — September 24, 2026
 
 Thirteen added unit cases cover the exact Guardian report, the NYT

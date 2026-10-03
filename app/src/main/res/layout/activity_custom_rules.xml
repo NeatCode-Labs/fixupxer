@@ -103,6 +103,15 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <include
+            android:id="@+id/customRulesHelp"
+            layout="@layout/view_help_link"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardRuleLibrary" />
+
         <TextView
             android:id="@+id/textRuleTools"
             android:layout_width="wrap_content"
@@ -112,7 +121,7 @@
             android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
             android:textColor="?attr/colorOnSurface"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/cardRuleLibrary" />
+            app:layout_constraintTop_toBottomOf="@id/customRulesHelp" />
 
         <LinearLayout
             android:id="@+id/ruleToolsContainer"

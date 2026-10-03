@@ -1,3 +1,29 @@
+# FixupXer v2.9.0 - Unified Help
+
+Phone-test candidate; the app release has not been published.
+
+## What's New
+
+- Find all usage instructions in one Help guide with a table of contents,
+  examples and troubleshooting.
+- Open Help from the Main or Share menu, or jump to the relevant topic from
+  Browser mode, frontend and custom proxy settings, custom rules, Test Lab,
+  History and other settings.
+- Recognize external Help links by their external-link icon and
+  "Opens in browser" label.
+
+Link processing remains offline with zero permissions. Reading the online
+Help opens a separate browser and requires a connection there.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 55
+- versionName: 2.9.0
+
+---
+
 # FixupXer v2.8.3 - Broader Tracking Cleanup
 
 ## What's Fixed

@@ -360,6 +360,10 @@ class MainActivity : BaseActivity() {
                 showDonateDialog()
                 true
             }
+            R.id.action_help -> {
+                openHelp()
+                true
+            }
             R.id.action_whats_new -> {
                 openWhatsNew()
                 true

@@ -27,6 +27,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.fixupxer.BuildConfig
 import com.fixupxer.PreferencesManager
+import com.fixupxer.ui.helpers.HelpLinkHelper
+import com.fixupxer.utils.HelpTopic
 import com.fixupxer.R
 import com.fixupxer.backup.LocalBackupManager
 import com.fixupxer.databinding.ActivitySettingsBinding
@@ -155,6 +157,9 @@ class SettingsActivity : BaseActivity() {
             Timber.d("Dominant hand changed to: $hand")
         }
 
+        HelpLinkHelper.bind(binding.linkCleaningHelp.root, this, R.string.help_link_cleaning, HelpTopic.LINK_CLEANING)
+        HelpLinkHelper.bind(binding.historyBackupHelp.root, this, R.string.help_history_backup, HelpTopic.HISTORY_AND_BACKUP)
+        HelpLinkHelper.bind(binding.appSettingsHelp.root, this, R.string.help_app_settings, HelpTopic.APP_SETTINGS)
         binding.switchCustomRules.setOnCheckedChangeListener(customRulesListener)
         binding.buttonCustomRules.setOnClickListener {
             startActivity(Intent(this, CustomRulesActivity::class.java))
@@ -162,13 +167,7 @@ class SettingsActivity : BaseActivity() {
         binding.buttonAlternativeFrontends.setOnClickListener {
             startActivity(Intent(this, FrontendSettingsActivity::class.java))
         }
-        binding.buttonCustomRulesHowTo.setOnClickListener {
-            UrlActionHelper.openUrlInExternalBrowser(
-                binding.root,
-                this,
-                Constants.CUSTOM_RULES_GUIDE_URL,
-            )
-        }
+        HelpLinkHelper.bind(binding.buttonCustomRulesHowTo.root, this, R.string.custom_rules_guide, HelpTopic.CUSTOM_RULES)
         binding.configurationStatusNavigation.setOnClickListener {
             showConfigurationStatus()
         }

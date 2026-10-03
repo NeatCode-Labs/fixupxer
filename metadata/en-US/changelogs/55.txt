@@ -1,0 +1,3 @@
+• Find all instructions in one Help guide with contents, examples and troubleshooting.
+• Open Help from Main or Share, or jump to a topic beside the relevant feature.
+• Recognize external Help links by their icon and Opens in browser label.

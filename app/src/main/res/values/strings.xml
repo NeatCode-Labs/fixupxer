@@ -315,7 +315,7 @@
     <string name="browser_settings_title">Browser mode</string>
     <string name="enable_browser_mode">Enable Browser mode</string>
     <string name="enable_browser_mode_description">Makes FixupXer available as a browser candidate. FixupXer does not display web pages; you must also choose it as Android’s default browser.</string>
-    <string name="browser_mode_guide">Browser mode guide</string>
+    <string name="browser_mode_guide">Browser mode help</string>
     <string name="browser_mode_status">Browser mode status</string>
     <string name="browser_status_needs_attention">Needs attention</string>
     <string name="browser_status_off">Off</string>
@@ -466,7 +466,7 @@ Changes apply when you tap Save.</string>
     <string name="custom_rules_title">Custom URL rules</string>
     <string name="custom_rules_description">Create offline rules for removing parameters and rewriting URLs.</string>
     <string name="custom_rules_manage">Manage rules</string>
-    <string name="custom_rules_guide">Custom rules guide</string>
+    <string name="custom_rules_guide">Custom rules help</string>
     <string name="custom_rules_enabled">Enable custom rules</string>
     <plurals name="custom_rules_count">
         <item quantity="one">%1$d enabled rule</item>
@@ -719,4 +719,21 @@ Changes apply when you tap Save.</string>
     <string name="pipeline_status_cycle">Processing found a redirect cycle. Review custom rules before retrying.</string>
     <string name="pipeline_status_hop_limit">Processing reached the redirect limit. Review the link and custom rules before retrying.</string>
     <string name="pipeline_status_stale_configuration">Settings changed during processing. Retry to use the current settings.</string>
+
+    <!-- Help links always open in an external browser. -->
+    <string name="help">Help</string>
+    <string name="help_menu">Help ↗</string>
+    <string name="help_opens_in_browser">Opens in browser</string>
+    <string name="help_link_description">%1$s. Opens in browser.</string>
+    <string name="help_menu_description">Help. Opens in browser.</string>
+    <string name="help_link_cleaning">Link cleaning help</string>
+    <string name="help_frontends">Frontend help</string>
+    <string name="help_custom_proxies">Custom proxy help</string>
+    <string name="help_browser_frontends">Browser frontend help</string>
+    <string name="help_after_clean">After-clean help</string>
+    <string name="help_test_lab">Test Lab help</string>
+    <string name="help_teach_example">Teach from example help</string>
+    <string name="help_history_backup">History and backup help</string>
+    <string name="help_app_settings">App settings help</string>
+    <string name="help_configuration_status">Configuration status help</string>
 </resources>

@@ -1,6 +1,42 @@
 # FixupXer Testing Report
 
-## v2.9.0 phone-test candidate — October 3, 2026
+## v2.9.0 phone-test candidate, revision 2 — October 3, 2026
+
+The final source passes **815 debug + 815 release unit tests** and **287/287
+API35 instrumentation tests**, with zero failures/errors/skips. Release lint:
+zero errors and 43 warnings, with no new warnings. The final full device run
+completed in 9m48s on a cold Pixel_API_35_Play emulator, offline, with a temporary
+`-gpu swiftshader` override. No AVD configuration or app code was changed to
+work around the emulator issue.
+
+Failed attempts are retained separately: the first run exposed a mistake in the
+new external-link test, which tried another click after Share's expected
+noHistory exit. The fixture now creates a fresh activity per action; its six
+Help tests pass. A subsequent full run completed 142 cases before Android's
+system_server watchdog killed a display/task-snapshot deadlock. An immediate
+post-crash isolated attempt also lacked window focus. After a cold boot with
+software rendering, the affected MainActivityProxyLabelTest passed 9/9, followed
+by the complete 287/287 run. None of the interrupted runs is counted as a pass.
+
+The signed revision-2 APK from mirror commit
+`f5cc2f0f1186a98aa8fbee3d4adab876209b433d` has SHA-256
+`82b5ed795dffdaaa0ea666df987e6f822dbb2f37b1dd25284b42a2768fdc4d53`.
+It upgraded the installed revision-1 APK (same 2.9.0 / 55) without uninstalling;
+the installed digest was verified. Visual spot checks passed for Settings and
+Browser cards in both themes, Main/Share external menu arrows, the footer and
+Donate dialog. The Browser frontend Help link opened the published
+`#browser-frontends` section in Chrome. Automated outgoing-link tests intercept
+intents; the separate live check verifies this Help page, not third-party
+frontend availability or payment functionality.
+
+Help validation preserves all 79 headings; 12 app anchors, 45 internal links and
+70 compatibility-guide links resolve. Public Help commit
+`d1f249567bbc911290b1df75726bdaba21cca44c` matches the reviewed root bytes.
+Root/mirror parity passes 402 file pairs; REUSE passes all 484 files.
+Physical phone acceptance, clean installs, the complete channel/API matrix and
+full distribution release remain pending. Version/code are unchanged.
+
+## v2.9.0 phone-test candidate, revision 1 — October 3, 2026
 
 The app release is pending owner testing. Unified English Help has a table of
 contents and stable section links; Main and Share menus and contextual links

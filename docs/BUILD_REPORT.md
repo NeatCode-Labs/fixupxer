@@ -1,6 +1,40 @@
 # FixupXer Build Report
 
-## v2.9.0 phone-test candidate — October 3, 2026
+## v2.9.0 phone-test candidate, revision 2 — October 3, 2026
+
+Version remains **2.9.0 / 55**. Settings now distinguish bold neutral headings,
+filled internal actions and smaller underlined external Help links. Static web
+links carry external arrows and explicitly target a browser. Help explains
+frontends, proxies, rules and other concepts with concrete examples.
+
+The signed APK was built from fresh local mirror commit
+`f5cc2f0f1186a98aa8fbee3d4adab876209b433d` in 2m20s. All 368 applicable
+app source hashes match the tested snapshot. Package/version, API21/36,
+expected release signer, zero permissions and absence of Play metadata pass.
+
+Artifact: `FixupXer-v2.9.0-release-r2.apk`.
+SHA-256: `82b5ed795dffdaaa0ea666df987e6f822dbb2f37b1dd25284b42a2768fdc4d53`.
+The first candidate APK is preserved separately.
+
+Fresh gates pass **815 debug + 815 release unit tests**, **287/287 API35 device
+tests**, and release lint with **zero errors / 43 warnings** (four fewer
+UseKtx warnings, no new warnings). An emulator system crash required a retry;
+the successful full run used a cold boot and temporary software rendering.
+See TESTING_REPORT.md for the failed-attempt evidence and final checks.
+
+The exact APK successfully upgraded revision 1 with the same version/code;
+the installed APK hash matches the delivered file. Settings and Browser cards
+were visually checked in light/dark themes. Main/Share menu arrows and the
+Donate button are visible. Browser frontend Help opened the live matching
+GitHub section in Chrome.
+
+Only Help documentation is newly published, at
+`d1f249567bbc911290b1df75726bdaba21cca44c`; public bytes match the reviewed file.
+App code and these candidate reports remain local. Physical-device acceptance,
+Play AAB, independent Linux reproducibility, full channel installation matrix,
+public tags, GitHub app release and Play publication remain deferred.
+
+## v2.9.0 phone-test candidate, revision 1 — October 3, 2026
 
 The app release is pending owner testing. Unified English Help has a table of
 contents and stable section links; Main and Share menus and contextual links

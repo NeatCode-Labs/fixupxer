@@ -1,6 +1,27 @@
 # Android Test Coverage for FixupXer
 
-## v2.9.0 phone-test candidate — October 3, 2026
+## v2.9.0 phone-test candidate, revision 2 — October 3, 2026
+
+HelpNavigationTest now has six cases. Two additions check explicit external
+browser destinations for What's new, the author footer and Donate from both
+Main and Share, plus the Disclaimer source link's marker and destination.
+Each Share action gets a fresh activity because its noHistory exit is expected.
+Outbound intents are intercepted; no donation or remote service request occurs.
+The original menu, contextual Help, accessibility-label and unsaved-draft checks
+remain in the full suite.
+
+Fresh verification passes **815 debug + 815 release unit tests** and
+**287/287 API35 device tests**, zero failures/errors/skips, plus lint with zero
+errors and 43 warnings. A cold software-rendered emulator run supersedes the
+interrupted system-watchdog attempt; TESTING_REPORT.md records the diagnosis.
+
+Exact signed-APK spot checks cover same-version upgrade from candidate revision 1,
+light/dark Settings and Browser card hierarchy, Main/Share menu markers, Donate
+wording and live external Help navigation to `#browser-frontends`. These are
+API35 emulator checks; physical phone and full channel/API coverage are pending.
+No version bump, URL processing, permissions or data schema changes were made.
+
+## v2.9.0 phone-test candidate, revision 1 — October 3, 2026
 
 The app release is pending owner testing. Unified English Help has a table of
 contents and stable section links; Main and Share menus and contextual links

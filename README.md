@@ -20,8 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="docs/BROWSER_MODE_GUIDE.md">Browser Mode Guide</a> ·
-  <a href="docs/CUSTOM_URL_RULES_GUIDE.md">Custom Rules Guide</a> ·
+  <a href="docs/HELP.md">Help</a> ·
   <a href="docs/SUPPORTED_PLATFORMS.md">Supported Platforms</a> ·
   <a href="PRIVACY_POLICY.md">Privacy</a>
 </p>
@@ -111,7 +110,7 @@ which browser should open browser-directed links, or keep **Always ask**.
 With **Ask what to do** you can save a per-host app choice
 that is applied automatically on future links. Setup, action order,
 conversions, and troubleshooting are in the
-**[Browser Mode Guide](docs/BROWSER_MODE_GUIDE.md)**.
+**[Browser mode setup and troubleshooting](docs/HELP.md#browser-mode)**.
 
 ## Custom URL rules
 
@@ -135,7 +134,7 @@ them in Settings.
   bundles through Android's system file picker. Imports are atomic and can be
   rolled back.
 
-See the **[Custom URL Rules Guide](docs/CUSTOM_URL_RULES_GUIDE.md)** for
+See the **[Custom URL rules Help](docs/HELP.md#custom-rules)** for
 beginner-friendly examples and a complete action/scope reference.
 
 ## Built-in cleaning and link conversion
@@ -210,7 +209,7 @@ entire Browser map, so existing v2 embed/custom choices cannot remain enabled
 accidentally. Invalid files are rejected before settings change. Interrupted
 restores retain a recovery journal and block Browser handoff until recovery succeeds.
 
-See the [Local backup guide](docs/LOCAL_BACKUP_GUIDE.md) for migration and recovery details.
+See the [History and backup Help](docs/HELP.md#history-and-backup) for migration and recovery details.
 
 ## Privacy and safety
 

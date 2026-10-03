@@ -7,7 +7,7 @@
 <h3 align="center">Clean tracking from links. Improve social previews. Build your own offline URL rules.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.8.3"><img src="https://img.shields.io/badge/version-2.8.3-blue?style=flat-square" alt="Version 2.8.3"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.9.0"><img src="https://img.shields.io/badge/version-2.9.0-blue?style=flat-square" alt="Version 2.9.0"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>
@@ -38,7 +38,7 @@ selected.
   cleaners and one universal cleaner; unknown functional parameters are kept.
 - **Private Link Guard** — warns when e-mails, tokens, or precise coordinates
   remain visible in a link — fully offline. Sensitive originals never enter
-  history; fully cleaned results are kept with a redacted-input marker.
+  history; with History on, fully cleaned results may be saved with a redacted-input marker.
 - **Custom URL rules** — create ordered scopes, actions, phases, excludes, and
   context-specific rules without editing raw JSON.
 - **Teach by example** — infer a conservative disabled custom-rule draft from

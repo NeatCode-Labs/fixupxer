@@ -23,6 +23,16 @@ Léon.
 
 ## Source registry
 
+### Help release: 2026-10-03
+
+The previously reviewed Léon sanitizer baseline was compared through
+`df684f1d3539ba5e8da7b429caba88f2f169892e`. Since the last reviewed revision
+`006888279b5dc03e1554140f801cce7e7bb4ea2b`, four commits change URL display
+decoding, version/dependency metadata and development setup; no sanitizer or
+registration changes were found. This Help/UI release imports no upstream
+code or behavior and leaves FixupXer's URL transformations unchanged. See the
+[pinned comparison](https://github.com/leon-cleaning-services/leon/compare/006888279b5dc03e1554140f801cce7e7bb4ea2b...df684f1d3539ba5e8da7b429caba88f2f169892e).
+
 ### Tracking-parameter patch: 2026-09-24
 
 Guardian `CMP` and NYT `smid` cleanup is independently implemented only on

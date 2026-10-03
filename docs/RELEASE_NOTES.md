@@ -1,7 +1,5 @@
 # FixupXer v2.9.0 - Unified Help
 
-Phone-test candidate; the app release has not been published.
-
 ## What's New
 
 - Find all usage instructions in one Help guide with a table of contents,
@@ -15,8 +13,6 @@ Phone-test candidate; the app release has not been published.
   other static browser links also show an external arrow.
 - Learn unfamiliar concepts through practical examples of frontends, custom
   domains, Browser choices, Test Lab and backups.
-
-Phone-test revision 2 retains version 2.9.0 / 55.
 
 Link processing remains offline with zero permissions. Reading the online
 Help opens a separate browser and requires a connection there.

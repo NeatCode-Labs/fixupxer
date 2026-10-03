@@ -1,3 +1,4 @@
-• Find all instructions in one Help guide with contents, examples and troubleshooting.
-• Open Help from Main or Share, or jump to a topic beside the relevant feature.
-• Recognize external Help links by their icon and Opens in browser label.
+• Find instructions, examples and troubleshooting in one Help guide.
+• Open Help from Main or Share, or jump directly to a feature's guide.
+• Distinguish Settings headings, action buttons and external Help links.
+• Recognize browser links by their external arrow.

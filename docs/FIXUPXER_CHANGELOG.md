@@ -3,8 +3,8 @@
 ## Version Progression: v2.9.0 → v1.2.1 (Latest to Oldest)
 
 **Versions Documented:** 49 (v2.9.0 through v1.2.1)
-**Current Candidate:** v2.9.0 (versionCode: 55), awaiting phone testing
-**Development Period:** v1.2.1 (Initial) → v2.9.0 (Candidate)
+**Current Version:** v2.9.0 (versionCode: 55)
+**Development Period:** v1.2.1 (Initial) → v2.9.0
 
 ---
 
@@ -17,7 +17,7 @@ This document summarizes modifications since v1.2.1, through v2.9.0: selective h
 - ✅ **Browser Frontends & Saved App Choices** - Separate Clean only, Reader, Embed and Custom choices for seven eligible platforms, exact-host saved app routing, and a read-only Configuration status overview
 - ✅ **Alternative Frontend Catalog** - Embed/Privacy frontend picker on Main/Share across nine platforms with selectable readers (xcancel, Nitter, SkyLib, Redlib, Invidious, …) and custom domains for every platform
 - ✅ **Local Settings Backup** - Validated JSON export/restore of settings, custom rules, and saved app choices with atomic apply, automatic rollback, and crash-safe recovery
-- ✅ **Private Link Guard** - Offline detection of credentials, e-mails, JWT/auth tokens and precise coordinates left in links; sensitive originals never enter history or cache, while fully cleaned results are kept as clearly marked redacted entries
+- ✅ **Private Link Guard** - Offline detection of credentials, e-mails, JWT/auth tokens and precise coordinates left in links; sensitive originals never enter history or cache. With History on, fully cleaned results may be saved as clearly marked redacted entries
 - ✅ **Keep-Unknown Cleaning Contract** - Only known tracking keys are removed; unknown functional parameters survive, host-boundary matching kills lookalike-domain false positives
 - ✅ **Custom URL Rule Engine** - Ordered scopes/actions/phases/contexts, excludes, keep-only, redirects, templates, Test Lab, test vectors with activation gate, Teach-from-example inference and portable bundles
 - ✅ **TikTok Conversion Support** - Dedicated Embed? toggle + full proxy picker (tnktok.com, tfxktok.com, tiktokez.com, kktiktok.com + custom), subdomain-preserving conversion
@@ -39,12 +39,12 @@ This document summarizes modifications since v1.2.1, through v2.9.0: selective h
 
 ## 📋 Version History
 
-### v2.8.3 → v2.9.0 (phone-test candidate)
+### v2.8.3 → v2.9.0
 - **Unified Help:** one English guide with contents, stable topic links, retained examples and troubleshooting; older guide URLs remain useful entry points.
 - **Contextual access:** Help beside What's new in Main and Share, plus direct topic links throughout settings, frontends, custom proxies, custom rules, Test Lab and History.
 - **Clear external navigation:** external-link icons, an Opens in browser label, accessible descriptions and explicit browser handoff that excludes FixupXer itself.
-- **Phone-test revision 2 (same version):** stronger Settings hierarchy with neutral bold headings, distinct action buttons and smaller underlined Help links; external arrows and browser routing for the other static web links; more beginner examples in Help.
-- No changes to URL cleaning, frontend selection, saved rules, database schemas or permissions. App publication awaits owner testing.
+- **Clearer Settings and practical guidance:** stronger Settings hierarchy with neutral bold headings, distinct action buttons and smaller underlined Help links; external arrows and browser routing for the other static web links; more beginner examples in Help.
+- No changes to URL cleaning, frontend selection, saved rules, database schemas or permissions.
 
 ### v2.8.2 → v2.8.3
 - Add exact-host Guardian CMP and NYT smid cleanup, preserving unknown parameters and access codes.
@@ -867,7 +867,7 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.8.1 | 52 | Remove completed temporary Browser tasks to prevent duplicate opens from Recents | Released on GitHub and Google Play |
 | v2.8.2 | 53 | Native app routing for supported X, Instagram and TikTok embed links | GitHub published; Play status in BUILD_REPORT.md |
 | v2.8.3 | 54 | Guardian and NYT share-tag cleanup plus 12 additional universal tracking keys | Release status in BUILD_REPORT.md |
-| v2.9.0 | 55 | Unified Help and explicit contextual browser links | Phone-test candidate |
+| v2.9.0 | 55 | Unified Help, clearer Settings and explicit contextual browser links | Release status in BUILD_REPORT.md |
 
 ### Build Artifacts (v2.6.7):
 - **Google Play AAB:** `FixupXer-v2.6.7-release.aab` — signed root bundle; signature, manifest and bundletool validation passed. Play submission status is recorded in BUILD_REPORT.md.

@@ -20,6 +20,23 @@ Settings/Browser/frontend links and unsaved rule-editor input across background
 and resume. These tests intercept outbound intents; they do not prove live
 GitHub loading. Share intentionally retains its existing one-shot lifecycle.
 
+The signed mirror APK was built from a fresh local clone of
+`ce73d1a31a3aac3251272e41c4d43595adf4a514`; its source matches the tested
+snapshot. Package/version (com.fixupxer, 2.9.0 / 55), API21/36, expected release
+signer, zero requested permissions and absence of Play-only metadata all pass.
+APK SHA-256: `0518d5211c73a750ebbb24e5b049d7e286ee97d27f03b00eb760b608e96ff773`.
+
+The exact APK upgraded the emulator's existing v2.6.7 installation successfully.
+Visual checks confirm Main/Share Help menus and the external-link wording/icon
+in Settings and Browser mode. Browser mode Help opened the published
+`#browser-mode` section in Chrome; Share Help opened the guide's start and
+the Share activity finished. These are API35 emulator spot checks, not a
+clean-install or complete multi-channel upgrade matrix.
+
+Only the five approved Help/compatibility/README documents are published
+(`b0420755441c7032f3d1575d0f07c927b3cdb59a`). Their live Help content matches
+the reviewed file. App changes and candidate reports remain local.
+
 No URL-processing behavior, permissions, preference schema or database schema
 was changed. Physical-device acceptance is pending. Play AAB generation,
 independent Linux rebuilding, Play-channel artifact checks, release tags,

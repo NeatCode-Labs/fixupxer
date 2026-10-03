@@ -1,5 +1,17 @@
 # Android Test Coverage for FixupXer
 
+## v2.9.0 final distribution checks — October 3, 2026
+
+All six HelpNavigationTest cases remain included in the passing 287/287 API35
+suite, alongside 815 unit tests per variant. Final signed GitHub and AAB-derived
+Play APKs additionally passed clean installs and channel-matched 2.8.3 upgrades.
+Across four final-artifact runs: 32 exact external URL handoffs, four internal
+Browser frontend dialogs, installed-hash checks and preserved Light/Left upgrade
+preferences. Settings and Browser screenshots were reviewed for visual hierarchy.
+These checks execute on API35 with a local external receiver; the earlier live
+Help and owner phone acceptance are separate evidence. BUILD_REPORT.md contains
+the final artifact identities and independent F-Droid reproducibility result.
+
 ## v2.9.0 phone-test candidate, revision 2 — October 3, 2026
 
 HelpNavigationTest now has six cases. Two additions check explicit external

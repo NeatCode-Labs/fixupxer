@@ -1,5 +1,27 @@
 # FixupXer Testing Report
 
+## v2.9.0 final signed-artifact verification — October 3, 2026
+
+The owner accepted revision 2 on a physical phone. The final source remains the
+same as the 815 debug + 815 release unit, 287/287 full API35 instrumentation and
+lint 0-error/43-warning gate run below. All 369 source hashes were rechecked;
+the fresh release tag clone also matches the tested code.
+
+Final GitHub APK and root-AAB-derived universal APK each passed a clean install
+and an upgrade from the matching 2.8.3 channel. Installed APK bytes were checked
+against each final artifact hash. Both upgrades preserved Light/Left settings
+chosen through the old public UI. Each of four runs verified eight exact external
+destinations: Main/Share Help, Main What's new, Settings appearance/custom rules,
+Browser mode/frontends and Alternative frontends. Total: 32 URL handoffs plus
+four internal Browser frontend dialogs opened and cancelled successfully.
+
+These external driver checks use public UI and a local no-network URI receiver;
+no application-private data was read. API35 was cold-booted with a temporary
+software renderer. They supplement the full debug suite and earlier live Help
+check; they do not claim new API21/device coverage or third-party availability.
+Artifact hashes, independent Linux reproducibility and publication status are
+in BUILD_REPORT.md. Historical candidate findings below remain dated evidence.
+
 ## v2.9.0 phone-test candidate, revision 2 — October 3, 2026
 
 The final source passes **815 debug + 815 release unit tests** and **287/287

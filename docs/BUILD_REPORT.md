@@ -1,5 +1,52 @@
 # FixupXer Build Report
 
+## v2.9.0 release verification — October 3, 2026
+
+The owner accepted the revision-2 phone test and authorized full distribution.
+Version remains **2.9.0 / 55**. All 369 tested root source hashes are unchanged;
+the fresh mirror clone matches 368 files exactly, with only the documented
+dependency-metadata difference in its build configuration.
+
+Required gates from this same task: **815 debug + 815 release unit tests**,
+**287/287 full API35 instrumentation tests**, lint **0 errors / 43 warnings**.
+The full run's emulator retry history is preserved below. No unchanged full
+suite was needlessly repeated after acceptance.
+
+Root AAB build source: `dd47f623a269e00a2ff70c3540f44ff5f0a9f276`.
+Mirror APK: fresh clone of annotated tag `v2.9.0`, commit
+`494e43958b8816daa4f0c311a101df85e380d7c9`. Signed build completed in 1m29s.
+
+| Artifact | SHA-256 |
+|---|---|
+| GitHub APK | `df28cd9049bc082d2b75875f5eb497be3b366750b8faef0106b2495e72d3b3e3` |
+| Play AAB | `c6b61c46c6154f853143d086bb7eca5bb9233cd2a56c1e85ba53cbc6df203455` |
+| AAB-derived universal APK | `b0251a8f36023ef69b4d583304844ba1f764b2667823f22fc88479aba9e66e58` |
+
+All artifacts pass identity, expected release signer, API21/36 and zero-permission
+checks. Play ownership is present in Play artifacts and absent in the mirror APK;
+the mirror also excludes Play dependency metadata. Earlier phone-test APKs remain
+preserved as `release-r1.apk` and `release-r2.apk`.
+
+Independent Linux/F-Droid rebuild: **PASS**, current upstream recipe at
+`1d374d6caca99f835291daa35dfe349a399a1399` (recipe SHA-256
+`0805a43d25067f862b7e3e691f9bfacf71c0207709c4471ea5da9fdb82358759`). Its prebuild, reproducible-apk-tools v0.3.0
+and postbuild steps were retained. `fdroidserver.common.verify_apks` and
+`apksigcopier compare` passed; the Linux APK with copied signature is byte-identical
+to the final GitHub APK. The isolated build completed in 3m41s.
+
+Final signed-artifact UI verification: **4/4 channel/install combinations** on
+API35 (mirror and AAB-derived Play; clean install and upgrade from channel-matched
+2.8.3). All **32 exact URL handoffs** and **4 internal Browser frontend dialogs**
+passed. Both upgrades preserved the selected Light theme and left-handed layout.
+Screenshots verify the Settings/Browser hierarchy. The external URI receiver
+was local and tests were offline; live Help loading and physical-phone acceptance
+were checked in the preceding revision, not newly claimed for these artifact hashes.
+
+Public mirror REUSE: **484/484 compliant**; source/docs parity: **402 pairs**.
+No Telegram bot changes. Declared API21 support is unchanged; this final artifact
+matrix executed API35 only. Distribution status is recorded in the section above
+once submission is complete; F-Droid availability depends on its external cycle.
+
 ## v2.9.0 phone-test candidate, revision 2 — October 3, 2026
 
 Version remains **2.9.0 / 55**. Settings now distinguish bold neutral headings,

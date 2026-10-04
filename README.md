@@ -4,7 +4,7 @@
   <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="120" alt="FixupXer app icon">
 </p>
 
-<h3 align="center">Clean tracking from links. Improve social previews. Build your own offline URL rules.</h3>
+<h3 align="center">Cleaner links. X readers without an account. Better previews in your chats.</h3>
 
 <p align="center">
   <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.9.0"><img src="https://img.shields.io/badge/version-2.9.0-blue?style=flat-square" alt="Version 2.9.0"></a>
@@ -25,59 +25,66 @@
   <a href="PRIVACY_POLICY.md">Privacy</a>
 </p>
 
-FixupXer is a free, open-source Android URL cleaner. It removes known tracking
-parameters, optionally converts social links to embed-friendly domains, and lets
-you build ordered custom processing rules. Processing runs locally: the app
-declares no permissions and makes no network requests. When you choose an
-Open/Share action, Android hands the resulting URL to the external app you
-selected.
+FixupXer is a free, open-source Android app for cleaning links and choosing where
+they open. Paste a link, share it to FixupXer, or let Browser Mode process links
+Android routes to it. Keep using your usual browser afterwards.
 
-## Highlights
+The app has **no ads, no account, and no Android permissions**. URL processing
+runs entirely on your device. Opening a result hands it to another app or
+website, which has its own network access and privacy policy.
 
-- **Selective tracking cleanup** — known tracking keys from 28 host-bound
-  cleaners and one universal cleaner; unknown functional parameters are kept.
-- **Private Link Guard** — warns when e-mails, tokens, or precise coordinates
-  remain visible in a link — fully offline. Sensitive originals never enter
-  history; with History on, fully cleaned results may be saved with a redacted-input marker.
-- **Custom URL rules** — create ordered scopes, actions, phases, excludes, and
-  context-specific rules without editing raw JSON.
-- **Teach by example** — infer a conservative disabled custom-rule draft from
-  one original URL and its exact desired result.
-- **Alternative frontends** — optional per-platform conversions to
-  embed-friendly domains (Instagram, Facebook, Twitter/X, Bluesky posts,
-  TikTok) or account-free reader frontends (Twitter/X, Bluesky, Reddit,
-  Pinterest, plus experimental YouTube, Threads, and Instagram readers), with
-  user-selectable built-in and custom domains.
-- **Browser Mode** — clean eligible HTTP(S) links that Android routes through
-  FixupXer before handing them to a browser, native app, share menu, or clipboard.
-  Manage frontends directly in Browser settings and remember a preferred browser
-  to avoid choosing it again for each browser-directed link.
-- **Process Text** — select a link in any app and choose “Clean link” to clean
-  it in place, entirely offline.
-- **Local history** — revisit, copy, share, or delete processed links; Undo
-  restores the original entry and time. History is optional and remains on the
-  device.
-- **Private clipboard previews** — copied URL contents are marked sensitive
-  for system previews where Android supports it, with consistent copy feedback.
-- **Manual backup** — export or restore settings, custom rules, and remembered
-  after-clean destinations to a JSON file you choose (history never included).
-- **Modern Android UI** — Material 3 before/after flow, light and dark themes,
-  responsive layouts, handed action placement, and accessible controls.
+## What you can do with it
+
+- **Read public X posts without signing in to X.** Set the X Browser frontend
+  to `twitterviewer.net`, for example, and X links routed through FixupXer open
+  in that reader. Useful when an X sign-in prompt gets in the way of a public
+  post or thread. Available content and complete threads depend on the reader;
+  this does not unlock private posts. See [the setup example below](#read-x-links-in-a-reader).
+- **Share a preview instead of a bare social link.** Convert X links to
+  `fixupx.com`, or choose embed frontends for Instagram, TikTok, and other
+  supported platforms. These services help chat apps display media previews.
+  Your sharing choice is separate from your Browser choice: read an X link in
+  TwitterViewer, but share it through FxEmbed. Preview support depends on the
+  chat app and the external service.
+- **Stop carrying tracking tags into the next chat.** Remove known tracking
+  parameters before copying, sharing, or opening a link. For example,
+  `example.org/read?article=42&utm_source=chat` becomes
+  `example.org/read?article=42`: the article selector stays. Browser Mode can
+  do this for links Android sends to FixupXer, then open your usual browser.
+- **Notice an email address or sign-in token before passing it on.** Private
+  Link Guard flags certain sensitive values still present in a URL. Review
+  them, remove a parameter, or go back. It runs offline, but cannot detect
+  every private value or tell whether one was included intentionally.
+- **Teach it a cleanup the built-in rules do not know.** Supply a before URL
+  and the result you want. For supported cases, such as removing a named query
+  parameter, FixupXer drafts a rule for that site. Review and test it before
+  enabling it. Test Lab shows the result without opening the website.
+- **Choose where each site's links go.** Remember a preferred browser or save
+  an app choice for an exact website host from **Ask what to do**. For example,
+  use an installed compatible native app for one site and your browser for
+  another, without repeating the same choice each time.
+
+Also included: optional local history, manual settings and rule backups,
+custom frontend domains, light and dark themes, and **Clean link** in text
+selection menus where the source app supports Android's Process Text action.
 
 ## Screenshots
 
 <table>
   <tr>
-    <td align="center"><img src="screenshots/main_empty.png" width="220" alt="Main screen empty state"><br><sub><b>Main screen</b></sub></td>
-    <td align="center"><img src="screenshots/main_filled.png" width="220" alt="Processed URL result"><br><sub><b>Before and after</b></sub></td>
-    <td align="center"><img src="screenshots/share_filled.png" width="220" alt="Share screen result"><br><sub><b>Share flow</b></sub></td>
+    <td align="center"><img src="screenshots/browser_reader.png" width="220" alt="X Browser frontend picker with TwitterViewer selected"><br><sub><b>Choose an X reader</b></sub></td>
+    <td align="center"><img src="screenshots/share_filled.png" width="220" alt="Shared X link cleaned and converted to fixupx.com"><br><sub><b>Prepare a link for chat</b></sub></td>
+    <td align="center"><img src="screenshots/main_filled.png" width="220" alt="Tracking parameter removed while article parameter is preserved"><br><sub><b>See what changed</b></sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="screenshots/custom_rules.png" width="220" alt="Custom URL rule library"><br><sub><b>Custom rules</b></sub></td>
-    <td align="center"><img src="screenshots/history.png" width="220" alt="Conversion history"><br><sub><b>Conversion history</b></sub></td>
-    <td align="center"><img src="screenshots/main_dark.png" width="220" alt="Main screen in dark mode"><br><sub><b>Dark mode</b></sub></td>
+    <td align="center"><img src="screenshots/private_link_guard.png" width="220" alt="Warning about a demonstration email address and sign-in token in a link"><br><sub><b>Check before passing it on</b></sub></td>
+    <td align="center"><img src="screenshots/teach_example.png" width="220" alt="Before and desired URLs used to infer a site-specific cleanup rule"><br><sub><b>Teach from an example</b></sub></td>
+    <td align="center"><img src="screenshots/test_lab.png" width="220" alt="Local preview of the example rule removing a newsletter parameter"><br><sub><b>Try the rule locally</b></sub></td>
   </tr>
 </table>
+
+Captured from FixupXer v2.9.0 on an Android 15 emulator. URLs and sensitive
+values shown in the cleaning examples are demonstration data.
 
 ## Quick start
 
@@ -111,6 +118,24 @@ With **Ask what to do** you can save a per-host app choice
 that is applied automatically on future links. Setup, action order,
 conversions, and troubleshooting are in the
 **[Browser mode setup and troubleshooting](docs/HELP.md#browser-mode)**.
+
+### Read X links in a reader
+
+1. Open **Settings > Configure Browser mode > Configure Browser frontends**.
+2. Choose **X / Twitter**, select **twitterviewer.net**, and tap **Save** in
+   the Browser frontends dialog.
+3. With Browser Mode configured, open an X link through FixupXer and choose
+   **Open in browser**. The result opens on the selected reader.
+
+The URL change happens locally: `x.com/<user>/status/<id>` becomes
+`twitterviewer.net/<user>/status/<id>`. The reader then fetches the public
+content. It may show ads or ask for cookie choices, and its availability and
+thread support can change. FixupXer does not operate the reader or bypass
+private-account restrictions.
+
+To keep using `fixupx.com` for outgoing chat links, leave that selected in
+**Settings > Link processing > Alternative frontends > X / Twitter**.
+Main/Share and Browser selections are independent.
 
 ## Custom URL rules
 
@@ -162,7 +187,7 @@ account) and lets you add custom domains for any platform:
 - Facebook links to a user-added custom frontend (no built-in domain is
   bundled; the former `facebookez.com` was retired after it began redirecting
   to an advertising network)
-- Twitter/X links to `fixupx.com` (embed) or readers such as `xcancel.com`,
+- Twitter/X links to `fixupx.com` (embed) or readers such as `twitterviewer.net`, `xcancel.com`,
   `nitter.net`, community Nitter instances, and automatic instance pickers
 - Bluesky post links to `fxbsky.app` (embed) or SkyLib readers
 - Instagram and TikTok links to selectable built-in or custom proxies

@@ -131,6 +131,7 @@ By contributing to FixupXer, you agree that your contributions will be licensed 
 
 ## ❓ Questions?
 
+- **Getting Started**: Visit the [official website](https://fixupxer.com) and [Help guide](docs/HELP.md)
 - **General Questions**: Open a discussion on GitHub
 - **Technical Issues**: Open an issue with the bug template
 - **Project Maintainer**: Contact [@NeatCode-Labs](https://github.com/NeatCode-Labs) through GitHub

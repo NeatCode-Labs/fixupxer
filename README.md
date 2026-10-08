@@ -20,6 +20,7 @@
 </p>
 
 <p align="center">
+  <a href="https://fixupxer.com">Website</a> ·
   <a href="docs/HELP.md">Help</a> ·
   <a href="docs/SUPPORTED_PLATFORMS.md">Supported Platforms</a> ·
   <a href="PRIVACY_POLICY.md">Privacy</a>
@@ -259,6 +260,8 @@ Read the complete **[Privacy Policy](PRIVACY_POLICY.md)**.
 
 ## Installation
 
+See [fixupxer.com/download](https://fixupxer.com/download) for all download options.
+
 - **Google Play:** [install from the Play Store](https://play.google.com/store/apps/details?id=com.fixupxer)
 - **F-Droid:** [install from F-Droid](https://f-droid.org/packages/com.fixupxer/)
 - **GitHub:** download the latest signed APK from
@@ -425,6 +428,6 @@ If FixupXer is useful to you:
 </p>
 
 <p align="center">
-  <a href="https://neatcodelabs.com"><img src="https://img.shields.io/badge/Website-neatcodelabs.com-blue?style=flat-square" alt="NeatCode Labs website"></a>
+  <a href="https://fixupxer.com"><img src="https://img.shields.io/badge/Website-fixupxer.com-blue?style=flat-square" alt="FixupXer website"></a>
   <a href="https://ko-fi.com/neatcodelabs"><img src="https://img.shields.io/badge/Ko--fi-Support-ff5e5b?style=flat-square&amp;logo=ko-fi" alt="Support on Ko-fi"></a>
 </p>

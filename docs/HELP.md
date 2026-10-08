@@ -1,5 +1,7 @@
 # FixupXer Help
 
+Visit [fixupxer.com](https://fixupxer.com) for an app overview, screenshots, and download options, or start with the website's [quick guide](https://fixupxer.com/how-it-works). This is the detailed guide linked from the app.
+
 FixupXer processes links locally. It removes known tracking parameters and can optionally rewrite supported social links for another frontend. It does not load web pages or make network requests. This guide covers everyday use, Browser mode, custom frontends, custom URL rules, history, and backups.
 
 Domains such as `shop.example.com`, `news.example.com`, `reader.example`, and `social.example` below are fictional placeholders, not real websites or recommendations.

@@ -42,3 +42,5 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 * Comprehensive test suite with browser-mode and URL-processing regression coverage
 
 Perfect for privacy-conscious users who want cleaner, safer links without the tracking.
+
+Visit the <a href="https://fixupxer.com">official website</a> for screenshots and an app overview, or follow the <a href="https://fixupxer.com/how-it-works">getting started guide</a>.

@@ -18,10 +18,45 @@ as diagnostic evidence and is not counted as a successful gate.
 The full device gate used a cold isolated Pixel_API_35_Play on emulator-5556,
 software rendering, four CPU cores and 3 GiB RAM. API35 is the executed device
 coverage; configured SDK support remains API21–36. Final signed-artifact checks
-and distribution status follow after artifact generation.
+and distribution are recorded below.
 
 Play and F-Droid descriptions were reviewed and remain accurate. The F-Droid
 512x512 icon was visually checked and matches the root store image byte-for-byte.
+
+### Final artifacts and distribution
+
+Root build source: `27b18a33dc69afd695b03485b291000358d43ea4`. Mirror annotated tag `v2.9.2`:
+`61bc6db911b8431ac504da7cac4e737fbc9fb5c7`. The APK was built from that local tag in a fresh
+Windows clone before publication.
+
+| Artifact | SHA-256 |
+|---|---|
+| GitHub APK | `ef0a73741cac5d246e64cb5800c29ab186e347467395cefc6b2a37afbfb7c3c1` |
+| Play AAB | `58d74e2de080c800fec22474694566d00b698755d937968b74ada73ca8a2880c` |
+| AAB-derived universal APK | `f92322d0c53ba13e3f903aea7f3c378702754d72f55cb933ba02e87adb9dbfc9` |
+
+All three artifacts pass the expected release-certificate, package/version,
+API21/36 manifest and zero-permission checks. Play ownership is present only in
+Play artifacts; the mirror APK excludes Play ownership and dependency metadata.
+
+Independent Linux/F-Droid rebuild: **PASS**, upstream fdroiddata
+`0895a57ef84c83c8b38a8fc325c546acb9cd2552`, recipe SHA-256
+`8bc87ccabca43f53be55896acab7950dc2abd15434f46738fcd2549fbe26bf5d`. Its current prebuild, srclibs and postbuild
+steps were retained. F-Droid verification and apksigcopier comparison passed;
+the Linux APK with copied signature is byte-identical to the GitHub APK.
+
+Final signed-artifact UI checks: **4/4 channel/install combinations**,
+**26/26 checks**, API35. Main and Share History dialogs no longer show the Help
+row; the remaining History controls and Settings Help are present. Clean installs
+and channel-matched upgrades from 2.9.1 pass. Both upgrades preserve a recorded
+history entry, Light theme and left-handed layout. Installed APK hashes match
+the verified artifacts. Shared sample URLs are cleaned and recorded in history;
+these offline checks do not establish external website or server availability.
+
+[GitHub v2.9.2](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.9.2) was published at 2026-10-09T12:55:32Z.
+The remote tag resolves to the tested commit and the public asset digest matches.
+Google Play: submission of version 2.9.2 / 57 was accepted on October 9, 2026 at approximately 13:01 UTC for Production, 100% rollout in all 178 targeted countries. Publishing overview shows Changes in review, with automated quick checks still running. Managed publishing remains off, allowing automatic publication after approval. Availability on Google Play is not yet confirmed.
+F-Droid publication remains subject to its external update/build cycle.
 
 
 ## v2.9.1 / 56 verification — October 9, 2026

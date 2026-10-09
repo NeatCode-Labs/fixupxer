@@ -1,5 +1,29 @@
 # Android Test Coverage for FixupXer
 
+## v2.9.2 / 57 — Simpler Conversion History — October 9, 2026
+
+Removed the external Help row from the shared Conversion History dialog in Main
+and Share. History controls, Settings Help and the central guide remain available.
+
+Required gates passed: **827 debug + 827 release unit tests**, **290/290 full API35
+instrumentation tests**, zero failures, errors or skips. Release lint: **0 errors /
+43 warnings**. No new unit/instrumentation tests were added for this small UI removal;
+the existing full suites were rerun, including History and Settings Help coverage.
+
+The first debug run hit an input-validation timeout in an unchanged draft-input
+test. All three tests in that class passed in isolation; the full unit/lint rerun
+passed without changing production or test code. The first failure is retained
+as diagnostic evidence and is not counted as a successful gate.
+
+The full device gate used a cold isolated Pixel_API_35_Play on emulator-5556,
+software rendering, four CPU cores and 3 GiB RAM. API35 is the executed device
+coverage; configured SDK support remains API21–36. Final signed-artifact checks
+and distribution status follow after artifact generation.
+
+Play and F-Droid descriptions were reviewed and remain accurate. The F-Droid
+512x512 icon was visually checked and matches the root store image byte-for-byte.
+
+
 ## v2.9.1 Instagram canonical-post coverage — October 9, 2026
 
 The full API35 suite passes **290/290** tests. The added ShareActivity regressions

@@ -1,3 +1,18 @@
+# FixupXer v2.9.2 - Simpler Conversion History
+
+## What's Changed
+
+- Removed the unnecessary "History and backup help" link from Conversion History.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 57
+- versionName: 2.9.2
+
+---
+
 # FixupXer v2.9.1 - Instagram Link Cleanup
 
 ## What's Fixed

@@ -1,0 +1,1 @@
+Removed the unnecessary Help link from Conversion History.

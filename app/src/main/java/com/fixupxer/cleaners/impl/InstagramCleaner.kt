@@ -158,6 +158,8 @@ object InstagramCleaner : UrlCleaner {
         if (scheme != "https" && scheme != "http") return null
         if (uri.rawUserInfo != null || uri.port !in listOf(-1, if (scheme == "https") 443 else 80)) return null
         val host = uri.host?.lowercase(Locale.ROOT) ?: return null
+        // URI treats an empty explicit port as -1 too; keep that authority on fallback.
+        if (uri.port == -1 && !uri.rawAuthority.equals(host, ignoreCase = true)) return null
         val domain = Constants.INSTAGRAM_DOMAIN
         if (host != domain && host != "www.$domain" && host != "m.$domain") return null
         val match = postPath.matchEntire(uri.rawPath.orEmpty()) ?: return null

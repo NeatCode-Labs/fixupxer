@@ -165,6 +165,8 @@ class UpdatedCleanersTest {
             "https://l.instagram.com/p/ABC/?future=token#state",
             "https://user@www.instagram.com/p/ABC/?future=token#state",
             "https://www.instagram.com:444/p/ABC/?future=token#state",
+            "https://instagram.com:/reel/X/?vrfl=future#state",
+            "http://www.instagram.com:/p/ABC/?future=token#state",
             "https://www.instagram.com:99999/p/ABC/?future=token#state",
             "https://www.instagram.com/p/ABC/?future=%ZZ#state",
             "https://instagram.com.example.org/p/ABC/?future=token#state"

@@ -7,7 +7,10 @@ exercise reported and arbitrary rotating parameters with conversion off and on;
 MainActivity verifies carousel preservation under the revised query policy.
 Unit coverage: **827 tests per debug/release variant**, twelve more than v2.9.0.
 Zero failures, errors or skips. Release lint: zero errors / 43 warnings.
-Final signed-artifact channel clean/upgrade checks remain pending at this checkpoint.
+Final signed artifacts pass all four channel/install combinations and 60 exact
+URL handoffs, including clean installs and channel-matched 2.9.0 upgrades. Both
+upgrades retain Light/Left preferences. BUILD_REPORT.md records hashes and the
+independent Linux/F-Droid byte-identical rebuild.
 
 ## v2.9.0 final distribution checks — October 3, 2026
 

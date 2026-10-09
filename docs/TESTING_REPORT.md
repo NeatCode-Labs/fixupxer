@@ -19,7 +19,10 @@ when the owner extended the scope, and are not counted as passing release gates.
 
 Compared with v2.9.0, twelve unit tests and three instrumentation tests were
 added; existing preservation fixtures were updated for the explicitly selected
-canonical-post policy. Signed-artifact checks remain pending at this checkpoint.
+canonical-post policy. Final signed artifacts pass all four channel/install combinations and 60 exact
+URL handoffs, including clean installs and channel-matched 2.9.0 upgrades. Both
+upgrades retain Light/Left preferences. BUILD_REPORT.md records hashes and the
+independent Linux/F-Droid byte-identical rebuild.
 API21 support is unchanged; this release's device suite executes API35 only.
 
 ## v2.9.0 final signed-artifact verification — October 3, 2026

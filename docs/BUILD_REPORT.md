@@ -21,9 +21,37 @@ emulator-5554 was preserved. These offline checks do not establish Instagram or
 proxy server availability. Earlier device attempts were deliberately interrupted
 when the owner extended the scope, and are not counted as passing release gates.
 
-Signed Play AAB, fresh-clone mirror APK, independent Linux reproducibility,
-final-artifact clean/upgrade checks and publication are pending at this checkpoint.
-The final evidence will be appended after those checks.
+Final root build source: `1f1cc9ca4ab1eb35d83126d331a70ea9e2d9c7fb`. Mirror annotated tag v2.9.1:
+`eba65fdc23b3417aa8df195449cdc87bc614a7e8`. The final authority guard also preserves URLs with an empty
+explicit port; HTTP and HTTPS fixtures cover this conservative fallback.
+
+| Artifact | SHA-256 |
+|---|---|
+| GitHub APK | `796c2d81ceea68acffbc13139cad6e0fd9fce9ca81c062b0a4073a06f7e539e7` |
+| Play AAB | `c4b04b684a505ff77bce2d3f5dbb660f87473cdab50151471ec73fe0ef410e1a` |
+| AAB-derived universal APK | `f0d6a80fb80d7c863617ed6f7c122b6113b8d179042205038bf860410747397f` |
+
+All artifacts pass package/version, release-certificate, API21/36 and zero-permission
+checks. Play ownership is present only in Play artifacts. The mirror APK excludes
+Play ownership and dependency metadata.
+
+Independent Linux/F-Droid rebuild: **PASS**, upstream fdroiddata
+`74f1bd24c135727ae8eccd4a7caf135e4937370a`, recipe SHA-256
+`8bc87ccabca43f53be55896acab7950dc2abd15434f46738fcd2549fbe26bf5d`. The current recipe's prebuild, srclibs and
+postbuild steps were retained. F-Droid verification and apksigcopier comparison
+passed; the Linux APK with copied signature is byte-identical to the GitHub APK.
+
+Final signed-artifact UI checks: **4/4 channel/install combinations**, **60/60 exact
+URL handoffs** through Main, Share and Browser on API35. Both channels passed clean
+installation and upgrade from their own 2.9.0 artifact. Installed APK hashes match;
+both upgrades retain the Light theme and left-handed layout. A local no-network
+receiver captured the URLs. These checks do not establish Instagram server behavior.
+
+[GitHub v2.9.1](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.9.1) was published at 2026-10-09T11:29:46Z.
+The remote tag resolves to the tested commit and the public asset digest matches.
+Google Play: Submission accepted at 2026-10-09T11:34:15.731Z for version 2.9.1 / 56, Production 100%, in the existing 178 countries/regions. The console shows Changes in review for exactly the full rollout and en-US full description; initial quick checks are still running. Managed publishing remains off, so publication follows successful Google review automatically. Play availability is not yet confirmed.
+F-Droid publication remains subject to its external update/build cycle.
+
 
 Store descriptions and Help now explain the Instagram exception. The 512x512 F-Droid icon
 was visually checked and is byte-identical to the existing root store image.

@@ -6,7 +6,7 @@ FixupXer removes known tracking parameters from URLs using registered, host-boun
 
 ### Modular Design
 - **28 domain-specific cleaners + 1 universal cleaner** - each registered platform has its own cleaner
-- **Selective parameter removal** - known tracking keys are removed; unknown and functional keys are preserved
+- **Selective parameter removal** - known tracking keys are removed; unknown and functional keys are preserved, except canonical Instagram post/Reel links described below
 - **Deep-Clean Technology** - Multi-pass cleaning ensures nothing gets missed
 - **Lightning Fast** - O(1) domain lookup with intelligent caching
 - **Private Link Guard** - locally warns when e-mails, tokens, or precise coordinates remain visible in a link
@@ -29,7 +29,7 @@ handling. Browser, Share and Copy continue to use the final processed URL.
 
 ### Social Media & Communication
 - **Facebook** - Removes known Facebook tracking keys. No embed frontend is bundled — the former `facebookez.com` was retired after it began redirecting to an advertising network — but conversion to a user-added custom frontend is supported
-- **Instagram** - Removes known Instagram tracking keys, including `stkn`, `ig_rid`, `igsi`, `igsh` and `igshid`, while preserving carousel selectors and unknown parameters. Converts to a user-selectable frontend. Embed proxies: `toinstagram.com` (default), `adamlikes.men`, `instagram7.com`, or any user-added custom proxy. Experimental readers: `kittygr.am`, `kg.meowing.de`, `kittygram.kareem.one`. Converted links are sent without the `www.` prefix because these proxies render best at the bare hostname. The legacy proxy `eeinstagram.com` is still recognised in pasted URLs and auto-converted to the active frontend.
+- **Instagram** - Canonical `/p/`, `/reel/`, `/reels/` and `/tv/` post links on `instagram.com`, `www.instagram.com` and `m.instagram.com` keep only a valid positive numeric `img_index`; all other query parameters and the fragment are removed, regardless of tracking-key names. Username-prefixed post links are covered too. Special routes (including login, share redirects and Stories) and proxy links retain selective known-key removal, preserving unknown options and fragments. This avoids breaking story navigation or proxy gallery options. Converts to a user-selectable frontend. Embed proxies: `toinstagram.com` (default), `adamlikes.men`, `instagram7.com`, or any user-added custom proxy. Experimental readers: `kittygr.am`, `kg.meowing.de`, `kittygram.kareem.one`. Converted links are sent without the `www.` prefix because these proxies render best at the bare hostname. The legacy proxy `eeinstagram.com` is still recognised in pasted URLs and auto-converted to the active frontend.
 - **Twitter/X** - Removes known Twitter/X tracking keys and converts to a user-selectable frontend. Embed: `fixupx.com` (default). Readers: `xcancel.com`, `nitter.net`, `twitterviewer.net`; automatic instance pickers `twiiit.com` and `farside.link/nitter`; community Nitter instances `nitter.catsarch.com`, `nitter.tiekoetter.com`, `nitter.kareem.one`, `nitter.privacyredirect.com`, `nuku.trabun.org`. The legacy proxies `fxtwitter.com` and `vxtwitter.com` are still recognised and auto-converted to the active frontend.
 - **Bluesky** - Converts supported `bsky.app` post URLs to a user-selectable frontend. Embed: `fxbsky.app` (default). Readers: `skylib.coffee`, `skylib.catsarch.com`.
 - **TikTok** - Removes known TikTok tracking keys and converts to a user-selectable proxy for better embedding: `tnktok.com` (default, Primary), `tfxktok.com` (Primary), `tiktokez.com` / `kktiktok.com` (Backup), or any user-added custom proxy. Subdomains are preserved (`vm.tiktok.com` → `vm.tnktok.com`) so short links keep working. The dead services `vxtiktok.com` and `tiktxk.com` are still recognised in pasted URLs and auto-converted to the active proxy.
@@ -130,6 +130,6 @@ The app preserves essential parameters needed for functionality:
 - Essential query parameters for proper URL functionality
 
 ### Privacy Excellence
-- Host-bound cleaners remove documented tracking keys while preserving unknown and functional parameters
+- Host-bound cleaners preserve unknown and functional parameters, with a scoped keep-only rule for canonical Instagram post/Reel links
 - Registered platform coverage with multi-pass cleaning
 - Future-proof modular architecture

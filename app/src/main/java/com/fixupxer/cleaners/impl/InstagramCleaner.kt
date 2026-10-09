@@ -25,9 +25,11 @@ import com.fixupxer.cleaners.UrlCleaner
 import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.InstagramProxyStore
+import java.net.URI
+import java.util.Locale
 
 /**
- * Cleaner for Instagram URLs - comprehensive tracking removal
+ * Canonical post cleanup with selective fallback for special routes and proxies.
  */
 object InstagramCleaner : UrlCleaner {
     override val id = "instagram"
@@ -35,7 +37,11 @@ object InstagramCleaner : UrlCleaner {
     override val priority = UrlCleaner.PRIORITY_CONVERSION
     override val category = CleanerCategory.SOCIAL_MEDIA
     
-    // Known Instagram-specific tracking parameters; unknown keys are preserved.
+    private val postPath = Regex("^/(?:([A-Za-z0-9._]+)/)?(?:p|reel|reels|tv)/[A-Za-z0-9_-]+/?$")
+    private val reservedPrefixes = setOf(".", "..", "share", "accounts", "oauth", "explore", "direct", "stories")
+    private val carouselIndex = Regex("[0-9]+")
+
+    // Fallback for special routes and proxies, whose query may have other functions.
     private val instagramTracking = setOf(
         // Basic tracking
         // Instagram's IGShareIdParams lists stkn as current, followed by igsi/igsh/igshid.
@@ -43,7 +49,7 @@ object InstagramCleaner : UrlCleaner {
         "ig_share_sheet", "__a", "__d", "_rdr", "hl",
         
         // Share tracking
-        "share_app_id", "share_sheet_id", "share_id", "ig_rid",
+        "share_app_id", "share_sheet_id", "share_id", "ig_rid", "exln", "obrf",
         "ig_did", "share_campaign_id", "share_link_id",
         
         // Analytics & attribution
@@ -86,18 +92,6 @@ object InstagramCleaner : UrlCleaner {
         "taken-by", "tagged_users", "location_id"
     )
     
-    // Parameters essential for Instagram functionality
-    private val preserveParams = setOf(
-        "img_index",      // Image position in carousel
-        "story_media_id", // Story identifier
-        "h",              // Height parameter for images
-        "w",              // Width parameter for images
-        "carousel_index", // Alternative carousel position
-        "media_id",       // Direct media reference
-        "reel_ids",       // Reel identifiers
-        "highlight_reel_ids" // Highlight reel IDs
-    )
-    
     override fun matches(url: String): Boolean {
         // All known proxies (fixed + custom + legacy) so e.g. legacy eeinstagram.com
         // links still get Instagram-specific parameter cleaning (igsh, igshid, igsi, ...).
@@ -111,6 +105,8 @@ object InstagramCleaner : UrlCleaner {
         if (!matches(url)) return url
 
         try {
+            cleanCanonicalPost(url)?.let { return it }
+
             // If no query parameters, return as is
             val idx = url.indexOf('?')
             if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
@@ -133,18 +129,12 @@ object InstagramCleaner : UrlCleaner {
                 ""
             }
             
-            // Process parameters - remove ALL tracking parameters
-            val kept = query.split('&').mapNotNull { pair ->
+            // The fallback removes only listed keys; all other pairs survive.
+            val kept = query.split('&').filter { pair ->
                 val eqIdx = pair.indexOf('=')
                 val key = if (eqIdx == -1) pair else pair.substring(0, eqIdx)
-                
-                // Keep if essential, remove if tracking
-                when {
-                    preserveParams.contains(key) -> pair  // Always keep essential params
-                    instagramTracking.contains(key) -> null  // Remove tracking params
-                    else -> pair
-                }
-            }.filter { it.isNotEmpty() }
+                pair.isNotEmpty() && key !in instagramTracking
+            }
             
             return if (kept.isEmpty()) {
                 base + fragment
@@ -155,5 +145,33 @@ object InstagramCleaner : UrlCleaner {
             // On error, return original URL
             return url
         }
+    }
+
+    /**
+     * Public post permalinks identify their content in the path. Keep only a
+     * numeric carousel selector, so rotating share-key names need no catalog update.
+     * Proxy URLs retain their existing policy: custom proxies may use query options.
+     */
+    private fun cleanCanonicalPost(url: String): String? {
+        val uri = runCatching { URI(url) }.getOrNull() ?: return null
+        val scheme = uri.scheme?.lowercase(Locale.ROOT)
+        if (scheme != "https" && scheme != "http") return null
+        if (uri.rawUserInfo != null || uri.port !in listOf(-1, if (scheme == "https") 443 else 80)) return null
+        val host = uri.host?.lowercase(Locale.ROOT) ?: return null
+        val domain = Constants.INSTAGRAM_DOMAIN
+        if (host != domain && host != "www.$domain" && host != "m.$domain") return null
+        val match = postPath.matchEntire(uri.rawPath.orEmpty()) ?: return null
+        if (match.groupValues[1].lowercase(Locale.ROOT) in reservedPrefixes) return null
+
+        val indices = uri.rawQuery.orEmpty().split('&')
+            .filter { it.substringBefore('=') == "img_index" }
+            .map { pair ->
+                val value = pair.substringAfter('=', "")
+                value.takeIf { carouselIndex.matches(it) }?.toIntOrNull()?.takeIf { it > 0 }
+            }
+        // Identical duplicate selectors are harmless; ambiguous/invalid ones are dropped.
+        val index = indices.firstOrNull()?.takeIf { candidate -> indices.all { it == candidate } }
+        val base = url.substringBefore('?').substringBefore('#')
+        return base + (index?.let { "?img_index=$it" } ?: "")
     }
 }

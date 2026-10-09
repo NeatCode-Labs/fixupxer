@@ -48,7 +48,9 @@ Cleaning and conversion are separate. Cleaning removes recognized tracking data 
 
 ## Link cleaning and Private Link Guard
 
-FixupXer's built-in cleaners remove known tracking parameters for supported sites, followed by a general cleaner for common tracking keys on other sites. The app keeps unknown parameters because they may control a search, product, article, or other useful page behavior. Cleaning is selective; it cannot guarantee that every site-specific identifier has been removed.
+FixupXer's built-in cleaners remove known tracking parameters for supported sites, followed by a general cleaner for common tracking keys on other sites. The app generally keeps unknown parameters because they may control a search, product, article, or other useful page behavior. Cleaning is selective; it cannot guarantee that every site-specific identifier has been removed.
+
+Instagram post and Reel permalinks are an exception: on `instagram.com`, `www.instagram.com` and `m.instagram.com`, recognized `/p/`, `/reel/`, `/reels/` and `/tv/` shortcode paths keep only a valid positive numeric `img_index` for carousel image selection. All other query parameters and the fragment are removed, including newly named share parameters. Username-prefixed post paths are also covered. Special routes such as login, share redirects and Stories, and all proxy links, retain selective cleanup so their navigation or embedding options can still work.
 
 Some supported redirect links can be unwrapped locally when their destination is structurally valid. FixupXer does not visit the original site to resolve a redirect.
 
@@ -1323,7 +1325,7 @@ Use these settings to reach the main controls:
 
 ## Troubleshooting
 
-- **A link still contains a parameter:** built-in cleaners intentionally keep unknown or functional parameters. If you add a custom rule, check its context, scope, and phase in [Test Lab](#test-lab).
+- **A link still contains a parameter:** built-in cleaners generally keep unknown or functional parameters. Canonical Instagram post/Reel links instead keep only a valid carousel image selector, as described under [Link cleaning](#link-cleaning-and-private-link-guard). If you add a custom rule, check its context, scope, and phase in [Test Lab](#test-lab).
 - **A social link is cleaned but not converted:** confirm that conversion is enabled for that platform and that the selected frontend supports that URL. Main/Share selections do not control Browser mode.
 - **A Browser link bypasses FixupXer:** Android may have sent it to a verified App Link, an embedded browser, or an explicit app choice. Review [Browser mode setup and routing](#browser-mode) and the Android app's supported-link settings.
 - **A frontend is unavailable:** choose another active target, restore its built-in category when available, or use **Clean only**. The app does not silently replace an unavailable embed or custom target.

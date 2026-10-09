@@ -1,3 +1,24 @@
+# FixupXer v2.9.1 - Instagram Link Cleanup
+
+## What's Fixed
+
+- Clean Instagram post and Reel permalinks without relying on tracking-key names.
+  Remove extra query parameters and fragments, including the reported exln, obrf
+  and vrfl examples, while keeping a valid img_index carousel selection.
+- Keep existing selective cleanup for special Instagram routes and proxy links,
+  whose query options may be needed for navigation or embedding.
+
+Link processing remains offline with zero permissions.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 56
+- versionName: 2.9.1
+
+---
+
 # FixupXer v2.9.0 - Unified Help
 
 ## What's New

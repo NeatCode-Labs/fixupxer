@@ -1,5 +1,14 @@
 # Android Test Coverage for FixupXer
 
+## v2.9.1 Instagram canonical-post coverage — October 9, 2026
+
+The full API35 suite passes **290/290** tests. The added ShareActivity regressions
+exercise reported and arbitrary rotating parameters with conversion off and on;
+MainActivity verifies carousel preservation under the revised query policy.
+Unit coverage: **827 tests per debug/release variant**, twelve more than v2.9.0.
+Zero failures, errors or skips. Release lint: zero errors / 43 warnings.
+Final signed-artifact channel clean/upgrade checks remain pending at this checkpoint.
+
 ## v2.9.0 final distribution checks — October 3, 2026
 
 All six HelpNavigationTest cases remain included in the passing 287/287 API35

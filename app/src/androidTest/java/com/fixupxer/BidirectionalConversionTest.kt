@@ -63,6 +63,26 @@ class BidirectionalConversionTest {
     // ============ INSTAGRAM BIDIRECTIONAL TESTS ============
 
     @Test
+    fun testRotatingInstagramParametersAndCarouselWithAndWithoutConversion() {
+        preferencesManager.setInstagramProxy("toinstagram.com")
+        listOf(false, true).forEach { convert ->
+            preferencesManager.setConvertInstagramEnabled(convert)
+            val intent = Intent(InstrumentationRegistry.getInstrumentation().targetContext, ShareActivity::class.java).apply {
+                action = Intent.ACTION_SEND
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, "https://www.instagram.com/reel/Dd_BUoKTr-N/?vrfl=MXVyMTZhZnU4OWNjMA==&next_random_key=opaque&img_index=2#tracking")
+            }
+            ActivityScenario.launch<ShareActivity>(intent).use {
+                val host = if (convert) "toinstagram.com" else "www.instagram.com"
+                awaitAssertion {
+                    onView(withId(R.id.textViewProcessedUrl))
+                        .check(matches(withText("https://$host/reel/Dd_BUoKTr-N/?img_index=2")))
+                }
+            }
+        }
+    }
+
+    @Test
     fun testReportedInstagramStknShareWithAndWithoutConversion() {
         preferencesManager.setInstagramProxy("toinstagram.com")
         listOf(false, true).forEach { convert ->
@@ -77,6 +97,52 @@ class BidirectionalConversionTest {
                 awaitAssertion {
                     onView(withId(R.id.textViewProcessedUrl))
                         .check(matches(withText("https://$host/reel/Dc4fAOCs97R/")))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testReportedInstagramExlnShareWithAndWithoutConversion() {
+        preferencesManager.setInstagramProxy("toinstagram.com")
+        listOf(false, true).forEach { convert ->
+            preferencesManager.setConvertInstagramEnabled(convert)
+            val intent = Intent(InstrumentationRegistry.getInstrumentation().targetContext, ShareActivity::class.java).apply {
+                action = Intent.ACTION_SEND
+                type = "text/plain"
+                putExtra(
+                    Intent.EXTRA_TEXT,
+                    "https://www.instagram.com/reel/DeQMt21oZ9Y/?exln=MWQ2dWVhcm1pYndsag=="
+                )
+            }
+            ActivityScenario.launch<ShareActivity>(intent).use {
+                val host = if (convert) "toinstagram.com" else "www.instagram.com"
+                awaitAssertion {
+                    onView(withId(R.id.textViewProcessedUrl))
+                        .check(matches(withText("https://$host/reel/DeQMt21oZ9Y/")))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testReportedInstagramObrfShareWithAndWithoutConversion() {
+        preferencesManager.setInstagramProxy("toinstagram.com")
+        listOf(false, true).forEach { convert ->
+            preferencesManager.setConvertInstagramEnabled(convert)
+            val intent = Intent(InstrumentationRegistry.getInstrumentation().targetContext, ShareActivity::class.java).apply {
+                action = Intent.ACTION_SEND
+                type = "text/plain"
+                putExtra(
+                    Intent.EXTRA_TEXT,
+                    "https://www.instagram.com/reel/DeO0lB3ub9j/?obrf=MWozZ3k1aGgyYzlnMQ=="
+                )
+            }
+            ActivityScenario.launch<ShareActivity>(intent).use {
+                val host = if (convert) "toinstagram.com" else "www.instagram.com"
+                awaitAssertion {
+                    onView(withId(R.id.textViewProcessedUrl))
+                        .check(matches(withText("https://$host/reel/DeO0lB3ub9j/")))
                 }
             }
         }

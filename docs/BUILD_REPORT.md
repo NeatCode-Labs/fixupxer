@@ -1,5 +1,34 @@
 # FixupXer Build Report
 
+## v2.9.1 / 56 verification — October 9, 2026
+
+Canonical Instagram post and Reel links remove query parameters and fragments
+regardless of tracking-key names, retaining a validated numeric img_index.
+Special Instagram routes and proxy links retain selective known-key cleanup.
+
+Required gates passed on October 9, 2026: **827 debug + 827 release unit
+tests**, **290/290 full API35 instrumentation tests**, zero failures, errors or
+skips. Release lint: **zero errors / 43 warnings**, unchanged from the prior release.
+
+Tests cover the three reported Instagram links, future unknown parameter names,
+numeric carousel selection, invalid/duplicate selectors, exact host/path scope,
+special routes, proxy options, disabled cleaning and repeated processing. Main
+and ShareActivity checks verify the revised policy with conversion off/on.
+
+The full device gate used a cold isolated Pixel_API_35_Play configuration on
+emulator-5556, software rendering, four CPU cores and 3 GiB RAM. The pre-existing
+emulator-5554 was preserved. These offline checks do not establish Instagram or
+proxy server availability. Earlier device attempts were deliberately interrupted
+when the owner extended the scope, and are not counted as passing release gates.
+
+Signed Play AAB, fresh-clone mirror APK, independent Linux reproducibility,
+final-artifact clean/upgrade checks and publication are pending at this checkpoint.
+The final evidence will be appended after those checks.
+
+Store descriptions and Help now explain the Instagram exception. The 512x512 F-Droid icon
+was visually checked and is byte-identical to the existing root store image.
+The separate bot update is recorded in the internal release report.
+
 ## v2.9.0 distribution status — October 3, 2026
 
 [GitHub v2.9.0](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.9.0)

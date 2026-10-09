@@ -81,7 +81,7 @@ class MainActivityProxyLabelTest {
 
 
     @Test
-    fun instagramStknCleaningPreservesCarouselAndUnknownValues() {
+    fun instagramCanonicalCleaningPreservesCarouselOnly() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         PreferencesManager(context).setConvertInstagramEnabled(false)
         ActivityScenario.launch(MainActivity::class.java).use {
@@ -93,7 +93,7 @@ class MainActivityProxyLabelTest {
             onView(withId(R.id.buttonProcess)).perform(click())
             awaitAssertion {
                 onView(withId(R.id.textViewProcessedUrl)).check(matches(withText(
-                    "https://www.instagram.com/p/ABC123/?img_index=2&keep=a%26b#slide"
+                    "https://www.instagram.com/p/ABC123/?img_index=2"
                 )))
             }
         }

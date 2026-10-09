@@ -6,7 +6,7 @@ FixupXer removes tracking parameters from URLs to protect your privacy and make 
 * Browser Mode: Add, edit or delete frontends for seven platforms, including TikTok and Instagram. Save applies all frontend changes; Browser and Main/Share selections stay separate. Choose a preferred browser to avoid repeated selection, or save per-host app choices. Native actions restore supported X, Instagram and TikTok embed links to the original platform; Browser, Share and Copy keep the processed URL; failed actions stay local for Retry.
 * Direct Sharing: Share your links directly to FixupXer, no need to open the main app
 * Clean Link from Selection: Select a URL in any app and choose "Clean link" to clean it in place
-* Privacy Protection: Removes documented tracking keys across 28 host-bound platform cleaners; unknown functional parameters are kept so links do not break
+* Privacy Protection: Removes documented tracking keys across 28 host-bound platform cleaners; unknown functional parameters are kept by default. Canonical Instagram post/Reel links retain only a valid carousel image selector
 * Redirect Unwrapping: Extracts real destinations from Facebook, LinkedIn, YouTube, Google Ads, Reddit, Bluesky, GeoRiot/Geniuslink, and LinkSynergy/Rakuten wrappers — entirely offline
 * Local Processing: Clean links on your device with bounded caching
 * Offline Operation: Cleaning makes no network requests; Open/Share hands the result to the external app you choose

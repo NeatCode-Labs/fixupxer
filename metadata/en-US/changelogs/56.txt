@@ -1,0 +1,1 @@
+Clean Instagram post and Reel links regardless of tracking-key names. Keep valid carousel image selection. Preserve special-route and proxy behavior.

@@ -46,10 +46,44 @@ class UrlProcessorTest {
     @Test
     fun `reported Instagram stkn is removed through the full cleaner service`() {
         val url = "https://www.instagram.com/reel/Dc4fAOCs97R/?stkn=anBpYnlkeG82MDJz&img_index=2&keep=value#slide"
-        val expected = "https://toinstagram.com/reel/Dc4fAOCs97R/?img_index=2&keep=value#slide"
+        val expected = "https://toinstagram.com/reel/Dc4fAOCs97R/?img_index=2"
         val cleaned = urlProcessor.processUrl(url, cleanTracking = true, convertTwitter = true).first
         assertEquals(expected, cleaned)
         assertEquals(expected, urlProcessor.processUrl(cleaned, cleanTracking = true, convertTwitter = true).first)
+    }
+
+    @Test
+    fun `reported Instagram exln is removed through the full cleaner service`() {
+        val url = "https://www.instagram.com/reel/DeQMt21oZ9Y/?exln=MWQ2dWVhcm1pYndsag=="
+        val expected = "https://toinstagram.com/reel/DeQMt21oZ9Y/"
+        val cleaned = urlProcessor.processUrl(url, cleanTracking = true, convertTwitter = true).first
+
+        assertEquals(expected, cleaned)
+        assertEquals(expected, urlProcessor.processUrl(cleaned, cleanTracking = true, convertTwitter = true).first)
+    }
+
+    @Test
+    fun `reported Instagram obrf is removed through the full cleaner service`() {
+        val url = "https://www.instagram.com/reel/DeO0lB3ub9j/?obrf=MWozZ3k1aGgyYzlnMQ=="
+        val expected = "https://toinstagram.com/reel/DeO0lB3ub9j/"
+        val cleaned = urlProcessor.processUrl(url, cleanTracking = true, convertTwitter = true).first
+
+        assertEquals(expected, cleaned)
+        assertEquals(expected, urlProcessor.processUrl(cleaned, cleanTracking = true, convertTwitter = true).first)
+    }
+
+    @Test
+    fun `Instagram rotating keys are removed before optional proxy conversion`() {
+        val input = "https://www.instagram.com/reel/Dd_BUoKTr-N/?vrfl=MXVyMTZhZnU4OWNjMA==&future_key=opaque&img_index=2#tracking"
+        val expected = "https://toinstagram.com/reel/Dd_BUoKTr-N/?img_index=2"
+        assertEquals(expected, urlProcessor.processUrl(input, cleanTracking = true, convertTwitter = true).first)
+        assertEquals(expected, urlProcessor.processUrl(expected, cleanTracking = true, convertTwitter = true).first)
+    }
+
+    @Test
+    fun `disabled cleaning retains Instagram parameters`() {
+        val input = "https://www.instagram.com/reel/Dd_BUoKTr-N/?vrfl=token&img_index=2#part"
+        assertEquals(input, urlProcessor.processUrl(input, cleanTracking = false, convertTwitter = false).first)
     }
 
     @Test

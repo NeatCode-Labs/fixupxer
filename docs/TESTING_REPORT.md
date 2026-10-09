@@ -1,5 +1,27 @@
 # FixupXer Testing Report
 
+## v2.9.1 rotating Instagram parameters — October 9, 2026
+
+Required gates passed on October 9, 2026: **827 debug + 827 release unit
+tests**, **290/290 full API35 instrumentation tests**, zero failures, errors or
+skips. Release lint: **zero errors / 43 warnings**, unchanged from the prior release.
+
+Tests cover the three reported Instagram links, future unknown parameter names,
+numeric carousel selection, invalid/duplicate selectors, exact host/path scope,
+special routes, proxy options, disabled cleaning and repeated processing. Main
+and ShareActivity checks verify the revised policy with conversion off/on.
+
+The full device gate used a cold isolated Pixel_API_35_Play configuration on
+emulator-5556, software rendering, four CPU cores and 3 GiB RAM. The pre-existing
+emulator-5554 was preserved. These offline checks do not establish Instagram or
+proxy server availability. Earlier device attempts were deliberately interrupted
+when the owner extended the scope, and are not counted as passing release gates.
+
+Compared with v2.9.0, twelve unit tests and three instrumentation tests were
+added; existing preservation fixtures were updated for the explicitly selected
+canonical-post policy. Signed-artifact checks remain pending at this checkpoint.
+API21 support is unchanged; this release's device suite executes API35 only.
+
 ## v2.9.0 final signed-artifact verification — October 3, 2026
 
 The owner accepted revision 2 on a physical phone. The final source remains the

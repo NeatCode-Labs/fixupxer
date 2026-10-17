@@ -20,7 +20,54 @@ availability or Telegram delivery.
 
 Play and F-Droid descriptions were reviewed; the F-Droid description now mentions
 individual Story cleanup. The existing 512x512 F-Droid icon was visually checked.
-Final signed-artifact checks, independent Linux comparison and publication are pending.
+Final signed-artifact checks and distribution are recorded below.
+
+### Final artifacts and distribution
+
+Root build source: `37f82c98a1b1588606f912b6d932d3fb9b6b2b9b`. Mirror annotated tag `v2.9.3`:
+`2c33004fb2b23de4e84c652741802656c048ceed`. The APK was built from that local tag in a fresh
+Windows clone before publication.
+
+| Artifact | SHA-256 |
+|---|---|
+| GitHub APK | `00bc9dad89e4860672a2f7d14469dda746f4e56c48d7479055c6be24a5e76a04` |
+| Play AAB | `2d0dcdc35cec486e7f97249e58eb4c4829ca096f22cafdea59bc9dfbff1d4e27` |
+| AAB-derived universal APK | `01a1d0877682ae82020f9763c4a12a68b2f6dd2f10512e3779654524e6e6ac7a` |
+
+All three artifacts pass release certificate, package/version, API21/36 manifest
+and zero-permission checks. Play ownership is present only in Play artifacts;
+the mirror APK excludes Play ownership and dependency metadata.
+
+Independent Linux/F-Droid rebuild: **PASS**, upstream fdroiddata
+`8d335105b1c4e603261af5c5863f8085a51a5e9a`, recipe SHA-256
+`ec513ec31d46bc79dbb86faa7ecd2e3e3d1e922b83c242ee82b39096637e0dff`. Current prebuild, srclibs and postbuild steps
+were retained. F-Droid verification and apksigcopier comparison passed; the Linux
+APK with copied signature is byte-identical to the GitHub APK.
+
+Final signed-artifact UI checks: **4/4 channel/install combinations**,
+**44/44 checks**, API35. The exact reported Story and future
+parameter names are cleaned through Main, Share and Browser; local receiver
+receipts verify Copy, Share and Open handoffs. Highlights, incomplete paths and
+proxy options remain intact; post carousel selection and Story idempotence pass.
+Clean installs and channel-matched upgrades from 2.9.2 pass. Both upgrades retain
+Light theme and left-handed layout. Installed APK hashes match the artifacts.
+Baseline 2.9.2 reproduces the unremoved srtk parameter in both channels.
+These offline checks do not prove Instagram content availability or Telegram
+rendering, and the local Play installation uses an AAB-derived universal APK.
+
+The first artifact smoke attempt stopped at a Pixel Launcher ANR on the old
+2.9.2 baseline before exercising the fix. Its failure snapshot is retained.
+The complete artifact checks were repeated on a fresh isolated AVD; release
+code and signed artifacts were unchanged.
+The external driver also initially expected a proxy hostname to remain unchanged
+with conversion off. Main already reverses known proxy domains in that mode.
+The expectation was corrected and verified on both the 2.9.2 baseline and 2.9.3;
+query and fragment preservation remains asserted.
+
+[GitHub v2.9.3](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.9.3) was published at 2026-10-17T22:08:19Z.
+The remote tag resolves to the tested commit and the public asset digest matches.
+Google Play: Version 2.9.3 / 58 was submitted for Production, 100% rollout in all 178 targeted countries. Verified at 2026-10-17T22:11:45.0113078Z: Publishing overview shows Changes in review, with automated quick checks still running. Managed publishing remains off, allowing automatic publication after approval. Availability on Google Play is not yet confirmed.
+F-Droid publication remains subject to its external update/build cycle.
 
 
 ## v2.9.2 / 57 — Simpler Conversion History — October 9, 2026

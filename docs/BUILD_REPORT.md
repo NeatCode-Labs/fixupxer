@@ -1,5 +1,28 @@
 # FixupXer Build Report
 
+## v2.9.3 / 58 — Instagram Story link cleanup — October 17, 2026
+
+Canonical individual Instagram Story permalinks now remove the full query and
+fragment, including future sharing parameter names. Story Highlights, incomplete
+routes and proxy URLs retain selective cleanup. Post carousel selection is preserved.
+
+Required gates passed: **832 debug + 832 release unit tests**, **290/290 full API35
+instrumentation tests**, with zero failures, errors or skips. Release lint:
+**0 errors / 43 warnings**. Five new unit test methods cover the reported Story,
+future parameter names, path/authority boundaries and Main/Share/Browser processing
+with optional conversion and idempotence. Existing full device coverage was rerun.
+
+The device gate used a cold isolated Pixel_API_35_Play on emulator-5556, four CPU
+cores, 3 GiB RAM and software rendering. Executed device coverage is API35;
+configured support remains API21–36. The reported URL failed before the fix and
+passes the new canonical tests. These checks do not establish Instagram content
+availability or Telegram delivery.
+
+Play and F-Droid descriptions were reviewed; the F-Droid description now mentions
+individual Story cleanup. The existing 512x512 F-Droid icon was visually checked.
+Final signed-artifact checks, independent Linux comparison and publication are pending.
+
+
 ## v2.9.2 / 57 — Simpler Conversion History — October 9, 2026
 
 Removed the external Help row from the shared Conversion History dialog in Main

@@ -1,0 +1,1 @@
+Clean individual Instagram Story links without relying on tracking parameter names. Preserve navigation options for Story Highlights and proxy links.

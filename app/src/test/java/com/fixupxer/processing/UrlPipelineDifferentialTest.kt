@@ -33,6 +33,8 @@ import com.fixupxer.rules.RedirectDecodeMode
 import com.fixupxer.rules.RuleAction
 import com.fixupxer.rules.RuleScope
 import com.fixupxer.rules.RuleTraceStatus
+import com.fixupxer.utils.AlternativeFrontendCatalog
+import com.fixupxer.utils.ProxyPlatform
 import com.google.gson.Gson
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -113,6 +115,41 @@ class UrlPipelineDifferentialTest {
                 )
             )
             assertEquals(fixture.id, fixture.expected, result.url)
+        }
+    }
+
+    @Test
+    fun `reported Instagram story is cleaned across profiles and optional conversion`() = runTest {
+        val inputs = listOf(
+            "https://www.instagram.com/stories/theswissdriver/4009766202225767834?utm_source=ig_story_item_share&srtk=dGdueTJsMTdoYm9u",
+            "https://www.instagram.com/stories/theswissdriver/4009766202225767834?future_random_key=opaque&img_index=2&story_media_id=456#tracking"
+        )
+        val target = requireNotNull(AlternativeFrontendCatalog.defaultTarget(ProxyPlatform.INSTAGRAM))
+        val browserFrontends = BrowserFrontendSnapshot(
+            mapOf(ProxyPlatform.INSTAGRAM to BrowserFrontendPreference(BrowserConversionMode.EMBED, target.id))
+        )
+        ProcessingProfile.entries.forEach { profile ->
+            listOf(false, true).forEach { convert ->
+                val options = ProcessingOptions(
+                    profile = profile,
+                    cleanTracking = true,
+                    convertDomains = convert,
+                    proxySelections = ProxySelections.DEFAULT,
+                    customRulesEnabled = false,
+                    browserFrontends = if (convert) browserFrontends else null
+                )
+                val expectedHost = if (convert) "toinstagram.com" else "www.instagram.com"
+                val expected = "https://$expectedHost/stories/theswissdriver/4009766202225767834"
+                val label = "${profile.name}, convert=$convert"
+                inputs.forEach { input ->
+                    val result = orchestrator.process(input, options)
+                    assertEquals(label, expected, result.url)
+                    assertEquals(label, false, result.wasAlreadyClean)
+                    val repeated = orchestrator.process(result.url, options)
+                    assertEquals(label, expected, repeated.url)
+                    assertEquals(label, true, repeated.wasAlreadyClean)
+                }
+            }
         }
     }
 

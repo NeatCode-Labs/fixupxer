@@ -1,3 +1,19 @@
+# FixupXer v2.9.3 - Instagram Story link cleanup
+
+## What's Changed
+
+- Individual Instagram Story links now remove all sharing parameters, including newly generated parameter names.
+- Story Highlights, navigation routes and proxy links retain their existing selective cleanup behavior.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 58
+- versionName: 2.9.3
+
+---
+
 # FixupXer v2.9.2 - Simpler Conversion History
 
 ## What's Changed

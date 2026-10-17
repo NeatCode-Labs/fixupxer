@@ -1,16 +1,16 @@
 # FixupXer App - Development Summary
 
-## Version Progression: v2.9.2 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.9.3 → v1.2.1 (Latest to Oldest)
 
-**Versions Documented:** 51 (v2.9.2 through v1.2.1)
-**Current Version:** v2.9.2 (versionCode: 57)
-**Development Period:** v1.2.1 (Initial) → v2.9.2
+**Versions Documented:** 52 (v2.9.3 through v1.2.1)
+**Current Version:** v2.9.3 (versionCode: 58)
+**Development Period:** v1.2.1 (Initial) → v2.9.3
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes modifications since v1.2.1, through v2.9.2: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text and custom rules. Browser mode supports frontend management for seven platforms and a preferred destination browser, and removes completed temporary tasks from Recents. Browser and Main/Share keep separate choices; Browser, Share and Copy use the processed URL; native actions restore supported X, Instagram and TikTok embed links to their original platform domain. Backup schema v2 includes the preferred browser and retains older-file import. All processing remains offline with zero permissions.
+This document summarizes modifications since v1.2.1, through v2.9.3: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text and custom rules. Browser mode supports frontend management for seven platforms and a preferred destination browser, and removes completed temporary tasks from Recents. Browser and Main/Share keep separate choices; Browser, Share and Copy use the processed URL; native actions restore supported X, Instagram and TikTok embed links to their original platform domain. Backup schema v2 includes the preferred browser and retains older-file import. All processing remains offline with zero permissions.
 
 ### Key Achievements:
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
@@ -38,6 +38,13 @@ This document summarizes modifications since v1.2.1, through v2.9.2: selective h
 ---
 
 ## 📋 Version History
+
+### v2.9.3 — Instagram Story link cleanup (October 17, 2026)
+
+- Canonical individual Instagram Story permalinks remove the full query and fragment, so new sharing parameter names do not require blocklist updates.
+- Story Highlights, incomplete routes and proxy URLs keep selective cleanup; post carousel selection remains supported.
+- Release verification and distribution status are recorded in BUILD_REPORT.md.
+
 
 ### v2.9.2 — Simpler Conversion History (October 9, 2026)
 
@@ -886,6 +893,7 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.9.0 | 55 | Unified Help, clearer Settings and explicit contextual browser links | Release status in BUILD_REPORT.md |
 | v2.9.1 | 56 | Rotating Instagram share-parameter cleanup with carousel selection | Release status in BUILD_REPORT.md |
 | v2.9.2 | 57 | Remove the unnecessary Help row from Conversion History | Release status in BUILD_REPORT.md |
+| v2.9.3 | 58 | Canonical individual Instagram Story cleanup | Release status in BUILD_REPORT.md |
 
 ### Build Artifacts (v2.6.7):
 - **Google Play AAB:** `FixupXer-v2.6.7-release.aab` — signed root bundle; signature, manifest and bundletool validation passed. Play submission status is recorded in BUILD_REPORT.md.

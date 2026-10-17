@@ -10,8 +10,8 @@
         },
         {
           "input": "https://www.instagram.com/stories/user/123/?story_media_id=456&utm_source=share",
-          "expected": "https://www.instagram.com/stories/user/123/?story_media_id=456",
-          "description": "Preserve story_media_id while removing tracking"
+          "expected": "https://www.instagram.com/stories/user/123/",
+          "description": "Individual story permalinks identify the story in the path and remove the query"
         }
       ]
     },
@@ -101,4 +101,4 @@
       ]
     }
   ]
-} 
+}

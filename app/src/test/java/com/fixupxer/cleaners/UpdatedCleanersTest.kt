@@ -26,6 +26,67 @@ import org.junit.Test
 
 class UpdatedCleanersTest {
     @Test
+    fun testInstagramCanonicalStoryRemovesReportedAndFutureShareParameters() {
+        val base = "https://www.instagram.com/stories/theswissdriver/4009766202225767834"
+        val input = "$base?utm_source=ig_story_item_share&srtk=dGdueTJsMTdoYm9u"
+        assertEquals(base, InstagramCleaner.clean(input))
+        assertEquals(base, InstagramCleaner.clean("$base?future_random_key=opaque&SRTK=case&enc%6Fded=value&img_index=2&story_media_id=456#opaque"))
+        assertEquals(base, InstagramCleaner.clean("$base#?another_random_key=opaque"))
+        assertEquals(base, InstagramCleaner.clean(base))
+    }
+
+    @Test
+    fun testInstagramCanonicalStoryCoversOriginHostsAndOptionalTrailingSlash() {
+        listOf("instagram.com", "www.instagram.com", "m.instagram.com", "WWW.Instagram.com").forEach { host ->
+            listOf("", "/").forEach { suffix ->
+                val base = "https://$host/stories/creator.name_1/4009766202225767834$suffix"
+                assertEquals(base, InstagramCleaner.clean("$base?random_key=share#opaque"))
+                assertEquals(base, InstagramCleaner.clean(base))
+            }
+        }
+    }
+
+    @Test
+    fun testInstagramCanonicalStoryLeavesSpecialRoutesAndProxiesOnSelectivePolicy() {
+        val query = "?srtk=opaque&future_random_key=value&story_media_id=456&img_index=2#state"
+        val bases = listOf(
+            "https://www.instagram.com/stories/highlights/123/",
+            "https://www.instagram.com/stories/user/",
+            "https://www.instagram.com/stories/user/not-a-story-id/",
+            "https://www.instagram.com/stories/user/0/",
+            "https://www.instagram.com/stories/user/123/embed/",
+            "https://www.instagram.com/stories/user/%31%32%33/",
+            "https://www.instagram.com/stories/../123/",
+            "https://www.instagram.com/stories/./123/",
+            "https://www.instagram.com/stories/user/123/../456/",
+            "https://www.instagram.com/creator/stories/user/123/",
+            "https://www.instagram.com/accounts/login/",
+            "https://instagram.com.example.org/stories/user/123/",
+            "https://notinstagram.com/stories/user/123/"
+        ) + com.fixupxer.utils.InstagramProxyStore.allKnownProxies().map { "https://$it/stories/user/123/" }
+        bases.forEach { base ->
+            assertEquals(base + query, InstagramCleaner.clean(base + query))
+        }
+        val highlight = "https://www.instagram.com/stories/highlights/123/"
+        assertEquals(highlight + query, InstagramCleaner.clean("${highlight}?stkn=known&${query.substring(1)}"))
+    }
+
+    @Test
+    fun testInstagramCanonicalStoryRequiresValidOriginAuthorityAndUrl() {
+        listOf(
+            "https://l.instagram.com/stories/user/123/?future=token#state",
+            "https://user@www.instagram.com/stories/user/123/?future=token#state",
+            "https://www.instagram.com:444/stories/user/123/?future=token#state",
+            "https://www.instagram.com:/stories/user/123/?future=token#state",
+            "https://www.instagram.com/stories/user/123/?future=%ZZ#state"
+        ).forEach { url -> assertEquals(url, InstagramCleaner.clean(url)) }
+        listOf("http://instagram.com:80", "https://www.instagram.com:443").forEach { origin ->
+            val base = "$origin/stories/user/123/"
+            assertEquals(base, InstagramCleaner.clean("$base?future=token#state"))
+        }
+    }
+
+    @Test
     fun testInstagramCleanerRemovesReportedExlnFromReelUrl() {
         val url = "https://www.instagram.com/reel/DeQMt21oZ9Y/?exln=MWQ2dWVhcm1pYndsag=="
         assertEquals(
@@ -114,7 +175,7 @@ class UpdatedCleanersTest {
             "https://instagram.com.example.org/reel/ABC123/?stkn=keep",
             "https://notinstagram.com/reel/ABC123/?stkn=keep",
             "https://example.org/instagram.com?stkn=keep",
-            "https://www.instagram.com/stories/user/123/#?stkn=keep",
+            "https://www.instagram.com/stories/highlights/123/#?stkn=keep",
             "https://www.instagram.com/reel/ABC123/"
         ).forEach { url -> assertEquals(url, InstagramCleaner.clean(url)) }
     }
@@ -182,7 +243,7 @@ class UpdatedCleanersTest {
             assertEquals(url, InstagramCleaner.clean(url))
         }
         val functional = "img_index=2&story_media_id=456&h=200&w=300&carousel_index=3&media_id=123&reel_ids=123&highlight_reel_ids=456"
-        listOf("https://www.instagram.com/stories/user/123/", "https://toinstagram.com/p/ABC/").forEach { base ->
+        listOf("https://www.instagram.com/stories/highlights/123/", "https://toinstagram.com/p/ABC/").forEach { base ->
             assertEquals("$base?$functional#part", InstagramCleaner.clean("$base?stkn=share&$functional#part"))
         }
     }

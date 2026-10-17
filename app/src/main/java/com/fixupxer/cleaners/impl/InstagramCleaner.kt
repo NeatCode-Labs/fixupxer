@@ -29,7 +29,7 @@ import java.net.URI
 import java.util.Locale
 
 /**
- * Canonical post cleanup with selective fallback for special routes and proxies.
+ * Canonical post/story cleanup with selective fallback for special routes and proxies.
  */
 object InstagramCleaner : UrlCleaner {
     override val id = "instagram"
@@ -38,6 +38,7 @@ object InstagramCleaner : UrlCleaner {
     override val category = CleanerCategory.SOCIAL_MEDIA
     
     private val postPath = Regex("^/(?:([A-Za-z0-9._]+)/)?(?:p|reel|reels|tv)/[A-Za-z0-9_-]+/?$")
+    private val storyPath = Regex("^/stories/([A-Za-z0-9._]+)/[1-9][0-9]*/?$")
     private val reservedPrefixes = setOf(".", "..", "share", "accounts", "oauth", "explore", "direct", "stories")
     private val carouselIndex = Regex("[0-9]+")
 
@@ -105,7 +106,7 @@ object InstagramCleaner : UrlCleaner {
         if (!matches(url)) return url
 
         try {
-            cleanCanonicalPost(url)?.let { return it }
+            cleanCanonicalPermalink(url)?.let { return it }
 
             // If no query parameters, return as is
             val idx = url.indexOf('?')
@@ -148,11 +149,12 @@ object InstagramCleaner : UrlCleaner {
     }
 
     /**
-     * Public post permalinks identify their content in the path. Keep only a
-     * numeric carousel selector, so rotating share-key names need no catalog update.
+     * Post and individual-story permalinks identify their content in the path.
+     * Only posts keep a numeric carousel selector. Rotating share-key names
+     * therefore need no catalog update on either route.
      * Proxy URLs retain their existing policy: custom proxies may use query options.
      */
-    private fun cleanCanonicalPost(url: String): String? {
+    private fun cleanCanonicalPermalink(url: String): String? {
         val uri = runCatching { URI(url) }.getOrNull() ?: return null
         val scheme = uri.scheme?.lowercase(Locale.ROOT)
         if (scheme != "https" && scheme != "http") return null
@@ -162,7 +164,17 @@ object InstagramCleaner : UrlCleaner {
         if (uri.port == -1 && !uri.rawAuthority.equals(host, ignoreCase = true)) return null
         val domain = Constants.INSTAGRAM_DOMAIN
         if (host != domain && host != "www.$domain" && host != "m.$domain") return null
-        val match = postPath.matchEntire(uri.rawPath.orEmpty()) ?: return null
+        val path = uri.rawPath.orEmpty()
+        val base = url.substringBefore('?').substringBefore('#')
+        val story = storyPath.matchEntire(path)
+        if (story != null) {
+            val owner = story.groupValues[1].lowercase(Locale.ROOT)
+            // Highlights identify a collection and may use story_media_id to
+            // select an item, so they must retain the selective fallback.
+            if (owner == "highlights" || owner in reservedPrefixes) return null
+            return base
+        }
+        val match = postPath.matchEntire(path) ?: return null
         if (match.groupValues[1].lowercase(Locale.ROOT) in reservedPrefixes) return null
 
         val indices = uri.rawQuery.orEmpty().split('&')
@@ -173,7 +185,6 @@ object InstagramCleaner : UrlCleaner {
             }
         // Identical duplicate selectors are harmless; ambiguous/invalid ones are dropped.
         val index = indices.firstOrNull()?.takeIf { candidate -> indices.all { it == candidate } }
-        val base = url.substringBefore('?').substringBefore('#')
         return base + (index?.let { "?img_index=$it" } ?: "")
     }
 }

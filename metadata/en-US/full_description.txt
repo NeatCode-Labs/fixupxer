@@ -1,46 +1,35 @@
-FixupXer removes tracking parameters from URLs to protect your privacy and make links cleaner. When you share links from social media, shopping sites, or other platforms, they often contain hidden tracking codes that follow you around the internet. FixupXer strips these away.
+FixupXer removes tracking from URLs before you copy, share, or open them. Processing runs entirely on your device, with no ads, account, analytics, or Android permissions.
 
-<b>Key Features</b>
+<b>Clean and improve links</b>
 
-* Private Link Guard: Warns when e-mail addresses, auth tokens, or precise coordinates remain visible in a link — sensitive originals stay out of history and cache. With History on, fully cleaned results may be saved as redacted entries
-* Browser Mode: Add, edit or delete frontends for seven platforms, including TikTok and Instagram. Save applies all frontend changes; Browser and Main/Share selections stay separate. Choose a preferred browser to avoid repeated selection, or save per-host app choices. Native actions restore supported X, Instagram and TikTok embed links to the original platform; Browser, Share and Copy keep the processed URL; failed actions stay local for Retry.
-* Direct Sharing: Share your links directly to FixupXer, no need to open the main app
-* Clean Link from Selection: Select a URL in any app and choose "Clean link" to clean it in place
-* Privacy Protection: Removes documented tracking keys across 28 host-bound platform cleaners; unknown functional parameters are kept by default. Canonical Instagram post/Reel links retain only a valid carousel image selector; individual Story permalinks remove all query parameters and fragments
-* Redirect Unwrapping: Extracts real destinations from Facebook, LinkedIn, YouTube, Google Ads, Reddit, Bluesky, GeoRiot/Geniuslink, and LinkSynergy/Rakuten wrappers — entirely offline
-* Local Processing: Clean links on your device with bounded caching
-* Offline Operation: Cleaning makes no network requests; Open/Share hands the result to the external app you choose
-* Platform Support: Works with 28 platforms including YouTube, Facebook, Amazon, Twitter/X, Instagram, TikTok, Bluesky, Bilibili, Google Search, Google Maps, LinkedIn, Reddit, Spotify, Wikipedia, The Guardian, The New York Times, and more
-* Smart Conversions: Optional per-platform conversion to embed-friendly alternatives (fixupx.com, fxbsky.app, selectable Instagram and TikTok proxies) or account-free reader frontends (xcancel, Nitter, SkyLib, Redlib, and more), with custom domains for every platform — all pickers reachable anytime from Settings
-* Custom URL Rules: Build ordered offline rules with host or regex scopes, multiple processing phases, Test Lab previews, per-rule test vectors, Teach-from-example drafts, templates, and JSON import/export
-* History Tracking: Optional local history with Undo that restores the original entry and timestamp
-* Private Clipboard Previews: Copied URL contents are marked sensitive for system previews where Android supports it
-* Configurable Actions: Choose what happens after cleaning - open in app, browser, share, or copy to clipboard
-* Backup and Restore: Export settings, Browser frontend choices, preferred browser, custom rules, and saved app choices with schema v2; older backups still import safely
-* Unified Help: Open one guide with contents, examples and troubleshooting from the Main or Share menu, or jump to a topic from a clearly marked external Help link
+• Remove known tracking parameters from YouTube, Instagram, X, TikTok, Facebook, Amazon, Google, Reddit, and many other services. A universal cleaner covers other websites.
+• Keep unknown and functional parameters by default. Instagram post/Reel links keep a valid carousel image selector; individual Story permalinks lose query parameters and fragments.
+• Unwrap supported redirect links entirely offline.
+• Optionally convert links to embed-friendly frontends for chat previews or readers that can display public content without an account. Choose built-in options or add custom domains in Settings.
 
-<b>Browser Mode Setup</b>
+<b>Use it your way</b>
 
-1. Enable Browser Mode in Settings
-2. Set FixupXer as your default browser in Android Settings
-3. Configure your preferred post-clean actions
-4. Eligible links Android routes to FixupXer are cleaned before your chosen action; verified App Links may bypass the default browser
+• Share a URL to FixupXer, paste it into the app, or select text and choose "Clean link" where the source app supports it.
+• Choose the next action: open in an app or browser, share, or copy.
+• Enable Browser Mode in Settings and select FixupXer as Android's default browser to process eligible links automatically. Verified App Links may bypass it.
+• Keep Browser frontend choices separate from Main/Share choices. Remember a preferred browser or an app choice for a website host.
+• Native actions restore supported X, Instagram, and TikTok embed links to the original platform. Browser, Share, and Copy keep the processed URL; failed actions offer Retry.
 
-<b>Privacy & Security</b>
+<b>Private Link Guard</b>
 
-* Zero permissions required - no internet, location, or personal data access
-* 100% open source and auditable
-* No data collection or transmission
-* Works entirely on your device
+Get an offline warning when a link still contains credentials, email addresses, auth tokens, or precise coordinates. Review the finding and remove the parameter before sharing. Sensitive originals stay out of history and cache; fully cleaned results may be saved as redacted entries when History is on. The guard cannot detect every private value.
 
-<b>Technical Excellence</b>
+<b>Custom rules and local controls</b>
 
-* Modular architecture with 28 host-bound domain cleaners, one universal cleaner, and curated offline redirect unwrapping
-* Thread-safe design optimized for modern Android devices
-* Redesigned Material Design 3 interface with full dark mode and a System/Light/Dark theme picker
-* Targets Android 16 (API 36) with edge-to-edge display support
-* Comprehensive test suite with browser-mode and URL-processing regression coverage
+• Create optional rules for hosts or URL patterns, with ordered processing phases, templates, and Teach-from-example drafts.
+• Preview changes in Test Lab, save per-rule test cases, and import or export rule bundles. Custom rules start disabled.
+• Use optional local history with Undo, manual settings and rule backups, and System, Light, or Dark themes.
+• Open online Help for setup, examples, and troubleshooting.
 
-Perfect for privacy-conscious users who want cleaner, safer links without the tracking.
+<b>Privacy and third-party services</b>
 
-Visit the <a href="https://fixupxer.com">official website</a> for screenshots and an app overview, or follow the <a href="https://fixupxer.com/how-it-works">getting started guide</a>.
+FixupXer makes no network requests. Opening or sharing a result hands it to another app or service with its own privacy policy. Optional frontends are independently operated and may change or stop working; conversion can be disabled.
+
+Free and open source under GPL-3.0-or-later.
+
+Visit the <a href="https://fixupxer.com">official website</a> or the <a href="https://fixupxer.com/how-it-works">getting started guide</a>.

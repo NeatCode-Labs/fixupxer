@@ -17,7 +17,7 @@ FixupXer removes tracking from URLs before you copy, share, or open them. Proces
 
 <b>Private Link Guard</b>
 
-Get an offline warning when a link still contains credentials, email addresses, auth tokens, or precise coordinates. Review the finding and remove the parameter before sharing. Sensitive originals stay out of history and cache; fully cleaned results may be saved as redacted entries when History is on. The guard cannot detect every private value.
+Get an offline warning when a link still contains credentials, email addresses, auth tokens, or precise coordinates. Review the finding; remove an affected query parameter where possible, or go back to edit the link before sharing. Sensitive originals stay out of history and cache; fully cleaned results may be saved as redacted entries when History is on. The guard cannot detect every private value.
 
 <b>Custom rules and local controls</b>
 

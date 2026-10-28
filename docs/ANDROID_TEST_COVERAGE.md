@@ -62,8 +62,14 @@ All 43 lint warning signatures match the preserved v2.9.3 report, with no additi
 GitHub [v2.9.4](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.9.4) was published at
 `2026-10-28T12:05:26Z`; the remote tag and published APK digest match the
 verified source and artifact. F-Droid catalogue ingestion remains an external step.
-The Play AAB and English release notes are ready; Google Play submission is pending
-account reauthentication. No upload or review submission is claimed.
+Google Play accepted the Production 100% submission in the existing 178 countries
+at `2026-10-28T12:19:56.652Z`. Console status: **Changes in review**, with
+automated quick checks still running. Managed publishing remains off; publication
+will follow Google's approval. Availability of v2.9.4 on Google Play is not yet confirmed.
+The submission includes only this release and its en-US full-description update.
+The existing live listing was preserved apart from the X/Instagram cleanup sentence;
+the local Play description was reconciled with that live text. Release notes use the
+existing en-US locale and two plain-text bullets (172 Unicode characters before the final line break).
 
 ## v2.9.3 / 58 — Instagram Story link cleanup — October 17, 2026
 

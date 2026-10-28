@@ -23,9 +23,12 @@ package com.fixupxer.cleaners.impl
 import com.fixupxer.cleaners.CleanerCategory
 import com.fixupxer.cleaners.UrlCleaner
 import com.fixupxer.processing.PlatformDomainConverter
+import com.fixupxer.utils.Constants
+import java.net.URI
+import java.util.Locale
 
 /**
- * Cleaner for Twitter/X URLs - comprehensive tracking removal
+ * Canonical first-party post cleanup, with selective cleanup for other routes and proxies.
  */
 object TwitterCleaner : UrlCleaner {
     override val id = "twitter"
@@ -33,8 +36,11 @@ object TwitterCleaner : UrlCleaner {
     override val priority = UrlCleaner.PRIORITY_CONVERSION
     override val category = CleanerCategory.SOCIAL_MEDIA
     
-    // Comprehensive Twitter/X tracking parameters
-    // Most extensive tracking parameter list available
+    private val postPath = Regex(
+        "^/(?:[A-Za-z0-9_]{1,15}/status|i/web/status)/[1-9][0-9]*(?:/(?:photo|video)/[1-9][0-9]*)?/?$"
+    )
+
+    // Fallback for routes and proxy services whose query may carry other functions.
     private val twitterTracking = setOf(
         // Basic tracking
         "s", "t", "ref_src", "ref_url", "via", 
@@ -118,6 +124,8 @@ object TwitterCleaner : UrlCleaner {
         if (!matches(url)) return url
 
         try {
+            cleanCanonicalPermalink(url)?.let { return it }
+
             // If no query parameters, return as is
             val idx = url.indexOf('?')
             if (idx == -1 || url.indexOf('#').let { it >= 0 && it < idx }) {
@@ -163,4 +171,29 @@ object TwitterCleaner : UrlCleaner {
             return url
         }
     }
-} 
+
+    /**
+     * A complete post path identifies the content without rotating share parameters.
+     * Retain existing functional options and photo/video path selectors. Proxy URLs
+     * and special/incomplete routes keep the selective policy above.
+     */
+    private fun cleanCanonicalPermalink(url: String): String? {
+        val uri = runCatching { URI(url) }.getOrNull() ?: return null
+        val scheme = uri.scheme?.lowercase(Locale.ROOT)
+        if (scheme != "https" && scheme != "http") return null
+        if (uri.rawUserInfo != null || uri.port !in listOf(-1, if (scheme == "https") 443 else 80)) return null
+        val host = uri.host?.lowercase(Locale.ROOT) ?: return null
+        // An explicitly empty port also parses as -1; do not treat it as canonical.
+        if (uri.port == -1 && !uri.rawAuthority.equals(host, ignoreCase = true)) return null
+        if (listOf(Constants.X_DOMAIN, Constants.TWITTER_DOMAIN).none { domain ->
+                host == domain || host == "www.$domain" || host == "mobile.$domain" || host == "m.$domain"
+            }) return null
+        if (!postPath.matches(uri.rawPath.orEmpty())) return null
+
+        val kept = uri.rawQuery.orEmpty().split('&').filter { pair ->
+            pair.substringBefore('=') in preserveParams
+        }
+        val base = url.substringBefore('?').substringBefore('#')
+        return base + if (kept.isEmpty()) "" else "?" + kept.joinToString("&")
+    }
+}

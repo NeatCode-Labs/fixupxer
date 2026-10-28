@@ -154,6 +154,45 @@ class UrlPipelineDifferentialTest {
     }
 
     @Test
+    fun `X permalinks remove rotating share parameters across profiles and optional conversion`() = runTest {
+        val base = "https://x.com/Quinto_GQC/status/2115083116352327878"
+        val inputs = listOf(
+            "$base?a=omnycujSk431o0Kde_8&s=19",
+            "$base?future_random_key=opaque&enc%6Fded=value#tracking"
+        )
+        val target = requireNotNull(AlternativeFrontendCatalog.defaultTarget(ProxyPlatform.X))
+        val browserFrontends = BrowserFrontendSnapshot(
+            mapOf(ProxyPlatform.X to BrowserFrontendPreference(BrowserConversionMode.EMBED, target.id))
+        )
+        ProcessingProfile.entries.forEach { profile ->
+            listOf(false, true).forEach { convert ->
+                val options = ProcessingOptions(
+                    profile = profile,
+                    cleanTracking = true,
+                    convertDomains = convert,
+                    proxySelections = ProxySelections.DEFAULT,
+                    customRulesEnabled = false,
+                    browserFrontends = if (convert) browserFrontends else null
+                )
+                val expected = if (convert) base.replace("x.com", "fixupx.com") else base
+                val label = "${profile.name}, convert=$convert"
+                inputs.forEach { input ->
+                    val result = orchestrator.process(input, options)
+                    assertEquals(label, expected, result.url)
+                    assertEquals(label, false, result.wasAlreadyClean)
+                    val repeated = orchestrator.process(result.url, options)
+                    assertEquals(label, expected, repeated.url)
+                    assertEquals(label, true, repeated.wasAlreadyClean)
+                }
+                val media = orchestrator.process("$base/photo/2?lang=hr&random=share#tracking", options)
+                assertEquals(label, "$expected/photo/2?lang=hr", media.url)
+                val disabled = orchestrator.process(inputs.first(), options.copy(cleanTracking = false))
+                assertEquals(label, "$expected?a=omnycujSk431o0Kde_8&s=19", disabled.url)
+            }
+        }
+    }
+
+    @Test
     fun `YouTube Music share cleanup is consistent across processing profiles`() = runTest {
         val input = "https://music.youtube.com/watch?v=wARcb77cLMk&si=aL_JnTLnlBa8mp0D"
         val expected = "https://music.youtube.com/watch?v=wARcb77cLMk"

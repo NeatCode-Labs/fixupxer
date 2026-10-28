@@ -1,5 +1,31 @@
 # FixupXer Build Report
 
+## v2.9.4 / 59 — X post link cleanup — October 28, 2026
+
+Complete first-party X/Twitter post permalinks remove rotating share parameters
+and fragments, retaining existing functional options and photo/video path selectors.
+Special/incomplete routes, unexpected authorities and proxy URLs use selective cleanup.
+
+Required gates passed: **840 debug + 840 release unit tests**, **291/291 full API35
+instrumentation tests**, no failures, errors or skips. Release lint: **0 errors /
+43 existing warnings**. New regressions cover arbitrary/encoded/duplicate share keys,
+path and authority boundaries, functional options, Main/Share/Browser processing,
+conversion on/off, Clean Tracking off and idempotence. A device regression exercises
+the reported URL through Share with conversion enabled.
+
+Two initial device attempts were stopped after finding obsolete test fixtures:
+an X post fragment expectation and arbitrary parameters used to measure custom-rule
+phase order. Fragment preservation is now checked on a proxy URL; the phase-order
+fixture uses functional options so all three phases remain asserted. Production
+code was unchanged by these test corrections. Both failed logs are retained.
+The final full run used a cold isolated Pixel_API_35_Play, API35, four cores and
+3 GiB RAM. Configured support remains API21–36; other API levels were not executed.
+
+Play and F-Droid descriptions were reviewed and updated within their limits. The
+512x512 F-Droid icon was visually checked and matches the root store image hash.
+Final signed-artifact checks, independent Linux comparison and publication are pending.
+These offline checks do not establish X content availability or Telegram rendering.
+
 ## v2.9.3 / 58 — Instagram Story link cleanup — October 17, 2026
 
 Canonical individual Instagram Story permalinks now remove the full query and

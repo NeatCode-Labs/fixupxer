@@ -1,3 +1,20 @@
+# FixupXer v2.9.4 - X post link cleanup
+
+## What's Changed
+
+- Clean complete X/Twitter post links independently of sharing parameter names, including newly generated keys.
+- Preserve photo/video path selection and existing functional options such as language. Special routes and proxy URLs retain selective cleanup.
+- Release verification and distribution status are recorded in BUILD_REPORT.md.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 59
+- versionName: 2.9.4
+
+---
+
 # FixupXer v2.9.3 - Instagram Story link cleanup
 
 ## What's Changed

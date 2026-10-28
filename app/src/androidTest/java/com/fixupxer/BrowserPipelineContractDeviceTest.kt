@@ -196,18 +196,20 @@ class BrowserPipelineContractDeviceTest {
     fun phasesRunAroundCleaningAndFrontendConversionInContractOrder() = runTest {
         val target = embedTarget(ProxyPlatform.X)
         rules.save(rule("PRE", RulePhase.PRE_CLEAN, "pre", RuleScope.ExactHost("x.com")))
-        rules.save(rule("POST_CLEAN", RulePhase.POST_CLEAN, "after_clean", RuleScope.ExactHost("x.com")))
+        // Functional options survive canonical post cleanup, so later rules must
+        // actually remove them. Arbitrary test keys now disappear in the cleaner.
+        rules.save(rule("POST_CLEAN", RulePhase.POST_CLEAN, "lang", RuleScope.ExactHost("x.com")))
         rules.save(
             rule(
                 "POST_CONVERSION",
                 RulePhase.POST_CONVERSION,
-                "after_conversion",
+                "theme",
                 RuleScope.ExactHost(target.domain),
             ),
         )
 
         val result = orchestrator.process(
-            "https://x.com/alice/status/1?pre=1&utm_source=tracking&after_clean=1&after_conversion=1",
+            "https://x.com/alice/status/1?pre=1&utm_source=tracking&lang=hr&theme=dark",
             browserOptions(ProxyPlatform.X, BrowserConversionMode.EMBED, target.id),
         )
 

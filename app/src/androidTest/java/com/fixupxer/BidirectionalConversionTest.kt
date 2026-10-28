@@ -512,17 +512,34 @@ class BidirectionalConversionTest {
     }
     
     @Test
-    fun testUrlWithFragment() {
+    fun testProxyUrlWithFragment() {
         runBlocking {
-            // URL with fragment should preserve it
+            // Proxy-specific options retain the selective cleanup contract.
             preferencesManager.setConvertTwitterEnabled(true)
             delay(100)
             
-            launchShareActivityWithText("https://x.com/user/status/123456789#reply")
+            launchShareActivityWithText("https://fxtwitter.com/user/status/123456789#reply")
             awaitAssertion {
                 // Should convert and preserve fragment
                 onView(withId(R.id.textViewProcessedUrl))
                     .check(matches(withText("https://fixupx.com/user/status/123456789#reply")))
+            }
+        }
+    }
+
+    @Test
+    fun testCanonicalXPostDropsRotatingShareParametersAndFragment() {
+        runBlocking {
+            preferencesManager.setConvertTwitterEnabled(true)
+            delay(100)
+
+            launchShareActivityWithText(
+                "https://x.com/Quinto_GQC/status/2115083116352327878" +
+                    "?a=omnycujSk431o0Kde_8&s=19&future_random_key=opaque#share"
+            )
+            awaitAssertion {
+                onView(withId(R.id.textViewProcessedUrl))
+                    .check(matches(withText("https://fixupx.com/Quinto_GQC/status/2115083116352327878")))
             }
         }
     }

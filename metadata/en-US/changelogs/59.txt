@@ -1,0 +1,2 @@
+• X post links now remove changing share parameters automatically.
+• Keep language options and photo/video selection, with selective cleanup for special routes and proxies.

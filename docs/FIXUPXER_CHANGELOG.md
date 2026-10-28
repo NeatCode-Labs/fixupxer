@@ -1,16 +1,16 @@
 # FixupXer App - Development Summary
 
-## Version Progression: v2.9.3 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.9.4 → v1.2.1 (Latest to Oldest)
 
-**Versions Documented:** 52 (v2.9.3 through v1.2.1)
-**Current Version:** v2.9.3 (versionCode: 58)
-**Development Period:** v1.2.1 (Initial) → v2.9.3
+**Versions Documented:** 53 (v2.9.4 through v1.2.1)
+**Current Version:** v2.9.4 (versionCode: 59)
+**Development Period:** v1.2.1 (Initial) → v2.9.4
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes modifications since v1.2.1, through v2.9.3: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text and custom rules. Browser mode supports frontend management for seven platforms and a preferred destination browser, and removes completed temporary tasks from Recents. Browser and Main/Share keep separate choices; Browser, Share and Copy use the processed URL; native actions restore supported X, Instagram and TikTok embed links to their original platform domain. Backup schema v2 includes the preferred browser and retains older-file import. All processing remains offline with zero permissions.
+This document summarizes modifications since v1.2.1, through v2.9.4: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text and custom rules. Browser mode supports frontend management for seven platforms and a preferred destination browser, and removes completed temporary tasks from Recents. Browser and Main/Share keep separate choices; Browser, Share and Copy use the processed URL; native actions restore supported X, Instagram and TikTok embed links to their original platform domain. Backup schema v2 includes the preferred browser and retains older-file import. All processing remains offline with zero permissions.
 
 ### Key Achievements:
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
@@ -18,7 +18,7 @@ This document summarizes modifications since v1.2.1, through v2.9.3: selective h
 - ✅ **Alternative Frontend Catalog** - Embed/Privacy frontend picker on Main/Share across nine platforms with selectable readers (xcancel, Nitter, SkyLib, Redlib, Invidious, …) and custom domains for every platform
 - ✅ **Local Settings Backup** - Validated JSON export/restore of settings, custom rules, and saved app choices with atomic apply, automatic rollback, and crash-safe recovery
 - ✅ **Private Link Guard** - Offline detection of credentials, e-mails, JWT/auth tokens and precise coordinates left in links; sensitive originals never enter history or cache. With History on, fully cleaned results may be saved as clearly marked redacted entries
-- ✅ **Selective Cleaning Contract** - Unknown functional parameters survive by default; canonical Instagram posts keep only a valid carousel selector to handle rotating share keys. Host-boundary matching rejects lookalike domains
+- ✅ **Selective Cleaning Contract** - Unknown functional parameters survive by default; canonical Instagram and X/Twitter permalinks use scoped rules to handle rotating share keys while keeping supported selectors and options. Host-boundary matching rejects lookalike domains
 - ✅ **Custom URL Rule Engine** - Ordered scopes/actions/phases/contexts, excludes, keep-only, redirects, templates, Test Lab, test vectors with activation gate, Teach-from-example inference and portable bundles
 - ✅ **TikTok Conversion Support** - Dedicated Embed? toggle + full proxy picker (tnktok.com, tfxktok.com, tiktokez.com, kktiktok.com + custom), subdomain-preserving conversion
 - ✅ **Custom Instagram Proxies** - Users can add/select/delete their own embed proxy domains, validated and persisted locally
@@ -26,7 +26,7 @@ This document summarizes modifications since v1.2.1, through v2.9.3: selective h
 - ✅ **Selectable Instagram Embed Proxy** - User-chosen, persistent proxy for Instagram embeds with cross-proxy swap, legacy auto-migration, and bare-hostname conversion
 - ✅ **Cross-OEM Default-Browser Support** - `MAIN + APP_BROWSER` filter so Xiaomi/Redmi/HyperOS (and other non-AOSP pickers) list FixupXer as a browser candidate
 - ✅ **Professional UI/UX** - Polished Material Design 3 interface with perfect text formatting and typography
-- ✅ **Selective Cleaner Catalog** - 28 host-bound domain cleaners plus one universal cleaner, with a scoped keep-only policy for canonical Instagram posts
+- ✅ **Selective Cleaner Catalog** - 28 host-bound domain cleaners plus one universal cleaner, with scoped canonical cleanup for Instagram and X/Twitter permalinks
 - ✅ **Offline Redirect Unwrapping** - Curated HTTP(S) target extraction with exact host/path checks, strict single decoding and multi-pass destination cleaning
 - ✅ **Efficient Dispatch** - O(1) domain dispatch and bounded smart caching
 - ✅ **International Support** - Full IDN support and zero-width character handling
@@ -38,6 +38,13 @@ This document summarizes modifications since v1.2.1, through v2.9.3: selective h
 ---
 
 ## 📋 Version History
+
+### v2.9.4 — X post link cleanup (October 28, 2026)
+
+- Clean complete X/Twitter post links independently of sharing parameter names, including newly generated keys.
+- Preserve photo/video path selection and existing functional options such as language. Special routes and proxy URLs retain selective cleanup.
+- Release verification and distribution status are recorded in BUILD_REPORT.md.
+
 
 ### v2.9.3 — Instagram Story link cleanup (October 17, 2026)
 
@@ -894,6 +901,7 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.9.1 | 56 | Rotating Instagram share-parameter cleanup with carousel selection | Release status in BUILD_REPORT.md |
 | v2.9.2 | 57 | Remove the unnecessary Help row from Conversion History | Release status in BUILD_REPORT.md |
 | v2.9.3 | 58 | Canonical individual Instagram Story cleanup | Release status in BUILD_REPORT.md |
+| v2.9.4 | 59 | Canonical X/Twitter post cleanup independent of sharing keys | Release status in BUILD_REPORT.md |
 
 ### Build Artifacts (v2.6.7):
 - **Google Play AAB:** `FixupXer-v2.6.7-release.aab` — signed root bundle; signature, manifest and bundletool validation passed. Play submission status is recorded in BUILD_REPORT.md.

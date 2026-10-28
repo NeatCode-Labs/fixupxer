@@ -3,7 +3,7 @@ FixupXer removes tracking from URLs before you copy, share, or open them. Proces
 <b>Clean and improve links</b>
 
 • Remove known tracking parameters from YouTube, Instagram, X, TikTok, Facebook, Amazon, Google, Reddit, and many other services. A universal cleaner covers other websites.
-• Keep unknown and functional parameters by default. Instagram post/Reel links keep a valid carousel image selector; individual Story permalinks lose query parameters and fragments.
+• Keep unknown and functional parameters by default. Instagram post/Reel links keep a valid carousel image selector; individual Story permalinks lose query parameters and fragments. Complete X post links remove changing share tags while retaining supported options and media path selection.
 • Unwrap supported redirect links entirely offline.
 • Optionally convert links to embed-friendly frontends for chat previews or readers that can display public content without an account. Choose built-in options or add custom domains in Settings.
 

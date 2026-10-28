@@ -23,8 +23,47 @@ The final full run used a cold isolated Pixel_API_35_Play, API35, four cores and
 
 Play and F-Droid descriptions were reviewed and updated within their limits. The
 512x512 F-Droid icon was visually checked and matches the root store image hash.
-Final signed-artifact checks, independent Linux comparison and publication are pending.
+Final artifact and distribution evidence is recorded below.
 These offline checks do not establish X content availability or Telegram rendering.
+
+### Final artifacts and distribution
+
+Root build source: `7685397e5cdcedcf6fb7f7f9d5091fe1a801724a`. Mirror annotated tag `v2.9.4`:
+`79de9fa0622dc4bbe2a988c3927204a303279f10`. The APK was built from that local tag in a fresh
+Windows clone before publication.
+
+| Artifact | SHA-256 |
+|---|---|
+| GitHub APK | `90c6a409c73c9228c6cfbade4cb19d2f604d3feb3df457bf2d5c00b05072c443` |
+| Play AAB | `3dc295e80f05efd17e3353815b86205ddcb99a14b85a4ea8560365cbd3dd949d` |
+| AAB-derived universal APK | `d5d8b49a40d228781b00d99f587e7ecdba93f2c92b91f42e5feac807040906f7` |
+
+All three artifacts pass release certificate, package/version, API21/36 manifest
+and zero-permission checks. Play ownership is present only in Play artifacts;
+the mirror APK excludes Play ownership and dependency metadata.
+
+Independent Linux/F-Droid rebuild: **PASS**, upstream fdroiddata
+`838a63f414e61f0c059029770c28115a219af704`, recipe SHA-256
+`d259718843f3b2c49e1184d0bf294d50f083fd90af1c9af5a55279f0061fa3be`. Current prebuild, srclibs and postbuild steps
+were retained. F-Droid verification and apksigcopier comparison passed; the Linux
+APK with copied signature is byte-identical to the GitHub APK.
+
+Final signed-artifact UI checks: **4/4 channel/install combinations**, **48/48 checks**,
+API35. The reported X URL and future parameter names are cleaned through Main,
+Share and Browser. Local receiver receipts verify Copy, Share and Open handoffs.
+Search and incomplete routes, proxy options, photo selection and language options
+are preserved; legacy routes and idempotence pass. Clean installs and channel-matched
+upgrades from 2.9.3 pass. Both upgrades retain Light theme and left-handed layout.
+Installed APK hashes match the artifacts. The 2.9.3 baseline reproduces the unremoved
+`a` parameter in both channels. These offline checks do not prove X content
+availability or Telegram rendering; Play installation uses an AAB-derived universal APK.
+All 43 lint warning signatures match the preserved v2.9.3 report, with no additions.
+
+GitHub [v2.9.4](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.9.4) was published at
+`2026-10-28T12:05:26Z`; the remote tag and published APK digest match the
+verified source and artifact. F-Droid catalogue ingestion remains an external step.
+The Play AAB and English release notes are ready; Google Play submission is pending
+account reauthentication. No upload or review submission is claimed.
 
 ## v2.9.3 / 58 — Instagram Story link cleanup — October 17, 2026
 

@@ -22,8 +22,8 @@ final release-artifact checks.
 
 Play and F-Droid descriptions were reviewed and remain accurate without changes.
 The 512x512 F-Droid icon was visually checked and matches the root image hash.
-All 43 release lint warning signatures match v2.9.4. Publication has not started;
-final artifact and distribution evidence is recorded below.
+All 43 release lint warning signatures match v2.9.4. Final artifact and
+distribution evidence is recorded below.
 
 ### Final artifacts and verification
 
@@ -69,8 +69,18 @@ identity was verified with a full adb pull and SHA-256 before rerunning the Play
 checks. Production sources and signed artifacts were unchanged. Failed evidence
 is retained.
 
-GitHub and Google Play publication are pending; distribution status will be
-recorded here after the publication steps. F-Droid catalogue ingestion is external.
+GitHub [v2.9.5](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.9.5) was published at
+`2026-10-29T20:25:37Z`. The remote annotated tag resolves to the tested mirror
+commit, and the published APK digest matches the local verified artifact.
+
+Google Play submission acceptance was verified at `2026-10-29T20:29:40.668Z`:
+version 2.9.5 / 60, **Production, 100% rollout**, all existing 178 countries.
+Only the prepared Production release was submitted. Console status is
+**Changes in review**, with automated quick checks still running. Managed
+publishing remains off; publication follows Google's approval automatically.
+Availability of 2.9.5 on Google Play is **not yet confirmed**. No new build or
+version bump is needed to continue checking this submission. F-Droid catalogue
+ingestion remains a separate external step.
 
 ## v2.9.4 / 59 — X post link cleanup — October 28, 2026
 

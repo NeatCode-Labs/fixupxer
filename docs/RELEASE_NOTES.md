@@ -1,3 +1,20 @@
+# FixupXer v2.9.5 - Instagram app routing fix
+
+## What's Changed
+
+- Fix Instagram links opening in the browser when the Instagram app is selected.
+- Respect Android's effective component state when an app enables its link handler at runtime.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 60
+- versionName: 2.9.5
+- Verification and distribution status: BUILD_REPORT.md.
+
+---
+
 # FixupXer v2.9.4 - X post link cleanup
 
 ## What's Changed

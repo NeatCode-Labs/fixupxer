@@ -1,5 +1,30 @@
 # FixupXer Build Report
 
+## v2.9.5 / 60 — Instagram app routing fix — October 29, 2026
+
+Native app selection now respects Android's effective enabled-component state.
+Instagram's manifest-disabled handler can be enabled at runtime; rejecting its
+raw manifest bit caused a valid native route to fall through to the browser.
+Queries still exclude genuinely disabled components, and exported/application
+enabled checks remain. URL cleaning itself is unchanged.
+
+Full unit gates passed: **849 debug + 849 release tests**, zero failures, errors
+or skips. Release lint: **0 errors / 43 warnings**. New API28/33 regressions cover
+runtime-enabled, unexported, application-disabled and absent candidates, plus
+the exact cleaned Reel handoff without launching the configured fallback browser.
+
+The full cold API35 instrumentation gate passed **291/291 tests**, with zero
+failures, errors or skips. The reported Reel was also verified in the real
+Instagram app on an Android17 phone using the separate debug build. Final signed
+artifact verification is pending. Configured support remains API21–36; API28/33
+regressions run under Robolectric. The physical phone evidence is separate from
+final release-artifact checks.
+
+Play and F-Droid descriptions were reviewed and remain accurate without changes.
+The 512x512 F-Droid icon was visually checked and matches the root image hash.
+All 43 release lint warning signatures match v2.9.4. Publication has not started;
+final artifact and distribution evidence will be recorded below.
+
 ## v2.9.4 / 59 — X post link cleanup — October 28, 2026
 
 Complete first-party X/Twitter post permalinks remove rotating share parameters

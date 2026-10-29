@@ -11,16 +11,19 @@
 
 package com.fixupxer
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import com.fixupxer.backup.RememberedRoute
 import com.fixupxer.backup.RememberedRouteKind
+import com.fixupxer.cleaners.impl.InstagramCleaner
 import com.fixupxer.utils.PostCleanRunner
 import com.fixupxer.utils.ProxyRoster
 import org.junit.After
@@ -309,6 +312,36 @@ class PostCleanRunnerRouteTest {
         val sent = shadowOf(activity).nextStartedActivity
         assertEquals("com.twitter.android", sent?.`package`)
         assertEquals(nativeUri, sent?.data)
+    }
+
+    @Test
+    fun `cleaned Instagram reel opens runtime-enabled native handler before browser`() = withActivity { activity ->
+        val original = "https://www.instagram.com/reel/DfENLTghUUR/?obrf=MWZwcTY4cmZramE5MQ=="
+        val cleanedUri = Uri.parse(InstagramCleaner.clean(original))
+        assertEquals("https://www.instagram.com/reel/DfENLTghUUR/", cleanedUri.toString())
+        registerViewTarget("com.instagram.android", cleanedUri, manifestEnabled = false)
+        context.packageManager.setComponentEnabledSetting(
+            ComponentName("com.instagram.android", "com.instagram.android.MainActivity"),
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            PackageManager.DONT_KILL_APP,
+        )
+        registerBrowser("com.brave.browser", cleanedUri)
+        preferencesManager.setPreferredBrowserPackage("com.brave.browser")
+        preferencesManager.setActionMode(PreferencesManager.ACTION_MODE_PRIORITY)
+        preferencesManager.setActionPriority(
+            listOf(PreferencesManager.ACTION_NATIVE_APP, PreferencesManager.ACTION_BROWSER),
+        )
+        val outcomes = mutableListOf<PostCleanRunner.Outcome>()
+
+        PostCleanRunner(activity, preferencesManager).runGuarded(
+            cleanedUri, "www.instagram.com", { true }, outcomes::add,
+        )
+
+        assertEquals(listOf(PostCleanRunner.Outcome.SUCCESS), outcomes)
+        val sent = shadowOf(activity).nextStartedActivity
+        assertEquals("com.instagram.android", sent?.`package`)
+        assertEquals(cleanedUri, sent?.data)
+        assertNull(shadowOf(activity).nextStartedActivity)
     }
 
     @Test
@@ -703,13 +736,15 @@ class PostCleanRunnerRouteTest {
     }
 
     @Suppress("DEPRECATION")
-    private fun registerViewTarget(packageName: String, uri: Uri) {
+    private fun registerViewTarget(packageName: String, uri: Uri, manifestEnabled: Boolean = true) {
         val viewIntent = Intent(Intent.ACTION_VIEW, uri).apply {
             setPackage(packageName)
             addCategory(Intent.CATEGORY_BROWSABLE)
         }
         shadowOf(context.packageManager)
-            .addResolveInfoForIntent(viewIntent, resolveInfoFor(packageName))
+            .addResolveInfoForIntent(viewIntent, resolveInfoFor(packageName).apply {
+                activityInfo.enabled = manifestEnabled
+            })
     }
 
     private fun resolveInfoFor(packageName: String): ResolveInfo {

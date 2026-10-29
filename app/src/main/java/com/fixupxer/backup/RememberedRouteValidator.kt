@@ -128,7 +128,7 @@ object RememberedRouteValidator {
         }
         return queryActivities(context.packageManager, intent, 0)
             .any { resolveInfo ->
-                resolveInfo.activityInfo?.let(::isEnabledExported) == true
+                resolveInfo.activityInfo?.let(::isUsableQueryResult) == true
             }
     }
 
@@ -139,12 +139,14 @@ object RememberedRouteValidator {
     ): List<String> = queryActivities(packageManager, intent, flags)
         .mapNotNull { resolveInfo ->
             val activityInfo = resolveInfo.activityInfo ?: return@mapNotNull null
-            activityInfo.packageName.takeIf { isEnabledExported(activityInfo) }
+            activityInfo.packageName.takeIf { isUsableQueryResult(activityInfo) }
         }
 
-    private fun isEnabledExported(activityInfo: android.content.pm.ActivityInfo): Boolean =
+    // All callers query without MATCH_DISABLED_COMPONENTS, so Android has already
+    // checked the effective enabled state. ActivityInfo.enabled can still be false
+    // for a manifest-disabled component that the app enabled at runtime (Instagram).
+    private fun isUsableQueryResult(activityInfo: android.content.pm.ActivityInfo): Boolean =
         activityInfo.exported &&
-            activityInfo.enabled &&
             activityInfo.applicationInfo?.enabled != false
 
     private fun queryActivities(

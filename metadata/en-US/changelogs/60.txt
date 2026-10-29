@@ -1,0 +1,1 @@
+Fix Instagram links opening in the browser when the Instagram app is selected.

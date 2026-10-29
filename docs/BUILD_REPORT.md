@@ -16,14 +16,61 @@ the exact cleaned Reel handoff without launching the configured fallback browser
 The full cold API35 instrumentation gate passed **291/291 tests**, with zero
 failures, errors or skips. The reported Reel was also verified in the real
 Instagram app on an Android17 phone using the separate debug build. Final signed
-artifact verification is pending. Configured support remains API21–36; API28/33
+artifact verification is recorded below. minSdk/targetSdk remain 21/36; API28/33
 regressions run under Robolectric. The physical phone evidence is separate from
 final release-artifact checks.
 
 Play and F-Droid descriptions were reviewed and remain accurate without changes.
 The 512x512 F-Droid icon was visually checked and matches the root image hash.
 All 43 release lint warning signatures match v2.9.4. Publication has not started;
-final artifact and distribution evidence will be recorded below.
+final artifact and distribution evidence is recorded below.
+
+### Final artifacts and verification
+
+Root build source: `22132f0f0f532adae9368d9c70410094a64cf308`. Mirror annotated tag `v2.9.5`:
+`8e997b3c31d52cdee4643a6eb7a12ef551b1dee8`. The GitHub APK was built from this local tag in a fresh
+Windows clone. All artifacts pass signature, package/version, API21/36 and
+zero-permission checks. Play ownership is present only in Play artifacts; the
+mirror APK excludes Play ownership and dependency metadata.
+
+| Artifact | SHA-256 |
+|---|---|
+| AAB-derived universal APK | `cd0af01b2e87cff9a920044af09d514ad27927fd58a3220b9a69560c09c6f037` |
+| Google Play AAB | `3666881e6cb0d73d2380a1f2c5b43fb5258120f17199502e321089f1a2410b23` |
+| GitHub APK | `e229e742cee8aeeadb9e1faefa0707c697b34a0eda9182ea1c2dfc8bca7ec1d4` |
+
+Independent Linux/F-Droid rebuild: **PASS**. Upstream fdroiddata revision
+`f531a4c0cd363262720512de1b9546fb829bc03f`, recipe SHA-256
+`90e7d6f76253e7204a794c1beb731ba2c0330e3f2f3675aabf508472142c0514`.
+The current prebuild, srclib and postbuild steps were retained. F-Droid verification
+and apksigcopier comparison passed; the Linux APK with copied signature is
+byte-identical to the signed GitHub APK.
+
+Final signed-artifact checks: **4/4 channel/install combinations, 72/72 assertions**,
+API35. Clean installs and channel-matched upgrades from 2.9.4 pass for the mirror
+APK and AAB-derived universal APK; installed hashes match. Both upgrades retain
+Light theme and left-handed layout. The unchanged 2.9.4 baseline reproduces the
+browser fallback in both channels with the same effective component state.
+
+The exact reported Reel and its already-clean form reach the offline native
+receiver with fresh intent receipts. A disabled handler falls back to
+the configured browser without advancing the native receipt. Main Copy and
+Share handoffs retain the exact cleaned URL. The synthetic receiver declares its
+handler disabled in the manifest and enables it through its own PackageManager
+API, matching the real Instagram condition. These final-artifact tests do not
+assert Instagram network/content availability. Separate physical-phone debug
+verification opened the Reel in the real Instagram app on Android17.
+
+Preliminary baseline attempts stopped in the external test environment:
+an emulator shell restriction, a stale command-output expectation, and ADB
+disconnects/truncated reads during Play APK identity checks. The offline
+fixture/driver was corrected; the emulator was cold-restarted, and installed APK
+identity was verified with a full adb pull and SHA-256 before rerunning the Play
+checks. Production sources and signed artifacts were unchanged. Failed evidence
+is retained.
+
+GitHub and Google Play publication are pending; distribution status will be
+recorded here after the publication steps. F-Droid catalogue ingestion is external.
 
 ## v2.9.4 / 59 — X post link cleanup — October 28, 2026
 

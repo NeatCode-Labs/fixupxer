@@ -75,10 +75,12 @@ class ShareAutoCopyTest {
         }
     }
 
-    private fun awaitFinished(scenario: ActivityScenario<ShareActivity>) {
+    private fun awaitResult(scenario: ActivityScenario<ShareActivity>, expected: String, canCopy: Boolean = true) {
         awaitAssertion {
             scenario.onActivity { activity ->
                 assertTrue(activity.findViewById<android.view.View>(R.id.progressIndicator).visibility != android.view.View.VISIBLE)
+                assertEquals(expected, activity.findViewById<android.widget.TextView>(R.id.textViewProcessedUrl).text.toString())
+                assertEquals(canCopy, activity.findViewById<android.view.View>(R.id.buttonCopy).isEnabled)
             }
         }
     }
@@ -91,7 +93,7 @@ class ShareAutoCopyTest {
             assertClipboard(scenario, "https://example.com/article", sensitive = true)
             setClipboard(scenario)
             scenario.recreate()
-            awaitFinished(scenario)
+            awaitResult(scenario, "https://example.com/article")
             assertClipboard(scenario, sentinel)
             // A genuinely new Share intent of the same text can copy again.
             scenario.onActivity { InstrumentationRegistry.getInstrumentation().callActivityOnNewIntent(it, send("https://example.com/article?utm_source=fixture", clipOnly = true)) }
@@ -105,7 +107,7 @@ class ShareAutoCopyTest {
         launch().use { scenario ->
             setClipboard(scenario)
             scenario.onActivity { InstrumentationRegistry.getInstrumentation().callActivityOnNewIntent(it, send("https://example.com/article?utm_source=fixture")) }
-            awaitFinished(scenario)
+            awaitResult(scenario, "https://example.com/article")
             assertClipboard(scenario, sentinel)
             onView(withId(R.id.buttonCopy)).perform(click())
             assertClipboard(scenario, "https://example.com/article")
@@ -139,7 +141,7 @@ class ShareAutoCopyTest {
         launch().use { scenario ->
             setClipboard(scenario)
             scenario.onActivity { InstrumentationRegistry.getInstrumentation().callActivityOnNewIntent(it, send(url)) }
-            awaitFinished(scenario)
+            awaitResult(scenario, url)
             onView(withId(R.id.autoCopyWarning)).check(matches(isDisplayed()))
             assertClipboard(scenario, sentinel)
             onView(withId(R.id.buttonCopy)).perform(click())
@@ -150,10 +152,13 @@ class ShareAutoCopyTest {
     @Test
     fun invalidAndMultipleUrlsLeaveClipboardAlone() {
         launch().use { scenario ->
-            for (input in listOf("plain text", "https://example.com/a https://example.com/b")) {
+            for ((input, error) in listOf(
+                "plain text" to R.string.error_no_url_found_in_shared_text,
+                "https://example.com/a https://example.com/b" to R.string.error_multiple_urls,
+            )) {
                 setClipboard(scenario)
                 scenario.onActivity { InstrumentationRegistry.getInstrumentation().callActivityOnNewIntent(it, send(input)) }
-                awaitFinished(scenario)
+                awaitResult(scenario, context.getString(error), canCopy = false)
                 assertClipboard(scenario, sentinel)
             }
         }

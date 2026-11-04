@@ -61,8 +61,20 @@ is covered by unit/Robolectric tests, not a new lower-API device run.
 
 ### Distribution
 
-All local release gates passed. GitHub publication and Play submission are pending.
-F-Droid ingestion is external and has not been claimed complete.
+GitHub [v2.10.0](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.10.0) published at 2026-11-04T15:05:19Z.
+The uploaded APK digest matches the verified local APK. The public tag points
+to the tested source commit above; later documentation commits do not move it.
+
+Google Play release 37, **2.10.0 / 61**, submitted for **Production / 100%**
+in the existing countries at 2026-11-04T15:10:03.304Z. Publishing overview shows
+**Changes in review**, with quick checks still running. The submission contains
+only the full rollout and updated en-US full description. Managed publishing
+remains off, so publication follows Google's approval automatically. This is
+confirmation of submission, not confirmation that the update is already live.
+
+Issue [#12](https://github.com/NeatCode-Labs/fixupxer/issues/12) was answered and
+closed as completed. F-Droid's external ingestion/build/publication remains
+unconfirmed; the local independent recipe/reproducibility gate passed.
 
 ---
 

@@ -3,36 +3,66 @@
 ## v2.10.0 / 61 — Auto-copy shared links — November 4, 2026
 
 Optional Share-only auto-copy is off by default. It copies the final action URL
-after successful processing, including an already-clean URL and changed final
+after successful processing, including already-clean links and changed final
 results after explicit frontend changes or Link Guard parameter removal. Share
 stays open. Remaining Link Guard findings and incomplete processing suppress
 automatic copying, with an explanation and manual Copy still available.
+Cancellation and request generations reject stale/intermediate results; rotation
+does not replay a consumed copy. Backups include the preference and older files
+restore it as off. No URL-cleaning rules or permissions changed.
 
-Generation checks and cancellation reject stale processing. Intermediate results
-from coalesced settings changes cannot trigger a copy. A consumed result is not
-replayed after activity recreation; a genuinely new Share intent may copy again.
-The preference round-trips in local backups; older backups default it to off.
+### Source verification
 
-Full unit gates passed: **860 debug + 860 release tests**, zero failures, errors
-or skips. Release lint: **0 errors / 43 warnings**, with the same warning
-signatures as v2.9.5. Tests cover opt-in, final results, stale requests, toggles,
-deduplication, cancellation, Link Guard, incomplete processing, timeout/error
-paths, clipboard failure/feedback, and backup compatibility/rollback.
+- Full unit gates: **860 debug + 860 release**, zero failures/errors/skips.
+- Release lint: **0 errors / 43 existing warnings**; warning signatures match v2.9.5.
+- Full cold API35 instrumentation: **297/297**, zero failures/errors/skips.
+- After strengthening negative clipboard checks to wait for a specific terminal
+  UI state, the six ShareAutoCopyTest cases passed again (**6/6**). Only test code
+  changed after the full run. An initial compilation issue and an incorrect
+  expected error string in the stricter test harness were corrected; neither
+  required a production-code change.
+- Coverage includes cancellation, latest-request selection, coalesced reprocessing,
+  recreation/new intent, clipboard failure/feedback, Link Guard, incomplete
+  pipelines, invalid/multiple input, timeout and backup compatibility/rollback.
+- Play/F-Droid descriptions updated. The 512x512 F-Droid icon was visually checked
+  and matches the root image. Léon catalog review is in THIRD_PARTY_PROVENANCE.md.
 
-The full cold API35 instrumentation gate passed **297/297 tests**, zero failures,
-errors or skips. Six added device tests cover
-ClipData input, real foreground clipboard writes, recreation/new intent, default
-manual behavior, already-clean input, conversion toggles, Link Guard and invalid
-input. An initial test-compilation error (protected Activity.onNewIntent) was
-fixed in the test harness before any tests ran, using the instrumentation API.
+### Final artifacts
 
-Play/F-Droid descriptions were updated. The 512x512 F-Droid icon was visually
-checked and matches the root image SHA-256. The live Léon sanitizer catalog was
-reviewed; no network resolver or unverified new cleaning behavior was adopted.
-minSdk/targetSdk remain 21/36, with no new permissions or network access.
+Root AAB source: `e519952546219751ef92760c12f92433e5d70ae6`. Subsequent root changes
+are test/report-only. Mirror annotated tag `v2.10.0` points to
+`0763b35d518ab175d761a6f957b18fc83ddd8db1`. The GitHub APK was built from that local tag in a fresh
+Windows clone. All three artifacts pass signature, package/version, API21/36
+and zero-permission verification. Play ownership is present only in the Play
+artifacts; the mirror APK excludes ownership and dependency metadata.
 
-Signed artifacts, independent Linux reproducibility, final signed UI checks and
-distribution are pending. No physical-phone test has been run for this release.
+| Artifact | SHA-256 |
+|---|---|
+| Google Play AAB | `d0a5f5c38747e1b20ff2cdd9a7c0261faa0a9a182e5b59af85ef6c4298ae6f51` |
+| GitHub APK | `9510139412b113a1b4673de2ae7e9c8896db2af03a19459bdbf0f917360e2028` |
+| AAB-derived universal APK | `4905e336cd5ea20c131bcd31593b48a481a4814df7d4540f35e65242d4e4ac84` |
+
+Independent Linux/F-Droid rebuild: **PASS**. Upstream fdroiddata revision
+`dd69750cadfd8e32ec9345e72f3ca3426c47903a`, recipe SHA-256
+`b4a54d32db9ba0b5317c9edb167feb236dd16586b30a4a8b053c604b5ea52e70`. Current prebuild, srclib and postbuild steps
+were retained. F-Droid verification and apksigcopier comparison passed; the Linux
+APK with copied signature is byte-identical to the signed GitHub APK.
+
+Final signed-artifact acceptance: **4/4 channel/install combinations,
+74/74 assertions**, API35. Clean installs and same-channel upgrades from
+v2.9.5 were tested for the mirror APK and AAB-derived universal APK; installed
+bytes match the recorded hashes. Upgrades retain Light theme and left-handed
+layout. Real foreground clipboard probes verify OFF behavior, cleaned and
+already-clean links, frontend conversion/change, Link Guard suppression and
+manual Copy, invalid input, and turning the option off again. Share remains open.
+
+No physical-phone run was performed for this release. Lower-API clipboard behavior
+is covered by unit/Robolectric tests, not a new lower-API device run.
+
+### Distribution
+
+All local release gates passed. GitHub publication and Play submission are pending.
+F-Droid ingestion is external and has not been claimed complete.
 
 ---
 

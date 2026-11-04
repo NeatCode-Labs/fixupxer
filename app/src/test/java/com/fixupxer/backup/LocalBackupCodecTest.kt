@@ -75,6 +75,32 @@ class LocalBackupCodecTest {
     }
 
     @Test
+    fun `auto-copy shared links round trips and older backups default it off`() {
+        listOf(false, true).forEach { enabled ->
+            val settings = validSettings().copy(autoCopySharedLinks = enabled)
+            val encoded = codec.encode(settings, ruleCodec.encodeBundle(emptyList()))
+            val settingsJson = JSONObject(encoded).getJSONObject("settings")
+
+            assertEquals(enabled, settingsJson.get("autoCopySharedLinks"))
+            assertEquals(enabled, codec.decode(encoded).settings.autoCopySharedLinks)
+
+            val legacyRoot = JSONObject(encoded)
+            legacyRoot.getJSONObject("settings").remove("autoCopySharedLinks")
+            assertFalse(codec.decode(legacyRoot.toString()).settings.autoCopySharedLinks)
+        }
+    }
+
+    @Test
+    fun `auto-copy shared links rejects non-boolean values when present`() {
+        listOf("true", 1, JSONObject.NULL).forEach { invalidValue ->
+            val root = JSONObject(encodeValid())
+            root.getJSONObject("settings").put("autoCopySharedLinks", invalidValue)
+
+            assertTrue(runCatching { codec.decode(root.toString()) }.isFailure)
+        }
+    }
+
+    @Test
     fun `status widget true and false both round trip in schema two`() {
         listOf(true, false).forEach { value ->
             val settings = validSettings().copy(showConfigurationStatusWidget = value)
@@ -567,7 +593,7 @@ class LocalBackupCodecTest {
             "maxHistoryEntries", "themeMode", "dominantHand", "browserEnabled",
             "showConfigurationStatusWidget", "actionMode", "actionPriority",
             "proxySelections", "customProxies", "disabledBuiltIns", "browserFrontends",
-            "rememberedRoutes", "preferredBrowserPackage",
+            "rememberedRoutes", "preferredBrowserPackage", "autoCopySharedLinks",
         )
         assertEquals(expected, keys)
         assertFalse(encoded.contains("url_history"))

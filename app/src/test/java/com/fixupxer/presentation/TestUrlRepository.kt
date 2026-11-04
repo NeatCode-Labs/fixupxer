@@ -37,6 +37,7 @@ internal class TestUrlRepository : UrlRepository {
     var processHandler: ((String, Boolean, String?) -> ProcessedUrlResult)? = null
     var browserProcessCalls: Int = 0
     var browserProcessHandler: (suspend (String) -> ProcessedUrlResult)? = null
+    var sharedProcessHandler: (suspend (String, String?) -> ProcessedUrlResult)? = null
 
     override suspend fun processUrl(url: String): ProcessedUrlResult =
         processUrl(url, false)
@@ -57,7 +58,8 @@ internal class TestUrlRepository : UrlRepository {
     override suspend fun processSharedUrl(
         url: String,
         previousProcessedUrl: String?
-    ): ProcessedUrlResult = processUrl(url, false, previousProcessedUrl)
+    ): ProcessedUrlResult = sharedProcessHandler?.invoke(url, previousProcessedUrl)
+        ?: processUrl(url, false, previousProcessedUrl)
 
     override suspend fun processUrlForSharing(url: String): String = url
 

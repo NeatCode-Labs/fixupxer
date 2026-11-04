@@ -27,6 +27,14 @@ import com.fixupxer.domain.model.ResultStatus
 import com.fixupxer.presentation.share.ShareUiState
 import com.fixupxer.presentation.share.ShareViewModel
 import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.processing.LeakCategory
+import com.fixupxer.processing.LeakComponent
+import com.fixupxer.processing.LeakFinding
+import com.fixupxer.processing.PipelineStatus
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -66,6 +74,7 @@ class ShareViewModelTest {
             .thenReturn("Please paste one URL at a time")
         whenever(application.getString(R.string.error_processing_url))
             .thenReturn("Error processing URL")
+        whenever(application.getString(R.string.error_invalid_input)).thenReturn("Invalid input")
 
         whenever(urlProcessor.isInstagramUrl(any())).thenReturn(false)
         whenever(urlProcessor.isTwitterUrl(any())).thenReturn(false)
@@ -273,6 +282,164 @@ class ShareViewModelTest {
         advanceUntilIdle()
 
         assertEquals(false, viewModel.uiState.value.isTikTokConversionEnabled)
+    }
+
+    @Test
+    fun `auto copy is opt in and copies an already clean result only once`() = runTest(testDispatcher) {
+        val repository = TestUrlRepository().apply {
+            processResult = ProcessedUrlResult("https://example.com/clean", true)
+        }
+        val vm = createViewModel(repository)
+        vm.processSharedText(repository.processResult.url)
+        advanceUntilIdle()
+        assertNull(vm.uiState.value.pendingAutoCopy)
+        vm.processSharedText(repository.processResult.url, autoCopy = true, newRequest = true)
+        advanceUntilIdle()
+        val pending = vm.uiState.value.pendingAutoCopy!!
+        assertEquals(repository.processResult.url, vm.consumeAutoCopy(pending))
+        assertNull(vm.consumeAutoCopy(pending))
+        vm.processSharedText(repository.processResult.url, autoCopy = true)
+        advanceUntilIdle()
+        assertNull(vm.uiState.value.pendingAutoCopy)
+        vm.processSharedText(repository.processResult.url, autoCopy = true, newRequest = true)
+        advanceUntilIdle()
+        assertNotNull(vm.uiState.value.pendingAutoCopy)
+    }
+
+    @Test
+    fun `new share invalidates late results and old copy tokens`() = runTest(testDispatcher) {
+        val oldResult = CompletableDeferred<ProcessedUrlResult>()
+        val repository = TestUrlRepository().apply {
+            sharedProcessHandler = { url, _ ->
+                if (url.endsWith("/old")) withContext(NonCancellable) { oldResult.await() }
+                else ProcessedUrlResult(url, true)
+            }
+        }
+        val vm = createViewModel(repository)
+        vm.processSharedText("https://example.com/old", autoCopy = true)
+        runCurrent()
+        vm.processSharedText("https://example.com/new", autoCopy = true, newRequest = true)
+        runCurrent()
+        val latest = vm.uiState.value.pendingAutoCopy!!
+        oldResult.complete(ProcessedUrlResult("https://example.com/old-clean", false))
+        advanceUntilIdle()
+        assertEquals("https://example.com/new", vm.uiState.value.actionUrl)
+        assertEquals(latest, vm.uiState.value.pendingAutoCopy)
+        vm.clearState()
+        assertNull(vm.consumeAutoCopy(latest))
+    }
+
+    @Test
+    fun `pending reprocess never offers an intermediate copy`() = runTest(testDispatcher) {
+        val first = CompletableDeferred<ProcessedUrlResult>()
+        val second = CompletableDeferred<ProcessedUrlResult>()
+        var calls = 0
+        val repository = TestUrlRepository().apply {
+            sharedProcessHandler = { _, _ -> if (++calls == 1) first.await() else second.await() }
+        }
+        val vm = createViewModel(repository)
+        vm.processSharedText("https://example.com/input", autoCopy = true)
+        runCurrent()
+        vm.onTwitterConversionToggled(false)
+        runCurrent()
+        first.complete(ProcessedUrlResult("https://example.com/intermediate", false))
+        runCurrent()
+        assertTrue(vm.uiState.value.isLoading)
+        assertNull(vm.uiState.value.pendingAutoCopy)
+        second.complete(ProcessedUrlResult("https://example.com/final", false))
+        advanceUntilIdle()
+        assertEquals("https://example.com/final", vm.uiState.value.pendingAutoCopy!!.url)
+    }
+
+    @Test
+    fun `explicit reprocess copies changed results but not preference emissions or identical results`() = runTest(testDispatcher) {
+        val repository = TestUrlRepository().apply {
+            processResult = ProcessedUrlResult("https://example.com/one", false)
+        }
+        val vm = createViewModel(repository)
+        vm.processSharedText("https://example.com/input", autoCopy = true)
+        advanceUntilIdle()
+        vm.consumeAutoCopy(vm.uiState.value.pendingAutoCopy!!)
+        repository.instagramFlow.value = false
+        advanceUntilIdle()
+        assertNull(vm.uiState.value.pendingAutoCopy)
+        vm.onTwitterConversionToggled(false)
+        advanceUntilIdle()
+        assertNull(vm.uiState.value.pendingAutoCopy)
+        repository.processResult = ProcessedUrlResult("https://example.com/two", false)
+        vm.onTwitterConversionToggled(true)
+        advanceUntilIdle()
+        assertEquals("https://example.com/two", vm.uiState.value.pendingAutoCopy!!.url)
+    }
+
+    @Test
+    fun `leak guard requires manual copy until all findings are removed`() = runTest(testDispatcher) {
+        val repository = TestUrlRepository().apply {
+            processResult = ProcessedUrlResult(
+                "https://example.com/?token=private-value", false,
+                leakFindings = listOf(LeakFinding(LeakCategory.TOKEN_PARAM, LeakComponent.QUERY, "token")),
+            )
+        }
+        val vm = createViewModel(repository)
+        vm.processSharedText(repository.processResult.url, autoCopy = true)
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.autoCopyBlocked)
+        assertNull(vm.uiState.value.pendingAutoCopy)
+        vm.removeLeakedParameters(setOf("token"))
+        assertFalse(vm.uiState.value.autoCopyBlocked)
+        assertEquals("https://example.com/", vm.uiState.value.pendingAutoCopy!!.url)
+    }
+
+    @Test
+    fun `incomplete pipeline never auto copies even after manual parameter removal`() = runTest(testDispatcher) {
+        val repository = TestUrlRepository().apply {
+            processResult = ProcessedUrlResult("https://example.com/?token=abc", false, status = PipelineStatus.CYCLE)
+        }
+        val vm = createViewModel(repository)
+        vm.processSharedText(repository.processResult.url, autoCopy = true)
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.autoCopyBlocked)
+        assertNull(vm.uiState.value.pendingAutoCopy)
+        vm.removeLeakedParameters(setOf("token"))
+        assertNull(vm.uiState.value.pendingAutoCopy)
+    }
+
+    @Test
+    fun `invalid multiple timeout and failed processing never offer auto copy`() = runTest(testDispatcher) {
+        val repository = TestUrlRepository()
+        val vm = createViewModel(repository)
+        for (input in listOf("not a url", "https://example.com/a https://example.com/b")) {
+            vm.processSharedText(input, autoCopy = true, newRequest = true)
+            advanceUntilIdle()
+            assertNotNull(vm.uiState.value.error)
+            assertNull(vm.uiState.value.pendingAutoCopy)
+        }
+        repository.sharedProcessHandler = { _, _ -> CompletableDeferred<ProcessedUrlResult>().await() }
+        vm.processSharedText("https://example.com/slow", autoCopy = true)
+        advanceUntilIdle()
+        assertNotNull(vm.uiState.value.error)
+        assertNull(vm.uiState.value.pendingAutoCopy)
+        repository.sharedProcessHandler = { _, _ -> error("fixture failure") }
+        vm.processSharedText("https://example.com/failure", autoCopy = true)
+        advanceUntilIdle()
+        assertNotNull(vm.uiState.value.error)
+        assertNull(vm.uiState.value.pendingAutoCopy)
+    }
+
+    @Test
+    fun `clearing while processing prevents late results and copy`() = runTest(testDispatcher) {
+        val deferred = CompletableDeferred<ProcessedUrlResult>()
+        val repository = TestUrlRepository().apply {
+            sharedProcessHandler = { _, _ -> withContext(NonCancellable) { deferred.await() } }
+        }
+        val vm = createViewModel(repository)
+        vm.processSharedText("https://example.com/slow", autoCopy = true)
+        runCurrent()
+        vm.clearState()
+        deferred.complete(ProcessedUrlResult("https://example.com/late", false))
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.actionUrl.isEmpty())
+        assertNull(vm.uiState.value.pendingAutoCopy)
     }
 
     private fun assertPlatformStateCleared(state: ShareUiState) {

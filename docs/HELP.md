@@ -38,6 +38,19 @@ From **v2.9.0**, open **Help** beside **What's new?** in the Main or Share menu,
 
 To clean a link, use **Share** in the app that contains it and choose **FixupXer**, or open FixupXer, paste the link, and tap **Process URL**. Review the before-and-after result, then choose an available action such as **Copy**, **Share**, or **Open**.
 
+To copy shared links automatically, enable **Auto-copy shared links** under
+**Settings > Link processing**. It is off by default and applies only when you
+send a link from another app to FixupXer; it does not change Paste or Browser
+mode. After successful processing, FixupXer copies the final URL and keeps the
+Share screen open. If you change the frontend or remove flagged query parameters
+in Private Link Guard, a changed final result can be copied too. If Link Guard
+still reports sensitive data or processing is incomplete, automatic copying is
+skipped and **Copy** remains available. Enabling this option writes the URL to
+Android's clipboard.
+
+Local settings backups include this preference. Importing a backup made before
+the option existed restores Auto-copy as off.
+
 You can also select a link in another app and choose **Clean link** from Android's text-selection menu. FixupXer processes it on the device. If you hand the result to a browser, native app, or sharing app, that recipient receives the URL and handles any network access.
 
 Cleaning and conversion are separate. Cleaning removes recognized tracking data while preserving other URL information. Conversion is optional and changes a supported social-media host to an embed or reader frontend.

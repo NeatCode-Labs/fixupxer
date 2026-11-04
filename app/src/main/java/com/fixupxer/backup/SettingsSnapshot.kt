@@ -46,4 +46,5 @@ data class SettingsSnapshot(
     val rememberedRoutes: Map<String, RememberedRoute>,
     /** Nullable for old backups: null means ask for a browser each time. */
     val preferredBrowserPackage: String? = null,
+    val autoCopySharedLinks: Boolean = false,
 )

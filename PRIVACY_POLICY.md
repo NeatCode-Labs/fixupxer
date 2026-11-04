@@ -16,7 +16,7 @@ FixupXer does not collect, store, or share any personal user data. The app opera
 
 ### Local Storage
 The app only stores the following data locally on your device:
-- Preferences: whether to clean tracking parameters, social-link conversion choices, selected built-in or custom embed proxies, Browser-mode settings (enabled state, post-clean action mode and priority order, X/Bluesky/Reddit/Pinterest Reader choices), remembered after-clean destinations (host → app choice only), app layout, and history settings (enabled state, maximum entries)
+- Preferences: whether to clean tracking parameters, social-link conversion choices, selected built-in or custom embed proxies, the optional Auto-copy shared links setting (off by default), Browser-mode settings (enabled state, post-clean action mode and priority order, X/Bluesky/Reddit/Pinterest Reader choices), remembered after-clean destinations (host → app choice only), app layout, and history settings (enabled state, maximum entries)
 - Conversion history (optional, on by default, can be disabled or cleared at any time): the original URL, the cleaned URL, a timestamp, and the kind of change made — stored in a local database on your device only. If the Private Link Guard detects sensitive data (such as tokens, e-mail addresses, or precise coordinates) in the link you enter, the original URL is never saved: when cleaning removes all sensitive data, history keeps only the safe final URL marked as "Input redacted for privacy"; when sensitive data remains in the result, nothing is saved at all
 - Custom URL rules (optional): names, domains, patterns, replacements, templates, test URLs, ordering, and local rollback snapshots. Rules are stored in the local Room database and are not included in automatic cloud backup.
 
@@ -39,6 +39,13 @@ native app, share target, or privacy Reader selected by you or by your
 after-clean configuration. Any network request happens in that external
 recipient, whose privacy policy then applies. Copying a URL places it in the
 Android clipboard.
+
+**Auto-copy shared links** is optional and off by default. When enabled, it
+copies the final successfully processed URL only for links shared from another
+app to FixupXer; the Share screen remains open. It does not affect Paste, Main,
+Process Text, or Browser mode. Automatic copying is skipped while Private Link
+Guard still reports sensitive data or processing is incomplete. As with a
+manual Copy action, enabling Auto-copy writes the URL to Android's clipboard.
 
 ### Browser Mode (optional)
 Browser mode requires enabling FixupXer's browser alias and separately selecting

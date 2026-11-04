@@ -31,6 +31,7 @@ import com.fixupxer.domain.model.resolveResultStatus
 import com.fixupxer.domain.repository.UrlRepository
 import com.fixupxer.processing.LeakFinding
 import com.fixupxer.processing.LinkLeakAnalyzer
+import com.fixupxer.processing.PipelineStatus
 import com.fixupxer.utils.InputValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +41,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import com.fixupxer.ui.helpers.PlatformToggleHelper
 import com.fixupxer.utils.ProxyPlatform
 import javax.inject.Inject
@@ -62,6 +67,11 @@ class ShareViewModel @Inject constructor(
     // extra synchronization is needed.
     private var isProcessing = false
     private var pendingReprocess = false
+    private var processingJob: Job? = null
+    private var requestGeneration = 0L
+    private var resultRevision = 0L
+    private var autoCopyEnabled = false
+    private var lastAttemptedCopyUrl: String? = null
     
     init {
         loadPreferences()
@@ -154,145 +164,148 @@ class ShareViewModel @Inject constructor(
             detectedPlatform = null,
         )
     
-    fun processSharedText(sharedText: String) {
-        // Guard against re-delivery of the same intent (e.g. the activity being
-        // recreated on a configuration change): the existing result — or the
-        // still-running first pass — is valid, and reprocessing would write a
-        // duplicate history entry.
+    fun processSharedText(
+        sharedText: String,
+        autoCopy: Boolean = false,
+        newRequest: Boolean = false,
+    ) {
+        // A recreated Activity redelivers the old intent; onNewIntent is a new
+        // request even when its text happens to match the previous share.
         val current = _uiState.value
-        if (sharedText == current.sharedText &&
+        if (!newRequest && sharedText == current.sharedText &&
             (current.isLoading || current.actionUrl.isNotEmpty() || current.error != null)
-        ) {
-            return
-        }
-        
+        ) return
+
+        invalidateRequest()
+        autoCopyEnabled = autoCopy
         _uiState.update {
             clearPlatformFlags(it).copy(
                 sharedText = sharedText,
+                processedUrl = "",
+                actionUrl = "",
+                resultStatus = null,
                 isLoading = true,
                 leakFindings = emptyList(),
-                error = null
+                error = null,
+                pendingAutoCopy = null,
+                autoCopyBlocked = false,
             )
         }
-        
-        isProcessing = true
-        viewModelScope.launch {
-            try {
-                withTimeout(1000) { // 1 second timeout
-                    val validation = InputValidator.validate(sharedText)
-                    
-                    if (validation is InputValidator.ValidationResult.Invalid) {
-                        val messageRes = when (validation.reason) {
-                            InputValidator.InvalidReason.MULTIPLE_URLS -> R.string.error_multiple_urls
-                            InputValidator.InvalidReason.OTHER -> R.string.error_invalid_input
-                        }
-                        _uiState.update {
-                            clearPlatformFlags(it).copy(
-                                processedUrl = "",
-                                actionUrl = "",
-                                resultStatus = null,
-                                leakFindings = emptyList(),
-                                isLoading = false,
-                                error = getApplication<Application>().getString(messageRes)
-                            )
-                        }
-                        return@withTimeout
-                    }
-                    
-                    val validated = (validation as InputValidator.ValidationResult.Valid).value
-                    
-                    // Continue with existing logic using validated input
-                    val url = UrlProcessor.findFirstValidUrl(validated)
+        startProcessing(sharedText, previousUrl = null)
+    }
 
-                    if (url == null) {
-                        _uiState.update {
-                            clearPlatformFlags(it).copy(
-                                processedUrl = "",
-                                actionUrl = "",
-                                resultStatus = null,
-                                leakFindings = emptyList(),
-                                isLoading = false,
-                                error = getApplication<Application>().getString(R.string.error_no_url_found_in_shared_text)
-                            )
-                        }
-                        return@withTimeout
+    private fun invalidateRequest() {
+        requestGeneration++
+        processingJob?.cancel()
+        processingJob = null
+        isProcessing = false
+        pendingReprocess = false
+        lastAttemptedCopyUrl = null
+    }
+
+    private fun startProcessing(sharedText: String, previousUrl: String?) {
+        val generation = requestGeneration
+        isProcessing = true
+        _uiState.update { it.copy(isLoading = true, pendingAutoCopy = null, autoCopyBlocked = false) }
+        processingJob = viewModelScope.launch {
+            try {
+                val validation = InputValidator.validate(sharedText)
+                if (validation is InputValidator.ValidationResult.Invalid) {
+                    val message = when (validation.reason) {
+                        InputValidator.InvalidReason.MULTIPLE_URLS -> R.string.error_multiple_urls
+                        InputValidator.InvalidReason.OTHER -> R.string.error_invalid_input
                     }
-                    
-                    // Check URL type to determine toggle visibility
-                    val detection = detectPlatformFlags(url)
-                    
-                    _uiState.update { 
-                        it.copy(
-                            isInstagramUrl = detection.isInstagramUrl,
-                            isFacebookUrl = detection.isFacebookUrl,
-                            isTwitterUrl = detection.isTwitterUrl,
-                            isTikTokUrl = detection.isTikTokUrl,
-                            isBlueskyUrl = detection.isBlueskyUrl,
-                            isRedditUrl = detection.isRedditUrl,
-                            isYouTubeUrl = detection.isYouTubeUrl,
-                            isPinterestUrl = detection.isPinterestUrl,
-                            isThreadsUrl = detection.isThreadsUrl,
-                            detectedPlatform = detection.detectedPlatform,
-                        ) 
-                    }
-                    
-                    // Process the URL
-                    processUrlInternal(url)
+                    showProcessingError(generation, message)
+                    return@launch
                 }
+                val url = UrlProcessor.findFirstValidUrl(
+                    (validation as InputValidator.ValidationResult.Valid).value
+                )
+                if (url == null) {
+                    showProcessingError(generation, R.string.error_no_url_found_in_shared_text)
+                    return@launch
+                }
+                val detection = detectPlatformFlags(url)
+                _uiState.update {
+                    it.copy(
+                        isInstagramUrl = detection.isInstagramUrl,
+                        isFacebookUrl = detection.isFacebookUrl,
+                        isTwitterUrl = detection.isTwitterUrl,
+                        isTikTokUrl = detection.isTikTokUrl,
+                        isBlueskyUrl = detection.isBlueskyUrl,
+                        isRedditUrl = detection.isRedditUrl,
+                        isYouTubeUrl = detection.isYouTubeUrl,
+                        isPinterestUrl = detection.isPinterestUrl,
+                        isThreadsUrl = detection.isThreadsUrl,
+                        detectedPlatform = detection.detectedPlatform,
+                    )
+                }
+                var previous = previousUrl?.takeIf { it != url }
+                do {
+                    pendingReprocess = false
+                    val result = withTimeout(1000) {
+                        urlRepository.processSharedUrl(url, previous)
+                    }
+                    currentCoroutineContext().ensureActive()
+                    if (generation != requestGeneration) return@launch
+                    // A preference changed while this pass was in flight. Keep
+                    // actions disabled until the queued pass produces its result.
+                    applyProcessResult(url, result, isLoading = pendingReprocess)
+                    previous = result.url.takeIf { it.isNotEmpty() && it != url }
+                } while (pendingReprocess)
             } catch (e: TimeoutCancellationException) {
                 Timber.w("Share processing timed out")
-                _uiState.update {
-                    clearPlatformFlags(it).copy(
-                        processedUrl = "",
-                        actionUrl = "",
-                        resultStatus = null,
-                        leakFindings = emptyList(),
-                        isLoading = false,
-                        error = getApplication<Application>().getString(R.string.error_processing_url)
-                    )
-                }
+                showProcessingError(generation, R.string.error_processing_url)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                Timber.e(e, "Error processing shared text")
-                _uiState.update {
-                    clearPlatformFlags(it).copy(
-                        processedUrl = "",
-                        actionUrl = "",
-                        resultStatus = null,
-                        leakFindings = emptyList(),
-                        isLoading = false,
-                        error = getApplication<Application>().getString(R.string.error_processing_url_with_message, e.message)
-                    )
-                }
+                Timber.e(e, "Error processing shared URL")
+                showProcessingError(generation, R.string.error_processing_url)
             } finally {
-                isProcessing = false
-                runPendingReprocess()
+                // An older cancelled job must not clear a newer request's flags.
+                if (generation == requestGeneration) {
+                    isProcessing = false
+                    pendingReprocess = false
+                }
             }
         }
     }
-    
-    // Runs inside the caller's coroutine (no nested launch — a second launch would
-    // escape processSharedText's withTimeout and allow racing state updates).
-    private suspend fun processUrlInternal(url: String) {
-        Timber.d("ShareViewModel processing URL (length=${url.length})")
-        
-        try {
-            val result = urlRepository.processSharedUrl(url)
-            applyProcessResult(url, result)
-        } catch (e: Exception) {
-            Timber.e(e, "Error processing URL")
-            _uiState.update {
-                clearPlatformFlags(it).copy(
-                    processedUrl = "",
-                    actionUrl = "",
-                    resultStatus = null,
-                    leakFindings = emptyList(),
-                    isLoading = false,
-                    error = getApplication<Application>().getString(R.string.error_processing_url_with_message, e.message)
-                )
-            }
+
+    private fun showProcessingError(generation: Long, message: Int) {
+        if (generation != requestGeneration) return
+        _uiState.update {
+            clearPlatformFlags(it).copy(
+                processedUrl = "",
+                actionUrl = "",
+                resultStatus = null,
+                leakFindings = emptyList(),
+                isLoading = false,
+                error = getApplication<Application>().getString(message),
+                pendingAutoCopy = null,
+                autoCopyBlocked = false,
+            )
         }
     }
-    
+
+    /** Consume on the UI thread immediately before writing, without suspension. */
+    fun consumeAutoCopy(copy: ShareAutoCopy): String? {
+        val state = _uiState.value
+        if (state.pendingAutoCopy != copy || copy.generation != requestGeneration ||
+            state.isLoading || state.error != null || state.processingStatus != PipelineStatus.COMPLETE ||
+            state.leakFindings.isNotEmpty() ||
+            state.actionUrl != copy.url
+        ) return null
+        // Consume attempts, including failures: retries stay an explicit Copy tap.
+        lastAttemptedCopyUrl = copy.url
+        _uiState.update { it.copy(pendingAutoCopy = null) }
+        return copy.url
+    }
+
+    fun onManualCopy() {
+        lastAttemptedCopyUrl = _uiState.value.actionUrl
+        _uiState.update { it.copy(pendingAutoCopy = null) }
+    }
+
     fun onInstagramConversionToggled(enabled: Boolean) {
         viewModelScope.launch {
             if (_uiState.value.isInstagramConversionEnabled != enabled) {
@@ -413,66 +426,27 @@ class ShareViewModel @Inject constructor(
     }
     
     private fun requestReprocess() {
-        if (_uiState.value.sharedText.isEmpty()) return
+        val state = _uiState.value
+        if (state.sharedText.isEmpty()) return
+        _uiState.update { it.copy(isLoading = true, pendingAutoCopy = null, autoCopyBlocked = false) }
         if (isProcessing) {
-            // Initial processing (or another reprocess) is still in flight —
-            // re-run once it finishes so this change is never lost.
             pendingReprocess = true
-            return
-        }
-        isProcessing = true
-        viewModelScope.launch {
-            try {
-                reprocessUrlLocally()
-            } finally {
-                isProcessing = false
-                runPendingReprocess()
-            }
+        } else {
+            startProcessing(state.sharedText, state.actionUrl.takeIf { it.isNotEmpty() })
         }
     }
-    
-    private fun runPendingReprocess() {
-        if (!pendingReprocess) return
-        pendingReprocess = false
-        requestReprocess()
-    }
-    
-    private suspend fun reprocessUrlLocally() {
-        try {
-            val sharedText = _uiState.value.sharedText
-            val validated = InputValidator.validateAndSanitizeInput(sharedText) ?: return
-            val url = UrlProcessor.findFirstValidUrl(validated) ?: return
-            
-            // If the previous run changed nothing (actionUrl == input), there is no
-            // distinct previous result to compare against for history purposes.
-            val previousUrl = _uiState.value.actionUrl.takeIf { it.isNotEmpty() && it != url }
-            
-            // Re-process through repository with the previous result for proper history comparison
-            val result = urlRepository.processSharedUrl(url, previousUrl)
-            applyProcessResult(url, result)
-        } catch (e: Exception) {
-            Timber.e(e, "Error reprocessing URL locally")
-            _uiState.update {
-                clearPlatformFlags(it).copy(
-                    processedUrl = "",
-                    actionUrl = "",
-                    resultStatus = null,
-                    leakFindings = emptyList(),
-                    isLoading = false,
-                    error = getApplication<Application>().getString(R.string.error_processing_url)
-                )
-            }
-        }
-    }
-    
+
     /**
      * Nothing usable arrived in the share intent (no EXTRA_TEXT and no clip
      * data) — show an explicit error instead of an endless "Processing…".
      */
     fun setNoSharedText() {
+        invalidateRequest()
         _uiState.update {
             clearPlatformFlags(it).copy(
                 sharedText = "",
+                pendingAutoCopy = null,
+                autoCopyBlocked = false,
                 processedUrl = "",
                 actionUrl = "",
                 resultStatus = null,
@@ -484,9 +458,12 @@ class ShareViewModel @Inject constructor(
     }
     
     fun clearState() {
+        invalidateRequest()
         _uiState.update {
             clearPlatformFlags(it).copy(
                 sharedText = "",
+                pendingAutoCopy = null,
+                autoCopyBlocked = false,
                 processedUrl = "",
                 actionUrl = "",
                 resultStatus = null,
@@ -505,6 +482,10 @@ class ShareViewModel @Inject constructor(
         val processedUrl = result.url
         Timber.d("ShareViewModel processed URL (inputLength=${inputUrl.length}, outputLength=${processedUrl.length})")
         val status = resolveResultStatus(inputUrl, processedUrl)
+        val pendingCopy = if (!isLoading && autoCopyEnabled && result.status == PipelineStatus.COMPLETE &&
+            result.leakFindings.isEmpty() &&
+            processedUrl.isNotEmpty() && processedUrl != lastAttemptedCopyUrl
+        ) ShareAutoCopy(requestGeneration, ++resultRevision, processedUrl) else null
         _uiState.update {
             it.copy(
                 processedUrl = processedUrl,
@@ -512,6 +493,10 @@ class ShareViewModel @Inject constructor(
                 resultStatus = status,
                 leakFindings = result.leakFindings,
                 isLoading = isLoading,
+                pendingAutoCopy = pendingCopy,
+                autoCopyBlocked = !isLoading && autoCopyEnabled &&
+                    (result.leakFindings.isNotEmpty() || result.status != PipelineStatus.COMPLETE),
+                processingStatus = result.status,
                 error = null
             )
         }
@@ -523,20 +508,21 @@ class ShareViewModel @Inject constructor(
      */
     fun removeLeakedParameters(parameterNames: Set<String>) {
         val state = _uiState.value
-        if (state.actionUrl.isEmpty() || parameterNames.isEmpty()) return
+        if (state.isLoading || state.actionUrl.isEmpty() || parameterNames.isEmpty()) return
 
         val strippedUrl = removeRawQueryParameters(state.actionUrl, parameterNames)
         if (strippedUrl == state.actionUrl) return
 
         val inputUrl = UrlProcessor.findFirstValidUrl(state.sharedText) ?: strippedUrl
-        _uiState.update {
-            it.copy(
-                processedUrl = strippedUrl,
-                actionUrl = strippedUrl,
-                resultStatus = resolveResultStatus(inputUrl, strippedUrl),
-                leakFindings = LinkLeakAnalyzer.analyze(strippedUrl)
-            )
-        }
+        applyProcessResult(
+            inputUrl,
+            ProcessedUrlResult(
+                strippedUrl,
+                false,
+                leakFindings = LinkLeakAnalyzer.analyze(strippedUrl),
+                status = state.processingStatus ?: PipelineStatus.COMPLETE,
+            ),
+        )
     }
 
     private fun removeRawQueryParameters(url: String, names: Set<String>): String {
@@ -592,8 +578,13 @@ data class ShareUiState(
     val isThreadsConversionEnabled: Boolean = false,
     val detectedPlatform: ProxyPlatform? = null,
     val proxySelectionRevision: Int = 0,
-    val error: String? = null
+    val error: String? = null,
+    val pendingAutoCopy: ShareAutoCopy? = null,
+    val autoCopyBlocked: Boolean = false,
+    val processingStatus: PipelineStatus? = null,
 )
+
+data class ShareAutoCopy(val generation: Long, val revision: Long, val url: String)
 
 private data class SharePlatformDetection(
     val isInstagramUrl: Boolean,
@@ -606,4 +597,4 @@ private data class SharePlatformDetection(
     val isPinterestUrl: Boolean,
     val isThreadsUrl: Boolean,
     val detectedPlatform: ProxyPlatform?,
-) 
+)

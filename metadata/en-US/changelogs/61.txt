@@ -1,0 +1,1 @@
+Add optional Auto-copy shared links in Settings. Copy the final shared URL after processing and frontend changes while keeping the Share screen open. Auto-copy starts off, pauses for Link Guard warnings or incomplete processing, and is included in local settings backups. Prevent stale results and repeated copying after screen rotation.

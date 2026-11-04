@@ -130,6 +130,7 @@ class LocalBackupCodec @Inject constructor(
         .put("browserFrontends", encodeBrowserFrontends(snapshot.browserFrontends))
         .put("rememberedRoutes", encodeRememberedRoutes(snapshot.rememberedRoutes))
         .put("preferredBrowserPackage", snapshot.preferredBrowserPackage ?: JSONObject.NULL)
+        .put("autoCopySharedLinks", snapshot.autoCopySharedLinks)
 
     private fun decodeSettings(json: JSONObject, schemaVersion: Int): SettingsSnapshot {
         val customProxies = decodePlatformListMap(json.getJSONObject("customProxies"))
@@ -170,6 +171,13 @@ class LocalBackupCodec @Inject constructor(
                     require(value is String) { "Preferred browser package must be a string" }
                     value
                 }
+            },
+            autoCopySharedLinks = if (!json.has("autoCopySharedLinks")) {
+                false
+            } else {
+                val value = json.get("autoCopySharedLinks")
+                require(value is Boolean) { "Auto-copy shared links must be a boolean" }
+                value
             },
         )
         val migrated = migrateRetiredBrowserFrontends(

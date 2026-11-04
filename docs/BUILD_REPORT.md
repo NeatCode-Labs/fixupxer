@@ -1,5 +1,41 @@
 # FixupXer Build Report
 
+## v2.10.0 / 61 — Auto-copy shared links — November 4, 2026
+
+Optional Share-only auto-copy is off by default. It copies the final action URL
+after successful processing, including an already-clean URL and changed final
+results after explicit frontend changes or Link Guard parameter removal. Share
+stays open. Remaining Link Guard findings and incomplete processing suppress
+automatic copying, with an explanation and manual Copy still available.
+
+Generation checks and cancellation reject stale processing. Intermediate results
+from coalesced settings changes cannot trigger a copy. A consumed result is not
+replayed after activity recreation; a genuinely new Share intent may copy again.
+The preference round-trips in local backups; older backups default it to off.
+
+Full unit gates passed: **860 debug + 860 release tests**, zero failures, errors
+or skips. Release lint: **0 errors / 43 warnings**, with the same warning
+signatures as v2.9.5. Tests cover opt-in, final results, stale requests, toggles,
+deduplication, cancellation, Link Guard, incomplete processing, timeout/error
+paths, clipboard failure/feedback, and backup compatibility/rollback.
+
+The full cold API35 instrumentation gate passed **297/297 tests**, zero failures,
+errors or skips. Six added device tests cover
+ClipData input, real foreground clipboard writes, recreation/new intent, default
+manual behavior, already-clean input, conversion toggles, Link Guard and invalid
+input. An initial test-compilation error (protected Activity.onNewIntent) was
+fixed in the test harness before any tests ran, using the instrumentation API.
+
+Play/F-Droid descriptions were updated. The 512x512 F-Droid icon was visually
+checked and matches the root image SHA-256. The live Léon sanitizer catalog was
+reviewed; no network resolver or unverified new cleaning behavior was adopted.
+minSdk/targetSdk remain 21/36, with no new permissions or network access.
+
+Signed artifacts, independent Linux reproducibility, final signed UI checks and
+distribution are pending. No physical-phone test has been run for this release.
+
+---
+
 ## v2.9.5 / 60 — Instagram app routing fix — October 29, 2026
 
 Native app selection now respects Android's effective enabled-component state.

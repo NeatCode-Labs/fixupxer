@@ -23,6 +23,19 @@ Léon.
 
 ## Source registry
 
+### Share auto-copy release: 2026-11-04
+
+Reviewed the 57 commits after `df684f1d3539ba5e8da7b429caba88f2f169892e`
+through `ee8df9b6b7f9d0e086b78c6cda1440e4cb605b65`, including the current
+sanitizer catalog changes. New server-resolved short-link support for Amazon,
+Google/Maps, Reddit, TikTok, Lazada and Xiaohongshu is outside FixupXer's offline,
+zero-permission design and is not adopted. The new universal `shem` removal is
+deferred until independently verified fixtures establish its scope; this Share
+UI release does not expand generic parameter deletion. Other inspected catalog
+edits primarily add trailing commas. No upstream source, rules, fixtures or
+behavior were imported. Earlier reviewed candidates and exclusions remain as
+recorded below. [Pinned comparison](https://github.com/leon-cleaning-services/leon/compare/df684f1d3539ba5e8da7b429caba88f2f169892e...ee8df9b6b7f9d0e086b78c6cda1440e4cb605b65).
+
 ### Help release: 2026-10-03
 
 The previously reviewed Léon sanitizer baseline was compared through

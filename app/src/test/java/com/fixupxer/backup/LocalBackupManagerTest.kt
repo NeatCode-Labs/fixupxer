@@ -104,6 +104,24 @@ class LocalBackupManagerTest {
         )
     }
 
+    @Test
+    fun `auto-copy shared links defaults off and participates in settings snapshots`() {
+        assertFalse(preferencesManager.isAutoCopySharedLinksEnabled())
+        assertFalse(preferencesManager.exportSettingsSnapshot().autoCopySharedLinks)
+
+        preferencesManager.setAutoCopySharedLinksEnabled(true)
+        val enabledSnapshot = preferencesManager.exportSettingsSnapshot()
+        assertTrue(preferencesManager.isAutoCopySharedLinksEnabled())
+        assertTrue(enabledSnapshot.autoCopySharedLinks)
+
+        assertTrue(
+            preferencesManager.replaceSettingsSnapshot(
+                enabledSnapshot.copy(autoCopySharedLinks = false),
+            ),
+        )
+        assertFalse(preferencesManager.isAutoCopySharedLinksEnabled())
+    }
+
     @After
     fun tearDown() {
         BrowserViewGate.resetForTests()
@@ -348,6 +366,7 @@ class LocalBackupManagerTest {
         preferencesManager.setBrowserModeEnabled(true)
         val exported = manager.exportJson()
         preferencesManager.setBrowserModeEnabled(false)
+        preferencesManager.setAutoCopySharedLinksEnabled(true)
         RuntimeEnvironment.getApplication().applicationContext
             .getSharedPreferences("FixupXerPrefs", Context.MODE_PRIVATE)
             .edit()
@@ -374,6 +393,7 @@ class LocalBackupManagerTest {
 
         assertTrue(failingManager.restore(exported).isFailure)
         assertEquals(before, preferencesManager.exportSettingsSnapshot())
+        assertTrue(preferencesManager.isAutoCopySharedLinksEnabled())
         assertFalse(preferencesManager.isBrowserModeEnabled())
         assertEquals(0, preferencesManager.getPendingLegacyHistoryLimit())
         verify(historyRepository, never()).trimHistory(any())

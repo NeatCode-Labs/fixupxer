@@ -1,18 +1,19 @@
 # FixupXer App - Development Summary
 
-## Version Progression: v2.9.5 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.10.0 → v1.2.1 (Latest to Oldest)
 
-**Versions Documented:** 54 (v2.9.5 through v1.2.1)
-**Current Version:** v2.9.5 (versionCode: 60)
-**Development Period:** v1.2.1 (Initial) → v2.9.5
+**Versions Documented:** 55 (v2.10.0 through v1.2.1)
+**Current Version:** v2.10.0 (versionCode: 61)
+**Development Period:** v1.2.1 (Initial) → v2.10.0
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes modifications since v1.2.1, through v2.9.5: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text and custom rules. Browser mode supports frontend management for seven platforms and a preferred destination browser, and removes completed temporary tasks from Recents. Browser and Main/Share keep separate choices; Browser, Share and Copy use the processed URL; native actions restore supported X, Instagram and TikTok embed links to their original platform domain. Backup schema v2 includes the preferred browser and retains older-file import. All processing remains offline with zero permissions.
+This document summarizes modifications since v1.2.1, through v2.10.0: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text, custom rules, and optional Share-only auto-copy. Auto-copy is off by default, copies the final processed URL after successful processing and when explicit changes produce a new result, leaves Share open, and skips remaining Link Guard findings or incomplete processing. Browser mode supports frontend management for seven platforms and a preferred destination browser, and removes completed temporary tasks from Recents. Browser and Main/Share keep separate choices; Browser, Share and Copy use the processed URL; native actions restore supported X, Instagram and TikTok embed links to their original platform domain. Backup schema v2 includes the preferred browser and auto-copy preference, and retains older-file import. All processing remains offline with zero permissions.
 
 ### Key Achievements:
+- ✅ **Share-only Auto-copy** - Optional clipboard write, off by default; copies the final URL after successful processing and changed explicit frontend or Link Guard edits, keeps Share open, and skips remaining Link Guard findings or incomplete processing
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
 - ✅ **Browser Frontends & Saved App Choices** - Separate Clean only, Reader, Embed and Custom choices for seven eligible platforms, exact-host saved app routing, and a read-only Configuration status overview
 - ✅ **Alternative Frontend Catalog** - Embed/Privacy frontend picker on Main/Share across nine platforms with selectable readers (xcancel, Nitter, SkyLib, Redlib, Invidious, …) and custom domains for every platform
@@ -38,6 +39,13 @@ This document summarizes modifications since v1.2.1, through v2.9.5: selective h
 ---
 
 ## 📋 Version History
+
+### v2.10.0 — Auto-copy shared links (November 4, 2026)
+
+- Add an opt-in, Share-only Auto-copy shared links setting, off by default, for the final processed URL.
+- Copy a changed final URL after a frontend change or Link Guard parameter removal, while keeping the Share screen open.
+- Skip automatic copying when Link Guard still reports sensitive data or processing is incomplete; manual Copy remains available.
+- Release verification and distribution status: BUILD_REPORT.md.
 
 ### v2.9.5 — Instagram app routing fix (October 29, 2026)
 
@@ -909,6 +917,7 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.9.3 | 58 | Canonical individual Instagram Story cleanup | Release status in BUILD_REPORT.md |
 | v2.9.4 | 59 | Canonical X/Twitter post cleanup independent of sharing keys | Release status in BUILD_REPORT.md |
 | v2.9.5 | 60 | Correct native routing for runtime-enabled Instagram link handlers | Release status in BUILD_REPORT.md |
+| v2.10.0 | 61 | Optional Share-only auto-copy of the final processed URL; Link Guard and incomplete-pipeline safeguards | Release status in BUILD_REPORT.md |
 
 ### Build Artifacts (v2.6.7):
 - **Google Play AAB:** `FixupXer-v2.6.7-release.aab` — signed root bundle; signature, manifest and bundletool validation passed. Play submission status is recorded in BUILD_REPORT.md.

@@ -82,6 +82,7 @@ class ShareActivity : BaseActivity() {
         applyDominantHandLayout()
         setupListeners()
         observeViewModel()
+        observeAutoCopy()
         setupSmartFooter()
         handleIntent()
         
@@ -133,7 +134,7 @@ class ShareActivity : BaseActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleIntent()
+        handleIntent(newRequest = true)
     }
     
     override fun onPause() {
@@ -194,6 +195,7 @@ class ShareActivity : BaseActivity() {
         // Toggle listeners are now handled in observeViewModel to prevent duplicate triggers
         
         binding.buttonCopy.setOnClickListener {
+            viewModel.onManualCopy()
             UrlActionHelper.copyToClipboard(binding.root, this, viewModel.uiState.value.actionUrl)
         }
         
@@ -270,6 +272,11 @@ class ShareActivity : BaseActivity() {
                     binding.buttonOpen.isEnabled = !state.isLoading && state.actionUrl.isNotEmpty()
                     binding.processedUrlInclude.leakWarningRow.isVisible =
                         state.leakFindings.isNotEmpty()
+                    binding.processedUrlInclude.autoCopyWarning.isVisible = state.autoCopyBlocked
+                    binding.processedUrlInclude.autoCopyWarning.setText(
+                        if (state.leakFindings.isNotEmpty()) R.string.auto_copy_shared_links_blocked
+                        else R.string.auto_copy_shared_links_incomplete
+                    )
                     binding.processedUrlInclude.leakWarningRow.setOnClickListener {
                         LinkGuardDialogHelper.show(
                             context = this@ShareActivity,
@@ -322,11 +329,27 @@ class ShareActivity : BaseActivity() {
                 ?.getItemAt(0)?.coerceToText(this)?.toString()
     }
 
-    private fun handleIntent() {
+    private fun observeAutoCopy() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.uiState.collect { state ->
+                    val pending = state.pendingAutoCopy ?: return@collect
+                    val url = viewModel.consumeAutoCopy(pending) ?: return@collect
+                    UrlActionHelper.copyToClipboard(binding.root, this@ShareActivity, url)
+                }
+            }
+        }
+    }
+
+    private fun handleIntent(newRequest: Boolean = false) {
         val sharedText = extractSendText(intent)
         
         if (!sharedText.isNullOrEmpty()) {
-            viewModel.processSharedText(sharedText)
+            viewModel.processSharedText(
+                sharedText,
+                autoCopy = preferencesManager.isAutoCopySharedLinksEnabled(),
+                newRequest = newRequest,
+            )
         } else {
             // Without this the UI would sit on "Processing…" forever.
             viewModel.setNoSharedText()
@@ -358,4 +381,4 @@ class ShareActivity : BaseActivity() {
             viewModel.reprocessAfterProxyChange()
         }
     }
-} 
+}

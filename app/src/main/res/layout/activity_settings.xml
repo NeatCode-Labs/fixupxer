@@ -308,6 +308,23 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
 
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switchAutoCopySharedLinks"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/padding_medium"
+                        android:text="@string/auto_copy_shared_links" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/padding_medium"
+                        android:layout_marginEnd="@dimen/padding_medium"
+                        android:layout_marginBottom="@dimen/padding_small"
+                        android:text="@string/auto_copy_shared_links_description"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
                     <com.google.android.material.divider.MaterialDivider
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

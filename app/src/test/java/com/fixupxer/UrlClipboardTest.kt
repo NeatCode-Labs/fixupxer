@@ -29,6 +29,7 @@ import com.fixupxer.utils.PostCleanRunner
 import com.fixupxer.utils.UrlClipboard
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -65,7 +66,7 @@ class UrlClipboardTest {
 
     @Test
     fun `main and share copy mask preview and show app feedback only before Android 13`() {
-        UrlActionHelper.copyToClipboard(anchor, activity, url)
+        assertTrue(UrlActionHelper.copyToClipboard(anchor, activity, url))
         shadowOf(Looper.getMainLooper()).idle()
 
         assertSensitiveClipboard()
@@ -109,7 +110,7 @@ class UrlClipboardTest {
                 if (name == Context.CLIPBOARD_SERVICE) null else super.getSystemService(name)
         }
 
-        UrlActionHelper.copyToClipboard(anchor, unavailable, url)
+        assertFalse(UrlActionHelper.copyToClipboard(anchor, unavailable, url))
         shadowOf(Looper.getMainLooper()).idle()
 
         assertEquals(

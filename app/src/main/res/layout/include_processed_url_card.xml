@@ -56,6 +56,17 @@
             android:lineSpacingMultiplier="1.2"
             android:minHeight="@dimen/processed_url_min_height" />
 
+        <TextView
+            android:id="@+id/autoCopyWarning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:accessibilityLiveRegion="polite"
+            android:text="@string/auto_copy_shared_links_blocked"
+            android:textColor="?attr/colorOnPrimaryContainer"
+            android:textSize="@dimen/text_size_small"
+            android:visibility="gone" />
+
         <LinearLayout
             android:id="@+id/leakWarningRow"
             android:layout_width="wrap_content"

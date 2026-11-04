@@ -94,6 +94,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_ACTION_PRIORITY = "action_priority"
         private const val KEY_PREFERRED_BROWSER_PACKAGE = "preferred_browser_package"
         private const val KEY_SHOW_CONFIGURATION_STATUS_WIDGET = "show_configuration_status_widget"
+        private const val KEY_AUTO_COPY_SHARED_LINKS = "auto_copy_shared_links"
         
         // Browser mode conversion keys
         private const val KEY_BROWSER_CONVERT_TWITTER = "browser_convert_twitter"
@@ -711,6 +712,13 @@ class PreferencesManager(context: Context) {
         BrowserViewGate.invalidate()
     }
 
+    fun isAutoCopySharedLinksEnabled(): Boolean =
+        prefs.getBoolean(KEY_AUTO_COPY_SHARED_LINKS, false)
+
+    fun setAutoCopySharedLinksEnabled(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_AUTO_COPY_SHARED_LINKS, enabled) }
+    }
+
     fun customRulesEnabledFlow(): Flow<Boolean> =
         booleanFlow(KEY_CUSTOM_RULES_ENABLED, false)
 
@@ -1201,6 +1209,7 @@ class PreferencesManager(context: Context) {
         browserFrontends = getBrowserFrontendPreferences(),
         rememberedRoutes = getRememberedRoutes(),
         preferredBrowserPackage = getPreferredBrowserPackage(),
+        autoCopySharedLinks = isAutoCopySharedLinksEnabled(),
     )
 
     /**
@@ -1241,6 +1250,7 @@ class PreferencesManager(context: Context) {
         } else {
             editor.putString(KEY_PREFERRED_BROWSER_PACKAGE, snapshot.preferredBrowserPackage)
         }
+        editor.putBoolean(KEY_AUTO_COPY_SHARED_LINKS, snapshot.autoCopySharedLinks)
         ProxyPlatform.entries.forEach { platform ->
             val selection = snapshot.proxySelections[platform]
             if (selection.isNullOrBlank()) {

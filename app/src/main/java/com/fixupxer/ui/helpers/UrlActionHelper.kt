@@ -39,19 +39,21 @@ import timber.log.Timber
  */
 object UrlActionHelper {
 
-    fun copyToClipboard(anchor: View, activity: Context, url: String) {
+    fun copyToClipboard(anchor: View, activity: Context, url: String): Boolean {
         if (url.isEmpty()) {
             SnackbarHelper.showShort(anchor, activity.getString(R.string.no_url_to_copy))
-            return
+            return false
         }
-        try {
+        return try {
             UrlClipboard.copy(activity, url)
             if (UrlClipboard.needsAppFeedback) {
                 SnackbarHelper.showShort(anchor, activity.getString(R.string.url_copied))
             }
+            true
         } catch (e: Exception) {
             Timber.e(e, "Error copying to clipboard")
             SnackbarHelper.showShort(anchor, activity.getString(R.string.error_copying_url))
+            false
         }
     }
 

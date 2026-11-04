@@ -82,6 +82,12 @@ class SettingsActivity : BaseActivity() {
         }
     }
 
+    private val autoCopySharedLinksListener = CompoundButton.OnCheckedChangeListener { _, checked ->
+        if (!restoringViewState && preferencesManager.isAutoCopySharedLinksEnabled() != checked) {
+            preferencesManager.setAutoCopySharedLinksEnabled(checked)
+        }
+    }
+
     private val openBackupDocument =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null) restoreFrom(uri)
@@ -161,6 +167,7 @@ class SettingsActivity : BaseActivity() {
         HelpLinkHelper.bind(binding.historyBackupHelp.root, this, R.string.help_history_backup, HelpTopic.HISTORY_AND_BACKUP)
         HelpLinkHelper.bind(binding.appSettingsHelp.root, this, R.string.help_app_settings, HelpTopic.APP_SETTINGS)
         binding.switchCustomRules.setOnCheckedChangeListener(customRulesListener)
+        binding.switchAutoCopySharedLinks.setOnCheckedChangeListener(autoCopySharedLinksListener)
         binding.buttonCustomRules.setOnClickListener {
             startActivity(Intent(this, CustomRulesActivity::class.java))
         }
@@ -201,6 +208,10 @@ class SettingsActivity : BaseActivity() {
         binding.switchCustomRules.setOnCheckedChangeListener(null)
         binding.switchCustomRules.isChecked = customRulesViewModel.enabled.value
         binding.switchCustomRules.setOnCheckedChangeListener(customRulesListener)
+        binding.switchAutoCopySharedLinks.setOnCheckedChangeListener(null)
+        binding.switchAutoCopySharedLinks.isChecked =
+            preferencesManager.isAutoCopySharedLinksEnabled()
+        binding.switchAutoCopySharedLinks.setOnCheckedChangeListener(autoCopySharedLinksListener)
         renderCustomRulesStatus()
         renderBrowserStatus()
     }

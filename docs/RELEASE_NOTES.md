@@ -1,3 +1,20 @@
+# FixupXer v2.10.0 - Auto-copy shared links
+
+## What's Changed
+
+- Add an optional Auto-copy shared links setting for Share to FixupXer. It is off by default and copies the final processed URL, including after frontend changes or Link Guard parameter removal.
+- Keep the Share screen open. Skip automatic copying while Link Guard still reports sensitive data or processing is incomplete; manual Copy remains available.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 61
+- versionName: 2.10.0
+- Verification and distribution status: BUILD_REPORT.md.
+
+---
+
 # FixupXer v2.9.5 - Instagram app routing fix
 
 ## What's Changed

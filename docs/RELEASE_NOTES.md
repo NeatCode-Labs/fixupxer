@@ -13,6 +13,7 @@
 - Target Android: 16 (API 36)
 - Version Code: 62
 - versionName: 2.11.0
+- Disable optional generated ART profiles to make Windows and Linux APK builds reproducible.
 - Source checks: 875 debug + 875 release unit tests; 303 API35 instrumentation tests; 6 new tests on the USB S23 Ultra. Final artifact and distribution status is recorded in BUILD_REPORT.md.
 
 ---

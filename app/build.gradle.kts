@@ -128,6 +128,13 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
+// AGP can generate different baseline.prof contents across identical builds.
+// Disable these optional profiles so Windows and F-Droid Linux APKs reproduce.
+// https://f-droid.org/docs/Reproducible_Builds/#bug-baselineprof-not-deterministic
+tasks.configureEach {
+    if (name.contains("ArtProfile")) enabled = false
+}
+
 dependencies {
     // Core Android
     implementation(libs.androidx.core.ktx)

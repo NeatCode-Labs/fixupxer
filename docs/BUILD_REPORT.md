@@ -23,8 +23,37 @@ processing, permissions and dependencies are unchanged.
 
 ### Final artifacts and distribution
 
-Signed artifacts, independent Linux/F-Droid reproduction, final signed
-clean/upgrade acceptance and distribution are pending for v2.11.1.
+Root AAB source: `1e9c959e1e60b61774fbb416e4f05c41acdbea42`. Mirror annotated tag `v2.11.1`
+points to `e032b1e67435ce329a6038d185ca673aa118434d`. The GitHub APK was built from this local tag
+in a fresh Windows clone. Both channels pass signing, package/version,
+minSdk21/targetSdk36 and zero-permission checks. Play ownership is present only
+in Play artifacts; the mirror APK excludes ownership and dependency metadata.
+All final artifacts exclude optional nondeterministic baseline profiles.
+
+| Artifact | SHA-256 |
+|---|---|
+| Google Play AAB | `4aded98bcb881de3b6d67bdfa84362900b063d2f2e75e65e1d4953ad72910788` |
+| GitHub APK | `2e392139633b3103db854611d24262bbbe51eb8893bd33e27b10830465ac43ff` |
+| AAB-derived universal APK | `2814e1af82408788b60fa2fb1d7f057593a920b4f7c3a414bb2be6a8e407cef0` |
+
+Independent Linux/F-Droid rebuild: **PASS**, using the current upstream recipe
+at fdroiddata revision `2083131272d171b69cbf8f7ceabe4cde7c996ce1`. The recipe's prebuild,
+srclib and postbuild steps were applied. F-Droid verification and apksigcopier
+comparison passed; the Linux APK with copied signature is byte-identical to
+the signed GitHub APK.
+
+Final signed-artifact acceptance: **4/4 channel/install combinations,
+282 passed assertions**, no skips or cleanup errors, API35. Both the mirror
+APK and AAB-derived universal APK were tested as clean installs and same-channel
+upgrades from v2.11.0. Installed bytes match their recorded hashes. Upgrade
+preserves the enabled Share choice, Light theme and left-handed layout; clean
+installs default to Show result. The exact new label is shown in vertically
+joined full-width choices, including at 320dp width with font200% in dark mode.
+Actual chooser/receiver checks cover cleaned, unchanged and converted links,
+cancellation, Link Guard and invalid input, Auto-copy ordering, switching back
+to Show result, and rotation without replay. No phone run is claimed.
+
+GitHub publication, Play submission and F-Droid ingestion are pending for v2.11.1.
 
 ---
 

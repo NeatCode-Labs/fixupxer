@@ -8,8 +8,8 @@
     <string name="auto_copy_shared_links_incomplete">Auto-copy paused: processing could not finish. Review the link, then tap Copy if you want to copy it.</string>
     <string name="share_after_clean_action">After receiving a shared link</string>
     <string name="share_after_clean_show_result">Show result</string>
-    <string name="share_after_clean_open_menu">Open share menu</string>
-    <string name="share_after_clean_description">Choose whether to keep the processed link on screen or open Android’s share menu with it.</string>
+    <string name="share_after_clean_open_menu">Skip result screen &amp; share</string>
+    <string name="share_after_clean_description">Choose Show result to review the link, or skip the result screen and go straight to Android’s share menu with the cleaned link. Link Guard warnings, incomplete processing or errors pause automatic sharing for review.</string>
     <!-- App and Title info -->
     <string name="app_name">FixupXer - URL Enhancer</string>
     <string name="app_title">FixupXer - URL Enhancer</string>

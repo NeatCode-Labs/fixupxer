@@ -1,3 +1,21 @@
+# FixupXer v2.11.1 - Clearer Share action setting
+
+## What's Changed
+
+- Rename **Open share menu** to **Skip result screen & share** and clarify that it skips FixupXer's result screen before opening Android's share menu.
+- Show the two choices vertically and allow their labels to wrap, keeping the full names readable with larger font sizes.
+- Keep **Show result** as the default. Link Guard findings, incomplete processing, and errors still leave the result available for review. Processing behavior and saved preferences are unchanged.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 63
+- versionName: 2.11.1
+- Release verification and distribution status: BUILD_REPORT.md.
+
+---
+
 # FixupXer v2.11.0 - Share after-clean action
 
 ## What's Changed

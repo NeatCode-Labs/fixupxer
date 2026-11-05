@@ -39,10 +39,10 @@ From **v2.9.0**, open **Help** beside **What's new?** in the Main or Share menu,
 To clean a link, use **Share** in the app that contains it and choose **FixupXer**, or open FixupXer, paste the link, and tap **Process URL**. Review the before-and-after result, then choose an available action such as **Copy**, **Share**, or **Open**.
 
 To copy shared links automatically, enable **Auto-copy shared links** under
-**Settings > Link processing**. It is off by default and applies only when you
-send a link from another app to FixupXer; it does not change Paste or Browser
+**Settings > Link processing**. It is off by default and applies to the Share
+result screen, including the **Clean link** preview; it does not change Paste or Browser
 mode. After successful processing, FixupXer copies the final URL and keeps the
-Share screen open unless **Open share menu** is enabled. If you change the frontend or remove flagged query parameters
+Share screen open unless **Skip result screen & share** is enabled. If you change the frontend or remove flagged query parameters
 in Private Link Guard, a changed final result can be copied too. If Link Guard
 still reports sensitive data or processing is incomplete, automatic copying is
 skipped and **Copy** remains available. Enabling this option writes the URL to
@@ -51,15 +51,17 @@ Android's clipboard.
 Local settings backups include this preference. Importing a backup made before
 the option existed restores Auto-copy as off.
 
-To open Android's native sharesheet automatically after processing a shared link,
+To skip FixupXer's result screen and go straight to Android's share menu with
+the cleaned link,
 go to **Settings > Link processing > After receiving a shared link** and choose
-**Open share menu**. **Show result** is the default. This applies to ordinary
+**Skip result screen & share**. **Show result** is the default. Earlier builds
+label this option **Open share menu**; the behavior is unchanged. This applies to ordinary
 links sent from another app through Android's Share action, not Paste, Browser
 mode, or the **Clean link** text-selection preview. After safe, complete
 processing, FixupXer places the final URL in Android's sharesheet; you choose
 the receiving app. When Auto-copy is also enabled, FixupXer copies the final URL
-first. Link Guard findings or incomplete processing keep the result available
-for review and disarm automatic sharing for that request; use **Share** manually
+first. Link Guard findings, incomplete processing or errors keep the result
+available for review and disarm automatic sharing for that request; use **Share** manually
 after deciding what to pass on.
 
 Local settings backups include this action too. Backups without it restore

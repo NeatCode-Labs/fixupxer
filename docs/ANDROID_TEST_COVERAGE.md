@@ -1,5 +1,33 @@
 # Android Test Coverage for FixupXer
 
+## v2.11.1 / 63 — Clearer Share action setting — November 5, 2026
+
+The option is now **Skip result screen & share**, with a description explaining
+the skipped result screen and review fallback. The two full-width choices stack
+vertically and wrap at larger font sizes. Preference keys, saved choices, URL
+processing, permissions and dependencies are unchanged.
+
+### Source verification
+
+- Full unit gates: **875 debug + 875 release**, zero failures/errors/skips.
+- Release lint: **0 errors / 43 warnings**.
+- Full cold API35 instrumentation: **303/303**, zero failures/errors/skips.
+- Local debug UI checks confirmed the full label at normal size and at 320dp
+  width/font200% in dark mode, persistence after restart, and a native sharesheet
+  containing the cleaned URL. Final signed-artifact checks are recorded below.
+- Help anchors and all eight draft workflow examples validated. Store limits
+  checked; canonical Help and the local review copy use the approved name.
+- F-Droid listing icon visually checked and byte-identical to the root icon.
+- No physical-device run is claimed for this version. The earlier v2.11.0 phone
+  results remain historical evidence, not a fresh v2.11.1 test.
+
+### Final artifacts and distribution
+
+Signed artifacts, independent Linux/F-Droid reproduction, final signed
+clean/upgrade acceptance and distribution are pending for v2.11.1.
+
+---
+
 ## v2.11.0 / 62 — Share after-clean action — November 5, 2026
 
 Ordinary Android Share can now open the native sharesheet automatically with

@@ -1,0 +1,1 @@
+Renamed “Open share menu” to “Skip result screen & share” and clarified that it skips FixupXer’s result screen before opening Android’s share menu. The options now stack vertically and wrap at larger font sizes. “Show result” remains the default; processing behavior and the saved preference are unchanged.

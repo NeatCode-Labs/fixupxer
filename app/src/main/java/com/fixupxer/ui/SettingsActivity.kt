@@ -164,6 +164,12 @@ class SettingsActivity : BaseActivity() {
             Timber.d("Dominant hand changed to: $hand")
         }
 
+        // ToggleGroup forces single-line labels during inflation. Allow these
+        // full-width choices to wrap for larger accessibility font sizes.
+        listOf(binding.buttonShareAfterCleanShowResult, binding.buttonShareAfterCleanOpenMenu).forEach {
+            it.setSingleLine(false)
+            it.ellipsize = null
+        }
         binding.shareAfterCleanActionToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked || restoringViewState) return@addOnButtonCheckedListener
             val action = when (checkedId) {

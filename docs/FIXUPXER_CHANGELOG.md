@@ -1,20 +1,20 @@
 # FixupXer App - Development Summary
 
-## Version Progression: v2.11.0 → v1.2.1 (Latest to Oldest)
+## Version Progression: v2.11.1 → v1.2.1 (Latest to Oldest)
 
-**Versions Documented:** 56 (v2.11.0 through v1.2.1)
-**Current Version:** v2.11.0 (versionCode: 62)
-**Development Period:** v1.2.1 (Initial) → v2.11.0
+**Versions Documented:** 57 (v2.11.1 through v1.2.1)
+**Current Version:** v2.11.1 (versionCode: 63)
+**Development Period:** v1.2.1 (Initial) → v2.11.1
 
 ---
 
 ## 🎯 Executive Summary
 
-This document summarizes modifications since v1.2.1, through v2.11.0: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text, custom rules, and optional Share after-clean actions. The Share action defaults to Show result; Open share menu opts in to Android's native sharesheet for the final URL after safe, complete processing of ordinary shared links, while Browser mode and Process Text preview remain separate. Link Guard findings and incomplete processing stay available for review. Auto-copy remains independent and runs before the chooser when both settings are enabled. Browser mode supports frontend management for seven platforms and a preferred destination browser, and removes completed temporary tasks from Recents. Browser and Main/Share keep separate choices; Browser, Share and Copy use the processed URL; native actions restore supported X, Instagram and TikTok embed links to their original platform domain. Backup schema v2 includes the preferred browser, Auto-copy and Share after-clean preferences, and retains older-file import. All processing remains offline with zero permissions.
+This document summarizes modifications since v1.2.1, through v2.11.1: selective host-bound cleaning, Private Link Guard, curated offline redirect unwrapping, alternative frontends, local backup/restore, Process Text, custom rules, and optional Share after-clean actions. The Share action defaults to Show result; **Skip result screen & share** opts in to Android's native sharesheet for the final URL after safe, complete processing of ordinary shared links, while Browser mode and Process Text preview remain separate. The label explains that the result screen is skipped; the two choices now stack vertically and wrap at larger font sizes. Link Guard findings and incomplete processing stay available for review. Auto-copy remains independent and runs before the chooser when both settings are enabled. Browser mode supports frontend management for seven platforms and a preferred destination browser, and removes completed temporary tasks from Recents. Browser and Main/Share keep separate choices; Browser, Share and Copy use the processed URL; native actions restore supported X, Instagram and TikTok embed links to their original platform domain. Backup schema v2 includes the preferred browser, Auto-copy and Share after-clean preferences, and retains older-file import. All processing remains offline with zero permissions.
 
 ### Key Achievements:
 - ✅ **Share-only Auto-copy** - Optional clipboard write, off by default; copies the final URL after successful processing and changed explicit frontend or Link Guard edits, keeps Share open, and skips remaining Link Guard findings or incomplete processing
-- ✅ **Share after-clean action** - Defaults to Show result; optionally open Android's native sharesheet with the final processed URL after safe, complete ordinary Share processing. Link Guard findings and incomplete processing require review; Browser and Process Text preview are unaffected. Thanks to @KamiyaMinoru for suggesting the feature in issue #13.
+- ✅ **Share after-clean action** - Defaults to Show result; **Skip result screen & share** skips the result screen and opens Android's native sharesheet with the final processed URL after safe, complete ordinary Share processing. Link Guard findings and incomplete processing require review; Browser and Process Text preview are unaffected. The option labels now stack and wrap for larger font sizes; the saved preference and processing behavior are unchanged. Thanks to @KamiyaMinoru for suggesting the feature in issue #13.
 - ✅ **Frontend Safety & Settings Access** - Retired compromised frontend domains (facebookez.com, kkinstagram.com) with automatic settings/backup migration and a permanent denylist; every platform's frontend picker reachable from Settings > Alternative frontends
 - ✅ **Browser Frontends & Saved App Choices** - Separate Clean only, Reader, Embed and Custom choices for seven eligible platforms, exact-host saved app routing, and a read-only Configuration status overview
 - ✅ **Alternative Frontend Catalog** - Embed/Privacy frontend picker on Main/Share across nine platforms with selectable readers (xcancel, Nitter, SkyLib, Redlib, Invidious, …) and custom domains for every platform
@@ -40,6 +40,14 @@ This document summarizes modifications since v1.2.1, through v2.11.0: selective 
 ---
 
 ## 📋 Version History
+
+### v2.11.1 — Clearer Share action setting (November 5, 2026)
+
+- Rename **Open share menu** to **Skip result screen & share** and clarify that it skips FixupXer's result screen before opening Android's native sharesheet.
+- Stack both choices vertically and wrap their labels for readability at larger font sizes.
+- Keep **Show result** as the default. Link Guard findings, incomplete processing, and errors still leave the result available for review; processing behavior and saved preferences are unchanged.
+
+- Version Code: 63; versionName: 2.11.1. Release verification and distribution status: BUILD_REPORT.md.
 
 ### v2.11.0 — Share after-clean action (November 5, 2026)
 
@@ -927,6 +935,7 @@ ksp = { id = "com.google.devtools.ksp", version = "1.9.23-1.0.19" }
 | v2.9.5 | 60 | Correct native routing for runtime-enabled Instagram link handlers | Release status in BUILD_REPORT.md |
 | v2.10.0 | 61 | Optional Share-only auto-copy of the final processed URL; Link Guard and incomplete-pipeline safeguards | Release status in BUILD_REPORT.md |
 | v2.11.0 | 62 | Optional Share after-clean action opens Android's native sharesheet with the final processed URL after safe, complete processing; independent of Browser mode and Auto-copy | Release status in BUILD_REPORT.md |
+| v2.11.1 | 63 | Rename Share choice to Skip result screen & share; vertically stacked, wrapping options; behavior and saved preference unchanged | Release status in BUILD_REPORT.md |
 
 ### Build Artifacts (v2.6.7):
 - **Google Play AAB:** `FixupXer-v2.6.7-release.aab` — signed root bundle; signature, manifest and bundletool validation passed. Play submission status is recorded in BUILD_REPORT.md.

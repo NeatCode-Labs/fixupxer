@@ -7,7 +7,7 @@
 <h3 align="center">Cleaner links. X readers without an account. Better previews in your chats.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.11.0"><img src="https://img.shields.io/badge/version-2.11.0-blue?style=flat-square" alt="Version 2.11.0"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.11.1"><img src="https://img.shields.io/badge/version-2.11.1-blue?style=flat-square" alt="Version 2.11.1"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>
@@ -53,19 +53,22 @@ website, which has its own network access and privacy policy.
   `example.org/read?article=42`: the article selector stays. Browser Mode can
   do this for links Android sends to FixupXer, then open your usual browser.
 - **Skip the Copy tap for shared links if you want.** Enable **Auto-copy shared
-  links** under **Settings > Link processing**; it is off by default and only
-  applies when you share a link from another app to FixupXer. It copies the
+  links** under **Settings > Link processing**; it is off by default and
+  applies to the Share result screen, including the **Clean link** preview. It copies the
   final URL after successful processing, and again when frontend or Link Guard
-  changes produce a different final result. Share stays open unless **Open share menu** is enabled. Remaining
+  changes produce a different final result. Share stays open unless **Skip result screen & share** is enabled. Remaining
   Link Guard findings or incomplete
   processing suppress automatic copying; manual Copy remains available.
 - **Choose what happens after a shared link is processed.** Under **Settings >
   Link processing > After receiving a shared link**, choose **Show result**
-  (default) or **Open share menu**. The latter opens Android's native sharesheet
-  with the final processed URL after safe, complete processing; you choose its
-  recipient. Link Guard findings or incomplete processing keep the result for
-  review. This setting applies to links received through Share, independently
-  of Browser mode and Process Text. Auto-copy stays separate; when both options
+  (default) or **Skip result screen & share**. The latter skips FixupXer's
+  result screen and goes straight to Android's share menu with the final
+  processed URL; you choose the receiving app. Link Guard findings, incomplete
+  processing or errors keep the result available for review. The choices are
+  stacked vertically and wrap at larger font sizes. This label/layout update
+  does not change processing or the saved preference. This setting applies to
+  links received through Share, independently of Browser mode and Process Text.
+  Auto-copy stays separate; when both options
   are enabled, the URL is copied before the sharesheet opens.
 - **Notice an email address or sign-in token before passing it on.** Private
   Link Guard flags certain sensitive values still present in a URL. Review
@@ -272,7 +275,7 @@ See the [History and backup Help](docs/HELP.md#history-and-backup) for migration
 - **Explicit handoff** — FixupXer processes URLs offline; a browser, native app,
   share target, or privacy reader receives the result only after your selected
   action or Android Browser Mode routing.
-- **Optional Share handoff** — **Open share menu** displays Android's native
+- **Optional Share handoff** — **Skip result screen & share** displays Android's native
   sharesheet with the final URL after safe, complete processing of a link shared
   to FixupXer. You choose the receiving app. Link Guard findings and incomplete
   processing require review; Browser mode is unaffected.

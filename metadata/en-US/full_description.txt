@@ -11,7 +11,7 @@ FixupXer removes tracking from URLs before you copy, share, or open them. Proces
 
 • Share a URL to FixupXer, paste it into the app, or select text and choose "Clean link" where the source app supports it.
 • Choose the next action: open in an app or browser, share, or copy.
-• Shared links show the result by default. Opt in to Open share menu to open Android's sharesheet with the final URL after processing; choose the recipient yourself. Link Guard findings or incomplete processing keep the result for review.
+• Shared links show the result by default. Opt in to Skip result screen &amp; share to go straight to Android's share menu with the cleaned link; choose the recipient yourself. Link Guard warnings, incomplete processing or errors stay for review.
 • Optional Auto-copy shared links starts off. It copies before the sharesheet when both options are on, and pauses for Link Guard findings or incomplete processing.
 • Enable Browser Mode in Settings and select FixupXer as Android's default browser to process eligible links automatically. Verified App Links may bypass it.
 • Keep Browser frontend choices separate from Main/Share choices. Remember a preferred browser or an app choice for a website host.

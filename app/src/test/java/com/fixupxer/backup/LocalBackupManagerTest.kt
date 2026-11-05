@@ -33,6 +33,7 @@ import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.utils.BrowserModeUtils
 import com.fixupxer.utils.BrowserViewGate
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.ShareAfterCleanAction
 import kotlinx.coroutines.test.runTest
 import org.json.JSONObject
 import org.junit.After
@@ -120,6 +121,27 @@ class LocalBackupManagerTest {
             ),
         )
         assertFalse(preferencesManager.isAutoCopySharedLinksEnabled())
+    }
+
+    @Test
+    fun `share after-clean action defaults to result and remains separate from auto-copy`() {
+        assertEquals(ShareAfterCleanAction.SHOW_RESULT, preferencesManager.getShareAfterCleanAction())
+        assertEquals(
+            ShareAfterCleanAction.SHOW_RESULT,
+            preferencesManager.exportSettingsSnapshot().shareAfterCleanAction,
+        )
+
+        preferencesManager.setAutoCopySharedLinksEnabled(true)
+        preferencesManager.setShareAfterCleanAction(ShareAfterCleanAction.SHARE)
+        val snapshot = preferencesManager.exportSettingsSnapshot()
+        assertTrue(snapshot.autoCopySharedLinks)
+        assertEquals(ShareAfterCleanAction.SHARE, snapshot.shareAfterCleanAction)
+
+        preferencesManager.setShareAfterCleanAction(ShareAfterCleanAction.SHOW_RESULT)
+        assertTrue(preferencesManager.isAutoCopySharedLinksEnabled())
+        assertTrue(preferencesManager.replaceSettingsSnapshot(snapshot))
+        assertEquals(ShareAfterCleanAction.SHARE, preferencesManager.getShareAfterCleanAction())
+        assertTrue(preferencesManager.isAutoCopySharedLinksEnabled())
     }
 
     @After

@@ -13,6 +13,7 @@ package com.fixupxer.backup
 
 import com.fixupxer.processing.BrowserFrontendPreference
 import com.fixupxer.utils.ProxyPlatform
+import com.fixupxer.utils.ShareAfterCleanAction
 
 /**
  * Typed, whitelisted user settings for local backup export/replace.
@@ -47,4 +48,5 @@ data class SettingsSnapshot(
     /** Nullable for old backups: null means ask for a browser each time. */
     val preferredBrowserPackage: String? = null,
     val autoCopySharedLinks: Boolean = false,
+    val shareAfterCleanAction: ShareAfterCleanAction = ShareAfterCleanAction.SHOW_RESULT,
 )

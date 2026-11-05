@@ -18,6 +18,7 @@ import com.fixupxer.rules.RuleBundleCodec
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.ProxyPlatform
 import com.fixupxer.utils.RetiredFrontendMigration
+import com.fixupxer.utils.ShareAfterCleanAction
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -95,6 +96,35 @@ class LocalBackupCodecTest {
         listOf("true", 1, JSONObject.NULL).forEach { invalidValue ->
             val root = JSONObject(encodeValid())
             root.getJSONObject("settings").put("autoCopySharedLinks", invalidValue)
+
+            assertTrue(runCatching { codec.decode(root.toString()) }.isFailure)
+        }
+    }
+
+    @Test
+    fun `share after-clean action round trips and older backups show the result`() {
+        ShareAfterCleanAction.entries.forEach { action ->
+            val settings = validSettings().copy(shareAfterCleanAction = action)
+            val encoded = codec.encode(settings, ruleCodec.encodeBundle(emptyList()))
+            val settingsJson = JSONObject(encoded).getJSONObject("settings")
+
+            assertEquals(action.name, settingsJson.get("shareAfterCleanAction"))
+            assertEquals(action, codec.decode(encoded).settings.shareAfterCleanAction)
+
+            val legacyRoot = JSONObject(encoded)
+            legacyRoot.getJSONObject("settings").remove("shareAfterCleanAction")
+            assertEquals(
+                ShareAfterCleanAction.SHOW_RESULT,
+                codec.decode(legacyRoot.toString()).settings.shareAfterCleanAction,
+            )
+        }
+    }
+
+    @Test
+    fun `share after-clean action rejects invalid present values`() {
+        listOf("OPEN", true, 1, JSONObject.NULL).forEach { invalidValue ->
+            val root = JSONObject(encodeValid())
+            root.getJSONObject("settings").put("shareAfterCleanAction", invalidValue)
 
             assertTrue(runCatching { codec.decode(root.toString()) }.isFailure)
         }
@@ -594,6 +624,7 @@ class LocalBackupCodecTest {
             "showConfigurationStatusWidget", "actionMode", "actionPriority",
             "proxySelections", "customProxies", "disabledBuiltIns", "browserFrontends",
             "rememberedRoutes", "preferredBrowserPackage", "autoCopySharedLinks",
+            "shareAfterCleanAction",
         )
         assertEquals(expected, keys)
         assertFalse(encoded.contains("url_history"))

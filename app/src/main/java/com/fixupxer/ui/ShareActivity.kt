@@ -36,6 +36,7 @@ import com.fixupxer.R
 import com.fixupxer.databinding.ActivityShareBinding
 import com.fixupxer.presentation.share.ShareViewModel
 import com.fixupxer.utils.Constants
+import com.fixupxer.utils.ShareAfterCleanAction
 import com.fixupxer.domain.repository.HistoryRepository
 import com.fixupxer.ui.dialogs.HistoryDialogHelper
 import com.fixupxer.ui.dialogs.LinkGuardDialogHelper
@@ -69,8 +70,20 @@ class ShareActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         Timber.d("ShareActivity onCreate started")
         
-        // Edge-to-edge is now handled in BaseActivity
-        
+        handleIntent()
+        // Attach an empty transparent surface so the window participates normally
+        // in focus/configuration changes while processing. No result UI is drawn.
+        if (!viewModel.uiState.value.showResultScreen) {
+            setContentView(android.widget.FrameLayout(this))
+        }
+        observeViewModel()
+        observeAutomaticActions()
+        Timber.d("ShareActivity onCreate completed")
+    }
+
+    /** The automatic path never inflates/draws the result screen. */
+    private fun ensureResultScreen() {
+        if (::binding.isInitialized) return
         binding = ActivityShareBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
@@ -81,12 +94,8 @@ class ShareActivity : BaseActivity() {
         initializeViews()
         applyDominantHandLayout()
         setupListeners()
-        observeViewModel()
-        observeAutoCopy()
         setupSmartFooter()
-        handleIntent()
-        
-        Timber.d("ShareActivity onCreate completed")
+        androidx.core.view.ViewCompat.requestApplyInsets(binding.root)
     }
     
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -139,13 +148,14 @@ class ShareActivity : BaseActivity() {
     
     override fun onPause() {
         super.onPause()
+        Timber.d("ShareActivity paused (changingConfiguration=$isChangingConfigurations, finishing=$isFinishing)")
         // Configuration changes (rotation, system theme switch) recreate the
         // activity — the share context must survive them. The ViewModel keeps
         // the state; processSharedText() dedupes the re-delivered intent.
         if (isChangingConfigurations) return
         // Clear state when activity loses focus (one-shot share flow)
-        viewModel.clearState()
         finish() // Destroy activity when it loses focus
+        viewModel.clearState()
     }
     
     private fun initializeViews() {
@@ -182,6 +192,7 @@ class ShareActivity : BaseActivity() {
     }
     
     override fun onDestroy() {
+        Timber.d("ShareActivity destroyed (changingConfiguration=$isChangingConfigurations, finishing=$isFinishing)")
         footerLayoutListener?.let {
             binding.mainScrollView.parent?.let { parent ->
                 (parent as? View)?.viewTreeObserver?.removeOnGlobalLayoutListener(it)
@@ -200,6 +211,7 @@ class ShareActivity : BaseActivity() {
         }
         
         binding.buttonShare.setOnClickListener {
+            viewModel.onManualInteraction()
             UrlActionHelper.shareUrl(binding.root, this, viewModel.uiState.value.actionUrl)
         }
         
@@ -224,6 +236,10 @@ class ShareActivity : BaseActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
+                    if (isFinishing || isDestroyed) return@collect
+                    if (::binding.isInitialized) binding.root.isVisible = state.showResultScreen
+                    if (!state.showResultScreen) return@collect
+                    ensureResultScreen()
                     // Update UI based on state; removed tracking params get struck
                     // through once the cleaned result is known.
                     binding.textViewSharedText.text = if (state.sharedText.isEmpty()) {
@@ -272,9 +288,9 @@ class ShareActivity : BaseActivity() {
                     binding.buttonOpen.isEnabled = !state.isLoading && state.actionUrl.isNotEmpty()
                     binding.processedUrlInclude.leakWarningRow.isVisible =
                         state.leakFindings.isNotEmpty()
-                    binding.processedUrlInclude.autoCopyWarning.isVisible = state.autoCopyBlocked
+                    binding.processedUrlInclude.autoCopyWarning.isVisible = state.autoCopyBlocked || state.autoShareNotice != null
                     binding.processedUrlInclude.autoCopyWarning.setText(
-                        if (state.leakFindings.isNotEmpty()) R.string.auto_copy_shared_links_blocked
+                        state.autoShareNotice ?: if (state.leakFindings.isNotEmpty()) R.string.auto_copy_shared_links_blocked
                         else R.string.auto_copy_shared_links_incomplete
                     )
                     binding.processedUrlInclude.leakWarningRow.setOnClickListener {
@@ -329,13 +345,25 @@ class ShareActivity : BaseActivity() {
                 ?.getItemAt(0)?.coerceToText(this)?.toString()
     }
 
-    private fun observeAutoCopy() {
+    private fun observeAutomaticActions() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 viewModel.uiState.collect { state ->
-                    val pending = state.pendingAutoCopy ?: return@collect
-                    val url = viewModel.consumeAutoCopy(pending) ?: return@collect
-                    UrlActionHelper.copyToClipboard(binding.root, this@ShareActivity, url)
+                    if (isFinishing || isDestroyed) return@collect
+                    // One consumer fixes ordering: opening a chooser pauses this activity.
+                    state.pendingAutoCopy?.let { pending ->
+                        viewModel.consumeAutoCopy(pending)?.let { url ->
+                            UrlActionHelper.copyToClipboard(
+                                window.decorView, this@ShareActivity, url, showFeedback = state.showResultScreen,
+                            )
+                        }
+                    }
+                    state.pendingAutoShare?.let { pending ->
+                        val url = viewModel.consumeAutoShare(pending) ?: return@let
+                        if (!UrlActionHelper.shareUrl(window.decorView, this@ShareActivity, url, showError = false)) {
+                            viewModel.onAutoShareFailed()
+                        }
+                    }
                 }
             }
         }
@@ -349,6 +377,8 @@ class ShareActivity : BaseActivity() {
                 sharedText,
                 autoCopy = preferencesManager.isAutoCopySharedLinksEnabled(),
                 newRequest = newRequest,
+                autoShare = preferencesManager.getShareAfterCleanAction() == ShareAfterCleanAction.SHARE &&
+                    !intent.getBooleanExtra(UrlActionHelper.EXTRA_SKIP_AUTO_SHARE, false),
             )
         } else {
             // Without this the UI would sit on "Processing…" forever.

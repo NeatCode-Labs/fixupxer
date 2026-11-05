@@ -42,6 +42,7 @@ class ShareAutoCopyTest {
         preferences.setCustomRulesEnabled(false)
         preferences.setHistoryEnabled(false)
         preferences.setAutoCopySharedLinksEnabled(true)
+        preferences.setShareAfterCleanAction(com.fixupxer.utils.ShareAfterCleanAction.SHOW_RESULT)
     }
 
     @After

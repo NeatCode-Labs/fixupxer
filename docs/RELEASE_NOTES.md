@@ -1,3 +1,22 @@
+# FixupXer v2.11.0 - Share after-clean action
+
+## What's Changed
+
+- Add **After receiving a shared link** under **Settings > Link processing**. **Show result** remains the default; **Open share menu** opts in to Android's native sharesheet with the final processed URL.
+- Open the chooser only after safe, complete processing of an ordinary shared link. Link Guard findings or incomplete processing stay available for review; Browser mode and Process Text preview are unaffected.
+- Keep Auto-copy shared links as an independent option. If both are enabled, the final URL is copied before the sharesheet opens.
+- Thanks to @KamiyaMinoru for suggesting this feature in issue #13.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 62
+- versionName: 2.11.0
+- Source checks: 875 debug + 875 release unit tests; 303 API35 instrumentation tests; 6 new tests on the USB S23 Ultra. Final artifact and distribution status is recorded in BUILD_REPORT.md.
+
+---
+
 # FixupXer v2.10.0 - Auto-copy shared links
 
 ## What's Changed

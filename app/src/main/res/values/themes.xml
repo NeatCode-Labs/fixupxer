@@ -71,6 +71,12 @@
         <item name="android:windowIsFloating">false</item>
     </style>
 
+    <!-- Start over the sending app; inflate the opaque result only when needed. -->
+    <style name="Theme.FixupXer.Share" parent="Theme.FixupXer.Translucent">
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+
     <!-- Material card style -->
     <style name="CardStyle" parent="Widget.Material3.CardView.Elevated">
         <item name="cardCornerRadius">@dimen/card_corner_radius</item>

@@ -307,6 +307,137 @@ class ShareViewModelTest {
     }
 
     @Test
+    fun `auto share defaults off and keeps the result screen visible`() = runTest(testDispatcher) {
+        val url = "https://example.com/clean"
+        val repository = TestUrlRepository().apply {
+            processResult = ProcessedUrlResult(url, true)
+        }
+        val vm = createViewModel(repository)
+
+        vm.processSharedText(url)
+        advanceUntilIdle()
+
+        assertTrue(vm.uiState.value.showResultScreen)
+        assertNull(vm.uiState.value.pendingAutoShare)
+    }
+
+    @Test
+    fun `auto share offers the final converted URL as a one-shot action`() = runTest(testDispatcher) {
+        val input = "https://x.com/person/status/123?utm_source=share"
+        val finalUrl = "https://fixupx.com/person/status/123"
+        val repository = TestUrlRepository().apply {
+            processResult = ProcessedUrlResult(finalUrl, false)
+        }
+        val vm = createViewModel(repository)
+
+        vm.processSharedText(input, autoShare = true)
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        val pending = state.pendingAutoShare!!
+        assertEquals(finalUrl, state.actionUrl)
+        assertFalse(state.showResultScreen)
+        assertEquals(finalUrl, vm.consumeAutoShare(pending))
+        assertNull(vm.consumeAutoShare(pending))
+    }
+
+    @Test
+    fun `same intent recreation keeps one token and a new matching intent gets a fresh token`() = runTest(testDispatcher) {
+        val url = "https://example.com/clean"
+        var processCalls = 0
+        val repository = TestUrlRepository().apply {
+            sharedProcessHandler = { _, _ ->
+                processCalls++
+                ProcessedUrlResult(url, true)
+            }
+        }
+        val vm = createViewModel(repository)
+
+        vm.processSharedText(url, autoShare = true)
+        advanceUntilIdle()
+        val original = vm.uiState.value.pendingAutoShare!!
+
+        // Activity recreation re-delivers the same intent without marking it new.
+        vm.processSharedText(url, autoShare = true)
+        advanceUntilIdle()
+        assertEquals(1, processCalls)
+        assertEquals(original, vm.uiState.value.pendingAutoShare)
+        assertEquals(url, vm.consumeAutoShare(original))
+        assertNull(vm.consumeAutoShare(original))
+
+        // onNewIntent is a new request even when its text is identical.
+        vm.processSharedText(url, autoShare = true, newRequest = true)
+        advanceUntilIdle()
+        val next = vm.uiState.value.pendingAutoShare!!
+        assertFalse(original == next)
+        assertNull(vm.consumeAutoShare(original))
+        assertEquals(url, vm.consumeAutoShare(next))
+    }
+
+    @Test
+    fun `manual frontend reprocess disarms auto share instead of retrying it`() = runTest(testDispatcher) {
+        whenever(urlProcessor.isTwitterUrl(any())).thenReturn(true)
+        val input = "https://x.com/person/status/123"
+        val finalUrl = "https://fixupx.com/person/status/123"
+        val repository = TestUrlRepository().apply {
+            detectTwitter = true
+            processResult = ProcessedUrlResult(finalUrl, false)
+        }
+        val vm = createViewModel(repository)
+        advanceUntilIdle()
+
+        vm.processSharedText(input, autoShare = true)
+        advanceUntilIdle()
+        val pending = vm.uiState.value.pendingAutoShare!!
+
+        vm.onTwitterConversionToggled(false)
+        advanceUntilIdle()
+
+        assertTrue(vm.uiState.value.showResultScreen)
+        assertNull(vm.uiState.value.pendingAutoShare)
+        assertNull(vm.consumeAutoShare(pending))
+    }
+
+    @Test
+    fun `auto share failure restores the result screen and reports an error`() = runTest(testDispatcher) {
+        val url = "https://example.com/clean"
+        val repository = TestUrlRepository().apply {
+            processResult = ProcessedUrlResult(url, true)
+        }
+        val vm = createViewModel(repository)
+        vm.processSharedText(url, autoShare = true)
+        advanceUntilIdle()
+        val pending = vm.uiState.value.pendingAutoShare!!
+
+        assertEquals(url, vm.consumeAutoShare(pending))
+        vm.onAutoShareFailed()
+
+        assertTrue(vm.uiState.value.showResultScreen)
+        assertEquals(R.string.error_sharing_url, vm.uiState.value.autoShareNotice)
+        assertNull(vm.uiState.value.pendingAutoShare)
+        assertNull(vm.consumeAutoShare(pending))
+    }
+
+    @Test
+    fun `auto copy and auto share tokens can both be consumed in sequence`() = runTest(testDispatcher) {
+        val url = "https://example.com/clean"
+        val repository = TestUrlRepository().apply {
+            processResult = ProcessedUrlResult(url, true)
+        }
+        val vm = createViewModel(repository)
+
+        vm.processSharedText(url, autoCopy = true, autoShare = true)
+        advanceUntilIdle()
+        val copy = vm.uiState.value.pendingAutoCopy!!
+        val share = vm.uiState.value.pendingAutoShare!!
+
+        assertEquals(url, vm.consumeAutoCopy(copy))
+        assertEquals(url, vm.consumeAutoShare(share))
+        assertNull(vm.consumeAutoCopy(copy))
+        assertNull(vm.consumeAutoShare(share))
+    }
+
+    @Test
     fun `new share invalidates late results and old copy tokens`() = runTest(testDispatcher) {
         val oldResult = CompletableDeferred<ProcessedUrlResult>()
         val repository = TestUrlRepository().apply {
@@ -316,17 +447,20 @@ class ShareViewModelTest {
             }
         }
         val vm = createViewModel(repository)
-        vm.processSharedText("https://example.com/old", autoCopy = true)
+        vm.processSharedText("https://example.com/old", autoCopy = true, autoShare = true)
         runCurrent()
-        vm.processSharedText("https://example.com/new", autoCopy = true, newRequest = true)
+        vm.processSharedText("https://example.com/new", autoCopy = true, autoShare = true, newRequest = true)
         runCurrent()
         val latest = vm.uiState.value.pendingAutoCopy!!
+        val latestShare = vm.uiState.value.pendingAutoShare!!
         oldResult.complete(ProcessedUrlResult("https://example.com/old-clean", false))
         advanceUntilIdle()
         assertEquals("https://example.com/new", vm.uiState.value.actionUrl)
         assertEquals(latest, vm.uiState.value.pendingAutoCopy)
+        assertEquals(latestShare, vm.uiState.value.pendingAutoShare)
         vm.clearState()
         assertNull(vm.consumeAutoCopy(latest))
+        assertNull(vm.consumeAutoShare(latestShare))
     }
 
     @Test
@@ -338,7 +472,7 @@ class ShareViewModelTest {
             sharedProcessHandler = { _, _ -> if (++calls == 1) first.await() else second.await() }
         }
         val vm = createViewModel(repository)
-        vm.processSharedText("https://example.com/input", autoCopy = true)
+        vm.processSharedText("https://example.com/input", autoCopy = true, autoShare = true)
         runCurrent()
         vm.onTwitterConversionToggled(false)
         runCurrent()
@@ -346,9 +480,12 @@ class ShareViewModelTest {
         runCurrent()
         assertTrue(vm.uiState.value.isLoading)
         assertNull(vm.uiState.value.pendingAutoCopy)
+        assertNull(vm.uiState.value.pendingAutoShare)
         second.complete(ProcessedUrlResult("https://example.com/final", false))
         advanceUntilIdle()
         assertEquals("https://example.com/final", vm.uiState.value.pendingAutoCopy!!.url)
+        assertNull(vm.uiState.value.pendingAutoShare)
+        assertTrue(vm.uiState.value.showResultScreen)
     }
 
     @Test
@@ -381,13 +518,17 @@ class ShareViewModelTest {
             )
         }
         val vm = createViewModel(repository)
-        vm.processSharedText(repository.processResult.url, autoCopy = true)
+        vm.processSharedText(repository.processResult.url, autoCopy = true, autoShare = true)
         advanceUntilIdle()
         assertTrue(vm.uiState.value.autoCopyBlocked)
         assertNull(vm.uiState.value.pendingAutoCopy)
+        assertTrue(vm.uiState.value.showResultScreen)
+        assertEquals(R.string.share_after_clean_blocked, vm.uiState.value.autoShareNotice)
+        assertNull(vm.uiState.value.pendingAutoShare)
         vm.removeLeakedParameters(setOf("token"))
         assertFalse(vm.uiState.value.autoCopyBlocked)
         assertEquals("https://example.com/", vm.uiState.value.pendingAutoCopy!!.url)
+        assertNull(vm.uiState.value.pendingAutoShare)
     }
 
     @Test
@@ -396,12 +537,16 @@ class ShareViewModelTest {
             processResult = ProcessedUrlResult("https://example.com/?token=abc", false, status = PipelineStatus.CYCLE)
         }
         val vm = createViewModel(repository)
-        vm.processSharedText(repository.processResult.url, autoCopy = true)
+        vm.processSharedText(repository.processResult.url, autoCopy = true, autoShare = true)
         advanceUntilIdle()
         assertTrue(vm.uiState.value.autoCopyBlocked)
         assertNull(vm.uiState.value.pendingAutoCopy)
+        assertTrue(vm.uiState.value.showResultScreen)
+        assertEquals(R.string.share_after_clean_incomplete, vm.uiState.value.autoShareNotice)
+        assertNull(vm.uiState.value.pendingAutoShare)
         vm.removeLeakedParameters(setOf("token"))
         assertNull(vm.uiState.value.pendingAutoCopy)
+        assertNull(vm.uiState.value.pendingAutoShare)
     }
 
     @Test
@@ -409,21 +554,27 @@ class ShareViewModelTest {
         val repository = TestUrlRepository()
         val vm = createViewModel(repository)
         for (input in listOf("not a url", "https://example.com/a https://example.com/b")) {
-            vm.processSharedText(input, autoCopy = true, newRequest = true)
+            vm.processSharedText(input, autoCopy = true, autoShare = true, newRequest = true)
             advanceUntilIdle()
             assertNotNull(vm.uiState.value.error)
             assertNull(vm.uiState.value.pendingAutoCopy)
+            assertNull(vm.uiState.value.pendingAutoShare)
+            assertTrue(vm.uiState.value.showResultScreen)
         }
         repository.sharedProcessHandler = { _, _ -> CompletableDeferred<ProcessedUrlResult>().await() }
-        vm.processSharedText("https://example.com/slow", autoCopy = true)
+        vm.processSharedText("https://example.com/slow", autoCopy = true, autoShare = true)
         advanceUntilIdle()
         assertNotNull(vm.uiState.value.error)
         assertNull(vm.uiState.value.pendingAutoCopy)
+        assertNull(vm.uiState.value.pendingAutoShare)
+        assertTrue(vm.uiState.value.showResultScreen)
         repository.sharedProcessHandler = { _, _ -> error("fixture failure") }
-        vm.processSharedText("https://example.com/failure", autoCopy = true)
+        vm.processSharedText("https://example.com/failure", autoCopy = true, autoShare = true)
         advanceUntilIdle()
         assertNotNull(vm.uiState.value.error)
         assertNull(vm.uiState.value.pendingAutoCopy)
+        assertNull(vm.uiState.value.pendingAutoShare)
+        assertTrue(vm.uiState.value.showResultScreen)
     }
 
     @Test
@@ -433,13 +584,14 @@ class ShareViewModelTest {
             sharedProcessHandler = { _, _ -> withContext(NonCancellable) { deferred.await() } }
         }
         val vm = createViewModel(repository)
-        vm.processSharedText("https://example.com/slow", autoCopy = true)
+        vm.processSharedText("https://example.com/slow", autoCopy = true, autoShare = true)
         runCurrent()
         vm.clearState()
         deferred.complete(ProcessedUrlResult("https://example.com/late", false))
         advanceUntilIdle()
         assertTrue(vm.uiState.value.actionUrl.isEmpty())
         assertNull(vm.uiState.value.pendingAutoCopy)
+        assertNull(vm.uiState.value.pendingAutoShare)
     }
 
     private fun assertPlatformStateCleared(state: ShareUiState) {

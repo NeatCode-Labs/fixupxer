@@ -31,6 +31,7 @@ import com.fixupxer.utils.InstagramProxyStore
 import com.fixupxer.utils.ProxyPlatform
 import com.fixupxer.utils.ProxyRoster
 import com.fixupxer.utils.RetiredFrontendMigration
+import com.fixupxer.utils.ShareAfterCleanAction
 import com.fixupxer.utils.TikTokProxyStore
 import com.fixupxer.processing.UrlNormalizer
 import com.fixupxer.processing.BrowserConversionMode
@@ -95,6 +96,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_PREFERRED_BROWSER_PACKAGE = "preferred_browser_package"
         private const val KEY_SHOW_CONFIGURATION_STATUS_WIDGET = "show_configuration_status_widget"
         private const val KEY_AUTO_COPY_SHARED_LINKS = "auto_copy_shared_links"
+        private const val KEY_SHARE_AFTER_CLEAN_ACTION = "share_after_clean_action"
         
         // Browser mode conversion keys
         private const val KEY_BROWSER_CONVERT_TWITTER = "browser_convert_twitter"
@@ -719,6 +721,15 @@ class PreferencesManager(context: Context) {
         prefs.edit { putBoolean(KEY_AUTO_COPY_SHARED_LINKS, enabled) }
     }
 
+    fun getShareAfterCleanAction(): ShareAfterCleanAction =
+        prefs.getString(KEY_SHARE_AFTER_CLEAN_ACTION, null)
+            ?.let { stored -> ShareAfterCleanAction.entries.firstOrNull { it.name == stored } }
+            ?: ShareAfterCleanAction.SHOW_RESULT
+
+    fun setShareAfterCleanAction(action: ShareAfterCleanAction) {
+        prefs.edit { putString(KEY_SHARE_AFTER_CLEAN_ACTION, action.name) }
+    }
+
     fun customRulesEnabledFlow(): Flow<Boolean> =
         booleanFlow(KEY_CUSTOM_RULES_ENABLED, false)
 
@@ -1210,6 +1221,7 @@ class PreferencesManager(context: Context) {
         rememberedRoutes = getRememberedRoutes(),
         preferredBrowserPackage = getPreferredBrowserPackage(),
         autoCopySharedLinks = isAutoCopySharedLinksEnabled(),
+        shareAfterCleanAction = getShareAfterCleanAction(),
     )
 
     /**
@@ -1251,6 +1263,7 @@ class PreferencesManager(context: Context) {
             editor.putString(KEY_PREFERRED_BROWSER_PACKAGE, snapshot.preferredBrowserPackage)
         }
         editor.putBoolean(KEY_AUTO_COPY_SHARED_LINKS, snapshot.autoCopySharedLinks)
+        editor.putString(KEY_SHARE_AFTER_CLEAN_ACTION, snapshot.shareAfterCleanAction.name)
         ProxyPlatform.entries.forEach { platform ->
             val selection = snapshot.proxySelections[platform]
             if (selection.isNullOrBlank()) {

@@ -20,6 +20,7 @@ import com.fixupxer.utils.AlternativeFrontendCatalog
 import com.fixupxer.utils.Constants
 import com.fixupxer.utils.ProxyPlatform
 import com.fixupxer.utils.RetiredFrontendMigration
+import com.fixupxer.utils.ShareAfterCleanAction
 import org.json.JSONArray
 import org.json.JSONObject
 import javax.inject.Inject
@@ -131,6 +132,7 @@ class LocalBackupCodec @Inject constructor(
         .put("rememberedRoutes", encodeRememberedRoutes(snapshot.rememberedRoutes))
         .put("preferredBrowserPackage", snapshot.preferredBrowserPackage ?: JSONObject.NULL)
         .put("autoCopySharedLinks", snapshot.autoCopySharedLinks)
+        .put("shareAfterCleanAction", snapshot.shareAfterCleanAction.name)
 
     private fun decodeSettings(json: JSONObject, schemaVersion: Int): SettingsSnapshot {
         val customProxies = decodePlatformListMap(json.getJSONObject("customProxies"))
@@ -179,12 +181,21 @@ class LocalBackupCodec @Inject constructor(
                 require(value is Boolean) { "Auto-copy shared links must be a boolean" }
                 value
             },
+            shareAfterCleanAction = decodeShareAfterCleanAction(json),
         )
         val migrated = migrateRetiredBrowserFrontends(
             RetiredFrontendMigration.migrateSnapshot(snapshot)
         )
         SettingsSnapshotValidator.validate(migrated)
         return migrated
+    }
+
+    private fun decodeShareAfterCleanAction(json: JSONObject): ShareAfterCleanAction {
+        if (!json.has("shareAfterCleanAction")) return ShareAfterCleanAction.SHOW_RESULT
+        val value = json.get("shareAfterCleanAction")
+        require(value is String) { "Share-after-clean action must be a string" }
+        return ShareAfterCleanAction.entries.firstOrNull { it.name == value }
+            ?: throw IllegalArgumentException("Invalid share-after-clean action")
     }
 
     private fun decodeV1BrowserFrontends(json: JSONObject): Map<ProxyPlatform, BrowserFrontendPreference> {

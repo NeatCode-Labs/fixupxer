@@ -1,0 +1,1 @@
+Choose what happens after sharing a link to FixupXer: Show result (default) or Open share menu. The new opt-in action opens Android's native sharesheet with the final processed URL. Link Guard findings and incomplete processing stay available for review. Auto-copy remains separate and runs first when both options are on. Thanks to @KamiyaMinoru for the suggestion!

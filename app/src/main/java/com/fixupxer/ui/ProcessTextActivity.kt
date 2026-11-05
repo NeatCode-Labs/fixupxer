@@ -83,6 +83,7 @@ class ProcessTextActivity : AppCompatActivity() {
                                     .setAction(Intent.ACTION_SEND)
                                     .setType("text/plain")
                                     .putExtra(Intent.EXTRA_TEXT, state.originalText)
+                                    .putExtra(com.fixupxer.ui.helpers.UrlActionHelper.EXTRA_SKIP_AUTO_SHARE, true)
                             )
                             setResult(RESULT_CANCELED)
                             finish()

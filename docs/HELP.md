@@ -42,7 +42,7 @@ To copy shared links automatically, enable **Auto-copy shared links** under
 **Settings > Link processing**. It is off by default and applies only when you
 send a link from another app to FixupXer; it does not change Paste or Browser
 mode. After successful processing, FixupXer copies the final URL and keeps the
-Share screen open. If you change the frontend or remove flagged query parameters
+Share screen open unless **Open share menu** is enabled. If you change the frontend or remove flagged query parameters
 in Private Link Guard, a changed final result can be copied too. If Link Guard
 still reports sensitive data or processing is incomplete, automatic copying is
 skipped and **Copy** remains available. Enabling this option writes the URL to
@@ -50,6 +50,20 @@ Android's clipboard.
 
 Local settings backups include this preference. Importing a backup made before
 the option existed restores Auto-copy as off.
+
+To open Android's native sharesheet automatically after processing a shared link,
+go to **Settings > Link processing > After receiving a shared link** and choose
+**Open share menu**. **Show result** is the default. This applies to ordinary
+links sent from another app through Android's Share action, not Paste, Browser
+mode, or the **Clean link** text-selection preview. After safe, complete
+processing, FixupXer places the final URL in Android's sharesheet; you choose
+the receiving app. When Auto-copy is also enabled, FixupXer copies the final URL
+first. Link Guard findings or incomplete processing keep the result available
+for review and disarm automatic sharing for that request; use **Share** manually
+after deciding what to pass on.
+
+Local settings backups include this action too. Backups without it restore
+**Show result**.
 
 You can also select a link in another app and choose **Clean link** from Android's text-selection menu. FixupXer processes it on the device. If you hand the result to a browser, native app, or sharing app, that recipient receives the URL and handles any network access.
 

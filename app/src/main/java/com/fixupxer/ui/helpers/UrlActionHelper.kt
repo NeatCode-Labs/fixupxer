@@ -39,39 +39,54 @@ import timber.log.Timber
  */
 object UrlActionHelper {
 
-    fun copyToClipboard(anchor: View, activity: Context, url: String): Boolean {
+    // Also protects API 21-23, whose chooser cannot exclude our own share target.
+    const val EXTRA_SKIP_AUTO_SHARE = "com.fixupxer.extra.SKIP_AUTO_SHARE"
+
+    fun copyToClipboard(anchor: View, activity: Context, url: String, showFeedback: Boolean = true): Boolean {
         if (url.isEmpty()) {
-            SnackbarHelper.showShort(anchor, activity.getString(R.string.no_url_to_copy))
+            if (showFeedback) SnackbarHelper.showShort(anchor, activity.getString(R.string.no_url_to_copy))
             return false
         }
         return try {
             UrlClipboard.copy(activity, url)
-            if (UrlClipboard.needsAppFeedback) {
+            if (showFeedback && UrlClipboard.needsAppFeedback) {
                 SnackbarHelper.showShort(anchor, activity.getString(R.string.url_copied))
             }
             true
         } catch (e: Exception) {
             Timber.e(e, "Error copying to clipboard")
-            SnackbarHelper.showShort(anchor, activity.getString(R.string.error_copying_url))
+            if (showFeedback) SnackbarHelper.showShort(anchor, activity.getString(R.string.error_copying_url))
             false
         }
     }
 
-    fun shareUrl(anchor: View, activity: Activity, url: String) {
+    fun shareUrl(anchor: View, activity: Activity, url: String, showError: Boolean = true): Boolean {
         if (url.isEmpty()) {
-            SnackbarHelper.showShort(anchor, activity.getString(R.string.no_url_to_share))
-            return
+            if (showError) SnackbarHelper.showShort(anchor, activity.getString(R.string.no_url_to_share))
+            return false
         }
-        try {
-            val shareIntent = Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_TEXT, url)
-                type = "text/plain"
-            }
-            activity.startActivity(Intent.createChooser(shareIntent, activity.getString(R.string.share_via)))
+        return try {
+            activity.startActivity(createShareChooser(activity, url))
+            true
         } catch (e: Exception) {
             Timber.e(e, "Error sharing URL")
-            SnackbarHelper.showShort(anchor, activity.getString(R.string.error_sharing_url))
+            if (showError) SnackbarHelper.showShort(anchor, activity.getString(R.string.error_sharing_url))
+            false
+        }
+    }
+
+    internal fun createShareChooser(activity: Activity, url: String): Intent {
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            putExtra(Intent.EXTRA_TEXT, url)
+            putExtra(EXTRA_SKIP_AUTO_SHARE, true)
+            type = "text/plain"
+        }
+        return Intent.createChooser(shareIntent, activity.getString(R.string.share_via)).apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, arrayOf(
+                    ComponentName(activity.packageName, com.fixupxer.ui.ShareActivity::class.java.name),
+                ))
+            }
         }
     }
 

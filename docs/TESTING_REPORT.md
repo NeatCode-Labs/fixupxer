@@ -1,5 +1,51 @@
 # FixupXer Testing Report
 
+## v2.11.0 / 62 — Share after-clean action — November 5, 2026
+
+Ordinary Android Share can now open the native sharesheet automatically with
+the final processed URL. **Show result** remains the default. **Open share menu**
+is opt-in and independent of Browser mode, Process Text preview and Auto-copy.
+Link Guard findings, incomplete processing and dispatch failures retain the
+result for manual review. A consumed request cannot reopen the chooser; when
+both options are enabled, Auto-copy runs before the chooser opens.
+
+### Source verification
+
+- Full unit gates: **875 debug + 875 release**, zero failures/errors/skips.
+- Release lint: **0 errors / 43 warnings** (same warning count as v2.10.0).
+- Full cold API35 instrumentation: **303/303**, zero failures/errors/skips.
+- New ShareAutoShareTest: **6/6 on API35 emulator and 6/6 on Samsung S23 Ultra,
+  Android 17 / API37**. Tests cover ClipData, new requests, no result inflation,
+  conversion, Auto-copy, default-off/internal preview, Link Guard/recreation and
+  malformed/multiple input. Unit tests also cover stale/cancelled requests,
+  failed dispatch, manual edits, backup compatibility and API21/23 chooser fallback.
+- Actual native sharesheet checks passed on emulator and phone: cleaned URL
+  delivered to a disposable offline receiver, already-clean URL, cancellation,
+  Link Guard review, invalid input, and final clipboard content when Auto-copy
+  is enabled. Cold-start video samples show the source app followed by the
+  native sharesheet, without a FixupXer result/splash flash. Samsung's own
+  clipboard confirmation remains visible when Auto-copy is on.
+- The initial harness incorrectly recreated an already handed-off one-shot
+  Activity and read the clipboard before input focus. Corrected tests inspect
+  the view at dispatch and read clipboard from a focused window. Android logs
+  confirm the denied operation was a clipboard read; real receiver checks pass.
+- A supplemental older Espresso subset on API37 encountered its unsupported
+  InputManager.getInstance reflection and was stopped. Its other failures
+  exposed a test setup that inherited Open share menu; ShareAutoCopyTest now
+  explicitly selects Show result. This is not a claimed API37 full-suite pass.
+  The mandatory full suite is the passing API35 run above.
+- F-Droid icon visually checked and byte-matches the root icon. Store/help/privacy
+  copy and backup documentation updated. Incremental Leon review is recorded in
+  THIRD_PARTY_PROVENANCE.md; no URL-cleaning rules or permissions changed.
+
+### Final artifacts and distribution
+
+Signed-artifact builds, independent Linux/F-Droid reproduction, final signed
+installation acceptance and distribution are pending. No publication is claimed
+by the source-test results above.
+
+---
+
 ## v2.10.0 / 61 — Auto-copy shared links — November 4, 2026
 
 Optional Share-only auto-copy is off by default. It copies the final action URL

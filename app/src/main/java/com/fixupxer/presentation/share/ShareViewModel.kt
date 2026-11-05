@@ -72,6 +72,7 @@ class ShareViewModel @Inject constructor(
     private var resultRevision = 0L
     private var autoCopyEnabled = false
     private var lastAttemptedCopyUrl: String? = null
+    private var autoShareArmed = false
     
     init {
         loadPreferences()
@@ -168,6 +169,7 @@ class ShareViewModel @Inject constructor(
         sharedText: String,
         autoCopy: Boolean = false,
         newRequest: Boolean = false,
+        autoShare: Boolean = false,
     ) {
         // A recreated Activity redelivers the old intent; onNewIntent is a new
         // request even when its text happens to match the previous share.
@@ -178,6 +180,7 @@ class ShareViewModel @Inject constructor(
 
         invalidateRequest()
         autoCopyEnabled = autoCopy
+        autoShareArmed = autoShare
         _uiState.update {
             clearPlatformFlags(it).copy(
                 sharedText = sharedText,
@@ -189,6 +192,9 @@ class ShareViewModel @Inject constructor(
                 error = null,
                 pendingAutoCopy = null,
                 autoCopyBlocked = false,
+                pendingAutoShare = null,
+                showResultScreen = !autoShare,
+                autoShareNotice = null,
             )
         }
         startProcessing(sharedText, previousUrl = null)
@@ -201,12 +207,13 @@ class ShareViewModel @Inject constructor(
         isProcessing = false
         pendingReprocess = false
         lastAttemptedCopyUrl = null
+        autoShareArmed = false
     }
 
     private fun startProcessing(sharedText: String, previousUrl: String?) {
         val generation = requestGeneration
         isProcessing = true
-        _uiState.update { it.copy(isLoading = true, pendingAutoCopy = null, autoCopyBlocked = false) }
+        _uiState.update { it.copy(isLoading = true, pendingAutoCopy = null, autoCopyBlocked = false, pendingAutoShare = null) }
         processingJob = viewModelScope.launch {
             try {
                 val validation = InputValidator.validate(sharedText)
@@ -273,6 +280,7 @@ class ShareViewModel @Inject constructor(
 
     private fun showProcessingError(generation: Long, message: Int) {
         if (generation != requestGeneration) return
+        autoShareArmed = false
         _uiState.update {
             clearPlatformFlags(it).copy(
                 processedUrl = "",
@@ -283,6 +291,9 @@ class ShareViewModel @Inject constructor(
                 error = getApplication<Application>().getString(message),
                 pendingAutoCopy = null,
                 autoCopyBlocked = false,
+                pendingAutoShare = null,
+                showResultScreen = true,
+                autoShareNotice = null,
             )
         }
     }
@@ -302,8 +313,33 @@ class ShareViewModel @Inject constructor(
     }
 
     fun onManualCopy() {
+        onManualInteraction()
         lastAttemptedCopyUrl = _uiState.value.actionUrl
         _uiState.update { it.copy(pendingAutoCopy = null) }
+    }
+
+    /** Consume before launching the chooser, on the UI thread without suspension. */
+    fun consumeAutoShare(share: ShareAutoShare): String? {
+        val state = _uiState.value
+        if (!autoShareArmed || state.pendingAutoShare != share || share.generation != requestGeneration ||
+            state.isLoading || state.error != null || state.processingStatus != PipelineStatus.COMPLETE ||
+            state.leakFindings.isNotEmpty() || state.actionUrl != share.url
+        ) return null
+        autoShareArmed = false
+        _uiState.update { it.copy(pendingAutoShare = null) }
+        return share.url
+    }
+
+    fun onAutoShareFailed() {
+        autoShareArmed = false
+        _uiState.update {
+            it.copy(pendingAutoShare = null, showResultScreen = true, autoShareNotice = R.string.error_sharing_url)
+        }
+    }
+
+    fun onManualInteraction() {
+        autoShareArmed = false
+        _uiState.update { it.copy(pendingAutoShare = null, showResultScreen = true, autoShareNotice = null) }
     }
 
     fun onInstagramConversionToggled(enabled: Boolean) {
@@ -426,6 +462,7 @@ class ShareViewModel @Inject constructor(
     }
     
     private fun requestReprocess() {
+        onManualInteraction()
         val state = _uiState.value
         if (state.sharedText.isEmpty()) return
         _uiState.update { it.copy(isLoading = true, pendingAutoCopy = null, autoCopyBlocked = false) }
@@ -447,6 +484,9 @@ class ShareViewModel @Inject constructor(
                 sharedText = "",
                 pendingAutoCopy = null,
                 autoCopyBlocked = false,
+                pendingAutoShare = null,
+                showResultScreen = true,
+                autoShareNotice = null,
                 processedUrl = "",
                 actionUrl = "",
                 resultStatus = null,
@@ -464,6 +504,9 @@ class ShareViewModel @Inject constructor(
                 sharedText = "",
                 pendingAutoCopy = null,
                 autoCopyBlocked = false,
+                pendingAutoShare = null,
+                showResultScreen = true,
+                autoShareNotice = null,
                 processedUrl = "",
                 actionUrl = "",
                 resultStatus = null,
@@ -482,6 +525,13 @@ class ShareViewModel @Inject constructor(
         val processedUrl = result.url
         Timber.d("ShareViewModel processed URL (inputLength=${inputUrl.length}, outputLength=${processedUrl.length})")
         val status = resolveResultStatus(inputUrl, processedUrl)
+        val safe = result.status == PipelineStatus.COMPLETE && result.leakFindings.isEmpty() && processedUrl.isNotEmpty()
+        val shareBlocked = autoShareArmed && !isLoading && !safe
+        val pendingShare = if (autoShareArmed && !isLoading && safe) {
+            ShareAutoShare(requestGeneration, ++resultRevision, processedUrl)
+        } else null
+        // Once review is needed, editing the result must never launch a chooser unexpectedly.
+        if (shareBlocked) autoShareArmed = false
         val pendingCopy = if (!isLoading && autoCopyEnabled && result.status == PipelineStatus.COMPLETE &&
             result.leakFindings.isEmpty() &&
             processedUrl.isNotEmpty() && processedUrl != lastAttemptedCopyUrl
@@ -497,6 +547,12 @@ class ShareViewModel @Inject constructor(
                 autoCopyBlocked = !isLoading && autoCopyEnabled &&
                     (result.leakFindings.isNotEmpty() || result.status != PipelineStatus.COMPLETE),
                 processingStatus = result.status,
+                pendingAutoShare = pendingShare,
+                showResultScreen = it.showResultScreen || shareBlocked,
+                autoShareNotice = if (shareBlocked) {
+                    if (result.leakFindings.isNotEmpty()) R.string.share_after_clean_blocked
+                    else R.string.share_after_clean_incomplete
+                } else it.autoShareNotice,
                 error = null
             )
         }
@@ -512,6 +568,7 @@ class ShareViewModel @Inject constructor(
 
         val strippedUrl = removeRawQueryParameters(state.actionUrl, parameterNames)
         if (strippedUrl == state.actionUrl) return
+        onManualInteraction()
 
         val inputUrl = UrlProcessor.findFirstValidUrl(state.sharedText) ?: strippedUrl
         applyProcessResult(
@@ -582,9 +639,14 @@ data class ShareUiState(
     val pendingAutoCopy: ShareAutoCopy? = null,
     val autoCopyBlocked: Boolean = false,
     val processingStatus: PipelineStatus? = null,
+    val pendingAutoShare: ShareAutoShare? = null,
+    val showResultScreen: Boolean = true,
+    val autoShareNotice: Int? = null,
 )
 
 data class ShareAutoCopy(val generation: Long, val revision: Long, val url: String)
+
+data class ShareAutoShare(val generation: Long, val revision: Long, val url: String)
 
 private data class SharePlatformDetection(
     val isInstagramUrl: Boolean,

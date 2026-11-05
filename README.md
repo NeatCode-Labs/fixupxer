@@ -7,7 +7,7 @@
 <h3 align="center">Cleaner links. X readers without an account. Better previews in your chats.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.10.0"><img src="https://img.shields.io/badge/version-2.10.0-blue?style=flat-square" alt="Version 2.10.0"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.11.0"><img src="https://img.shields.io/badge/version-2.11.0-blue?style=flat-square" alt="Version 2.11.0"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>
@@ -56,9 +56,17 @@ website, which has its own network access and privacy policy.
   links** under **Settings > Link processing**; it is off by default and only
   applies when you share a link from another app to FixupXer. It copies the
   final URL after successful processing, and again when frontend or Link Guard
-  changes produce a different final result, while leaving Share open. Remaining
+  changes produce a different final result. Share stays open unless **Open share menu** is enabled. Remaining
   Link Guard findings or incomplete
   processing suppress automatic copying; manual Copy remains available.
+- **Choose what happens after a shared link is processed.** Under **Settings >
+  Link processing > After receiving a shared link**, choose **Show result**
+  (default) or **Open share menu**. The latter opens Android's native sharesheet
+  with the final processed URL after safe, complete processing; you choose its
+  recipient. Link Guard findings or incomplete processing keep the result for
+  review. This setting applies to links received through Share, independently
+  of Browser mode and Process Text. Auto-copy stays separate; when both options
+  are enabled, the URL is copied before the sharesheet opens.
 - **Notice an email address or sign-in token before passing it on.** Private
   Link Guard flags certain sensitive values still present in a URL. Review
   them, remove a parameter, or go back. It runs offline, but cannot detect
@@ -244,8 +252,9 @@ are migrated and all newly supported conversions start off. Import replaces the
 entire Browser map, so existing v2 embed/custom choices cannot remain enabled
 accidentally. Invalid files are rejected before settings change. Interrupted
 restores retain a recovery journal and block Browser handoff until recovery succeeds.
-The Auto-copy shared links preference is included; backups without it restore the
-option as off.
+The Auto-copy shared links and After receiving a shared link preferences are
+included. Backups without them restore Auto-copy as off and the Share action as
+Show result.
 
 See the [History and backup Help](docs/HELP.md#history-and-backup) for migration and recovery details.
 
@@ -263,6 +272,10 @@ See the [History and backup Help](docs/HELP.md#history-and-backup) for migration
 - **Explicit handoff** — FixupXer processes URLs offline; a browser, native app,
   share target, or privacy reader receives the result only after your selected
   action or Android Browser Mode routing.
+- **Optional Share handoff** — **Open share menu** displays Android's native
+  sharesheet with the final URL after safe, complete processing of a link shared
+  to FixupXer. You choose the receiving app. Link Guard findings and incomplete
+  processing require review; Browser mode is unaffected.
 - **Opt-in clipboard write** — Auto-copy is off by default and only writes a
   shared link to Android's clipboard when enabled. Remaining Link Guard findings and
   incomplete processing block the automatic write.

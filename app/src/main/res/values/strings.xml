@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="share_after_clean_blocked">Automatic sharing paused: Link Guard found potentially sensitive data. Review the link, then tap Share when ready.</string>
+    <string name="share_after_clean_incomplete">Automatic sharing paused: processing could not finish. Review the link before sharing.</string>
     <string name="auto_copy_shared_links">Auto-copy shared links</string>
     <string name="auto_copy_shared_links_description">Automatically copy the final link when sharing to FixupXer, including after changing a frontend. Links flagged by Link Guard require manual copying.</string>
     <string name="auto_copy_shared_links_blocked">Auto-copy paused: Link Guard found potentially sensitive data. Review the link, then tap Copy if you want to copy it.</string>
     <string name="auto_copy_shared_links_incomplete">Auto-copy paused: processing could not finish. Review the link, then tap Copy if you want to copy it.</string>
+    <string name="share_after_clean_action">After receiving a shared link</string>
+    <string name="share_after_clean_show_result">Show result</string>
+    <string name="share_after_clean_open_menu">Open share menu</string>
+    <string name="share_after_clean_description">Choose whether to keep the processed link on screen or open Android’s share menu with it.</string>
     <!-- App and Title info -->
     <string name="app_name">FixupXer - URL Enhancer</string>
     <string name="app_title">FixupXer - URL Enhancer</string>

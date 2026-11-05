@@ -29,6 +29,7 @@ import com.fixupxer.BuildConfig
 import com.fixupxer.PreferencesManager
 import com.fixupxer.ui.helpers.HelpLinkHelper
 import com.fixupxer.utils.HelpTopic
+import com.fixupxer.utils.ShareAfterCleanAction
 import com.fixupxer.R
 import com.fixupxer.backup.LocalBackupManager
 import com.fixupxer.databinding.ActivitySettingsBinding
@@ -163,6 +164,18 @@ class SettingsActivity : BaseActivity() {
             Timber.d("Dominant hand changed to: $hand")
         }
 
+        binding.shareAfterCleanActionToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked || restoringViewState) return@addOnButtonCheckedListener
+            val action = when (checkedId) {
+                R.id.buttonShareAfterCleanOpenMenu -> ShareAfterCleanAction.SHARE
+                else -> ShareAfterCleanAction.SHOW_RESULT
+            }
+            if (action == preferencesManager.getShareAfterCleanAction()) {
+                return@addOnButtonCheckedListener
+            }
+            preferencesManager.setShareAfterCleanAction(action)
+        }
+
         HelpLinkHelper.bind(binding.linkCleaningHelp.root, this, R.string.help_link_cleaning, HelpTopic.LINK_CLEANING)
         HelpLinkHelper.bind(binding.historyBackupHelp.root, this, R.string.help_history_backup, HelpTopic.HISTORY_AND_BACKUP)
         HelpLinkHelper.bind(binding.appSettingsHelp.root, this, R.string.help_app_settings, HelpTopic.APP_SETTINGS)
@@ -202,6 +215,12 @@ class SettingsActivity : BaseActivity() {
                 R.id.buttonHandLeft
             } else {
                 R.id.buttonHandRight
+            }
+        )
+        binding.shareAfterCleanActionToggleGroup.check(
+            when (preferencesManager.getShareAfterCleanAction()) {
+                ShareAfterCleanAction.SHOW_RESULT -> R.id.buttonShareAfterCleanShowResult
+                ShareAfterCleanAction.SHARE -> R.id.buttonShareAfterCleanOpenMenu
             }
         )
 

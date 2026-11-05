@@ -1,10 +1,10 @@
 # FixupXer Privacy Policy
 
 ## Overview
-FixupXer is a URL processing app that helps users clean tracking parameters from URLs and convert social media links for better embedding. This privacy policy explains how we handle user data.
+FixupXer is a URL processing app that helps users clean tracking parameters from URLs and convert social media links for better embedding. This policy explains local storage and the choices that can pass a URL to an Android system service or external recipient.
 
 ## Data Collection and Usage
-FixupXer does not collect, store, or share any personal user data. The app operates entirely on the user's device and processes URLs locally.
+FixupXer does not collect, upload, or synchronize personal user data. URLs are processed locally. Optional local features store selected data on the device, and a URL is passed to an Android system service or external recipient only through a user-selected action or the opted-in **Open share menu** setting described below.
 
 ### What We Don't Collect
 - No personal information
@@ -16,7 +16,7 @@ FixupXer does not collect, store, or share any personal user data. The app opera
 
 ### Local Storage
 The app only stores the following data locally on your device:
-- Preferences: whether to clean tracking parameters, social-link conversion choices, selected built-in or custom embed proxies, the optional Auto-copy shared links setting (off by default), Browser-mode settings (enabled state, post-clean action mode and priority order, X/Bluesky/Reddit/Pinterest Reader choices), remembered after-clean destinations (host → app choice only), app layout, and history settings (enabled state, maximum entries)
+- Preferences: whether to clean tracking parameters, social-link conversion choices, selected built-in or custom embed proxies, the optional Auto-copy shared links setting (off by default), the Share after-clean action (Show result by default, or opt-in Open share menu), Browser-mode settings (enabled state, post-clean action mode and priority order, X/Bluesky/Reddit/Pinterest Reader choices), remembered after-clean destinations (host → app choice only), app layout, and history settings (enabled state, maximum entries)
 - Conversion history (optional, on by default, can be disabled or cleared at any time): the original URL, the cleaned URL, a timestamp, and the kind of change made — stored in a local database on your device only. If the Private Link Guard detects sensitive data (such as tokens, e-mail addresses, or precise coordinates) in the link you enter, the original URL is never saved: when cleaning removes all sensitive data, history keeps only the safe final URL marked as "Input redacted for privacy"; when sensitive data remains in the result, nothing is saved at all
 - Custom URL rules (optional): names, domains, patterns, replacements, templates, test URLs, ordering, and local rollback snapshots. Rules are stored in the local Room database and are not included in automatic cloud backup.
 
@@ -40,9 +40,18 @@ after-clean configuration. Any network request happens in that external
 recipient, whose privacy policy then applies. Copying a URL places it in the
 Android clipboard.
 
+For links received through Android's ordinary Share action, **After receiving a
+shared link** defaults to **Show result**. If you opt in to **Open share menu**,
+FixupXer opens Android's native sharesheet with the final URL after safe,
+complete processing, and you choose the receiving app. Link Guard findings or
+incomplete processing remain available for review instead of being shared
+automatically. This setting is separate from Browser mode and Process Text
+preview. The system sharesheet and any app you select handle the URL according
+to their own behavior and privacy policies.
+
 **Auto-copy shared links** is optional and off by default. When enabled, it
 copies the final successfully processed URL only for links shared from another
-app to FixupXer; the Share screen remains open. It does not affect Paste, Main,
+app to FixupXer; the Share screen remains open unless **Open share menu** is enabled. It does not affect Paste, Main,
 Process Text, or Browser mode. Automatic copying is skipped while Private Link
 Guard still reports sensitive data or processing is incomplete. As with a
 manual Copy action, enabling Auto-copy writes the URL to Android's clipboard.
@@ -71,7 +80,7 @@ FixupXer does not connect to third-party services itself. It uses standard Andro
 FixupXer is not intended for children under 13 years of age. The app is designed for users 13 and older.
 
 ## Data Security
-Since FixupXer does not collect or transmit any user data, there are no security concerns regarding data storage or transmission.
+FixupXer has no app-managed remote collection or synchronization. Optional local history and manual backups can contain the data described above. Android's system sharesheet or another recipient receives a URL only through an action you select or the opted-in Share after-clean setting; that recipient's own handling and privacy policy then apply. Keep your device and any exported backup secure.
 
 ## Changes to This Policy
 We may update this privacy policy from time to time. Any changes will be reflected in the app's listing on the Google Play Store.

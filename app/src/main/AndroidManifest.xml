@@ -78,7 +78,7 @@
         <!-- Activity to handle shared URLs -->
         <activity
             android:name=".ui.ShareActivity"
-            android:theme="@style/Theme.FixupXer"
+            android:theme="@style/Theme.FixupXer.Share"
             android:label="@string/share_activity_name"
             android:parentActivityName=".MainActivity"
             android:noHistory="true"

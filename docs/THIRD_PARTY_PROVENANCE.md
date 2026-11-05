@@ -23,6 +23,15 @@ Léon.
 
 ## Source registry
 
+### Share menu release: 2026-11-05
+
+Compared the previously reviewed `ee8df9b6b7f9d0e086b78c6cda1440e4cb605b65`
+through `3ae7c32befeee94956a90efffbbef7e1f755134a`. The single new commit changes
+UI, settings, routing, translations and screenshots; its changed-file inventory
+contains no sanitizer or sanitizer-registration changes. No upstream source or
+behavior was imported. Earlier sanitizer decisions remain unchanged.
+[Pinned comparison](https://github.com/leon-cleaning-services/leon/compare/ee8df9b6b7f9d0e086b78c6cda1440e4cb605b65...3ae7c32befeee94956a90efffbbef7e1f755134a).
+
 ### Share auto-copy release: 2026-11-04
 
 Reviewed the 57 commits after `df684f1d3539ba5e8da7b429caba88f2f169892e`

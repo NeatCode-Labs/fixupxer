@@ -80,7 +80,19 @@ production data was preserved; the original clipboard was restored and all
 temporary phone packages were removed. No lower-API device run is claimed;
 API21/23 chooser fallback is covered by Robolectric.
 
-GitHub publication, Google Play submission and F-Droid ingestion remain pending.
+GitHub v2.11.0 was published on November 5, 2026 at 16:40 UTC.
+The published asset digest matches the verified signed APK; the remote annotated
+tag resolves to the tested mirror source commit above.
+
+Google Play Production v2.11.0 / 62 and the updated en-US full description were
+submitted on November 5, 2026 (confirmed at 16:45 UTC), with a 100% rollout across
+the existing countries. Console shows **Changes in review** with automated quick
+checks still running. Managed publishing remains off, so approved changes publish
+automatically. Play availability is not yet confirmed. F-Droid ingestion and
+catalogue publication are also pending external processing.
+
+Issue #13 was thanked and closed as completed:
+https://github.com/NeatCode-Labs/fixupxer/issues/13#issuecomment-6663702830
 
 ---
 

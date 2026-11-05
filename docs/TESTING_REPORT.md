@@ -40,9 +40,47 @@ both options are enabled, Auto-copy runs before the chooser opens.
 
 ### Final artifacts and distribution
 
-Signed-artifact builds, independent Linux/F-Droid reproduction, final signed
-installation acceptance and distribution are pending. No publication is claimed
-by the source-test results above.
+Root AAB source: `548bfb6db20ee0838a05a2fd9d659656c8bc4aa3`. Mirror annotated
+tag `v2.11.0` points to `fbbf661674d77fbe01773021ee6d28c59eb8295a`.
+The GitHub APK was built from that local tag in a fresh Windows clone.
+All artifacts pass signature, package/version, minSdk21/targetSdk36 and zero-permission
+verification. Play ownership is present only in Play artifacts; the mirror APK
+excludes ownership and dependency metadata.
+
+The first candidate failed reproducibility only in baseline.prof. Optional ART
+profile generation was disabled using the documented F-Droid workaround; the
+final artifacts contain no baseline profiles. Unit/lint and the full cold
+instrumentation gate were checked again after this build-only repair.
+
+| Artifact | SHA-256 |
+|---|---|
+| Google Play AAB | `8309928a8cefed34c07e864ba01f830b9e3fb5c1c16e4d70b117ed2ba4a08453` |
+| GitHub APK | `04b17f633622c2949b87f604f672df11432bddf2c00ace4db29975d7c7b9b19f` |
+| AAB-derived universal APK | `888f00a28047f821bf4227acd6366349aa009b4c07b33507667fe291a13f0064` |
+
+Independent Linux/F-Droid rebuild: **PASS**. The current upstream recipe
+at fdroiddata revision `5a798000250a196176fde3df7a78e8a843aded4b` was
+applied with its prebuild, srclib and postbuild steps. F-Droid verification
+and apksigcopier comparison passed; the Linux APK with the copied signature
+is byte-identical to the signed GitHub APK.
+
+Final signed-artifact acceptance: **4/4 channel/install combinations, 266 passed assertions**,
+API35. Clean installs and same-channel upgrades from v2.10.0 were tested
+for the mirror APK and AAB-derived universal APK. Installed bytes match
+the recorded hashes. Upgrades preserve Light theme and left-handed layout;
+the new option defaults to Show result. Actual native chooser/receiver checks
+cover cleaned, already-clean and converted URLs, self-exclusion, cancellation,
+Link Guard, malformed/multiple input, Auto-copy plus sharing, and switching
+back to Show result.
+The native chooser also survived rotation and cancelled without replay.
+
+The new code was tested on the physical phone in a separate debug installation because
+its production Play app uses a different Google signing certificate. Its
+production data was preserved; the original clipboard was restored and all
+temporary phone packages were removed. No lower-API device run is claimed;
+API21/23 chooser fallback is covered by Robolectric.
+
+GitHub publication, Google Play submission and F-Droid ingestion remain pending.
 
 ---
 

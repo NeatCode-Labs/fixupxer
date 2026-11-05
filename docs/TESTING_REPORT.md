@@ -53,7 +53,19 @@ Actual chooser/receiver checks cover cleaned, unchanged and converted links,
 cancellation, Link Guard and invalid input, Auto-copy ordering, switching back
 to Show result, and rotation without replay. No phone run is claimed.
 
-GitHub publication, Play submission and F-Droid ingestion are pending for v2.11.1.
+Distribution status recorded November 5, 2026:
+
+- [GitHub v2.11.1](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.11.1) published at 2026-11-05T21:10:59Z.
+  The public APK digest matches the verified artifact above; the public tag
+  still points to the tested mirror source commit.
+- Google Play Production **100% rollout**, existing 178 countries: submission
+  accepted, Console status **Changes in review** at 2026-11-05T21:16:44.328Z.
+  Google's automated quick checks were still running before review proceeds.
+  The only submitted changes are v2.11.1 and the en-US full description.
+  Managed publishing remains off; approval triggers automatic publication.
+  **Availability of v2.11.1 on Google Play is not yet confirmed.**
+- F-Droid tag/release input is published and the independent local rebuild
+  passed. F-Droid's later catalogue ingestion and publication remain pending.
 
 ---
 

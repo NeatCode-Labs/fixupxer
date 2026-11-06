@@ -64,9 +64,7 @@ website, which has its own network access and privacy policy.
   (default) or **Skip result screen & share**. The latter skips FixupXer's
   result screen and goes straight to Android's share menu with the final
   processed URL; you choose the receiving app. Link Guard findings, incomplete
-  processing or errors keep the result available for review. The choices are
-  stacked vertically and wrap at larger font sizes. This label/layout update
-  does not change processing or the saved preference. This setting applies to
+  processing or errors keep the result available for review. This setting applies to
   links received through Share, independently of Browser mode and Process Text.
   Auto-copy stays separate; when both options
   are enabled, the URL is copied before the sharesheet opens.
@@ -107,11 +105,28 @@ values shown in the cleaning examples are demonstration data.
 
 ## Quick start
 
+Choose the result you want. Each example in **[Choose your workflow](docs/HELP.md#choose-your-workflow)**
+includes the settings, a sample URL, the expected result, and what to check if it
+behaves differently. Browser mode is optional for Paste, Share and Clean link.
+
+| Your goal | Step-by-step example |
+|---|---|
+| Inspect a link before sending it | [Review before sharing](docs/HELP.md#workflow-review) |
+| Copy the processed link automatically | [Auto-copy with the result visible](docs/HELP.md#workflow-auto-copy) |
+| Skip FixupXer's result screen and choose a receiving app | [Skip result screen & share](docs/HELP.md#workflow-auto-share) |
+| Replace a selected URL inside a message | [Clean selected text](docs/HELP.md#workflow-clean-selected-text) |
+| Clean links before opening your usual browser | [Browser setup](docs/HELP.md#workflow-browser-clean) |
+| Use a reader for opening and an embed for sharing | [Separate frontend choices](docs/HELP.md#workflow-reader-and-embed) |
+| Clean first, then try the installed native app | [Native app with a browser fallback](docs/HELP.md#workflow-native-app) |
+| Apply a cleanup rule only in the Share context | [A scoped custom rule](docs/HELP.md#workflow-share-rule) |
+
 ### Share a link
 
 1. Use **Share** on a link in any app.
 2. Choose **FixupXer**.
-3. Copy, share, or open the cleaned result.
+3. With the default **Show result** setting, review the result, then copy, share,
+   or open it. For fewer steps, follow [Auto-copy](docs/HELP.md#workflow-auto-copy)
+   or [Skip result screen & share](docs/HELP.md#workflow-auto-share).
 
 ### Paste a link
 

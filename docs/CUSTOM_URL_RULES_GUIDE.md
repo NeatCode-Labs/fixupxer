@@ -2,6 +2,10 @@
 
 This guide has moved to [FixupXer Help](HELP.md#custom-rules).
 
+For a complete setup with matching and non-matching URLs, follow
+[Apply a custom rule only to shared links](HELP.md#workflow-share-rule).
+For other ways to use the app, start with [Choose your workflow](HELP.md#choose-your-workflow).
+
 The original section links below now lead to their corresponding Help sections.
 
 ## Quick navigation

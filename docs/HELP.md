@@ -11,6 +11,17 @@ From **v2.9.0**, open **Help** beside **What's new?** in the Main or Share menu,
 ## Contents
 
 - [Getting started](#getting-started)
+- [Choose your workflow](#choose-your-workflow)
+  - [Review a link before sharing](#workflow-review)
+  - [Copy a shared link automatically](#workflow-auto-copy)
+  - [Skip result screen & share](#workflow-auto-share)
+  - [Clean a link inside a draft message](#workflow-clean-selected-text)
+  - [Clean links before opening your browser](#workflow-browser-clean)
+  - [Use a reader for opening and an embed for sharing](#workflow-reader-and-embed)
+  - [Clean first, then open a native app — advanced](#workflow-native-app)
+  - [Apply a rule only to shared links — advanced](#workflow-share-rule)
+  - [Which frontend will an automatic share use?](#automatic-share-frontend)
+  - [Why did automatic sharing stop at a result?](#automatic-share-paused)
 - [Link cleaning and Private Link Guard](#link-cleaning)
 - [Alternative frontends](#alternative-frontends)
 - [Add custom proxies](#custom-proxies)
@@ -36,42 +47,385 @@ From **v2.9.0**, open **Help** beside **What's new?** in the Main or Share menu,
 
 ## Getting started
 
-To clean a link, use **Share** in the app that contains it and choose **FixupXer**, or open FixupXer, paste the link, and tap **Process URL**. Review the before-and-after result, then choose an available action such as **Copy**, **Share**, or **Open**.
+Choose how the link reaches FixupXer:
 
-To copy shared links automatically, enable **Auto-copy shared links** under
-**Settings > Link processing**. It is off by default and applies to the Share
-result screen, including the **Clean link** preview; it does not change Paste or Browser
-mode. After successful processing, FixupXer copies the final URL and keeps the
-Share screen open unless **Skip result screen & share** is enabled. If you change the frontend or remove flagged query parameters
-in Private Link Guard, a changed final result can be copied too. If Link Guard
-still reports sensitive data or processing is incomplete, automatic copying is
-skipped and **Copy** remains available. Enabling this option writes the URL to
-Android's clipboard.
+- **Paste:** open FixupXer, paste one URL and tap **Process URL**.
+- **Share:** use **Share** in another app and choose **FixupXer**.
+- **Clean link:** select one URL in a supported app's text-selection menu;
+  editable text can be replaced in place, while read-only text opens a preview.
+- **Browser mode:** configure Android to open eligible web links through FixupXer,
+  then hand the processed URL to another app or browser.
 
-Local settings backups include this preference. Importing a backup made before
-the option existed restores Auto-copy as off.
+For a first try, [review a link before sharing](#workflow-review). To copy or
+share with fewer steps, choose an [automatic Share workflow](#choose-your-workflow).
+Browser mode is optional for Paste, Share and Clean link.
 
-To skip FixupXer's result screen and go straight to Android's share menu with
-the cleaned link,
-go to **Settings > Link processing > After receiving a shared link** and choose
-**Skip result screen & share**. **Show result** is the default. Earlier builds
-label this option **Open share menu**; the behavior is unchanged. This applies to ordinary
-links sent from another app through Android's Share action, not Paste, Browser
-mode, or the **Clean link** text-selection preview. After safe, complete
-processing, FixupXer places the final URL in Android's sharesheet; you choose
-the receiving app. When Auto-copy is also enabled, FixupXer copies the final URL
-first. Link Guard findings, incomplete processing or errors keep the result
-available for review and disarm automatic sharing for that request; use **Share** manually
-after deciding what to pass on.
+Cleaning and conversion are separate. Built-in cleaning removes recognized
+tracking data. Optional conversion changes a supported social-media host to
+an embed or reader frontend. The [workflow examples below](#choose-your-workflow)
+show how to choose both processing and the action that follows it.
 
-Local settings backups include this action too. Backups without it restore
-**Show result**.
-
-You can also select a link in another app and choose **Clean link** from Android's text-selection menu. FixupXer processes it on the device. If you hand the result to a browser, native app, or sharing app, that recipient receives the URL and handles any network access.
-
-Cleaning and conversion are separate. Cleaning removes recognized tracking data while preserving other URL information. Conversion is optional and changes a supported social-media host to an embed or reader frontend.
+FixupXer processes the URL locally. When you hand a result to another app,
+that recipient receives the URL and handles any network access.
 
 [Back to contents](#contents)
+
+<a id="choose-your-workflow"></a>
+
+## Choose your workflow
+
+Choose the result you want, then follow the setup and check the example output.
+The first six workflows cover everyday use; the last two cover advanced setups.
+
+| I want to… | Start here |
+|---|---|
+| Inspect a link before sending it | [1. Review the result](#workflow-review) |
+| Paste a processed link elsewhere | [2. Copy automatically](#workflow-auto-copy) |
+| Share a processed link without reviewing the result screen | [3. Skip result screen & share](#workflow-auto-share) |
+| Replace a URL in a draft message | [4. Clean selected text](#workflow-clean-selected-text) |
+| Clean links on the way to my browser | [5. Open in my usual browser](#workflow-browser-clean) |
+| Read X posts in a reader but share embed links | [6. Use different frontends for opening and sharing](#workflow-reader-and-embed) |
+| Clean first, then try the installed native app | [7. Native app with a browser fallback](#workflow-native-app) |
+| Remove an extra parameter only in the Share context | [8. A narrowly scoped custom rule](#workflow-share-rule) |
+
+You do not need Browser mode to paste a link,
+share a link to FixupXer, or use **Clean link** from a supported text-selection
+menu. Browser mode is for web links that Android opens through FixupXer.
+
+Three separate choices affect the outcome:
+
+| Choice | What it controls |
+|---|---|
+| How the link reaches FixupXer | Paste, Android Share, Clean link, or Browser mode |
+| How the URL is processed | Built-in cleaning, optional frontend conversion, and enabled custom rules |
+| What happens next | Review the result, copy it, choose a sharing app, or open it |
+
+Known tracking removal is always on. Frontend conversion changes the website
+host and can be turned off separately. **Show result** and **Skip result screen & share**
+choose what happens after an ordinary incoming Share; neither chooses a frontend.
+
+For ordinary Share, these two settings work together as follows:
+
+| After receiving a shared link | Auto-copy shared links | After successful processing |
+|---|---|---|
+| Show result | Off | Review the result; choose the next action manually |
+| Show result | On | Copy the final URL and keep the result visible |
+| Skip result screen & share | Off | Open Android's sharing menu with the final URL |
+| Skip result screen & share | On | Copy the final URL, then open Android's sharing menu |
+
+Link Guard findings, incomplete processing, or processing errors pause these automatic actions for
+review. Automatic sharing was introduced in v2.11.0 under the label **Open share
+menu**, renamed **Skip result screen & share** in v2.11.1. It does not control
+the separate Browser setting **After processing an opened link**.
+
+The examples below assume that no enabled custom rule changes the sample URLs,
+unless the example explicitly creates one. Example domains and post IDs are
+demonstration data, not working pages or service availability tests.
+
+[Back to workflow choices](#choose-your-workflow) · [Contents](#contents)
+
+<a id="workflow-review"></a>
+
+### 1. Review a link before sharing
+
+**Goal:** See what changed and decide whether to copy, share, or open the result.
+
+**Set it up once:** Under **Settings > Link processing**, leave **After receiving
+a shared link > Show result** selected and **Auto-copy shared links** off. These
+are the defaults for those two options. For supported social links, turn the
+platform conversion switch off on the Main or Share screen if you want to keep
+the original host. Built-in tracking removal still runs.
+
+**Use it:** Open FixupXer, paste one URL and tap **Process URL**. Alternatively,
+use **Share > FixupXer** in the app containing the link. Review the original and
+processed URL, then tap **Copy**, **Share**, or **Open**.
+
+```text
+Input:  https://shop.example.com/product/42?color=blue&utm_source=chat
+Result: https://shop.example.com/product/42?color=blue
+```
+
+**Check:** The product choice stays; the campaign tag is removed. A Link Guard
+warning asks you to review the remaining value. **No changes made** means that
+this processing did not change the URL, not that every identifier is harmless.
+
+[Back to workflow choices](#choose-your-workflow) · [Contents](#contents)
+
+<a id="workflow-auto-copy"></a>
+
+### 2. Copy a shared link automatically
+
+**Goal:** Put the processed URL on the clipboard so you can paste it elsewhere.
+
+**Set it up once:** Under **Settings > Link processing**, enable **Auto-copy
+shared links** and keep **After receiving a shared link > Show result**. Set
+platform conversion separately if you want an original-host or frontend URL.
+
+**Use it:** Share one link from another app to **FixupXer**. After successful
+processing, the final URL is copied and the result stays on screen. Return to
+your message or document and paste it.
+
+```text
+Shared:   https://example.com/read?article=42&utm_source=chat
+Clipboard: https://example.com/read?article=42
+```
+
+**Check:** You should not see a second sharing menu in this setup. Auto-copy
+does not watch your clipboard or process arbitrary copied text, and it does
+not change Paste or Browser mode. If you change the frontend or remove flagged
+query parameters on the Share result screen, a changed final result can be
+copied too. Link Guard findings or incomplete processing pause automatic copying; review the result
+before choosing **Copy** manually. Turn Auto-copy off to return to manual copy.
+
+[Back to workflow choices](#choose-your-workflow) · [Contents](#contents)
+
+<a id="workflow-auto-share"></a>
+
+### 3. Skip result screen & share
+
+**Goal:** Choose a receiving app immediately after FixupXer processes the link.
+
+**Set it up once:** Open **Settings > Link processing > After receiving a shared
+link** and select **Skip result screen & share**. This skips FixupXer's result
+screen and goes straight to Android's share menu with the final processed URL,
+including any enabled frontend conversion. Leave **Auto-copy shared links** off
+unless you also want the final URL on the clipboard.
+
+**Use it:** In the source app, tap **Share** and choose **FixupXer**. When processing
+completes without an error or a Link Guard finding, Android opens another sharing
+menu containing the final URL. Choose the receiving app and complete its normal
+send flow.
+
+```text
+Source app → Share → FixupXer → Android share menu → receiving app
+https://example.com/read?article=42&utm_source=chat
+→ https://example.com/read?article=42
+```
+
+**Check:** The normal path does not show the FixupXer result screen between the
+source app and the sharing menu. You still choose a destination; FixupXer does
+not select a contact or send a message for you. Cancelling does not reopen the
+sharing menu. Link Guard findings, incomplete processing, processing errors, or a failed handoff
+keep a result or error available for review. After reviewing or editing that
+result, tap **Share** manually.
+
+**Variant — use an embed for chat previews:** Before using the automatic flow,
+paste a sample X link on the Main screen. Enable its platform conversion switch
+and use **Change** to select `fixupx.com`. You can also select the frontend under
+**Settings > Link processing > Alternative frontends > X / Twitter**; selecting
+a frontend and enabling conversion are separate choices.
+
+```text
+https://x.com/alex/status/123?utm_source=chat
+→ https://fixupx.com/alex/status/123
+```
+
+An embed can help the receiving chat app show a preview; the app and independent
+service determine whether a preview actually appears. To keep the original X
+host instead, turn off X conversion. To restore the review screen, choose
+**Show result**. If Auto-copy is also on, copying happens before the sharing menu.
+
+[Back to workflow choices](#choose-your-workflow) · [Contents](#contents)
+
+<a id="workflow-clean-selected-text"></a>
+
+### 4. Clean a link inside the text you are editing
+
+**Goal:** Replace a selected URL in a draft message without a separate share flow.
+
+**Set it up once:** No Browser-mode setup is required. The source app must support
+Android's **Clean link** text-selection action.
+
+**Use it:** In an editable message or document, select a single URL and choose
+**Clean link** from the text-selection menu. When the host app accepts the
+replacement, the processed URL replaces the selected text.
+
+```text
+Selected: https://example.com/read?article=42&utm_source=chat
+Replaced: https://example.com/read?article=42
+```
+
+**Check:** Editable text and read-only text behave differently. A read-only
+selection opens a preview instead of replacing text. If inline processing
+cannot complete, FixupXer can also open that preview. **Skip result screen & share** does
+not automatically open the sharing menu for this preview. **Auto-copy shared links**
+can still copy a successfully processed URL from the preview if enabled. If **Clean link** is
+not offered by the source app, use ordinary Share or Paste instead.
+
+[Back to workflow choices](#choose-your-workflow) · [Contents](#contents)
+
+<a id="workflow-browser-clean"></a>
+
+### 5. Clean links before opening your usual browser
+
+**Goal:** Let FixupXer process eligible opened links, then continue in your browser.
+
+**Set it up once:**
+
+1. Open **Settings > Configure Browser mode** and enable **Enable Browser mode**.
+2. In Android **Settings > Apps > Default apps > Browser app**, choose **FixupXer**.
+   Android menu names vary by device.
+3. In FixupXer's **Configure Browser frontends**, choose **Clean only** for the
+   platforms whose original hosts you want to retain, then tap **Save**.
+4. Under **After processing an opened link**, choose **Try actions automatically**
+   and move **Open in browser** to the top of **Action order**.
+5. Under **Preferred browser > Choose browser**, select an installed external
+   browser and tap **Save**.
+
+**Use it:** Open an ordinary HTTP(S) link from an app that passes it to Android's
+default browser. FixupXer processes the URL and hands the result to your selected
+browser. It does not render the page itself.
+
+```text
+https://example.com/read?article=42&utm_source=chat
+→ FixupXer → your preferred browser
+https://example.com/read?article=42
+```
+
+**Check:** Android's default browser is **FixupXer**; FixupXer's **Preferred
+browser** is the external app that displays the page. Verified App Links,
+in-app browsers and explicit app choices can bypass this path. **Configuration
+status** helps check Browser setup but cannot prove that a source app will route
+a link through FixupXer. To stop using this route, choose your previous default
+browser in Android settings.
+
+[Back to workflow choices](#choose-your-workflow) · [Contents](#contents)
+
+<a id="workflow-reader-and-embed"></a>
+
+### 6. Use a reader for opening and an embed for sharing
+
+**Goal:** Read public X links in a reader while keeping a chat-oriented frontend
+for outgoing X links.
+
+**Set it up once:** Configure Browser mode as in example 5. Under **Configure
+Browser frontends > X / Twitter**, choose an enabled reader and tap **Save**.
+For illustration, selecting `xcancel.com` produces the reader URL below.
+Keep **Open in browser** first in the automatic Browser action order.
+
+For outgoing links, select `fixupx.com` under **Settings > Link processing >
+Alternative frontends > X / Twitter** and enable X conversion on the Main
+screen. Use example 3 if you want ordinary Share to open the sharing menu directly.
+
+**Use it and check:** The same source URL has two intentionally different routes:
+
+```text
+Source: https://x.com/alex/status/123
+Opened through Browser mode → https://xcancel.com/alex/status/123
+Sent through ordinary Share → https://fixupx.com/alex/status/123
+```
+
+Changing the Browser selection does not change the Main/Share selection. Readers
+are independent services: availability, login requirements and supported content
+can change. The examples demonstrate local URL rewriting, not access to a real
+post. Choose **Clean only** in Browser frontends, or turn off the Main/Share
+platform switch, to stop the conversion in that context.
+
+[Back to workflow choices](#choose-your-workflow) · [Contents](#contents)
+
+<a id="workflow-native-app"></a>
+
+### 7. Clean first, then open a native app — advanced
+
+**Goal:** Process an eligible social link before trying its installed native app.
+
+**Set it up once:** Complete Browser setup. For a simple first test, keep the
+relevant Browser platform on **Clean only**. Under **After processing an opened
+link**, select **Try actions automatically**. Put **Open in native app** first
+and **Open in browser** second in **Action order**.
+
+If Android sends that platform's links straight to its native app, open the
+native app's Android **App info > Open by default** settings and disable **Open
+supported links** for that app. This changes Android routing for that app;
+re-enable it whenever you want direct native handling again.
+
+**Use it:** Open a supported link through FixupXer. It processes the URL and tries
+a compatible native app. If no native app accepts it, the browser action is next.
+
+```text
+Input: https://x.com/alex/status/123?utm_source=chat
+Cleaned: https://x.com/alex/status/123
+→ compatible installed X app, or your browser if no compatible app is available
+```
+
+**Check:** Do not test a privacy-reader or arbitrary custom-frontend URL while
+expecting the native-app shortcut. Those frontends are intended for browser
+handling. An app that receives the URL can still have its own login or content
+requirements. The action order determines fallbacks; it does not change the
+frontend selection. Choose **Ask what to do** to return to choosing each action.
+
+[Back to workflow choices](#choose-your-workflow) · [Contents](#contents)
+
+<a id="workflow-share-rule"></a>
+
+### 8. Apply a custom rule only to shared links — advanced
+
+**Goal:** Remove a known site-specific parameter when sharing, while leaving the
+Paste and Browser contexts unaffected by this rule.
+
+**Set it up once:** Open **Settings > Link processing > Custom URL rules > Manage
+rules**, add a rule, and use:
+
+- **Include scope:** Exact host, `news.example.com`.
+- **Processing phase:** After built-in cleaning.
+- **Apply in:** Share menu only.
+- **Action:** Remove named parameters, `newsletter_id`.
+
+Use **Test Lab** to check the draft with Share selected:
+
+```text
+Input:    https://news.example.com/read?article=42&newsletter_id=weekly
+Expected: https://news.example.com/read?article=42
+```
+
+Then check that the same input stays unchanged in Main and Browser, and that
+`https://other.example.com/read?newsletter_id=weekly` stays unchanged in Share.
+Add the relevant saved test vectors, pass them, save and enable the rule, and
+turn on the master **Enable custom rules** switch. Replace the demonstration
+host and parameter only with ones you understand and have tested.
+
+**Use it:** Start with **Show result**, share the matching URL to FixupXer and
+verify the result. Once satisfied, you can also use the automatic flow in example 3.
+
+**Check:** Test Lab can preview a draft while the master switch is off. That does
+not mean the saved rule is active, and it does not test Android handoff. The Share
+context also covers Clean link processing; it is not limited to the ordinary
+incoming Share screen. Disable the individual rule to stop its effect.
+
+[Back to workflow choices](#choose-your-workflow) · [Contents](#contents)
+
+<a id="automatic-share-frontend"></a>
+
+### Which frontend will an automatic share use?
+
+Ordinary Share uses the same per-platform selection and conversion switch as
+Main. It tries the saved enabled frontend, then the enabled platform default,
+then the first remaining enabled frontend. With no enabled target, no built-in
+frontend conversion occurs. **Enabled** means available in your local settings;
+FixupXer does not test whether the website is online.
+
+Browser selections and their fallback rules are separate. Use **Alternative
+frontends** for Main/Share and **Configure Browser frontends** for Browser.
+The roster of domains is shared, so editing or deleting a domain can affect
+both contexts even though their selected destinations are independent.
+
+[Back to workflow choices](#choose-your-workflow) · [Contents](#contents)
+
+<a id="automatic-share-paused"></a>
+
+### Why did automatic sharing stop at a result?
+
+With **Skip result screen & share**, Link Guard findings, incomplete processing,
+or processing errors pause automatic sharing for that request. Review the explanation, make any needed
+changes, and tap **Share** manually. If the sharing menu could not be opened,
+FixupXer keeps the result available instead of treating the handoff as successful.
+The same rule does not mean that Browser actions or text replacement have the
+identical interface; each workflow above describes its own behavior.
+
+Once your setup works as expected, you can save its settings with
+[Backup & restore](#history-and-backup).
+
+[Back to workflow choices](#choose-your-workflow) · [Contents](#contents)
 
 <a id="link-cleaning"></a>
 
@@ -107,6 +461,8 @@ When History is on, a sensitive original URL is never saved. If processing remov
 <a id="alternative-frontends"></a>
 
 ## Alternative frontends
+
+For a complete setup, see [a reader for opening and an embed for sharing](#workflow-reader-and-embed). For automatic Share selection, see [which frontend is used](#automatic-share-frontend).
 
 An alternative frontend is another website that can display supported social content. FixupXer rewrites and copies the URL locally. A browser or receiving app may contact the frontend when it loads the page or generates a preview. Copying the link alone does not contact the service.
 
@@ -169,6 +525,8 @@ The frontend roster is shared. Editing or removing a domain can affect selection
 <a id="browser-mode"></a>
 
 ## Browser mode
+
+Start with [clean links before opening your usual browser](#workflow-browser-clean), then use the reference below for routing, frontend and action details.
 
 ### What Browser mode is
 
@@ -449,11 +807,15 @@ phases, traces, and safe testing.
 
 #### Clean browser navigation before it opens
 
+[Follow the complete browser-cleaning setup](#workflow-browser-clean).
+
 Set FixupXer as default, leave frontend conversions off, and choose **Open in
 browser**. Eligible links Android sends to FixupXer are cleaned locally, then
 opened by an external browser.
 
 #### Clean first, then return to a native app
+
+[Follow the native-app workflow with a browser fallback](#workflow-native-app).
 
 Disable that app's **Open supported links**, then put **Open in native app**
 first in **Action order** with **Try actions automatically** selected. If no
@@ -461,6 +823,8 @@ compatible native app accepts the
 cleaned URL, the next configured action is tried.
 
 #### Open supported social links through privacy readers
+
+[Compare a Browser reader with a Main/Share embed using the same URL](#workflow-reader-and-embed).
 
 Enable a Browser reader conversion for X, Bluesky, Reddit, or Pinterest and
 select an active Reader. FixupXer rewrites the URL locally; the external app
@@ -562,6 +926,8 @@ configured priority action receives the same processed URL.
 <a id="custom-rules"></a>
 
 ## Custom URL rules
+
+For an end-to-end example that changes only one processing context, see [apply a rule only to shared links](#workflow-share-rule).
 
 Custom URL rules extend FixupXer's built-in cleaners with your own offline
 matching and transformation logic. Rules can remove query parameters, rewrite
@@ -1302,6 +1668,10 @@ Restoring replaces the settings and rules included in the backup. It does not re
 
 For example, if you delete a History row, tap **Undo** while that action is offered to restore the row. Exporting or restoring a backup cannot bring the row back: a backup includes the History setting and limit, not the URL entries. A restore may trim entries already on the device if the restored limit is lower.
 
+**Share preferences:** Settings backups include **Auto-copy shared links** and
+**After receiving a shared link**. A backup without these fields restores
+Auto-copy as off and the Share action as **Show result**.
+
 ### Browser choices and preferred browser
 
 New exports use schema v2 and include a Browser preference for each of the nine platforms. TikTok and Instagram support embed and custom targets; X and Bluesky also support readers; Reddit and Pinterest support readers and custom targets; Facebook supports custom targets. YouTube and Threads remain Clean only in Browser mode.
@@ -1343,6 +1713,7 @@ choices change the presentation, not link processing.
 
 Use these settings to reach the main controls:
 
+- **Settings > Link processing > After receiving a shared link** chooses Show result or Skip result screen & share; **Auto-copy shared links** is a separate option. [Compare the combinations](#choose-your-workflow).
 - **Settings > Link processing > Alternative frontends** manages the Main and Share frontend roster and choices.
 - **Settings > Configure Browser mode** controls Browser routing, after-clean actions, the preferred browser, saved app choices, and Browser frontend selections.
 - **Settings > Link processing > Custom URL rules > Manage rules** opens the rule library; **Enable custom rules** enables or pauses all custom rules.
@@ -1359,7 +1730,7 @@ Use these settings to reach the main controls:
 - **A link still contains a parameter:** built-in cleaners generally keep unknown or functional parameters. Canonical Instagram and X post links use the narrower permalink rules described under [Link cleaning](#link-cleaning-and-private-link-guard). If you add a custom rule, check its context, scope, and phase in [Test Lab](#test-lab).
 - **A social link is cleaned but not converted:** confirm that conversion is enabled for that platform and that the selected frontend supports that URL. Main/Share selections do not control Browser mode.
 - **A Browser link bypasses FixupXer:** Android may have sent it to a verified App Link, an embedded browser, or an explicit app choice. Review [Browser mode setup and routing](#browser-mode) and the Android app's supported-link settings.
-- **A frontend is unavailable:** choose another active target, restore its built-in category when available, or use **Clean only**. The app does not silently replace an unavailable embed or custom target.
+- **A Browser frontend is unavailable:** choose another active target, restore its built-in category when available, or use **Clean only**. Browser mode does not silently replace an unavailable embed or custom target. Ordinary Main/Share uses [its own selection order](#automatic-share-frontend).
 - **A rule does nothing or changes too much:** disable it, narrow its scope, review the [custom-rule troubleshooting](#common-beginner-mistakes), and test a matching and non-matching URL before enabling it again.
 - **A saved browser or app choice cannot launch:** choose an installed compatible destination. A missing app does not erase the saved choice; see [Preferred browser](#preferred-browser) and [Saved app choices](#saved-app-choices).
 - **A backup is rejected:** the file may be invalid or from an unsupported format. Restore validates before applying settings. If recovery is still in progress, reopen the app and let recovery finish before retrying.

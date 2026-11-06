@@ -2,6 +2,9 @@
 
 This guide has moved to [FixupXer Help](HELP.md#history-and-backup).
 
+After configuring and checking one of the [usage workflows](HELP.md#choose-your-workflow),
+use **Settings > Backup & restore** to save its settings and custom rules.
+
 The original section links below now lead to their corresponding Help sections.
 
 ## Browser choices and preferred browser

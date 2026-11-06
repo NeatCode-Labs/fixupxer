@@ -2,6 +2,15 @@
 
 This guide has moved to [FixupXer Help](HELP.md#browser-mode).
 
+Start with a complete setup example:
+
+- [Clean links before opening your usual browser](HELP.md#workflow-browser-clean).
+- [Use a reader for opening and an embed for sharing](HELP.md#workflow-reader-and-embed).
+- [Clean first, then open a native app with a browser fallback](HELP.md#workflow-native-app).
+
+For Paste, Share and Clean link, see [Choose your workflow](HELP.md#choose-your-workflow);
+those entry points do not require Browser mode.
+
 The original section links below now lead to their corresponding Help sections.
 
 ## What Browser mode is

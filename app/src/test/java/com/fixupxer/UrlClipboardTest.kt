@@ -49,6 +49,8 @@ class UrlClipboardTest {
     private lateinit var activity: AppCompatActivity
     private lateinit var anchor: CoordinatorLayout
     private val url = "https://example.com/private?token=kept-functional-value"
+    private val youtubeUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    private val xUrl = "https://x.com/person/status/123"
 
     @Before
     fun setUp() {
@@ -65,36 +67,51 @@ class UrlClipboardTest {
     fun tearDown() = activity.finish()
 
     @Test
-    fun `main and share copy mask preview and show app feedback only before Android 13`() {
+    @Config(sdk = [24, 29, 32, 33])
+    fun `main and share copy mark only final URLs with Link Guard findings`() {
         assertTrue(UrlActionHelper.copyToClipboard(anchor, activity, url))
-        shadowOf(Looper.getMainLooper()).idle()
+        assertClipboard(url, sensitive = true)
 
-        assertSensitiveClipboard()
+        // Copying an ordinary URL after a sensitive one must replace the old
+        // ClipData metadata, not carry the previous sensitive marker forward.
+        listOf(youtubeUrl, xUrl).forEach { ordinaryUrl ->
+            assertTrue(UrlActionHelper.copyToClipboard(anchor, activity, ordinaryUrl))
+            assertClipboard(ordinaryUrl, sensitive = false)
+        }
+
+        shadowOf(Looper.getMainLooper()).idle()
         assertAppSnackbarPolicy()
     }
 
     @Test
-    fun `history copy follows the same privacy and feedback policy`() {
+    fun `history copy follows final URL sensitivity policy`() {
         val binding = ItemHistoryBinding.inflate(activity.layoutInflater, anchor, true)
         val holder = HistoryAdapter.HistoryViewHolder(binding, null, {}, anchor)
         holder.bind(UrlHistory(1, url, url, "Other", "Cleaned", 100L, "now"))
 
         binding.buttonCopy.performClick()
-        shadowOf(Looper.getMainLooper()).idle()
+        assertClipboard(url, sensitive = true)
 
-        assertSensitiveClipboard()
+        holder.bind(UrlHistory(2, youtubeUrl, youtubeUrl, "YouTube", "Cleaned", 101L, "now"))
+        binding.buttonCopy.performClick()
+        assertClipboard(youtubeUrl, sensitive = false)
+
+        shadowOf(Looper.getMainLooper()).idle()
         assertAppSnackbarPolicy()
     }
 
     @Test
-    fun `post clean copy masks preview without duplicate Android 13 toast`() {
+    fun `post clean copy marks only final URLs with Link Guard findings`() {
         val preferences: PreferencesManager = mock()
         whenever(preferences.getActionMode()).thenReturn(PreferencesManager.ACTION_MODE_PRIORITY)
         whenever(preferences.getActionPriority()).thenReturn(listOf(PreferencesManager.ACTION_CLIPBOARD))
 
         PostCleanRunner(activity, preferences).run(Uri.parse(url))
+        assertClipboard(url, sensitive = true)
 
-        assertSensitiveClipboard()
+        PostCleanRunner(activity, preferences).run(Uri.parse(youtubeUrl))
+        assertClipboard(youtubeUrl, sensitive = false)
+
         if (Build.VERSION.SDK_INT < 33) {
             assertEquals(activity.getString(R.string.url_copied), ShadowToast.getTextOfLatestToast())
         } else {
@@ -124,15 +141,28 @@ class UrlClipboardTest {
     fun `copy still works below clipboard extras API`() {
         UrlClipboard.copy(activity, url)
 
-        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        assertEquals(url, clipboard.primaryClip!!.getItemAt(0).text.toString())
+        assertClipboard(url, sensitive = false)
     }
 
-    private fun assertSensitiveClipboard() {
+    private fun assertClipboard(expectedUrl: String, sensitive: Boolean) {
         val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = clipboard.primaryClip!!
-        assertEquals(url, clip.getItemAt(0).text.toString())
-        assertTrue(clip.description.extras!!.getBoolean("android.content.extra.IS_SENSITIVE"))
+        assertEquals(expectedUrl, clip.getItemAt(0).text.toString())
+
+        // ClipDescription extras are available from Android 7.0 (API 24).
+        // For ordinary URLs, assert that the key is absent, not merely false.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val extras = clip.description.extras
+            val hasSensitiveKey = extras?.containsKey(IS_SENSITIVE_KEY) == true
+            assertEquals("IS_SENSITIVE key presence", sensitive, hasSensitiveKey)
+            if (sensitive) {
+                assertTrue(extras!!.getBoolean(IS_SENSITIVE_KEY))
+            }
+        }
+    }
+
+    private companion object {
+        const val IS_SENSITIVE_KEY = "android.content.extra.IS_SENSITIVE"
     }
 
     private fun assertAppSnackbarPolicy() {

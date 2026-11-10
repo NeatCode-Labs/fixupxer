@@ -9,6 +9,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
@@ -71,7 +72,17 @@ class ShareAutoCopyTest {
             scenario.onActivity { activity ->
                 val clip = (activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip!!
                 assertEquals(expected, clip.getItemAt(0).text.toString())
-                if (sensitive) assertTrue(clip.description.extras!!.getBoolean("android.content.extra.IS_SENSITIVE"))
+                // ClipDescription extras were added in Android 7.0 (API 24).
+                // Check both true and false so ordinary auto-copies cannot
+                // inherit or accidentally retain a sensitive marker.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    val extras = clip.description.extras
+                    val hasSensitiveKey = extras?.containsKey(IS_SENSITIVE_KEY) == true
+                    assertEquals("IS_SENSITIVE key presence", sensitive, hasSensitiveKey)
+                    if (sensitive) {
+                        assertTrue(extras!!.getBoolean(IS_SENSITIVE_KEY))
+                    }
+                }
             }
         }
     }
@@ -91,7 +102,7 @@ class ShareAutoCopyTest {
         launch().use { scenario ->
             setClipboard(scenario)
             scenario.onActivity { InstrumentationRegistry.getInstrumentation().callActivityOnNewIntent(it, send("https://example.com/article?utm_source=fixture", clipOnly = true)) }
-            assertClipboard(scenario, "https://example.com/article", sensitive = true)
+            assertClipboard(scenario, "https://example.com/article", sensitive = false)
             setClipboard(scenario)
             scenario.recreate()
             awaitResult(scenario, "https://example.com/article")
@@ -117,10 +128,11 @@ class ShareAutoCopyTest {
 
     @Test
     fun alreadyCleanUrlIsCopied() {
+        val youtubeUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
         launch().use { scenario ->
             setClipboard(scenario)
-            scenario.onActivity { InstrumentationRegistry.getInstrumentation().callActivityOnNewIntent(it, send("https://example.com/article")) }
-            assertClipboard(scenario, "https://example.com/article")
+            scenario.onActivity { InstrumentationRegistry.getInstrumentation().callActivityOnNewIntent(it, send(youtubeUrl)) }
+            assertClipboard(scenario, youtubeUrl, sensitive = false)
         }
     }
 
@@ -130,9 +142,9 @@ class ShareAutoCopyTest {
         preferences.setSelectedProxyDomain(ProxyPlatform.X, Constants.FIXUPX_DOMAIN)
         launch().use { scenario ->
             scenario.onActivity { InstrumentationRegistry.getInstrumentation().callActivityOnNewIntent(it, send("https://x.com/person/status/123?utm_source=fixture")) }
-            assertClipboard(scenario, "https://fixupx.com/person/status/123")
+            assertClipboard(scenario, "https://fixupx.com/person/status/123", sensitive = false)
             onView(withId(R.id.switchPlatform)).perform(click())
-            assertClipboard(scenario, "https://x.com/person/status/123")
+            assertClipboard(scenario, "https://x.com/person/status/123", sensitive = false)
         }
     }
 
@@ -163,5 +175,9 @@ class ShareAutoCopyTest {
                 assertClipboard(scenario, sentinel)
             }
         }
+    }
+
+    private companion object {
+        const val IS_SENSITIVE_KEY = "android.content.extra.IS_SENSITIVE"
     }
 }

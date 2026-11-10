@@ -7,7 +7,7 @@
 <h3 align="center">Cleaner links. X readers without an account. Better previews in your chats.</h3>
 
 <p align="center">
-  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.11.1"><img src="https://img.shields.io/badge/version-2.11.1-blue?style=flat-square" alt="Version 2.11.1"></a>
+  <a href="https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.11.2"><img src="https://img.shields.io/badge/version-2.11.2-blue?style=flat-square" alt="Version 2.11.2"></a>
   <a href="https://developer.android.com/about/versions/lollipop"><img src="https://img.shields.io/badge/Android-5.0+-3DDC84?style=flat-square&amp;logo=android&amp;logoColor=white" alt="Android 5.0 or newer"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue?style=flat-square" alt="GPL-3.0-or-later license"></a>
   <a href="PRIVACY_POLICY.md"><img src="https://img.shields.io/badge/network%20permissions-none-success?style=flat-square" alt="No network permissions"></a>
@@ -294,6 +294,7 @@ See the [History and backup Help](docs/HELP.md#history-and-backup) for migration
   sharesheet with the final URL after safe, complete processing of a link shared
   to FixupXer. You choose the receiving app. Link Guard findings and incomplete
   processing require review; Browser mode is unaffected.
+- **Clipboard previews** — Copied URLs are marked sensitive only when Private Link Guard detects sensitive data in the final URL. Ordinary links keep their previews where supported.
 - **Opt-in clipboard write** — Auto-copy is off by default and only writes a
   shared link to Android's clipboard when enabled. Remaining Link Guard findings and
   incomplete processing block the automatic write.

@@ -1,5 +1,33 @@
 # Android Test Coverage for FixupXer
 
+## v2.11.2 / 64 — Clipboard previews follow Link Guard — November 10, 2026
+
+The shared URL clipboard policy marks a clip sensitive only when Link Guard
+finds sensitive data in the final copied URL. Ordinary links omit the flag.
+Main/Share manual Copy, Auto-copy, History and Browser copy use the same policy.
+Auto-copy still pauses for remaining findings or incomplete processing.
+
+### Source verification
+
+- Full unit gates: **876 debug + 876 release**, zero failures/errors/skips.
+- Release lint: **0 errors / 43 warnings** (same warning count as v2.11.1).
+- Full cold API35 instrumentation: **303/303**, zero failures/errors/skips.
+- Clipboard regression assertions cover ordinary YouTube/X URLs, sensitive final
+  URLs and sensitive-to-ordinary replacement through Main/Share, History and
+  PostClean. Robolectric covers API21, 24, 29, 32 and 33; API35 Auto-copy checks
+  assert actual flag absence, including after frontend conversion, and retained
+  marking for manual copying after a Link Guard warning.
+- F-Droid icon visually checked and byte-identical to the root store icon.
+  Store descriptions reviewed and remain accurate; Help/privacy copy updated.
+- No physical-device or Gboard-specific acceptance run is claimed.
+
+### Final artifacts and distribution
+
+Final signed artifacts, independent Linux/F-Droid reproduction, signed
+clean/upgrade acceptance and distribution are pending for v2.11.2.
+
+---
+
 ## v2.11.1 / 63 — Clearer Share action setting — November 5, 2026
 
 The option is now **Skip result screen & share**, with a description explaining

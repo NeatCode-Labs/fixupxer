@@ -177,6 +177,9 @@ query parameters on the Share result screen, a changed final result can be
 copied too. Link Guard findings or incomplete processing pause automatic copying; review the result
 before choosing **Copy** manually. Turn Auto-copy off to return to manual copy.
 
+Copied URLs are marked as sensitive in Android's clipboard only when Private Link Guard detects sensitive data in the final URL. This applies to manual Copy, Auto-copy, History and Browser copy actions. The flag requests a hidden preview in supporting apps; it does not restrict clipboard access or guarantee that every private value is detected.
+
+
 [Back to workflow choices](#choose-your-workflow) · [Contents](#contents)
 
 <a id="workflow-auto-share"></a>

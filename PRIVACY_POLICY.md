@@ -56,6 +56,8 @@ inline text replacement, or Browser mode. Automatic copying is skipped while Pri
 Guard still reports sensitive data or processing is incomplete. As with a
 manual Copy action, enabling Auto-copy writes the URL to Android's clipboard.
 
+Copied URLs are marked as sensitive in Android's clipboard only when Private Link Guard detects sensitive data in the final URL. This applies to manual Copy, Auto-copy, History and Browser copy actions. The flag requests a hidden preview in supporting apps; it does not restrict clipboard access or guarantee that every private value is detected.
+
 ### Browser Mode (optional)
 Browser mode requires enabling FixupXer's browser alias and separately selecting
 FixupXer as Android's default browser. FixupXer processes only eligible HTTP(S)

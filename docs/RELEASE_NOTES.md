@@ -1,3 +1,22 @@
+# FixupXer v2.11.2 - Clipboard previews follow Link Guard
+
+## What's Changed
+
+- Fix the clipboard policy that incorrectly marked every copied link as sensitive. Ordinary links, including YouTube videos and X posts, no longer request a hidden clipboard preview.
+- Mark a copied URL as sensitive only when Private Link Guard detects sensitive data in the final URL. Apply the same rule to manual copying, Auto-copy, History, and Browser copy actions.
+- Keep Auto-copy paused when Link Guard reports sensitive data or processing is incomplete. Manual copying remains available after review.
+- Thanks to @owochle for reporting the clipboard usability problem in issue #14.
+
+### Technical Details
+
+- Minimum Android: 5.0 (API 21)
+- Target Android: 16 (API 36)
+- Version Code: 64
+- versionName: 2.11.2
+- Release verification and distribution status: BUILD_REPORT.md.
+
+---
+
 # FixupXer v2.11.1 - Clearer Share action setting
 
 ## What's Changed

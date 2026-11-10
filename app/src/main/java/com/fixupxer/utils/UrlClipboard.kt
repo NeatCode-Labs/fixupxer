@@ -18,6 +18,7 @@ import android.content.Context
 import android.os.Build
 import android.os.PersistableBundle
 import com.fixupxer.R
+import com.fixupxer.processing.LinkLeakAnalyzer
 
 /** Clipboard policy shared by every action that copies a processed URL. */
 object UrlClipboard {
@@ -29,9 +30,11 @@ object UrlClipboard {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
             ?: error("ClipboardManager not available")
         val clip = ClipData.newPlainText(context.getString(R.string.clipboard_label_url), url)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            // Even a cleaned URL can contain a private path or a functional token.
-            // The compatible key hides that content from system copy previews.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+            LinkLeakAnalyzer.analyze(url).isNotEmpty()
+        ) {
+            // Classify the final copied URL, using the same findings as Link Guard.
+            // Ordinary links keep their preview; detected sensitive data is hidden.
             val sensitiveKey = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 ClipDescription.EXTRA_IS_SENSITIVE
             } else {

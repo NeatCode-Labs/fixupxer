@@ -1,0 +1,3 @@
+• Fixed ordinary links being incorrectly marked sensitive in the clipboard.
+• Clipboard previews are hidden only when Link Guard detects sensitive data in the copied URL.
+• Applies to manual Copy, Auto-copy, History and Browser copy actions.

@@ -23,8 +23,36 @@ Auto-copy still pauses for remaining findings or incomplete processing.
 
 ### Final artifacts and distribution
 
-Final signed artifacts, independent Linux/F-Droid reproduction, signed
-clean/upgrade acceptance and distribution are pending for v2.11.2.
+Root AAB source: `de58f0538a3ad69f41bf78e5720d92c3eb56de23`. Mirror local annotated tag `v2.11.2`
+points to `66eb45a1df7505abdf3dc42bf39842ff0d60aee1`. The GitHub APK was built from this tag in a fresh
+Windows clone. Both channels pass signing, package/version, minSdk21/targetSdk36
+and zero-permission checks. Play ownership is present only in Play artifacts;
+the mirror APK excludes ownership and dependency metadata. No baseline profiles.
+
+| Artifact | SHA-256 |
+|---|---|
+| Google Play AAB | `3f42ef805128277fe4b3b4016c8891e2b8ab82a5789f77976f09d87101de16d0` |
+| GitHub APK | `babd40503569ccbdbbfa2649767c8be17b3addf2e6293204b65d64334e344a7e` |
+| AAB-derived universal APK | `50beeaaf37e11f9bd56e5eddf1c861cb2ae4d965d0f0a09a4f346a8d64aeed15` |
+
+Independent Linux/F-Droid rebuild: **PASS**, using the live upstream recipe
+at fdroiddata revision `f0821d59553e872a11d43f8b21672289e9f999b2`. The actual prebuild, srclib
+and postbuild steps were applied. F-Droid verification, apksigcopier comparison
+and signature-copied byte identity all pass against the final signed APK.
+
+Final signed acceptance: **4/4 channel/install combinations, 122 passed assertions**,
+zero skips or cleanup errors, API35. Both the mirror APK and the AAB-derived
+universal APK were tested as clean installs and same-channel upgrades from
+v2.11.1. Installed bytes match the recorded artifacts; upgrades preserve theme
+and Auto-copy preferences. Tests read the actual clipboard value and sensitive
+metadata through an offline fixture after app copying. Main manual Copy,
+History's copy button and Share history selection, Share manual/Auto-copy,
+Link Guard's automatic-copy block and manual override, Process Text preview,
+and Browser copy all pass. Ordinary output has no sensitive key; detected
+final output retains it. No physical-phone or Gboard-specific run is claimed.
+
+GitHub publication and Google Play submission are pending. F-Droid catalogue
+ingestion is an external step and is not implied by the local reproduction.
 
 ---
 

@@ -23,7 +23,7 @@ Auto-copy still pauses for remaining findings or incomplete processing.
 
 ### Final artifacts and distribution
 
-Root AAB source: `de58f0538a3ad69f41bf78e5720d92c3eb56de23`. Mirror local annotated tag `v2.11.2`
+Root AAB source: `de58f0538a3ad69f41bf78e5720d92c3eb56de23`. Mirror annotated tag `v2.11.2`
 points to `66eb45a1df7505abdf3dc42bf39842ff0d60aee1`. The GitHub APK was built from this tag in a fresh
 Windows clone. Both channels pass signing, package/version, minSdk21/targetSdk36
 and zero-permission checks. Play ownership is present only in Play artifacts;
@@ -51,8 +51,20 @@ Link Guard's automatic-copy block and manual override, Process Text preview,
 and Browser copy all pass. Ordinary output has no sensitive key; detected
 final output retains it. No physical-phone or Gboard-specific run is claimed.
 
-GitHub publication and Google Play submission are pending. F-Droid catalogue
-ingestion is an external step and is not implied by the local reproduction.
+[GitHub v2.11.2](https://github.com/NeatCode-Labs/fixupxer/releases/tag/v2.11.2) was published on November 10, 2026
+at 2026-11-10T15:47:42Z. The published APK digest matches the verified artifact.
+The remote annotated tag resolves to the tested mirror source commit above.
+
+Google Play Production release **FixupXer v2.11.2 / 64** was submitted on
+November 10, 2026 for **100% rollout** in all 178 existing target countries.
+The Console accepted submission and shows **Changes in review**; its automated
+quick checks were still running at verification. Managed publishing remains off,
+so publication is automatic after approval. **Play availability is not yet confirmed.**
+F-Droid's later tag ingestion, verification and catalogue publication remain
+external steps; the independent reproduction does not imply catalogue availability.
+
+[Issue #14](https://github.com/NeatCode-Labs/fixupxer/issues/14#issuecomment-6772046795) received an explanation and apology for incorrectly
+marking every copied URL as sensitive, and was closed as completed at 2026-11-10T15:54:06Z.
 
 ---
 
